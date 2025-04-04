@@ -1,96 +1,48 @@
 <template>
   <div class="ethic-influencer-container">
-    <!-- 1. Slogan Section -->
-    <section class="slogan-section">
-      <div class="slogan-content">
-        <h1>Mindful Creator</h1>
-        <h2>Navigating Digital Influence with Integrity</h2>
-        <p class="slogan-description">
-          A comprehensive guide to becoming a responsible and ethical digital creator
-        </p>
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1>Ethical Influencer:</h1>
+        <h1>Building Trust and</h1>
+        <h1>Authenticity Online</h1>
+        <p class="subtitle">Guide to responsible content creation and digital influence</p>
       </div>
-    </section>
-
-    <!-- 2. Know Your Power Section -->
-    <section class="power-section">
-      <div class="section-content">
-        <h2>Know Your Power</h2>
-        <p class="section-subtitle">Understanding your role and influence as a content creator</p>
-        
-        <div class="resource-grid">
-          <div class="resource-card">
-            <h3>What It Means to Be an Influencer</h3>
-            <p>Explore the responsibilities and impact of digital influence in today's connected world.</p>
-            <div class="resource-tags">
-              <span class="tag">Digital Identity</span>
-              <span class="tag">Influence</span>
-            </div>
-          </div>
-          
-          <div class="resource-card">
-            <h3>Your Voice, Your Reach</h3>
-            <p>Understanding the power of your digital presence and how to use it responsibly.</p>
-            <div class="resource-tags">
-              <span class="tag">Audience Impact</span>
-              <span class="tag">Responsibility</span>
-            </div>
-          </div>
+      <div class="decorative-elements">
+        <div class="top-elements">
+          <img src="../components/icons/elements/Wave_Wide_Red.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Flower_Pink.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Square_Green.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Flower_Orange.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Wave_Green.svg" alt="Decorative" class="element">
+        </div>
+        <div class="bottom-elements">
+          <img src="../components/icons/elements/Flower_Pink_round.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Square_Orange.svg" alt="Decorative" class="element">
+          <img src="../components/icons/elements/Flower_red.svg" alt="Decorative" class="element">
         </div>
       </div>
     </section>
 
-    <!-- 3. Create with Integrity Section -->
-    <section class="integrity-section">
-      <div class="section-content">
-        <h2>Create with Integrity</h2>
-        <p class="section-subtitle">Making ethical choices when creating and sharing content</p>
-        
-        <div class="resource-grid">
-          <div class="resource-card">
-            <h3>Avoiding Clickbait Ethics</h3>
-            <p>Learn how to create engaging content without resorting to misleading tactics.</p>
-            <div class="resource-tags">
-              <span class="tag">Content Ethics</span>
-              <span class="tag">Misinformation</span>
-            </div>
-          </div>
-          
-          <div class="resource-card">
-            <h3>Fact-Check Before You Post</h3>
-            <p>Essential guidelines for verifying information before sharing with your audience.</p>
-            <div class="resource-tags">
-              <span class="tag">Fact Checking</span>
-              <span class="tag">Responsibility</span>
-            </div>
-          </div>
-        </div>
+    <!-- Content Sections -->
+    <section class="content-section">
+      <div class="section-background">
+        <img src="../components/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
       </div>
-    </section>
-
-    <!-- 4. Lead by Example Section -->
-    <section class="lead-section">
-      <div class="section-content">
-        <h2>Lead by Example</h2>
-        <p class="section-subtitle">Being a positive force in digital communities</p>
-        
-        <div class="resource-grid">
-          <div class="resource-card">
-            <h3>Calling In vs. Calling Out</h3>
-            <p>Effective strategies for addressing problematic content while maintaining respect.</p>
-            <div class="resource-tags">
-              <span class="tag">Community Building</span>
-              <span class="tag">Conflict Resolution</span>
-            </div>
-          </div>
-          
-          <div class="resource-card">
-            <h3>How to Handle Trolls Gracefully</h3>
-            <p>Maintaining professionalism and positivity when facing online negativity.</p>
-            <div class="resource-tags">
-              <span class="tag">Online Civility</span>
-              <span class="tag">Community Management</span>
-            </div>
-          </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <img src="../components/icons/elements/Eye.svg" alt="Icon" class="content-icon">
+          <h3>Understanding Your Impact</h3>
+          <p>Learn how your content affects your audience and shapes online discourse.</p>
+        </div>
+        <div class="content-card">
+          <img src="../components/icons/elements/Jigsaw.svg" alt="Icon" class="content-icon">
+          <h3>Building Authentic Relationships</h3>
+          <p>Develop genuine connections with your audience through transparent communication.</p>
+        </div>
+        <div class="content-card">
+          <img src="../components/icons/elements/Flower_Pink_round.svg" alt="Icon" class="content-icon">
+          <h3>Ethical Content Creation</h3>
+          <p>Create content that aligns with your values while maintaining integrity.</p>
         </div>
       </div>
     </section>
@@ -129,110 +81,134 @@ onMounted(() => {
 
 <style scoped>
 .ethic-influencer-container {
+  background-color: rgb(254, 251, 244);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.hero-section {
+  position: relative;
+  padding: 6rem 2rem;
+  margin-bottom: 4rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.hero-content {
+  max-width: 900px;
+  padding-right: 2rem;
+}
+
+.hero-content h1 {
+  font-size: 4.5rem;
+  line-height: 1.15;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 2rem;
+  color: #007AFF;
+  margin-top: 2.5rem;
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 400px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  font-family: sans-serif;
+  justify-content: space-between;
+  padding: 2rem 0;
 }
 
-/* Slogan Section */
-.slogan-section {
+.top-elements, .bottom-elements {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.top-elements {
+  grid-template-areas: 
+    "a b c"
+    ". d e";
+}
+
+.element {
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.element:hover {
+  transform: rotate(15deg);
+}
+
+/* Content Section */
+.content-section {
   position: relative;
-  background: linear-gradient(135deg, #1976d2, #64b5f6);
-  padding: 4rem 2rem;
-  text-align: center;
-  color: white;
-  min-height: 40vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 6rem 2rem;
+  color: #232323;
 }
 
-.slogan-content h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
+.section-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
 }
 
-.slogan-content h2 {
-  font-size: 2rem;
-  margin-bottom: 2rem;
+.bg-gradient {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.slogan-description {
-  font-size: 1.2rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* Common Section Styles */
-.section-content {
+.content-grid {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
-}
-
-.section-content h2 {
-  text-align: center;
-  color: #1976d2;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  text-align: center;
-  color: #666;
-  font-size: 1.2rem;
-  margin-bottom: 3rem;
-}
-
-/* Resource Grid */
-.resource-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  margin-top: 2rem;
 }
 
-.resource-card {
-  background: white;
+.content-card {
+  background: rgba(255, 255, 255, 0.9);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
-}
-
-.resource-card:hover {
-  transform: translateY(-5px);
-}
-
-.resource-card h3 {
-  color: #1976d2;
-  margin-bottom: 1rem;
-}
-
-.resource-tags {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 0.3rem 0.8rem;
   border-radius: 20px;
-  font-size: 0.8rem;
+  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
 }
 
-/* Section-specific backgrounds */
-.power-section {
-  background: #f5f5f5;
+.content-card:hover {
+  transform: translateY(-5px) rotateX(10deg) rotateY(10deg);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
 }
 
-.integrity-section {
-  background: white;
+.content-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 1.5rem;
 }
 
-.lead-section {
-  background: #f5f5f5;
+h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #232323;
+}
+
+p {
+  color: #666;
+  line-height: 1.6;
 }
 </style> 

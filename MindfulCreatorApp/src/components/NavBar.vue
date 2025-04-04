@@ -1,14 +1,19 @@
 <template>
   <nav class="navbar">
     <div class="navbar-left">
-      <div class="logo">
-        <img src="../components/icons/elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
-        <span class="logo-text">Inflowence</span>
-      </div>
+      <router-link to="/" class="logo">
+        <div class="logo-icon">▶</div>
+        <span class="logo-text">INFLOWENCE</span>
+      </router-link>
     </div>
     <div class="navbar-right">
-      <router-link to="/">Home</router-link>
-      <router-link to="/ethic-influencer">Mindful Creator</router-link>
+      <router-link to="/" class="nav-link">HOME</router-link>
+      <router-link to="/about" class="nav-link">ABOUT</router-link>
+      <router-link to="/ethic-influencer" class="nav-link">ETHIC INFLUENCER</router-link>
+      <router-link to="/creator-wellbeing" class="nav-link">CREATOR WELLBEING</router-link>
+      <router-link to="/critical-response" class="nav-link">CRITICAL RESPONSE</router-link>
+      <router-link to="/privacy" class="nav-link">PRIVACY</router-link>
+      <router-link to="/copyright" class="nav-link">COPYRIGHT</router-link>
     </div>
   </nav>
 </template>
@@ -54,24 +59,26 @@ export default {
 
 .navbar-right {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
+  align-items: center;
 }
 
-.navbar-right a {
-  color: black;
+.nav-link {
   text-decoration: none;
+  color: black;
+  font-size: 0.9rem;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
 }
 
-.navbar-right a:hover {
-  background-color: rgb(232, 107, 164);
+.nav-link.router-link-active {
+  background-color: #FF69B4;
   color: white;
 }
 
-.navbar-right a.router-link-active {
-  background-color: rgb(232, 107, 164);
-  color: white;
+.nav-link:hover:not(.active) {
+  background-color: rgba(255, 105, 180, 0.1);
 }
 </style> 
