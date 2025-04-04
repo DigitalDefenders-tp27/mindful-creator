@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="navbar-left">
       <div class="logo">
-        <img src="./components/icons/Elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
+        <img src="../components/icons/elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
         <span class="logo-text">Inflowence</span>
       </div>
     </div>
@@ -24,9 +24,10 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #1976d2;
+  background: transparent;
   padding: 1rem 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid #ddd;
 }
 
 .navbar-left {
@@ -48,7 +49,7 @@ export default {
 .logo-text {
   font-size: 1.5rem;
   font-weight: bold;
-  color: white;
+  color: black;
 }
 
 .navbar-right {
@@ -57,7 +58,7 @@ export default {
 }
 
 .navbar-right a {
-  color: white;
+  color: black;
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -65,10 +66,12 @@ export default {
 }
 
 .navbar-right a:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(232, 107, 164);
+  color: white;
 }
 
 .navbar-right a.router-link-active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgb(232, 107, 164);
+  color: white;
 }
 </style> 
