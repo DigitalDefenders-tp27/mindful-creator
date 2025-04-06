@@ -10,7 +10,7 @@
     >
       <!-- Front -->
       <div
-        class="absolute size-full overflow-hidden rounded-2xl border [backface-visibility:hidden]"
+        class="absolute size-full overflow-hidden rounded-2xl [backface-visibility:hidden]"
       >
         <slot />
       </div>
@@ -19,7 +19,7 @@
       <div
         :class="
           cn(
-            'absolute h-full w-full overflow-hidden rounded-2xl border bg-black/80 p-4 text-slate-200 [backface-visibility:hidden]',
+            'absolute h-full w-full overflow-hidden rounded-2xl p-4 text-slate-200 [backface-visibility:hidden]',
             rotation[1],
           )
         "

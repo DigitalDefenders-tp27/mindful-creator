@@ -71,10 +71,14 @@
             :gradientOpacity="0.5"
           >
             <div class="card-content-wrapper">
-              <img src="/src/components/icons/elements/Eye.svg" alt="Impact" class="card-icon">
               <div class="card-text">
-                <h3>Understanding Your Impact</h3>
-                <p>Learn how your content affects your audience and shapes online discourse.</p>
+                <div class="card-title">
+                  <img src="/src/components/icons/elements/Eye.svg" alt="Impact" class="card-icon">
+                  <h3>Understanding Your Impact</h3>
+                </div>
+                <div class="card-description">
+                  Learn how your content affects your audience and shapes online discourse.
+                </div>
               </div>
             </div>
           </CardSpotlight>
@@ -101,10 +105,14 @@
             :gradientOpacity="0.5"
           >
             <div class="card-content-wrapper">
-              <img src="/src/components/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
               <div class="card-text">
-                <h3>Building Authentic Relationships</h3>
-                <p>Develop genuine connections with your audience through transparent communication.</p>
+                <div class="card-title">
+                  <img src="/src/components/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
+                  <h3>Building Authentic Relationships</h3>
+                </div>
+                <div class="card-description">
+                  Develop genuine connections with your audience through transparent communication.
+                </div>
               </div>
             </div>
           </CardSpotlight>
@@ -131,10 +139,14 @@
             :gradientOpacity="0.5"
           >
             <div class="card-content-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
               <div class="card-text">
-                <h3>Ethical Content Creation</h3>
-                <p>Create content that aligns with your values while maintaining integrity.</p>
+                <div class="card-title">
+                  <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
+                  <h3>Ethical Content Creation</h3>
+                </div>
+                <div class="card-description">
+                  Create content that aligns with your values while maintaining integrity.
+                </div>
               </div>
             </div>
           </CardSpotlight>
@@ -151,6 +163,11 @@
               <div class="read-more">Click to read more...</div>
             </div>
           </CardSpotlight>
+        </div>
+
+        <!-- Quiz Card / 测验卡片 -->
+        <div class="quiz-row">
+          <QuizCard />
         </div>
       </div>
     </section>
@@ -177,6 +194,7 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { marked } from 'marked'
 import { CardSpotlight } from '../components/ui/card-spotlight'
+import QuizCard from '@/components/ui/quiz-card.vue'
 
 const guideData = ref({
   title: 'Mindful Creator',
@@ -196,7 +214,7 @@ const getPreviewContent = (content) => {
   const lines = content
     .split('\n')
     .filter(line => line.trim() && !line.startsWith('#'))
-  return lines.slice(0, 5).join('\n')
+  return lines.slice(0, 7).join('\n')
 }
 
 const previewContent = computed(() => getPreviewContent(contentGuidelinesMarkdown.value))
@@ -571,6 +589,15 @@ onMounted(() => {
     transform: translateX(20%);
     opacity: 0.3;
   }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "quiz"
+      "long1"
+      "long2";
+  }
 }
 
 @media (max-width: 768px) {
@@ -651,74 +678,151 @@ onMounted(() => {
   grid-template-columns: minmax(auto, 300px) 1fr;
 }
 
-.main-card {
-  @apply h-full p-6;
-  min-height: 200px;
+.quiz-row {
+  @apply mt-6;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  width: 100%;
 }
 
-.long-card {
+.main-card, .long-card {
   @apply h-full p-6;
   min-height: 200px;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgb(0, 0, 0);
+  background-color: rgb(255, 255, 255);
 }
 
 .card-content-wrapper {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 1.5rem;
   height: 100%;
 }
 
-.card-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  margin-top: 0.25rem;
-}
-
 .card-text {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 60px;
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-text h3 {
-  @apply text-xl font-semibold mb-3 text-neutral-900 dark:text-white;
+  @apply text-xl font-semibold text-neutral-900 dark:text-white;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin: 0;
 }
 
-.card-text p {
+.card-description {
+  width: 100%;
   @apply text-base text-neutral-600 dark:text-neutral-400;
   line-height: 1.5;
+}
+
+/* Dark mode adjustments */
+.dark .card-text h3 {
+  @apply text-white;
+}
+
+.dark .card-description {
+  @apply text-neutral-400;
 }
 
 .preview-content {
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  padding: 1.2rem;
+  max-height: 180px;
 }
 
 .preview-text {
   flex-grow: 1;
   overflow: hidden;
   position: relative;
+  padding-bottom: 2.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.preview-text :deep(p) {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.preview-text :deep(h1) {
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.preview-text :deep(h2) {
+  font-size: 1.2rem;
+  margin: 0.75rem 0 0.5rem;
+  font-weight: 600;
 }
 
 .read-more {
-  @apply mt-4 text-sm text-neutral-500 dark:text-neutral-400 italic;
-  margin-top: auto;
-  padding: 0.5rem 0 0;
-  text-align: right;
-  background: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem 1rem 0.75rem;
+  background: linear-gradient(180deg, transparent 0%, rgb(255, 255, 255) 50%);
+  text-align: center;
+  color: #007AFF;
+  font-weight: 500;
+  font-size: 1.1rem;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Dark mode adjustments */
+.dark .read-more {
+  background: linear-gradient(180deg, transparent 0%, rgb(38, 38, 38) 50%);
+}
+
+/* Remove duplicate styles */
+.preview-content {
+  display: block;
+  color: #444;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border-radius: 12px;
+}
+
+/* Remove the separate overlay styles */
+.card-overlay {
+  display: none;
 }
 
 /* 3D效果样式 / 3D effect styles */
-.main-card, .long-card {
-  @apply transform-gpu transition-all duration-300;
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
 .main-card:hover, .long-card:hover {
   transform: translateY(-5px) rotateX(5deg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -726,19 +830,22 @@ onMounted(() => {
 
 /* Dark mode adjustments / Dark mode adjustments */
 .dark .main-card, .dark .long-card {
-  @apply bg-neutral-800;
+  background-color: rgb(38, 38, 38);
+  border-color: rgb(255, 255, 255);
 }
 
 .dark .main-card:hover, .dark .long-card:hover {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
-.dark .card-text h3 {
-  @apply text-white;
-}
-
-.dark .card-text p {
-  @apply text-neutral-400;
+@media (max-width: 1024px) {
+  .content-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .quiz-row {
+    justify-content: center;
+  }
 }
 
 /* Expanded Card Styles / Expanded card styles */
@@ -825,58 +932,5 @@ onMounted(() => {
     color: #232323;
     font-weight: 600;
   }
-}
-
-/* Preview Content / Preview content */
-.preview-content {
-  display: block;
-  color: #444;
-  position: relative;
-  max-height: 150px;
-  overflow: hidden;
-  padding: 1.2rem;
-  background: transparent;
-  border-radius: 12px;
-}
-
-.preview-text {
-  margin-bottom: 1.5rem;
-}
-
-.preview-content :deep(p) {
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.preview-content :deep(h1) {
-  font-size: 1.8rem;
-  margin-bottom: 1.2rem;
-  font-weight: 600;
-}
-
-.preview-content :deep(h2) {
-  font-size: 1.4rem;
-  margin: 1.2rem 0 0.8rem;
-  font-weight: 600;
-}
-
-.read-more {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 1.5rem 0 1rem;
-  background: linear-gradient(transparent, rgba(255, 255, 255, 0.9) 40%);
-  text-align: center;
-  color: #007AFF;
-  font-weight: 500;
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-/* Remove the separate overlay styles since we're using the container */
-.card-overlay {
-  display: none;
 }
 </style> 

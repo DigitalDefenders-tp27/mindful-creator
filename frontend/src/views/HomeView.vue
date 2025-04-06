@@ -219,7 +219,6 @@
 
 <script setup>
 import { FlipCard } from '@/components/ui/flip-card'
-// 移除 Card3d 导入，因为我们将使用自己的 CSS 3D 效果
 </script>
 
 <style scoped>
@@ -355,7 +354,7 @@ import { FlipCard } from '@/components/ui/flip-card'
   transition: transform 0.3s ease;
 }
 
-/* Wave元素的特殊尺寸 / Special dimensions for Wave elements */
+/* 波浪元素的特殊尺寸 / Special dimensions for Wave elements */
 .element-wrapper:has(img[src*="Wave_Wide_Red"]),
 .element-wrapper:has(img[src*="Wave_Green"]) {
   width: 240px;
@@ -399,7 +398,7 @@ import { FlipCard } from '@/components/ui/flip-card'
   justify-content: flex-end;
 }
 
-/* Section Background Styles / 部分背景样式 */
+/* 部分背景样式 / Section Background Styles */
 .section-background {
   position: absolute;
   top: 0;
@@ -472,12 +471,18 @@ import { FlipCard } from '@/components/ui/flip-card'
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+  cursor: pointer;
 }
 
 .feature-icon {
   width: 100px;
   height: 100px;
   margin-bottom: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.feature:hover .feature-icon {
+  transform: scale(1.2);
 }
 
 .feature h3 {
@@ -513,12 +518,12 @@ import { FlipCard } from '@/components/ui/flip-card'
   box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
 }
 
-/* 移除不需要的视频容器相关样式 */
+/* 移除不需要的视频容器相关样式 / Remove unnecessary video container styles */
 .video-container, .play-button {
   display: none;
 }
 
-/* 移除不需要的背景图片 */
+/* 移除不需要的背景图片 / Remove unnecessary background images */
 .section-background {
   display: none;
 }
@@ -591,15 +596,55 @@ import { FlipCard } from '@/components/ui/flip-card'
   overflow: hidden;
   position: relative;
   cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .journey-card:hover {
   transform: scale(1.02);
 }
 
-/* 卡片颜色 */
+/* 翻转卡片动画 / Flip card animation */
+:deep(.flip-card) {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  border: none;
+  box-shadow: none;
+}
+
+:deep(.flip-card:hover) {
+  transform: rotateY(180deg);
+}
+
+:deep(.flip-card-front),
+:deep(.flip-card-back) {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+:deep(.flip-card-back) {
+  transform: rotateY(180deg);
+  background: inherit;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+:deep(.flip-card-inner) {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+/* 卡片颜色 / Card colors */
 .journey-card.purple { 
   background: rgb(199, 170, 204);
+  border-color: rgba(199, 170, 204, 0.8);
 }
 .journey-card.purple .card-icon {
   opacity: 1;
@@ -607,9 +652,17 @@ import { FlipCard } from '@/components/ui/flip-card'
 .journey-card.purple h3 {
   color: rgb(252, 244, 223);
 }
+.journey-card.purple :deep(.flip-card-back) {
+  background: rgb(199, 170, 204);
+}
+.journey-card.purple :deep(.feature-list) {
+  color: rgb(252, 244, 223);
+  font-weight: 600;
+}
 
 .journey-card.beige { 
   background: rgb(239, 225, 185);
+  border-color: rgba(239, 225, 185, 0.8);
 }
 .journey-card.beige .card-icon {
   opacity: 1;
@@ -617,9 +670,17 @@ import { FlipCard } from '@/components/ui/flip-card'
 .journey-card.beige h3 {
   color: rgb(126, 184, 121);
 }
+.journey-card.beige :deep(.flip-card-back) {
+  background: rgb(239, 225, 185);
+}
+.journey-card.beige :deep(.feature-list) {
+  color: rgb(126, 184, 121);
+  font-weight: 600;
+}
 
 .journey-card.orange { 
   background: rgb(227, 107, 46);
+  border-color: rgba(227, 107, 46, 0.8);
 }
 .journey-card.orange .card-icon {
   opacity: 1;
@@ -627,9 +688,17 @@ import { FlipCard } from '@/components/ui/flip-card'
 .journey-card.orange h3 {
   color: rgb(255, 255, 255);
 }
+.journey-card.orange :deep(.flip-card-back) {
+  background: rgb(227, 107, 46);
+}
+.journey-card.orange :deep(.feature-list) {
+  color: rgb(255, 255, 255);
+  font-weight: 600;
+}
 
 .journey-card.orange-light { 
   background: rgb(227, 107, 46);
+  border-color: rgba(227, 107, 46, 0.8);
 }
 .journey-card.orange-light .card-icon {
   opacity: 1;
@@ -637,15 +706,30 @@ import { FlipCard } from '@/components/ui/flip-card'
 .journey-card.orange-light h3 {
   color: rgb(255, 255, 255);
 }
+.journey-card.orange-light :deep(.flip-card-back) {
+  background: rgb(227, 107, 46);
+}
+.journey-card.orange-light :deep(.feature-list) {
+  color: rgb(255, 255, 255);
+  font-weight: 600;
+}
 
 .journey-card.blue-light { 
   background: rgb(217, 231, 246);
+  border-color: rgba(217, 231, 246, 0.8);
 }
 .journey-card.blue-light .card-icon {
   opacity: 1;
 }
 .journey-card.blue-light h3 {
   color: rgb(171, 146, 191);
+}
+.journey-card.blue-light :deep(.flip-card-back) {
+  background: rgb(217, 231, 246);
+}
+.journey-card.blue-light :deep(.feature-list) {
+  color: rgb(171, 146, 191);
+  font-weight: 600;
 }
 
 .card-content {
@@ -683,14 +767,18 @@ import { FlipCard } from '@/components/ui/flip-card'
 .feature-list {
   @apply text-left space-y-4;
   color: inherit;
-  padding: 2rem;
-  font-size: 1rem;
+  padding: 0;
+  font-size: 1.2rem;
+  width: 100%;
+  font-weight: 600;
 }
 
 .feature-list li {
   position: relative;
   padding-left: 1.5rem;
   line-height: 1.5;
+  width: 100%;
+  padding-right: 0.5rem;
 }
 
 .feature-list li::before {
@@ -698,33 +786,10 @@ import { FlipCard } from '@/components/ui/flip-card'
   color: inherit;
   position: absolute;
   left: 0;
+  font-weight: 600;
 }
 
-/* 翻转卡片动画 */
-:deep(.flip-card) {
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-:deep(.flip-card:hover) {
-  transform: rotateY(180deg);
-}
-
-:deep(.flip-card-front),
-:deep(.flip-card-back) {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-:deep(.flip-card-back) {
-  transform: rotateY(180deg);
-  background: inherit;
-}
-
-/* 响应式调整 */
+/* 响应式调整 / Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
@@ -773,8 +838,8 @@ import { FlipCard } from '@/components/ui/flip-card'
   }
 
   .feature-list {
-    padding: 1.5rem;
-    font-size: 0.95rem;
+    padding: 0;
+    font-size: 1.1rem;
   }
 }
 
@@ -816,8 +881,8 @@ import { FlipCard } from '@/components/ui/flip-card'
   }
 
   .feature-list {
-    padding: 1.25rem;
-    font-size: 0.9rem;
+    padding: 0;
+    font-size: 1rem;
     space-y: 3;
   }
 }
@@ -865,8 +930,8 @@ import { FlipCard } from '@/components/ui/flip-card'
   }
 
   .feature-list {
-    padding: 1rem;
-    font-size: 0.85rem;
+    padding: 0;
+    font-size: 0.95rem;
     space-y: 2;
   }
 }
@@ -950,6 +1015,31 @@ p {
   .wave-bottom {
     bottom: -15%;
   }
+}
+
+.about-card {
+  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
+  @apply flex flex-col items-center text-center;
+  @apply transform transition-all duration-300;
+  height: 100%;
+  border: none;
+}
+
+.about-icon {
+  @apply w-16 h-16 mb-4 text-blue-500;
+  transition: transform 0.3s ease;
+}
+
+.about-card:hover .about-icon {
+  transform: scale(1.2);
+}
+
+.about-card h3 {
+  @apply text-xl font-semibold mb-2 text-neutral-900 dark:text-white;
+}
+
+.about-card p {
+  @apply text-neutral-600 dark:text-neutral-400;
 }
 </style>
 

@@ -7,14 +7,14 @@
       </router-link>
     </div>
     
-    <!-- 汉堡菜单按钮 -->
+    <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
     <div class="hamburger" @click="toggleMenu" :class="{ 'active': isMenuOpen }">
       <span class="bar"></span>
       <span class="bar"></span>
       <span class="bar"></span>
     </div>
     
-    <!-- 导航链接 -->
+    <!-- 导航链接 / Navigation Links -->
     <div class="navbar-right" :class="{ 'active': isMenuOpen }">
       <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
       <router-link to="/about" class="nav-link" @click="closeMenu">ABOUT</router-link>
@@ -30,80 +30,105 @@
 <script setup>
 import { ref } from 'vue'
 
+// 菜单状态控制 / Menu State Control
 const isMenuOpen = ref(false)
 
+// 切换菜单显示状态 / Toggle Menu Display State
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
 }
 
+// 关闭菜单 / Close Menu
 const closeMenu = () => {
   isMenuOpen.value = false
 }
 </script>
 
 <style scoped>
+/* 导航栏容器 / Navbar Container */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: transparent;
-  padding: 1rem 2rem;
-  margin-bottom: 0;
-  border-bottom: 1px solid #ddd;
-  position: relative;
+  @apply fixed top-0 left-0 right-0 z-50;
+  @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md;
+  @apply border-b border-neutral-200 dark:border-neutral-800;
+  @apply px-4 py-3;
 }
 
+/* 导航栏内容布局 / Navbar Content Layout */
+.navbar-content {
+  @apply max-w-7xl mx-auto;
+  @apply flex items-center justify-between;
+}
+
+/* 左侧Logo区域 / Left Logo Area */
 .navbar-left {
-  display: flex;
-  align-items: center;
-  z-index: 10;
+  @apply flex items-center;
 }
 
+/* Logo样式 / Logo Styles */
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  text-decoration: none;
+  @apply text-xl font-bold text-neutral-900 dark:text-white;
+  @apply hover:text-blue-600 dark:hover:text-blue-400;
+  @apply transition-colors duration-200;
 }
 
-.logo-img {
-  height: 36px;
-  width: auto;
-}
-
-.logo-text {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: black;
-  letter-spacing: 0.02em;
-}
-
+/* 右侧导航链接区域 / Right Navigation Links Area */
 .navbar-right {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
+  @apply flex items-center space-x-6;
 }
 
+/* 导航链接样式 / Navigation Link Styles */
 .nav-link {
-  text-decoration: none;
-  color: black;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
+  @apply text-neutral-600 dark:text-neutral-400;
+  @apply hover:text-blue-600 dark:hover:text-blue-400;
+  @apply transition-colors duration-200;
+  @apply relative;
 }
 
-.nav-link.router-link-active {
-  background-color: #FF69B4;
-  color: white;
+/* 活动链接样式 / Active Link Styles */
+.nav-link.active {
+  @apply text-blue-600 dark:text-blue-400;
+  @apply font-medium;
 }
 
-.nav-link:hover:not(.active) {
-  background-color: rgba(255, 105, 180, 0.1);
+/* 活动链接下划线 / Active Link Underline */
+.nav-link.active::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0;
+  @apply h-0.5 bg-blue-600 dark:bg-blue-400;
+  @apply transform scale-x-100;
+  @apply transition-transform duration-200;
 }
 
-/* 汉堡菜单按钮样式 */
+/* 非活动链接下划线 / Inactive Link Underline */
+.nav-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0;
+  @apply h-0.5 bg-blue-600 dark:bg-blue-400;
+  @apply transform scale-x-0;
+  @apply transition-transform duration-200;
+}
+
+/* 链接悬停效果 / Link Hover Effect */
+.nav-link:hover::after {
+  @apply transform scale-x-100;
+}
+
+/* 响应式调整 / Responsive Adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    @apply px-3 py-2;
+  }
+
+  .navbar-right {
+    @apply space-x-4;
+  }
+
+  .nav-link {
+    @apply text-sm;
+  }
+}
+
+/* 汉堡菜单按钮样式 / Hamburger Menu Button Styles */
 .hamburger {
   display: none;
   cursor: pointer;
@@ -119,7 +144,7 @@ const closeMenu = () => {
   background-color: black;
 }
 
-/* 响应式设计 */
+/* 响应式设计 / Responsive Design */
 @media (max-width: 1024px) {
   .hamburger {
     display: block;
@@ -149,7 +174,7 @@ const closeMenu = () => {
     font-size: 1.1rem;
   }
   
-  /* 汉堡菜单动画 */
+  /* 汉堡菜单动画 / Hamburger Menu Animation */
   .hamburger.active .bar:nth-child(2) {
     opacity: 0;
   }
@@ -163,6 +188,7 @@ const closeMenu = () => {
   }
 }
 
+/* 小屏幕响应式调整 / Small Screen Responsive Adjustments */
 @media (max-width: 640px) {
   .logo-text {
     font-size: 1.2rem;
