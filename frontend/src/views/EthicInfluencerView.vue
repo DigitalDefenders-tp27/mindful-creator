@@ -1,29 +1,59 @@
 <template>
-  <div class="ethic-influencer-container">
+  <div class="ethic-container">
     <section class="hero-section">
       <div class="hero-content">
         <div class="slogan">
           <div class="title-group">
-            <h1 class="gradient-text">Ethical Influencer</h1>
-            <h2>Building Trust and</h2>
-            <h2>Authenticity Online</h2>
+            <h1>Ethical Influencer</h1>
+            <h2>Building Trust Through Authenticity</h2>
           </div>
-          <p class="subtitle">Guide to responsible content creation and digital influence</p>
+          <p class="subtitle">Learn to create content that makes a positive impact</p>
         </div>
         <div class="decorative-elements">
-          <div class="top-elements">
-            <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Orange.svg" alt="Decorative" class="element">
+          <!-- 右上角第一排 -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
           </div>
-          <div class="middle-elements">
-            <img src="/src/components/icons/elements/Wave_Green.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Decorative" class="element">
+          <!-- 右下角第一排 -->
+          <div class="bottom-row-1">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
           </div>
-          <div class="bottom-elements">
-            <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Wave_Green.svg" alt="Decorative" class="element">
+          <!-- 右下角第二排 -->
+          <div class="bottom-row-2">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+            </div>
           </div>
         </div>
       </div>
@@ -287,31 +317,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.ethic-influencer-container {
-  @apply w-full;
-  background-color: rgb(255, 252, 244);
+.ethic-container {
+  background-color: rgb(254, 251, 244);
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 .hero-section {
-  @apply py-4 px-6 md:px-12 relative;
+  @apply py-4 relative;
   min-height: 45vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
 .hero-content {
-  @apply max-w-7xl mx-auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: center;
+  @apply container mx-auto px-6;
+  position: relative;
   width: 100%;
+  min-height: 600px;
 }
 
 .slogan {
   @apply space-y-4;
-  padding-top: 0;
+  padding-top: 4rem;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
 }
 
 .title-group {
@@ -319,88 +352,261 @@ onMounted(() => {
 }
 
 .title-group h1 {
-  @apply text-6xl md:text-7xl font-bold;
+  @apply text-6xl md:text-7xl lg:text-8xl font-bold;
   background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1.1;
-}
-
-.title-group h2 {
-  @apply text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
-  line-height: 1.2;
-}
-
-.subtitle {
-  @apply text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
-  max-width: 600px;
-  line-height: 1.4;
-  margin-top: 1.5rem;
-}
-
-.decorative-elements {
-  @apply relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  height: 100%;
-  justify-content: space-between;
-  padding: 1rem 0 2rem;
-}
-
-.top-elements, .middle-elements {
-  @apply flex gap-4 justify-end;
-  width: 100%;
+  display: block;
   margin-bottom: 1rem;
 }
 
-.bottom-elements {
-  @apply flex gap-4 justify-end;
-  width: 90%;
-  margin-top: auto;
+.title-group h2 {
+  @apply text-4xl sm:text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+}
+
+.subtitle {
+  @apply text-xl sm:text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  white-space: nowrap;
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto 160px auto auto;
+  gap: 0;
+  padding: 2rem 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.bottom-row-1 {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 3;
+  justify-self: end;
+}
+
+.bottom-row-2 {
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 1 / 7;
+  grid-row: 4;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
 }
 
 .element {
-  @apply object-contain;
-  width: 120px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Wave元素的特殊尺寸 */
+.element-wrapper:has(img[src*="Wave_Wide_Red"]),
+.element-wrapper:has(img[src*="Wave_Green"]) {
+  width: 240px;
   height: 120px;
-  transition: transform 0.5s ease;
 }
 
-/* 第一行元素 */
-.top-elements .element:nth-child(1):hover {
-  transform: rotate(-8deg);
+/* Z元素的特殊尺寸 */
+.element-wrapper:has(img[src*="Z_"]) {
+  width: 120px;
+  height: 160px;
 }
 
-.top-elements .element:nth-child(2):hover {
-  transform: rotate(12deg);
+/* 7元素的特殊尺寸 */
+.element-wrapper:has(img[src*="7_Bold"]) {
+  width: 100px;
+  height: 160px;
 }
 
-.top-elements .element:nth-child(3):hover {
+/* Hover效果 */
+.top-row .element:hover {
   transform: rotate(-15deg);
 }
 
-/* 中间行元素 */
-.middle-elements .element:nth-child(1):hover {
-  transform: rotate(10deg);
-}
-
-.middle-elements .element:nth-child(2):hover {
-  transform: rotate(-12deg);
-}
-
-/* 底部行元素 */
-.bottom-elements .element:nth-child(1):hover {
+.bottom-row-1 .element:hover {
   transform: rotate(-10deg);
 }
 
-.bottom-elements .element:nth-child(2):hover {
+.bottom-row-2 .element:hover {
   transform: rotate(15deg);
 }
 
-.bottom-elements .element:nth-child(3):hover {
-  transform: rotate(-8deg);
+/* Flower元素的特殊hover效果 */
+.element-wrapper:has(img[src*="Flower"]) .element:hover {
+  transform: rotate(-25deg);
+}
+
+.hoverable {
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
+
+/* hover效果 - 只应用于非square元素 */
+.hoverable:hover {
+  transform: rotate(-15deg);
+}
+
+.top-row .hoverable:hover {
+  transform: rotate(-15deg);
+}
+
+.bottom-row-1 .hoverable:hover {
+  transform: rotate(-10deg);
+}
+
+.bottom-row-2 .hoverable:hover {
+  transform: rotate(15deg);
+}
+
+/* 响应式调整 */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    transform: translateX(0);
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    transform: translateX(5%);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    transform: translateX(10%);
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-section {
+    min-height: auto;
+    padding: 2rem 0;
+  }
+
+  .hero-content {
+    min-height: auto;
+  }
+
+  .slogan {
+    padding-top: 2rem;
+  }
+
+  .title-group h1 {
+    @apply text-4xl sm:text-5xl md:text-6xl;
+    white-space: normal;
+    margin-bottom: 0.5rem;
+  }
+
+  .title-group h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+    white-space: normal;
+  }
+
+  .subtitle {
+    @apply text-base sm:text-lg md:text-xl;
+    white-space: normal;
+    margin-top: 1rem;
+  }
+
+  .decorative-elements {
+    transform: translateX(20%);
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    display: none;
+  }
+
+  .hero-content {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding: 1.5rem 0;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+  }
+
+  .slogan {
+    padding-top: 1rem;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  h3 {
+    font-size: 1rem !important;
+  }
+
+  p {
+    font-size: 0.875rem !important;
+  }
 }
 
 .content-section {

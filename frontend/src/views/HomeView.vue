@@ -5,25 +5,55 @@
         <div class="slogan">
           <div class="title-group">
             <h1>Mindful Creator</h1>
-            <h2>Empowering Digital</h2>
-            <h2>Wellbeing</h2>
+            <h2>Balancing Influence with Responsibility</h2>
           </div>
-          <p class="subtitle">Guide to responsible and mindful content creation</p>
+          <p class="subtitle">A digital citizenship journey for the young creators</p>
         </div>
         <div class="decorative-elements">
-          <div class="top-elements">
-            <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Orange.svg" alt="Decorative" class="element">
+          <!-- 右上角第一排 -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
           </div>
-          <div class="middle-elements">
-            <img src="/src/components/icons/elements/Wave_Green.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Decorative" class="element">
+          <!-- 右下角第一排 -->
+          <div class="bottom-row-1">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
           </div>
-          <div class="bottom-elements">
-            <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Decorative" class="element">
-            <img src="/src/components/icons/elements/Wave_Green.svg" alt="Decorative" class="element">
+          <!-- 右下角第二排 -->
+          <div class="bottom-row-2">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+            </div>
           </div>
         </div>
       </div>
@@ -63,63 +93,100 @@
         <h2>Discover your digital citizenship journey</h2>
         <div class="journey-grid">
           <div class="top-row">
-            <div class="journey-card purple">
+            <FlipCard class="journey-card purple">
               <div class="card-content">
-                <div class="card-icon">
-                  <img src="/src/components/icons/elements/Leaves_Light_Purple.svg" alt="Icon">
+                <img src="/src/components/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
+                <div class="card-text">
+                  <h3>Ethical</h3>
+                  <h3>Influencer</h3>
                 </div>
-                <h3>Ethical Influencer</h3>
               </div>
-              <div class="card-hover">
-                <div class="plus-icon">+</div>
-              </div>
-            </div>
-            <div class="journey-card beige">
+              <template #back>
+                <div class="card-content">
+                  <ul class="feature-list">
+                    <li>Promote truth and accountability in your content.</li>
+                    <li>Engage respectfully, encouraging constructive discussions.</li>
+                    <li>Influence responsibly, considering the ethical implications of your message.</li>
+                  </ul>
+                </div>
+              </template>
+            </FlipCard>
+
+            <FlipCard class="journey-card beige">
               <div class="card-content">
-                <div class="card-icon">
-                  <img src="/src/components/icons/elements/Medication.svg" alt="Icon">
+                <img src="/src/components/icons/elements/Medication.svg" alt="Medication" class="card-icon">
+                <div class="card-text">
+                  <h3>Creator</h3>
+                  <h3>Wellbing</h3>
                 </div>
-                <h3>Creator Wellbeing</h3>
               </div>
-              <div class="card-hover">
-                <div class="plus-icon">+</div>
-              </div>
-            </div>
-            <div class="journey-card orange">
+              <template #back>
+                <div class="card-content">
+                  <ul class="feature-list">
+                    <li>Balance online presence with offline activities.</li>
+                    <li>Recognize signs of digital fatigue and burnout.</li>
+                    <li>Foster healthy habits, such as setting content creation boundaries and managing screen time.</li>
+                  </ul>
+                </div>
+              </template>
+            </FlipCard>
+
+            <FlipCard class="journey-card orange">
               <div class="card-content">
-                <div class="card-icon">
-                  <img src="/src/components/icons/elements/Circle_blue.svg" alt="Icon">
+                <img src="/src/components/icons/elements/Circle_blue.svg" alt="Circle Blue" class="card-icon">
+                <div class="card-text">
+                  <h3>Critical</h3>
+                  <h3>Response</h3>
                 </div>
-                <h3>Critical Response</h3>
               </div>
-              <div class="card-hover">
-                <div class="plus-icon">+</div>
-              </div>
-            </div>
+              <template #back>
+                <div class="card-content">
+                  <ul class="feature-list">
+                    <li>Address feedback professionally and objectively.</li>
+                    <li>Manage criticism constructively without compromising integrity.</li>
+                    <li>Turn challenging conversations into opportunities for growth and learning.</li>
+                  </ul>
+                </div>
+              </template>
+            </FlipCard>
           </div>
+
           <div class="bottom-row">
-            <div class="journey-card orange-light">
+            <FlipCard class="journey-card orange-light">
               <div class="card-content">
-                <div class="card-icon">
-                  <img src="/src/components/icons/elements/Leaves_Blue.svg" alt="Icon">
+                <img src="/src/components/icons/elements/Leaves_Blue.svg" alt="Leaves Blue" class="card-icon">
+                <div class="card-text">
+                  <h3>Privacy</h3>
                 </div>
-                <h3>Privacy</h3>
               </div>
-              <div class="card-hover">
-                <div class="plus-icon">+</div>
-              </div>
-            </div>
-            <div class="journey-card blue-light">
+              <template #back>
+                <div class="card-content">
+                  <ul class="feature-list">
+                    <li>Understand and manage personal data sharing practices.</li>
+                    <li>Utilize privacy settings effectively across platforms.</li>
+                    <li>Encourage your audience to value and protect their online privacy.</li>
+                  </ul>
+                </div>
+              </template>
+            </FlipCard>
+
+            <FlipCard class="journey-card blue-light">
               <div class="card-content">
-                <div class="card-icon">
-                  <img src="/src/components/icons/elements/Leaves_Purple.svg" alt="Icon">
+                <img src="/src/components/icons/elements/Leaves_Purple.svg" alt="Leaves Purple" class="card-icon">
+                <div class="card-text">
+                  <h3>Copyright</h3>
                 </div>
-                <h3>Copyright</h3>
               </div>
-              <div class="card-hover">
-                <div class="plus-icon">+</div>
-              </div>
-            </div>
+              <template #back>
+                <div class="card-content">
+                  <ul class="feature-list">
+                    <li>Create original content or appropriately credit sources.</li>
+                    <li>Learn about fair use guidelines to navigate content sharing responsibly.</li>
+                    <li>Protect your own content and respect the intellectual property of others.</li>
+                  </ul>
+                </div>
+              </template>
+            </FlipCard>
           </div>
         </div>
       </div>
@@ -151,6 +218,7 @@
 </template>
 
 <script setup>
+import { FlipCard } from '@/components/ui/flip-card'
 // 移除 Card3d 导入，因为我们将使用自己的 CSS 3D 效果
 </script>
 
@@ -162,25 +230,27 @@
 }
 
 .hero-section {
-  @apply py-4 px-6 md:px-12 relative;
+  @apply py-4 relative;
   min-height: 45vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
 .hero-content {
-  @apply max-w-7xl mx-auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: center;
+  @apply container mx-auto px-6;
+  position: relative;
   width: 100%;
+  min-height: 600px;
 }
 
 .slogan {
   @apply space-y-4;
-  padding-top: 0;
+  padding-top: 4rem;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
 }
 
 .title-group {
@@ -188,88 +258,145 @@
 }
 
 .title-group h1 {
-  @apply text-6xl md:text-7xl font-bold;
+  @apply text-6xl md:text-7xl lg:text-8xl font-bold;
   background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1.1;
-}
-
-.title-group h2 {
-  @apply text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
-  line-height: 1.2;
-}
-
-.subtitle {
-  @apply text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
-  max-width: 600px;
-  line-height: 1.4;
-  margin-top: 1.5rem;
-}
-
-.decorative-elements {
-  @apply relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  height: 100%;
-  justify-content: space-between;
-  padding: 1rem 0 2rem;
-}
-
-.top-elements, .middle-elements {
-  @apply flex gap-4 justify-end;
-  width: 100%;
+  display: block;
   margin-bottom: 1rem;
 }
 
-.bottom-elements {
-  @apply flex gap-4 justify-end;
-  width: 90%;
-  margin-top: auto;
+.title-group h2 {
+  @apply text-4xl sm:text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+}
+
+.subtitle {
+  @apply text-xl sm:text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  white-space: nowrap;
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto 160px auto auto;
+  gap: 0;
+  padding: 2rem 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.bottom-row-1 {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 3;
+  justify-self: end;
+}
+
+.bottom-row-2 {
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  gap: 0;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 1 / 7;
+  grid-row: 4;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
 }
 
 .element {
-  @apply object-contain;
-  width: 120px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Wave元素的特殊尺寸 */
+.element-wrapper:has(img[src*="Wave_Wide_Red"]),
+.element-wrapper:has(img[src*="Wave_Green"]) {
+  width: 240px;
   height: 120px;
-  transition: transform 0.5s ease;
 }
 
-/* 第一行元素 */
-.top-elements .element:nth-child(1):hover {
-  transform: rotate(-8deg);
+/* Z元素的特殊尺寸 */
+.element-wrapper:has(img[src*="Z_"]) {
+  width: 120px;
+  height: 160px;
 }
 
-.top-elements .element:nth-child(2):hover {
-  transform: rotate(12deg);
+/* 7元素的特殊尺寸 */
+.element-wrapper:has(img[src*="7_Bold"]) {
+  width: 100px;
+  height: 160px;
 }
 
-.top-elements .element:nth-child(3):hover {
+/* Hover效果 */
+.top-row .element:hover {
   transform: rotate(-15deg);
 }
 
-/* 中间行元素 */
-.middle-elements .element:nth-child(1):hover {
-  transform: rotate(10deg);
-}
-
-.middle-elements .element:nth-child(2):hover {
-  transform: rotate(-12deg);
-}
-
-/* 底部行元素 */
-.bottom-elements .element:nth-child(1):hover {
+.bottom-row-1 .element:hover {
   transform: rotate(-10deg);
 }
 
-.bottom-elements .element:nth-child(2):hover {
+.bottom-row-2 .element:hover {
   transform: rotate(15deg);
 }
 
-.bottom-elements .element:nth-child(3):hover {
-  transform: rotate(-8deg);
+/* Flower元素的特殊hover效果 */
+.element-wrapper:has(img[src*="Flower"]) .element:hover {
+  transform: rotate(-25deg);
+}
+
+/* 调整底部行的布局 */
+.bottom-row-1, .bottom-row-2 {
+  margin-left: auto;
+  width: auto;
+  justify-content: flex-end;
 }
 
 /* Section Background Styles */
@@ -432,140 +559,316 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .top-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.top-row .journey-card {
+  width: calc((100% - 4rem) / 3);
 }
 
 .bottom-row {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .bottom-row .journey-card {
-  width: calc((100% - 3rem) / 3);
+  width: calc((100% - 4rem) / 3);
 }
 
 .journey-card {
+  @apply rounded-xl;
+  min-height: 360px;
   aspect-ratio: 1;
   border-radius: 1rem;
   overflow: hidden;
   position: relative;
   cursor: pointer;
-  transition: transform 0.3s ease;
 }
 
 .journey-card:hover {
-  transform: translateY(-5px);
-}
-
-.card-content {
-  height: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 2.5rem;
-}
-
-.card-icon {
-  width: 120px;
-  height: 120px;
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.2);
-}
-
-.journey-card h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  margin-top: 0.5rem;
-}
-
-.card-hover {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
-
-.plus-icon {
-  width: 24px;
-  height: 24px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #232323;
+  transform: scale(1.02);
 }
 
 /* 卡片颜色 */
 .journey-card.purple { 
-  background: rgb(190, 177, 212);
+  background: rgb(199, 170, 204);
+}
+.journey-card.purple .card-icon {
+  opacity: 1;
 }
 .journey-card.purple h3 {
   color: rgb(252, 244, 223);
 }
 
 .journey-card.beige { 
-  background: rgb(238, 226, 208);
+  background: rgb(239, 225, 185);
+}
+.journey-card.beige .card-icon {
+  opacity: 1;
 }
 .journey-card.beige h3 {
   color: rgb(126, 184, 121);
 }
 
 .journey-card.orange { 
-  background: rgb(242, 153, 74);
+  background: rgb(227, 107, 46);
+}
+.journey-card.orange .card-icon {
+  opacity: 1;
 }
 .journey-card.orange h3 {
   color: rgb(255, 255, 255);
 }
 
 .journey-card.orange-light { 
-  background: rgb(242, 153, 74);
+  background: rgb(227, 107, 46);
+}
+.journey-card.orange-light .card-icon {
+  opacity: 1;
 }
 .journey-card.orange-light h3 {
   color: rgb(255, 255, 255);
 }
 
 .journey-card.blue-light { 
-  background: rgb(214, 234, 255);
+  background: rgb(217, 231, 246);
+}
+.journey-card.blue-light .card-icon {
+  opacity: 1;
 }
 .journey-card.blue-light h3 {
   color: rgb(171, 146, 191);
 }
 
-/* 波浪分割线 */
-.wave-bottom {
-  position: absolute;
-  bottom: -50%;
-  left: 0;
+.card-content {
   width: 100%;
-  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
 }
 
-.wave-bottom img {
+.card-icon {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 2rem;
+  opacity: 1;
+}
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card-text h3 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.feature-list {
+  @apply text-left space-y-4;
+  color: inherit;
+  padding: 2rem;
+  font-size: 1rem;
+}
+
+.feature-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  line-height: 1.5;
+}
+
+.feature-list li::before {
+  content: "•";
+  color: inherit;
+  position: absolute;
+  left: 0;
+}
+
+/* 翻转卡片动画 */
+:deep(.flip-card) {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+:deep(.flip-card:hover) {
+  transform: rotateY(180deg);
+}
+
+:deep(.flip-card-front),
+:deep(.flip-card-back) {
+  position: absolute;
   width: 100%;
-  height: auto;
-  display: block;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+:deep(.flip-card-back) {
+  transform: rotateY(180deg);
+  background: inherit;
+}
+
+/* 响应式调整 */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    transform: translateX(0);
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    transform: translateX(5%);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    transform: translateX(10%);
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(20%);
+    opacity: 0.3;
+  }
+
+  .journey-card {
+    min-height: 320px;
+  }
+
+  .card-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-text h3 {
+    font-size: 1.5rem;
+  }
+
+  .feature-list {
+    padding: 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    display: none;
+  }
+
+  .hero-content {
+    min-height: auto;
+  }
+
+  .journey-grid {
+    gap: 1.5rem;
+  }
+
+  .top-row,
+  .bottom-row {
+    gap: 1.5rem;
+  }
+
+  .top-row .journey-card,
+  .bottom-row .journey-card {
+    width: calc((100% - 3rem) / 3);
+  }
+
+  .journey-card {
+    min-height: 280px;
+  }
+
+  .card-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-text h3 {
+    font-size: 1.35rem;
+  }
+
+  .feature-list {
+    padding: 1.25rem;
+    font-size: 0.9rem;
+    space-y: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .about-section {
+    padding: 0 1rem 3rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .feature p {
+    max-width: 100%;
+  }
+
+  .journey-grid {
+    gap: 1rem;
+  }
+
+  .top-row,
+  .bottom-row {
+    gap: 1rem;
+  }
+
+  .top-row .journey-card,
+  .bottom-row .journey-card {
+    width: calc((100% - 2rem) / 3);
+  }
+
+  .journey-card {
+    min-height: 240px;
+  }
+
+  .card-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+
+  .card-text h3 {
+    font-size: 1.25rem;
+  }
+
+  .feature-list {
+    padding: 1rem;
+    font-size: 0.85rem;
+    space-y: 2;
+  }
 }
 
 /* Testimonials Section */
@@ -629,4 +932,24 @@ p {
   color: #666;
   line-height: 1.6;
 }
+
+/* 波浪效果响应式 */
+@media (max-width: 1024px) {
+  .wave-bottom {
+    bottom: -30%;
+  }
+}
+
+@media (max-width: 768px) {
+  .wave-bottom {
+    bottom: -20%;
+  }
+}
+
+@media (max-width: 640px) {
+  .wave-bottom {
+    bottom: -15%;
+  }
+}
 </style>
+
