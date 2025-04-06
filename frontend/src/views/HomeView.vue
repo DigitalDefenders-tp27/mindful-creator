@@ -10,7 +10,7 @@
           <p class="subtitle">A digital citizenship journey for the young creators</p>
         </div>
         <div class="decorative-elements">
-          <!-- 右上角第一排 -->
+          <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
@@ -22,7 +22,7 @@
               <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
-          <!-- 右下角第一排 -->
+          <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
@@ -34,7 +34,7 @@
               <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
-          <!-- 右下角第二排 -->
+          <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
@@ -59,7 +59,7 @@
       </div>
     </section>
 
-    <!-- 2. About Section -->
+    <!-- 2. About Section / 关于我们部分 -->
     <section class="about-section">
       <div class="about-content">
         <h2>About Our Website</h2>
@@ -87,7 +87,7 @@
       </div>
     </section>
 
-    <!-- 3. Journey Section -->
+    <!-- 3. Journey Section / 旅程部分 -->
     <section class="journey-section">
       <div class="journey-content">
         <h2>Discover your digital citizenship journey</h2>
@@ -195,7 +195,7 @@
       </div>
     </section>
 
-    <!-- 4. Testimonials Section -->
+    <!-- 4. Testimonials Section / 推荐部分 -->
     <section class="testimonials-section">
       <div class="section-background">
         <img src="../components/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
@@ -355,26 +355,26 @@ import { FlipCard } from '@/components/ui/flip-card'
   transition: transform 0.3s ease;
 }
 
-/* Wave元素的特殊尺寸 */
+/* Wave元素的特殊尺寸 / Special dimensions for Wave elements */
 .element-wrapper:has(img[src*="Wave_Wide_Red"]),
 .element-wrapper:has(img[src*="Wave_Green"]) {
   width: 240px;
   height: 120px;
 }
 
-/* Z元素的特殊尺寸 */
+/* Z元素的特殊尺寸 / Special dimensions for Z elements */
 .element-wrapper:has(img[src*="Z_"]) {
   width: 120px;
   height: 160px;
 }
 
-/* 7元素的特殊尺寸 */
+/* 7元素的特殊尺寸 / Special dimensions for 7 elements */
 .element-wrapper:has(img[src*="7_Bold"]) {
   width: 100px;
   height: 160px;
 }
 
-/* Hover效果 */
+/* Hover效果 / Hover effects */
 .top-row .element:hover {
   transform: rotate(-15deg);
 }
@@ -387,19 +387,19 @@ import { FlipCard } from '@/components/ui/flip-card'
   transform: rotate(15deg);
 }
 
-/* Flower元素的特殊hover效果 */
+/* Flower元素的特殊hover效果 / Special hover effects for Flower elements */
 .element-wrapper:has(img[src*="Flower"]) .element:hover {
   transform: rotate(-25deg);
 }
 
-/* 调整底部行的布局 */
+/* 调整底部行的布局 / Adjust bottom row layout */
 .bottom-row-1, .bottom-row-2 {
   margin-left: auto;
   width: auto;
   justify-content: flex-end;
 }
 
-/* Section Background Styles */
+/* Section Background Styles / 部分背景样式 */
 .section-background {
   position: absolute;
   top: 0;
@@ -933,7 +933,7 @@ p {
   line-height: 1.6;
 }
 
-/* 波浪效果响应式 */
+/* 波浪效果响应式 / Wave effect responsive */
 @media (max-width: 1024px) {
   .wave-bottom {
     bottom: -30%;

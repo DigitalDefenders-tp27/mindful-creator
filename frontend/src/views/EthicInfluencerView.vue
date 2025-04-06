@@ -10,7 +10,7 @@
           <p class="subtitle">Learn to create content that makes a positive impact</p>
         </div>
         <div class="decorative-elements">
-          <!-- 右上角第一排 -->
+          <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
@@ -22,7 +22,7 @@
               <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
-          <!-- 右下角第一排 -->
+          <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
@@ -34,7 +34,7 @@
               <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
-          <!-- 右下角第二排 -->
+          <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
@@ -59,7 +59,7 @@
       </div>
     </section>
 
-    <!-- Content Sections -->
+    <!-- Content Sections / 内容部分 -->
     <section class="content-section">
       <div class="gradient-overlay"></div>
       <div class="content-grid">
@@ -155,7 +155,7 @@
       </div>
     </section>
 
-    <!-- Expanded card container -->
+    <!-- Expanded card container / 展开的卡片容器 -->
     <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
       <div class="expanded-card">
         <div class="card-content">
@@ -449,26 +449,26 @@ onMounted(() => {
   transition: transform 0.3s ease;
 }
 
-/* Wave元素的特殊尺寸 */
+/* Wave元素的特殊尺寸 / Special dimensions for Wave elements */
 .element-wrapper:has(img[src*="Wave_Wide_Red"]),
 .element-wrapper:has(img[src*="Wave_Green"]) {
   width: 240px;
   height: 120px;
 }
 
-/* Z元素的特殊尺寸 */
+/* Z元素的特殊尺寸 / Special dimensions for Z elements */
 .element-wrapper:has(img[src*="Z_"]) {
   width: 120px;
   height: 160px;
 }
 
-/* 7元素的特殊尺寸 */
+/* 7元素的特殊尺寸 / Special dimensions for 7 elements */
 .element-wrapper:has(img[src*="7_Bold"]) {
   width: 100px;
   height: 160px;
 }
 
-/* Hover效果 */
+/* Hover效果 / Hover effects */
 .top-row .element:hover {
   transform: rotate(-15deg);
 }
@@ -481,7 +481,7 @@ onMounted(() => {
   transform: rotate(15deg);
 }
 
-/* Flower元素的特殊hover效果 */
+/* Flower元素的特殊hover效果 / Special hover effects for Flower elements */
 .element-wrapper:has(img[src*="Flower"]) .element:hover {
   transform: rotate(-25deg);
 }
@@ -508,7 +508,7 @@ onMounted(() => {
   transform: rotate(15deg);
 }
 
-/* 响应式调整 */
+/* 响应式调整 / Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
@@ -712,7 +712,7 @@ onMounted(() => {
   background: none;
 }
 
-/* 3D effect styles */
+/* 3D效果样式 / 3D effect styles */
 .main-card, .long-card {
   @apply transform-gpu transition-all duration-300;
   transform-style: preserve-3d;
@@ -724,7 +724,7 @@ onMounted(() => {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Dark mode adjustments */
+/* Dark mode adjustments / Dark mode adjustments */
 .dark .main-card, .dark .long-card {
   @apply bg-neutral-800;
 }
@@ -741,7 +741,7 @@ onMounted(() => {
   @apply text-neutral-400;
 }
 
-/* Expanded Card Styles */
+/* Expanded Card Styles / Expanded card styles */
 .expanded-card-container {
   position: fixed;
   top: 0;
@@ -789,7 +789,7 @@ onMounted(() => {
   padding: 0 1rem;
 }
 
-/* Markdown content styles */
+/* Markdown content styles / Markdown content styles */
 .expanded-card :deep(.markdown-content) {
   h1 {
     font-size: 2.2rem;
@@ -827,7 +827,7 @@ onMounted(() => {
   }
 }
 
-/* Preview Content */
+/* Preview Content / Preview content */
 .preview-content {
   display: block;
   color: #444;

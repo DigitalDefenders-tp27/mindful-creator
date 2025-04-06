@@ -21,7 +21,7 @@ A Vue.js application for ethical content creators to manage their content and en
 
 1. Clone the repository / 克隆仓库
    ```bash
-   git clone https://github.com/yourusername/mindful-creator.git
+   git clone 
    cd mindful-creator
    ```
 
@@ -83,3 +83,31 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 本项目采用 MIT 许可证 - 详情请参阅 LICENSE 文件。
+
+### Frontend Dependencies / 前端依赖
+- Vue.js (^3.5.13)
+- Vue Router (^4.3.0)
+- Tailwind CSS (^3.4.17)
+- Vite (^6.2.4)
+- PostCSS (^8.5.3)
+- Autoprefixer (^10.4.21)
+- Axios (^1.6.7)
+- Marked (^12.0.0)
+- Class Variance Authority (^0.7.1)
+- CLSX (^2.1.1)
+- Lucide Vue Next (^0.487.0)
+- Tailwind Merge (^2.6.0)
+- Tailwind CSS Animate (^1.0.7)
+
+### Frontend Dev Dependencies / 前端开发依赖
+- @vitejs/plugin-vue (^5.2.3)
+- @vue/eslint-config-prettier (^10.2.0)
+- ESLint
+  - @eslint/js (^9.22.0)
+  - eslint-plugin-oxlint (^0.16.0)
+  - eslint-plugin-vue (~10.0.0)
+- Globals (^16.0.0)
+- npm-run-all2 (^7.0.2)
+- Oxlint (^0.16.0)
+- Prettier (3.5.3)
+- Vite Plugin Vue DevTools (^7.7.2)
