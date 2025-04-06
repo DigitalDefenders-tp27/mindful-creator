@@ -51,6 +51,7 @@ const closeMenu = () => {
   @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md;
   @apply border-b border-neutral-200 dark:border-neutral-800;
   @apply px-4 py-3;
+  @apply flex justify-between items-center;
 }
 
 /* 导航栏内容布局 / Navbar Content Layout */
@@ -69,11 +70,21 @@ const closeMenu = () => {
   @apply text-xl font-bold text-neutral-900 dark:text-white;
   @apply hover:text-blue-600 dark:hover:text-blue-400;
   @apply transition-colors duration-200;
+  @apply flex items-center gap-2;
+}
+
+.logo-img {
+  @apply h-9 w-auto;
+}
+
+.logo-text {
+  @apply text-lg font-bold;
 }
 
 /* 右侧导航链接区域 / Right Navigation Links Area */
 .navbar-right {
   @apply flex items-center space-x-6;
+  @apply ml-auto;
 }
 
 /* 导航链接样式 / Navigation Link Styles */
@@ -163,6 +174,7 @@ const closeMenu = () => {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding-top: 80px;
     z-index: 5;
+    margin-left: 0;
   }
   
   .navbar-right.active {

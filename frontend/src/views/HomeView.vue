@@ -214,6 +214,33 @@
         </div>
       </div>
     </section>
+
+    <!-- 左侧标题卡片 / Left Title Card -->
+    <div class="title-card">
+      <div class="title-content">
+        <div class="title-icon">
+          <img src="../components/icons/elements/Logo.svg" alt="Logo" class="icon">
+        </div>
+        <h2 class="title-text">INFLOWENCE</h2>
+        <p class="subtitle">Your Guide to Ethical Content Creation</p>
+      </div>
+    </div>
+
+    <!-- 右侧内容卡片 / Right Content Card -->
+    <div class="content-card">
+      <div class="content-section">
+        <h3>Digital Citizenship</h3>
+        <p>Understanding your role and responsibilities in the digital world.</p>
+      </div>
+      <div class="content-section">
+        <h3>Constructive Engagement</h3>
+        <p>Building meaningful connections with your audience through ethical interaction.</p>
+      </div>
+      <div class="content-section">
+        <h3>Transparency</h3>
+        <p>Maintaining honesty and openness in your content creation journey.</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1040,6 +1067,97 @@ p {
 
 .about-card p {
   @apply text-neutral-600 dark:text-neutral-400;
+}
+
+/* 标题卡片样式 / Title Card Styles */
+.title-card {
+  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
+  @apply flex flex-col items-center justify-center;
+  height: 100%;
+  border: 1px solid #000;
+  width: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-content {
+  @apply flex flex-col items-center gap-4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.title-icon {
+  @apply w-16 h-16 mb-2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title-icon .icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.title-text {
+  @apply text-2xl font-bold text-neutral-900 dark:text-white;
+  text-align: center;
+}
+
+.subtitle {
+  @apply text-neutral-600 dark:text-neutral-400;
+  text-align: center;
+}
+
+/* 内容卡片样式 / Content Card Styles */
+.content-card {
+  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
+  @apply flex flex-col gap-6;
+  height: 100%;
+  border: 1px solid #000;
+  width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-section {
+  @apply space-y-2;
+  text-align: center;
+  width: 100%;
+}
+
+.content-section h3 {
+  @apply text-xl font-semibold text-neutral-900 dark:text-white;
+}
+
+.content-section p {
+  @apply text-neutral-600 dark:text-neutral-400;
+}
+
+/* 响应式调整 / Responsive Adjustments */
+@media (max-width: 1024px) {
+  .title-card {
+    width: 250px;
+  }
+
+  .content-card {
+    width: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .title-card {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .content-card {
+    width: 100%;
+  }
 }
 </style>
 

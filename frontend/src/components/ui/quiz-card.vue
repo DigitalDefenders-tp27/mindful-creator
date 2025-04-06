@@ -212,16 +212,37 @@ const restartQuiz = () => {
 /* 卡片容器 / Card Container */
 .quiz-card {
   @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
-  @apply flex flex-col items-center text-center;
-  @apply transform transition-all duration-300;
+  @apply flex flex-col items-center justify-center;
   height: 100%;
-  border: none;
+  border: 1px solid #000;
+  width: 600px;
 }
 
-/* 图标样式 / Icon Styles */
+.quiz-content {
+  @apply flex items-center gap-4 w-full;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .quiz-icon {
-  @apply w-16 h-16 mb-4 text-blue-500;
+  @apply w-20 h-16 mb-0 text-blue-500;
   transition: transform 0.3s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-text {
+  @apply flex-1 text-center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-width: 300px;
 }
 
 /* 图标悬停效果 / Icon Hover Effect */
@@ -232,11 +253,13 @@ const restartQuiz = () => {
 /* 标题样式 / Title Styles */
 .quiz-card h3 {
   @apply text-xl font-semibold mb-2 text-neutral-900 dark:text-white;
+  text-align: center;
 }
 
 /* 描述文本样式 / Description Text Styles */
 .quiz-card p {
   @apply text-neutral-600 dark:text-neutral-400;
+  text-align: center;
 }
 
 /* 进度条容器 / Progress Bar Container */
@@ -263,14 +286,20 @@ const restartQuiz = () => {
 @media (max-width: 768px) {
   .quiz-card {
     @apply p-4;
+    width: 450px;
+  }
+
+  .quiz-content {
+    @apply flex-col items-center gap-2;
   }
 
   .quiz-icon {
-    @apply w-12 h-12 mb-3;
+    @apply w-16 h-12 mb-2;
   }
 
-  .quiz-card h3 {
-    @apply text-lg;
+  .quiz-text {
+    @apply text-center;
+    min-width: 250px;
   }
 }
 
