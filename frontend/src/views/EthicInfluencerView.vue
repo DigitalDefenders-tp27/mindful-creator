@@ -338,7 +338,8 @@ onMounted(() => {
 .ethic-container {
   background-color: rgb(254, 251, 244);
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .hero-section {
@@ -348,18 +349,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-content {
   @apply container mx-auto px-6;
   position: relative;
   width: 100%;
-  min-height: 600px;
+  min-height: 45vh;
+  display: flex;
+  align-items: center;
 }
 
 .slogan {
   @apply space-y-4;
-  padding-top: 4rem;
   max-width: 800px;
   position: relative;
   z-index: 2;
@@ -851,14 +855,13 @@ onMounted(() => {
 /* Expanded Card Styles / Expanded card styles */
 .expanded-card-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }

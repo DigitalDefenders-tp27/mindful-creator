@@ -214,33 +214,6 @@
         </div>
       </div>
     </section>
-
-    <!-- 左侧标题卡片 / Left Title Card -->
-    <div class="title-card">
-      <div class="title-content">
-        <div class="title-icon">
-          <img src="../components/icons/elements/Logo.svg" alt="Logo" class="icon">
-        </div>
-        <h2 class="title-text">INFLOWENCE</h2>
-        <p class="subtitle">Your Guide to Ethical Content Creation</p>
-      </div>
-    </div>
-
-    <!-- 右侧内容卡片 / Right Content Card -->
-    <div class="content-card">
-      <div class="content-section">
-        <h3>Digital Citizenship</h3>
-        <p>Understanding your role and responsibilities in the digital world.</p>
-      </div>
-      <div class="content-section">
-        <h3>Constructive Engagement</h3>
-        <p>Building meaningful connections with your audience through ethical interaction.</p>
-      </div>
-      <div class="content-section">
-        <h3>Transparency</h3>
-        <p>Maintaining honesty and openness in your content creation journey.</p>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -268,12 +241,13 @@ import { FlipCard } from '@/components/ui/flip-card'
   @apply container mx-auto px-6;
   position: relative;
   width: 100%;
-  min-height: 600px;
+  min-height: 45vh;
+  display: flex;
+  align-items: center;
 }
 
 .slogan {
   @apply space-y-4;
-  padding-top: 4rem;
   max-width: 800px;
   position: relative;
   z-index: 2;
@@ -305,7 +279,6 @@ import { FlipCard } from '@/components/ui/flip-card'
   @apply text-xl sm:text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
 }
 
 .decorative-elements {
@@ -767,7 +740,7 @@ import { FlipCard } from '@/components/ui/flip-card'
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem;
+  padding: 0.5rem;
   position: relative;
 }
 
@@ -802,10 +775,10 @@ import { FlipCard } from '@/components/ui/flip-card'
 
 .feature-list li {
   position: relative;
-  padding-left: 1.5rem;
+  padding-left: 1rem;
   line-height: 1.5;
   width: 100%;
-  padding-right: 0.5rem;
+  padding-right: 0.1rem;
 }
 
 .feature-list li::before {
@@ -850,23 +823,48 @@ import { FlipCard } from '@/components/ui/flip-card'
     opacity: 0.3;
   }
 
+  .title-group h1 {
+    @apply text-4xl sm:text-5xl md:text-6xl;
+    white-space: normal;
+    margin-bottom: 0.5rem;
+  }
+
+  .title-group h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+    white-space: normal;
+  }
+
+  .subtitle {
+    @apply text-lg sm:text-xl md:text-2xl;
+    white-space: normal;
+    margin-top: 1rem;
+    max-width: 100%;
+  }
+
   .journey-card {
     min-height: 320px;
   }
 
   .card-icon {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 1.5rem;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
   }
 
   .card-text h3 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .feature-list {
-    padding: 0;
-    font-size: 1.1rem;
+    font-size: 0.85rem;
+    space-y: 2;
+    width: 100%;
+  }
+
+  .feature-list li {
+    line-height: 1.4;
+    padding-left: 0.75rem;
+    padding-right: 0.1rem;
   }
 }
 
@@ -898,19 +896,29 @@ import { FlipCard } from '@/components/ui/flip-card'
   }
 
   .card-icon {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1.25rem;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.75rem;
   }
 
   .card-text h3 {
-    font-size: 1.35rem;
+    font-size: 1.1rem;
   }
 
   .feature-list {
-    padding: 0;
-    font-size: 1rem;
-    space-y: 3;
+    font-size: 0.75rem;
+    space-y: 1.5;
+  }
+
+  .feature-list li {
+    padding-left: 0.75rem;
+    padding-right: 0.1rem;
+    line-height: 1.3;
+  }
+
+  .subtitle {
+    @apply text-base sm:text-lg;
+    padding: 0 1rem;
   }
 }
 
@@ -947,19 +955,45 @@ import { FlipCard } from '@/components/ui/flip-card'
   }
 
   .card-icon {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 1rem;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.5rem;
   }
 
   .card-text h3 {
-    font-size: 1.25rem;
+    font-size: 0.9rem;
   }
 
   .feature-list {
-    padding: 0;
-    font-size: 0.95rem;
-    space-y: 2;
+    font-size: 0.65rem;
+    space-y: 1;
+  }
+
+  .feature-list li {
+    padding-left: 0.5rem;
+    padding-right: 0.1rem;
+    line-height: 1.2;
+  }
+
+  .card-content {
+    padding: 0.5rem;
+  }
+
+  .hero-section {
+    padding: 1.5rem 0;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+  }
+
+  .slogan {
+    padding-top: 1rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
   }
 }
 
@@ -976,21 +1010,85 @@ import { FlipCard } from '@/components/ui/flip-card'
   max-width: 800px;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.9);
-  padding: 3rem;
+  padding: 3rem 6rem;
   border-radius: 12px;
+  position: relative;
+}
+
+.testimonial-card .quote {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.testimonial-card .author {
+  font-style: italic;
+  color: #666;
 }
 
 .slider-controls {
-  margin-top: 2rem;
+  position: absolute;
+  top: 50%;
+  left: -2rem;
+  right: -2rem;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
 }
 
 .slider-controls button {
   background: none;
   border: none;
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #232323;
   cursor: pointer;
-  padding: 0 1rem;
+  padding: 1rem;
+  transition: transform 0.3s ease;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .testimonial-card {
+    padding: 2rem 4rem;
+  }
+
+  .slider-controls {
+    left: -1rem;
+    right: -1rem;
+  }
+
+  .slider-controls button {
+    font-size: 2rem;
+    padding: 0.5rem;
+  }
+
+  .testimonial-card .quote {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .testimonial-card {
+    padding: 1.5rem 3rem;
+  }
+
+  .slider-controls {
+    left: -0.5rem;
+    right: -0.5rem;
+  }
+
+  .slider-controls button {
+    font-size: 1.8rem;
+    padding: 0.25rem;
+  }
+
+  .testimonial-card .quote {
+    font-size: 1rem;
+  }
 }
 
 .testimonials-content {
@@ -1000,6 +1098,7 @@ import { FlipCard } from '@/components/ui/flip-card'
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .testimonials-content h2 {
@@ -1041,122 +1140,6 @@ p {
 @media (max-width: 640px) {
   .wave-bottom {
     bottom: -15%;
-  }
-}
-
-.about-card {
-  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
-  @apply flex flex-col items-center text-center;
-  @apply transform transition-all duration-300;
-  height: 100%;
-  border: none;
-}
-
-.about-icon {
-  @apply w-16 h-16 mb-4 text-blue-500;
-  transition: transform 0.3s ease;
-}
-
-.about-card:hover .about-icon {
-  transform: scale(1.2);
-}
-
-.about-card h3 {
-  @apply text-xl font-semibold mb-2 text-neutral-900 dark:text-white;
-}
-
-.about-card p {
-  @apply text-neutral-600 dark:text-neutral-400;
-}
-
-/* 标题卡片样式 / Title Card Styles */
-.title-card {
-  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
-  @apply flex flex-col items-center justify-center;
-  height: 100%;
-  border: 1px solid #000;
-  width: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.title-content {
-  @apply flex flex-col items-center gap-4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.title-icon {
-  @apply w-16 h-16 mb-2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.title-icon .icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.title-text {
-  @apply text-2xl font-bold text-neutral-900 dark:text-white;
-  text-align: center;
-}
-
-.subtitle {
-  @apply text-neutral-600 dark:text-neutral-400;
-  text-align: center;
-}
-
-/* 内容卡片样式 / Content Card Styles */
-.content-card {
-  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
-  @apply flex flex-col gap-6;
-  height: 100%;
-  border: 1px solid #000;
-  width: 600px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.content-section {
-  @apply space-y-2;
-  text-align: center;
-  width: 100%;
-}
-
-.content-section h3 {
-  @apply text-xl font-semibold text-neutral-900 dark:text-white;
-}
-
-.content-section p {
-  @apply text-neutral-600 dark:text-neutral-400;
-}
-
-/* 响应式调整 / Responsive Adjustments */
-@media (max-width: 1024px) {
-  .title-card {
-    width: 250px;
-  }
-
-  .content-card {
-    width: 500px;
-  }
-}
-
-@media (max-width: 768px) {
-  .title-card {
-    width: 100%;
-    margin-bottom: 1rem;
-  }
-
-  .content-card {
-    width: 100%;
   }
 }
 </style>
