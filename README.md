@@ -1,8 +1,8 @@
-# Mindful Creator App / 正念创作者应用
+# Mindful Creator App
 
-A Vue.js application for ethical content creators to manage their content and engage with their audience responsibly.
+A Vue.js application for content creators to manage their content and engage with their audience responsibly.
 
-一个为道德内容创作者设计的 Vue.js 应用程序，用于管理内容并以负责任的方式与受众互动。
+一个为内容创作者设计的 Vue.js 应用程序，用于管理内容并以负责任的方式与受众互动。
 
 ## Features / 功能特点
 
@@ -22,7 +22,7 @@ A Vue.js application for ethical content creators to manage their content and en
 
 1. Clone the repository / 克隆仓库
    ```bash
-   git clone 
+   git clone https://github.com/aseemcodes72/mindful-creator.git
    cd mindful-creator
    ```
 
@@ -98,35 +98,11 @@ Peaceful moments for mental reset with various relaxation activities. / 通过�
   - Interactive UI Elements / 交互式UI元素
   - Accessibility Support / 无障碍支持
 
-## Contributing / 贡献
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-欢迎贡献！请随时提交 Pull Request。
-
-1. Fork the repository / 复刻仓库
-2. Create your feature branch / 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
-3. Commit your changes / 提交您的更改 (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch / 推送到分支 (`git push origin feature/amazing-feature`)
-5. Open a Pull Request / 打开一个 Pull Request
-
-## License / 许可证
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-本项目采用 MIT 许可证 - 详情请参阅 LICENSE 文件。
-
 ## Acknowledgements / 致谢
 
-- Thanks to all contributors and team members / 感谢所有贡献者和团队成员
-- Special thanks to our mentors and advisors / 特别感谢我们的导师和顾问
+- Thanks to all team members / 感谢所有贡献者和团队成员
+- Special thanks to our tutors and industrial mentors / 特别感谢我们的导师和顾问
 - Icon and design resources from various sources / 来自各种来源的图标和设计资源
-
-## Contact / 联系方式
-
-Project Link: [https://github.com/yourusername/mindful-creator](https://github.com/yourusername/mindful-creator)
-
-项目链接: [https://github.com/yourusername/mindful-creator](https://github.com/yourusername/mindful-creator)
 
 ---
 
