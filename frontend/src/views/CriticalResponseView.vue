@@ -122,7 +122,7 @@
   <style scoped>
   .critical-response-view {
     background: #fffdf4;
-    padding: 2rem;
+    padding: 5rem;
     font-family: Avenir, Helvetica, sans-serif;
     text-align: center;
   }
@@ -130,7 +130,7 @@
   .title {
     font-size: 28px;
     font-weight: bold;
-    margin-bottom: 2rem;
+    margin-bottom: 5rem;
   }
   
   .feeling-box {
