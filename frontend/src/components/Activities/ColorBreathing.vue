@@ -7,7 +7,7 @@
   </template>
   
   <script setup>
-  // Simple instruction for color breathing visualization.
+  // Simple instruction for colour breathing visualization.
   </script>
   
   <style scoped>

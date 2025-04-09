@@ -55,7 +55,6 @@ const speedInSeconds = computed(() => `${props.speed}s`);
   opacity: 0.4;
 }
 
-/* 确保背景为白色，文字为黑色 */
 .rainbow-button {
   background-color: white !important;
   border: 3px solid transparent;

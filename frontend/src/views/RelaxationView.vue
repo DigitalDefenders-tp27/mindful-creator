@@ -14,49 +14,49 @@
           <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
           <!-- 右上角第二排 / Top Row 2 Right -->
           <div class="top-row-2">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper element-1">
-              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper element-2">
-              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
             </div>
             <div class="element-wrapper element-3">
-              <img src="/src/components/icons/elements/Capsule.svg" alt="Capsule" class="element hoverable">
+              <img src="/src/assets/icons/elements/Capsule.svg" alt="Capsule" class="element hoverable">
             </div>
             <div class="element-wrapper element-4">
-              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
             </div>
             <div class="element-wrapper element-5">
-              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@
           <template v-if="activity.image" #background>
             <div
               class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
-              :style="`background-image: url('/src/components/icons/picsForBento/${activity.image}')`"
+              :style="`background-image: url('/src/assets/images/bento/${activity.image}')`"
             ></div>
           </template>
         </BentoGridCard>
@@ -133,8 +133,8 @@ import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
 import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
 
 // Star Icons
-import filledStar from '../components/icons/Elements/star-filled.png'
-import emptyStar from '../components/icons/Elements/star-empty.png'
+import filledStar from '../assets/icons/elements/star-filled.png'
+import emptyStar from '../assets/icons/elements/star-empty.png'
 import GroundingGuide from '../components/Activities/GroundingGuide.vue'
 import NatureSounds from '../components/Activities/NatureSounds.vue'
 import StretchingRoutine from '../components/Activities/StretchingRoutine.vue'
@@ -539,7 +539,7 @@ const submitFeedback = async () => {
   transform: rotate(-10deg) scale(1.1);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;

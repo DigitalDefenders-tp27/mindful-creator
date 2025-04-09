@@ -1,4 +1,5 @@
 <script setup>
+// Import navigation bar component / 导入导航栏组件
 import NavBar from './components/NavBar.vue'
 </script>
 
@@ -25,7 +26,7 @@ import NavBar from './components/NavBar.vue'
   padding: 0;
   margin: 0;
 
-  /* 添加主题色变量 */
+  /* Add theme color variables / 添加主题色变量 */
   --primary: 99 102 241;
   --primary-foreground: 255 255 255;
   --secondary: 244 245 246;
@@ -45,6 +46,7 @@ import NavBar from './components/NavBar.vue'
   --ring: 99 102 241;
 }
 
+/* Main content container / 主要内容容器 */
 .main-content {
   flex: 1;
   width: 100%;
@@ -53,13 +55,14 @@ import NavBar from './components/NavBar.vue'
   margin: 0;
 }
 
-/* 重置一些默认样式 */
+/* Reset default styles / 重置默认样式 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* HTML and body styles / HTML和body样式 */
 html, body {
   margin: 0;
   padding: 0;
@@ -67,15 +70,18 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Direct app children styles / App直接子元素样式 */
 #app > * {
   margin: 0;
   padding: 0;
 }
 
+/* Primary color utility class / 主色调工具类 */
 .text-primary-600 {
   color: rgb(var(--primary));
 }
 
+/* Dark mode primary color / 暗黑模式主色调 */
 .dark .text-primary-400 {
   color: rgb(var(--primary) / 0.9);
 }

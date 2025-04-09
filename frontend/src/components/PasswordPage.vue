@@ -15,7 +15,7 @@
   const errorMessage = ref('')
   const router = useRouter()
   
-  const correctPassword = '1234'  // Set your password here
+  const correctPassword = '1234'  
   
   const checkPassword = () => {
     if (password.value === correctPassword) {
