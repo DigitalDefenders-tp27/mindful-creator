@@ -10,7 +10,6 @@ A Vue.js application for content creators to manage their content and engage wit
 - **Audience Engagement / 受众互动**: Tools for meaningful interaction with your audience / 与受众进行有意义互动的工具
 - **Content Management / 内容管理**: Organize and schedule your content ethically / 以道德方式组织和安排您的内容
 - **Analytics / 分析**: Track your impact and audience growth / 跟踪您的影响力和受众增长
-- **Dark Mode / 暗色模式**: Comfortable viewing in any lighting condition / 在任何光线条件下舒适浏览
 - **Relaxation Zone / 放松区**: Activities to help content creators maintain mental wellbeing / 帮助内容创作者保持心理健康的活动
 
 ## Prerequisites / 前提条件
@@ -100,8 +99,8 @@ Peaceful moments for mental reset with various relaxation activities. / 通过�
 
 ## Acknowledgements / 致谢
 
-- Thanks to all team members / 感谢所有贡献者和团队成员
-- Special thanks to our tutors and industrial mentors / 特别感谢我们的导师和顾问
+- Thanks to all team members / 感谢所有团队成员
+- Special thanks to our tutors and industrial mentors / 特别感谢我们的导师
 - Icon and design resources from various sources / 来自各种来源的图标和设计资源
 
 ---
