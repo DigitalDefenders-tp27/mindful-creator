@@ -72,6 +72,7 @@
     <section class="content-section">
       <div class="gradient-overlay"></div>
       <div class="content-grid">
+        <!-- 第一行 -->
         <div class="content-row">
           <CardSpotlight 
             class="main-card"
@@ -91,7 +92,7 @@
               </div>
             </div>
           </CardSpotlight>
-          
+
           <CardSpotlight 
             class="long-card"
             :gradientSize="250"
@@ -106,7 +107,21 @@
           </CardSpotlight>
         </div>
 
+        <!-- 第二行 -->
         <div class="content-row">
+          <CardSpotlight 
+            class="long-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+            @click="expandCard('practices')"
+          >
+            <div class="preview-content">
+              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
+              <div class="read-more">Read More</div>
+            </div>
+          </CardSpotlight>
+
           <CardSpotlight 
             class="main-card"
             :gradientSize="250"
@@ -125,22 +140,11 @@
               </div>
             </div>
           </CardSpotlight>
-          
-          <CardSpotlight 
-            class="long-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-            @click="expandCard('practices')"
-          >
-            <div class="preview-content">
-              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
-              <div class="read-more">Read More</div>
-            </div>
-          </CardSpotlight>
         </div>
 
+        <!-- 第三行 -->
         <div class="content-row">
+          <!-- 左侧圆形卡片 -->
           <CardSpotlight 
             class="main-card"
             :gradientSize="250"
@@ -159,7 +163,8 @@
               </div>
             </div>
           </CardSpotlight>
-          
+
+          <!-- 右侧胶囊形卡片 -->
           <CardSpotlight 
             class="long-card"
             :gradientSize="250"
@@ -736,7 +741,16 @@ onMounted(() => {
 .content-row {
   @apply grid grid-cols-1 md:grid-cols-2 gap-6;
   margin-bottom: 1.5rem;
+}
+
+/* 所有行的默认布局 */
+.content-row {
   grid-template-columns: minmax(auto, 300px) 1fr;
+}
+
+/* 第二行特殊布局 */
+.content-row:nth-child(2) {
+  grid-template-columns: 1fr minmax(auto, 300px);
 }
 
 .quiz-row {
@@ -795,88 +809,69 @@ onMounted(() => {
   flex-grow: 1;
   overflow: hidden;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem 0;
+  padding: 1.5rem 6rem 3rem 4rem;
+  max-height: 100%;
+  mask-image: linear-gradient(to bottom, 
+    black 0%,
+    black 80%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, 
+    black 0%,
+    black 80%,
+    transparent 100%
+  );
 }
 
 .preview-text :deep(h1) {
-  @apply text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white;
-  margin-bottom: 0.5rem;
+  @apply text-2xl font-bold text-neutral-900 dark:text-white;
+  margin-bottom: 1rem;
+  line-height: 1.2;
 }
 
 .preview-text :deep(p) {
-  @apply text-lg sm:text-xl md:text-2xl text-neutral-700 dark:text-neutral-300;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  @apply text-base text-neutral-700 dark:text-neutral-300;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
 }
 
 .preview-text :deep(ul) {
-  @apply text-lg sm:text-xl md:text-2xl text-neutral-700 dark:text-neutral-300;
+  @apply text-base text-neutral-700 dark:text-neutral-300;
   list-style-type: none;
-  padding-left: 0;
+  padding-left: 1rem;
   margin-top: 0.5rem;
 }
 
 .preview-text :deep(li) {
-  margin-bottom: 0.75rem;
-  padding-left: 1.5rem;
   position: relative;
-  line-height: 1.6;
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 
 .preview-text :deep(li)::before {
   content: "•";
   position: absolute;
-  left: 0;
+  left: -0.5rem;
   color: #007AFF;
-  font-size: 1.2em;
 }
 
 .read-more {
   position: absolute;
   right: 0;
-  bottom: 0;
-  padding: 0.75rem 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.5rem 1.25rem;
   background-color: #007AFF;
   color: white;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   z-index: 2;
   border-radius: 9999px;
   transition: all 0.3s ease;
-  transform: translateY(-50%);
-  margin-right: 1rem;
-}
-
-@media (max-width: 1024px) {
-  .preview-text :deep(h1) {
-    @apply text-2xl;
-  }
-  
-  .preview-text :deep(p) {
-    @apply text-lg;
-  }
-  
-  .preview-text :deep(ul) {
-    @apply text-lg;
-  }
-}
-
-@media (max-width: 768px) {
-  .preview-text :deep(h1) {
-    @apply text-xl;
-  }
-  
-  .preview-text :deep(p) {
-    @apply text-base;
-  }
-  
-  .preview-text :deep(ul) {
-    @apply text-base;
-  }
+  margin-right: 3.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-content-wrapper {
