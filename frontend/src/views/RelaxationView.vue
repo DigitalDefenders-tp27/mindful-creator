@@ -1,54 +1,136 @@
 <template>
   <div class="relaxation-view">
-    <h1>Relaxation Resources</h1>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="slogan">
+          <div class="title-group">
+            <h1>Relaxation Zone</h1>
+            <h2>Peaceful Moments for Mental Reset</h2>
+          </div>
+          <p class="subtitle">Try these activities to calm your mind and regain focus</p>
+        </div>
+        <div class="decorative-elements">
+          <!-- 右上角第一排 / Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+          <!-- 右上角第二排 / Top Row 2 Right -->
+          <div class="top-row-2">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
+            </div>
+          </div>
+          <!-- 右下角第一排 / Bottom Row 1 Right -->
+          <div class="bottom-row-1">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+          <!-- 右下角第二排 / Bottom Row 2 Right -->
+          <div class="bottom-row-2">
+            <div class="element-wrapper element-1">
+              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper element-2">
+              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+            </div>
+            <div class="element-wrapper element-3">
+              <img src="/src/components/icons/elements/Capsule.svg" alt="Capsule" class="element hoverable">
+            </div>
+            <div class="element-wrapper element-4">
+              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+            </div>
+            <div class="element-wrapper element-5">
+              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Activities -->
-    <div class="activities">
-      <div class="activity-card" v-for="activity in activities" :key="activity.title">
-        <h3>{{ activity.title }}</h3>
-        <p>{{ activity.description }}</p>
-        <button @click="startActivity(activity.type)">Try it</button>
-      </div>
+    <div class="activities-container">
+      <h2 class="activities-title">Featured Relaxation Activities</h2>
+      <p class="activities-subtitle">Choose any activity to give yourself a moment of calm</p>
+      <BentoGrid class="activities-bento">
+        <BentoGridCard
+          v-for="(activity, index) in activitiesWithLayout"
+          :key="index"
+          :name="activity.title"
+          :description="activity.description"
+          :class="activity.class"
+          @click="startActivity(activity.type)"
+        >
+          <template v-if="activity.image" #background>
+            <div
+              class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
+              :style="`background-image: url('/src/components/icons/picsForBento/${activity.image}')`"
+            ></div>
+          </template>
+        </BentoGridCard>
+      </BentoGrid>
     </div>
 
-        <!-- Dynamic Activity Components -->
-        <component :is="currentActivityComponent" v-if="currentActivityComponent" />
+    <!-- Dynamic Activity Components in Modal -->
+    <div v-if="showActivityModal" class="activity-modal-overlay" @click="closeModal">
+      <div class="activity-modal" @click.stop>
+        <button class="close-modal-btn" @click="closeModal">&times;</button>
+        <div class="activity-modal-content">
+          <component :is="currentActivityComponent" v-if="currentActivityComponent" />
+          
+          <!-- Feedback inside modal -->
+          <div v-if="showRating" class="feedback">
+            <h2>How effective was this relaxation activity?</h2>
+            <div class="stars">
+              <span v-for="n in 5" :key="n" @click="rating = n">
+                <img :src="n <= rating ? filledStar : emptyStar" alt="star" class="star" />
+              </span>
+            </div>
 
-    <!-- Feedback -->
-    <transition name="fade-slide">
-      <div v-if="showRating" class="feedback">
-        <h2>How effective was this relaxation activity?</h2>
-        <div class="stars">
-          <span v-for="n in 5" :key="n" @click="rating = n">
-            <img :src="n <= rating ? filledStar : emptyStar" alt="star" class="star" />
-          </span>
+            <textarea
+              v-model="comment"
+              placeholder="Share your thoughts about this experience..."
+              class="comment-box"
+              rows="4"
+            ></textarea>
+
+            <button class="submit-btn" @click="submitFeedback">Submit Feedback</button>
+
+            <p v-if="submitted" class="thank-you">Thank you for your feedback!</p>
+          </div>
         </div>
-
-        <textarea
-          v-model="comment"
-          placeholder="Leave your suggestion..."
-          class="comment-box"
-          rows="4"
-        ></textarea>
-
-        <button class="submit-btn" @click="submitFeedback">Submit Feedback</button>
-
-        <p v-if="submitted" class="thank-you">Thank you for your feedback!</p>
       </div>
-    </transition>
+    </div>
 
     <!-- Continue Button -->
     <div class="continue-section">
       <router-link to="/critical-response">
-        <button class="continue-btn">Proceed to Critical Response</button>
+        <button class="continue-btn">Jump to Critical Response</button>
       </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
+import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
+import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
 
 // Star Icons
 import filledStar from '../components/icons/Elements/star-filled.png'
@@ -69,47 +151,99 @@ const activities = [
   {
     title: 'Breathing Exercise',
     description: 'Follow a guided 4-7-8 breathing pattern to calm your mind.',
-    type: 'breathing'
+    type: 'breathing',
+    image: 'BreathingExercise.png'
   },
   {
     title: 'Guided Meditation',
     description: 'Listen to a short meditation audio to relax and refocus.',
-    type: 'meditation'
+    type: 'meditation',
+    image: 'Meditation.png'
   },
   {
     title: 'Sensory Grounding',
     description: 'Try a 5-4-3-2-1 activity to bring yourself into the present.',
-    type: 'grounding'
+    type: 'grounding',
+    image: 'SensoryGrounding.jpg'
   },
   {
     title: 'Nature Sounds',
     description: 'Listen to calming sounds like rain, ocean waves, or forest.',
-    type: 'nature'
+    type: 'nature',
+    image: 'NatureSounds.jpg'
   },
   {
     title: 'Stretching Routine',
     description: 'Follow a short guide to stretch your body and ease tension.',
-    type: 'stretching'
+    type: 'stretching',
+    image: 'StretchingRoutine.png'
   },
   {
-    title: 'Color Breathing',
-    description: 'Visualize breathing in calming colors and breathing out stress.',
-    type: 'color-breathing'
+    title: 'Colour Breathing',
+    description: 'Visualise breathing in calming colours and breathing out stress.',
+    type: 'color-breathing',
+    image: 'ColorBreathing.jpg'
   },
   {
     title: 'Affirmation Reflection',
     description: 'Read and reflect on positive affirmations for a mental reset.',
-    type: 'affirmation'
+    type: 'affirmation',
+    image: 'Affirmation.png'
   },
   {
     title: 'Mini Journal Prompt',
-    description: 'Write one sentence about how you’re feeling right now.',
-    type: 'journal'
+    description: 'Write one sentence about how you are feeling right now.',
+    type: 'journal',
+    image: 'MiniJournalPrompt.png'
   }
 ]
 
+// Adding layout classes to create different card sizes
+const activitiesWithLayout = computed(() => [
+  // Left column
+  { 
+    ...activities[0], 
+    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 xl:h-[28rem]' // Breathing Exercise - tall card
+  }, 
+  { 
+    ...activities[2], 
+    class: 'lg:col-span-1 row-span-1 md:col-span-1 lg:h-[16rem]' // Sensory Grounding - standard height
+  }, 
+  
+  // Middle column - Meditation as a super tall card
+  { 
+    ...activities[1], 
+    class: 'lg:col-span-1 row-span-1 lg:row-span-3 md:col-span-2 xl:h-[44rem]' // Guided Meditation - super tall card
+  },
+  
+  // Right column - Affirmation in the middle position
+  { 
+    ...activities[3], 
+    class: 'lg:col-span-1 row-span-1 md:col-span-1 lg:h-[14rem]' // Nature Sounds - small card
+  },
+  { 
+    ...activities[6], 
+    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 lg:h-[34rem]' // Affirmation Reflection - extended card
+  },
+  { 
+    ...activities[4], 
+    class: 'lg:col-span-1 row-span-1 lg:row-span-1 md:col-span-1 lg:h-[18rem]' // Stretching Routine - adjusted height
+  },
+  
+  // Bottom row
+  { 
+    ...activities[5], 
+    class: 'lg:col-span-2 row-span-1 md:col-span-1 lg:h-[20rem] lg:col-start-2' // Colour Breathing - right-aligned
+  },
+  { 
+    ...activities[7], 
+    class: 'lg:col-span-3 row-span-1 md:col-span-2 lg:h-[16rem]' // Mini Journal Prompt - full width card
+  }
+]);
+
 // States
 const showRating = ref(false)
+const showActivityModal = ref(false)
 const rating = ref(0)
 const comment = ref('')
 const submitted = ref(false)
@@ -132,14 +266,25 @@ const startActivity = (type) => {
   currentActivity.value = type
   currentActivityComponent.value = activityComponents[type]
   showRating.value = true
+  showActivityModal.value = true
   submitted.value = false
   rating.value = 0
   comment.value = ''
+  
+  // Prevent body scrolling when modal is open
+  document.body.style.overflow = 'hidden'
+}
+
+const closeModal = () => {
+  showActivityModal.value = false
+  
+  // Re-enable body scrolling when modal is closed
+  document.body.style.overflow = 'auto'
 }
 
 const submitFeedback = async () => {
   if (rating.value === 0 || comment.value.trim() === '') {
-    alert('Please provide both a rating and a comment.')
+    alert('Please provide both a rating and comment before submitting.')
     return
   }
 
@@ -153,6 +298,11 @@ const submitFeedback = async () => {
       timestamp: new Date().toISOString()
     })
     console.log('Feedback submitted')
+    
+    // Close modal after a short delay to show the thank you message
+    setTimeout(() => {
+      closeModal()
+    }, 1500)
   } catch (err) {
     console.error('Failed to submit feedback:', err)
   }
@@ -161,46 +311,467 @@ const submitFeedback = async () => {
 
 <style scoped>
 .relaxation-view {
-  padding: 2rem;
   font-family: Avenir, Helvetica, sans-serif;
   background: #fefbf4;
   text-align: center;
 }
 
-.activities {
+.hero-section {
+  min-height: 75vh;
+  background-color: rgb(255, 252, 244);
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin: 2rem 0;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  padding: 1rem 0;
 }
 
-.activity-card {
-  background: #e3f6f5;
-  border-radius: 12px;
-  padding: 1.5rem;
-  width: 250px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+.hero-content {
+  position: relative;
+  width: 100%;
+  min-height: 75vh;
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  margin: 0 auto;
 }
 
-.activity-card h3 {
+.slogan {
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+  margin-left: 2rem;
+  text-align: left;
+}
+
+.title-group {
   margin-bottom: 0.5rem;
+  text-align: left;
 }
 
-.activity-card button {
-  margin-top: 1rem;
-  padding: 8px 16px;
-  background: #3a86ff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.title-group h1 {
+  font-size: 4rem;
   font-weight: bold;
-  transition: 0.3s;
+  background: linear-gradient(135deg, #4ECDC4 0%, #6c63ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  display: block;
+  margin-bottom: 1rem;
+  white-space: normal;
+  text-align: left;
 }
 
-.activity-card button:hover {
-  background: #265ef2;
+.title-group h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.2;
+  display: block;
+  white-space: normal;
+  text-align: left;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  white-space: normal;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: repeat(4, auto);
+  row-gap: 1rem;
+  padding: 2rem 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translateX(-2rem);
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.top-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 5 / 7;
+  grid-row: 2;
+  justify-self: end;
+}
+
+.bottom-row-1 {
+  display: grid;
+  grid-template-columns: repeat(2, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 5 / 7;
+  grid-row: 3;
+  justify-self: end;
+}
+
+.bottom-row-2 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 2 / 7;
+  grid-row: 4;
+}
+
+.bottom-row-2 .element-wrapper {
+  width: 160px;
+  height: 120px;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: transform 0.5s ease;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: all 0.5s ease;
+}
+
+/* Hover效果增强 */
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+.top-row-2 .element:hover {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.bottom-row-1 .element:hover {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.bottom-row-2 .element:hover {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+  
+  .top-row {
+    grid-template-columns: repeat(3, 140px);
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 140px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(2, 140px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-2 .element-wrapper {
+    width: 140px;
+    height: 105px;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+  
+  .top-row {
+    grid-template-columns: repeat(3, 120px);
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 120px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(2, 120px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-2 .element-wrapper {
+    width: 120px;
+    height: 90px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+  
+  .top-row {
+    grid-template-columns: repeat(3, 100px);
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 100px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(2, 100px);
+    grid-column: 5 / 7;
+  }
+  
+  .bottom-row-2 .element-wrapper {
+    width: 100px;
+    height: 75px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-section {
+    min-height: 65vh;
+  }
+  
+  .hero-content {
+    min-height: 65vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 55vh;
+  }
+  
+  .hero-content {
+    min-height: 55vh;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+  }
+  
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.8);
+    transition: opacity 0.3s ease;
+  }
+  
+  .activities-container {
+    padding: 2rem 1rem;
+    margin-top: -1rem;
+    border-radius: 1rem;
+  }
+  
+  .activities-title {
+    font-size: 1.75rem;
+  }
+  
+  .activities-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .activity-modal {
+    width: 95%;
+    border-radius: 12px;
+  }
+  
+  .activity-modal-content {
+    padding: 1.5rem;
+  }
+  
+  .breathing-video h2,
+  .meditation-audio h2,
+  .color-breathing h2,
+  .grounding-guide h2,
+  .nature-sounds h2,
+  .stretching-routine h2,
+  .affirmation-reflection h2,
+  .journal-prompt h2 {
+    font-size: 30px !important;
+  }
+  
+  .close-modal-btn {
+    top: 10px;
+    right: 15px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding: 1.5rem 0;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+  }
+
+  .slogan {
+    padding-top: 1rem;
+  }
+}
+
+.activities-container {
+  padding: 3rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: rgb(250, 247, 240);
+  border-radius: 2rem;
+  margin-top: -2rem;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.activities-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #4ECDC4 0%, #6c63ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.activities-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.activities-bento {
+  width: 100%;
+}
+
+.activity-bento-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f5f9ff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.activity-bento-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.bento-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
 }
 
 .feedback {
@@ -262,21 +833,27 @@ const submitFeedback = async () => {
 
 .continue-section {
   margin-top: 2rem;
+  margin-bottom: 6rem;
+  text-align: center;
 }
 
 .continue-btn {
-  background-color: #6c63ff;
+  background: linear-gradient(135deg, #8E2DE2 0%, #FF6B9B 100%);
   color: white;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(142, 45, 226, 0.25);
+  letter-spacing: 0.5px;
 }
+
 .continue-btn:hover {
-  background-color: #5848d3;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(142, 45, 226, 0.4);
 }
 
 /* Animation */
@@ -291,5 +868,200 @@ const submitFeedback = async () => {
 .fade-slide-enter-to {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+  .activities-container {
+    padding: 2.5rem 1.5rem;
+    margin-top: -1.5rem;
+    border-radius: 1.5rem;
+  }
+  
+  .activities-title {
+    font-size: 2rem;
+  }
+  
+  .activities-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-modal-content {
+    padding: 1rem;
+  }
+  
+  .breathing-video h2,
+  .meditation-audio h2,
+  .color-breathing h2,
+  .grounding-guide h2,
+  .nature-sounds h2,
+  .stretching-routine h2,
+  .affirmation-reflection h2,
+  .journal-prompt h2 {
+    font-size: 26px !important;
+  }
+  
+  .activity-modal .feedback h2 {
+    font-size: 1.25rem;
+  }
+  
+  .stars {
+    gap: 5px;
+  }
+  
+  .star {
+    width: 28px;
+  }
+  
+  .comment-box {
+    width: 100%;
+  }
+}
+
+.activity-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+.activity-modal {
+  background-color: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.4s ease;
+}
+
+.activity-modal-content {
+  padding: 2rem;
+}
+
+/* Make sure all activity components fill the modal width */
+.activity-modal-content > div {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-modal-content > div h2,
+.breathing-video h2,
+.meditation-audio h2,
+.color-breathing h2,
+.grounding-guide h2,
+.nature-sounds h2,
+.stretching-routine h2,
+.affirmation-reflection h2,
+.journal-prompt h2 {
+  font-size: 36px !important;
+  font-weight: bold !important;
+  margin-bottom: 20px !important;
+  color: #333 !important;
+  text-align: center !important;
+  line-height: 1.3 !important;
+  background: linear-gradient(135deg, #4ECDC4 0%, #6c63ff 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  display: block !important;
+  padding: 0.5rem 0 !important;
+  animation: fadeInDown 0.6s ease forwards !important;
+}
+
+.activity-modal-content > div p:first-of-type,
+.breathing-video p:first-of-type,
+.meditation-audio p:first-of-type,
+.color-breathing p:first-of-type,
+.grounding-guide p:first-of-type,
+.nature-sounds p:first-of-type,
+.stretching-routine p:first-of-type,
+.affirmation-reflection p:first-of-type,
+.journal-prompt p:first-of-type {
+  font-size: 18px !important;
+  margin-bottom: 25px !important;
+  line-height: 1.6 !important;
+  color: #666 !important;
+  text-align: center !important;
+  max-width: 600px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.close-modal-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  line-height: 30px;
+  color: #666;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s ease;
+}
+
+.close-modal-btn:hover {
+  color: #000;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px); 
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0); 
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Adjust feedback style inside modal */
+.activity-modal .feedback {
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+  margin-top: 2rem;
+}
+
+/* Override any padding from individual components */
+.activity-modal-content .breathing-video,
+.activity-modal-content .meditation-audio,
+.activity-modal-content .color-breathing,
+.activity-modal-content .grounding-guide,
+.activity-modal-content .nature-sounds,
+.activity-modal-content .stretching-routine,
+.activity-modal-content .affirmation-reflection,
+.activity-modal-content .journal-prompt {
+  padding: 0 !important;
 }
 </style>
