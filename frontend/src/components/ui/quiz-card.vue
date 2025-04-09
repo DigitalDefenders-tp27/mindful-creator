@@ -6,7 +6,7 @@
   >
     <div class="quiz-content">
       <div class="quiz-icon">
-        <img src="/src/components/icons/elements/quiz.png" alt="Quiz" class="icon">
+        <img src="/src/assets/icons/elements/quiz.png" alt="Quiz" class="icon">
       </div>
       <div class="quiz-text">
         <h3>Check Your Understanding</h3>

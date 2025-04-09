@@ -13,46 +13,43 @@
           <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
         </div>
@@ -68,17 +65,17 @@
         </div>
         <div class="features-grid">
           <div class="feature">
-            <img src="/src/components/icons/elements/Eye.svg" alt="Eye icon" class="feature-icon">
+            <img src="/src/assets/icons/elements/Eye.svg" alt="Eye icon" class="feature-icon">
             <h3>FOR YOUNG CREATORS</h3>
             <p>Grow confidently and safely in the digital space while avoiding unnecessary risks.</p>
           </div>
           <div class="feature">
-            <img src="/src/components/icons/elements/Jigsaw.svg" alt="Jigsaw icon" class="feature-icon">
+            <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Jigsaw icon" class="feature-icon">
             <h3>RICH & PRACTICAL CONTENT</h3>
             <p>Offer valuable insights with practical guides to support long-term success.</p>
           </div>
           <div class="feature">
-            <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower icon" class="feature-icon">
+            <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower icon" class="feature-icon">
             <h3>SAFE & POSITIVE SPACE</h3>
             <p>Learn how to foster a supportive and uplifting community around you.</p>
           </div>
@@ -95,7 +92,7 @@
           <div class="top-row">
             <FlipCard class="journey-card purple">
               <div class="card-content">
-                <img src="/src/components/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
+                <img src="/src/assets/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
                 <div class="card-text">
                   <h3>Ethical</h3>
                   <h3>Influencer</h3>
@@ -114,7 +111,7 @@
 
             <FlipCard class="journey-card beige">
               <div class="card-content">
-                <img src="/src/components/icons/elements/Medication.svg" alt="Medication" class="card-icon">
+                <img src="/src/assets/icons/elements/Medication.svg" alt="Medication" class="card-icon">
                 <div class="card-text">
                   <h3>Creator</h3>
                   <h3>Wellbing</h3>
@@ -133,7 +130,7 @@
 
             <FlipCard class="journey-card orange">
               <div class="card-content">
-                <img src="/src/components/icons/elements/Circle_blue.svg" alt="Circle Blue" class="card-icon">
+                <img src="/src/assets/icons/elements/Circle_blue.svg" alt="Circle Blue" class="card-icon">
                 <div class="card-text">
                   <h3>Critical</h3>
                   <h3>Response</h3>
@@ -154,7 +151,7 @@
           <div class="bottom-row">
             <FlipCard class="journey-card orange-light">
               <div class="card-content">
-                <img src="/src/components/icons/elements/Leaves_Blue.svg" alt="Leaves Blue" class="card-icon">
+                <img src="/src/assets/icons/elements/Leaves_Blue.svg" alt="Leaves Blue" class="card-icon">
                 <div class="card-text">
                   <h3>Privacy</h3>
                 </div>
@@ -172,7 +169,7 @@
 
             <FlipCard class="journey-card blue-light">
               <div class="card-content">
-                <img src="/src/components/icons/elements/Leaves_Purple.svg" alt="Leaves Purple" class="card-icon">
+                <img src="/src/assets/icons/elements/Leaves_Purple.svg" alt="Leaves Purple" class="card-icon">
                 <div class="card-text">
                   <h3>Copyright</h3>
                 </div>
@@ -195,7 +192,7 @@
     <!-- 4. Testimonials Section / 推荐部分 -->
     <section class="testimonials-section">
       <div class="section-background">
-        <img src="../components/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
+        <img src="../assets/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
       </div>
       <div class="testimonials-content">
         <h2>What people are saying</h2>
@@ -354,7 +351,8 @@ import { FlipCard } from '@/components/ui/flip-card'
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(-2rem);
+  transform: translateX(0);
+  justify-content: end;
 }
 
 .top-row {
@@ -383,14 +381,15 @@ import { FlipCard } from '@/components/ui/flip-card'
 
 .bottom-row-2 {
   display: grid;
-  grid-template-columns: repeat(6, 160px);
+  grid-template-columns: repeat(5, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 1 / 7;
+  grid-column: 4 / 7;
   grid-row: 4;
   justify-self: end;
+  justify-content: end;
   margin-bottom: 2rem;
 }
 
@@ -430,13 +429,18 @@ import { FlipCard } from '@/components/ui/flip-card'
   transform: rotate(-10deg) scale(1.1);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(0);
+    justify-content: end;
+  }
+  
+  .bottom-row-2 {
+    grid-template-columns: repeat(5, 140px);
   }
 }
 
@@ -445,7 +449,12 @@ import { FlipCard } from '@/components/ui/flip-card'
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(0);
+    justify-content: end;
+  }
+  
+  .bottom-row-2 {
+    grid-template-columns: repeat(5, 120px);
   }
 }
 
@@ -454,8 +463,13 @@ import { FlipCard } from '@/components/ui/flip-card'
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(0);
     row-gap: 0.75rem;
+    justify-content: end;
+  }
+  
+  .bottom-row-2 {
+    grid-template-columns: repeat(5, 100px);
   }
 }
 
@@ -476,6 +490,11 @@ import { FlipCard } from '@/components/ui/flip-card'
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
+    justify-content: end;
+  }
+  
+  .bottom-row-2 {
+    grid-template-columns: repeat(5, 90px);
   }
 
   .title-group h1 {
@@ -912,7 +931,7 @@ import { FlipCard } from '@/components/ui/flip-card'
   font-weight: 600;
 }
 
-/* 反转卡片响应式设计 - 调整卡片背面文字大小 */
+/* Responsive card flip design - adjust card back text size */
 @media (max-width: 1200px) {
   .feature-list {
     font-size: 1.1rem;
@@ -1117,7 +1136,7 @@ p {
   line-height: 1.6;
 }
 
-/* 波浪效果响应式 / Wave effect responsive */
+/* Wave effect responsive */
 @media (max-width: 1024px) {
   .wave-bottom {
     display: none;

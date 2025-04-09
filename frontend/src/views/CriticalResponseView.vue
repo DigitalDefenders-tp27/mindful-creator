@@ -14,25 +14,25 @@
             <!-- 右上角第一排 / Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
               </div>
             </div>
             <!-- 右下角第一排 / Bottom Row 1 Right -->
             <div class="bottom-row-1">
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+                <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
               </div>
             </div>
           </div>
@@ -760,7 +760,7 @@
     transform: translateY(-50%) translateX(5px);
   }
   
-  /* 响应式调整按钮位置 */
+  /* Responsive button position adjustment */
   @media (max-width: 1280px) {
     .read-more-button {
       margin-right: 2.5rem;

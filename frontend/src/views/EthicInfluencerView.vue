@@ -13,49 +13,49 @@
           <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
           <!-- 右上角第二排 / Top Row 2 Right -->
           <div class="top-row-2">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Red.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Red.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@
     <section class="content-section">
       <div class="gradient-overlay"></div>
       <div class="content-grid">
-        <!-- 第一行 -->
+        <!-- First Row / 第一行  -->
         <div class="content-row">
           <CardSpotlight 
             class="main-card"
@@ -77,7 +77,7 @@
             <div class="card-content-wrapper">
               <div class="card-text">
                 <div class="card-title">
-                  <img src="/src/components/icons/elements/Eye.svg" alt="Impact" class="card-icon">
+                  <img src="/src/assets/icons/elements/Eye.svg" alt="Impact" class="card-icon">
                   <h3>Understanding Your Impact</h3>
                 </div>
                 <div class="card-description">
@@ -101,7 +101,7 @@
           </CardSpotlight>
         </div>
 
-        <!-- 第二行 -->
+        <!-- Second Row / 第二行 -->
         <div class="content-row">
           <CardSpotlight 
             class="long-card"
@@ -125,7 +125,7 @@
             <div class="card-content-wrapper">
               <div class="card-text">
                 <div class="card-title">
-                  <img src="/src/components/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
+                  <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
                   <h3>Building Authentic Relationships</h3>
                 </div>
                 <div class="card-description">
@@ -136,7 +136,7 @@
           </CardSpotlight>
         </div>
 
-        <!-- 第三行 -->
+        <!-- Third Row / 第三行 -->
         <div class="content-row">
           <!-- 左侧圆形卡片 -->
           <CardSpotlight 
@@ -148,7 +148,7 @@
             <div class="card-content-wrapper">
               <div class="card-text">
                 <div class="card-title">
-                  <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
+                  <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
                   <h3>Ethical Content Creation</h3>
                 </div>
                 <div class="card-description">
@@ -158,7 +158,7 @@
             </div>
           </CardSpotlight>
 
-          <!-- 右侧胶囊形卡片 -->
+          <!-- Right Capsule Card / 右侧胶囊形卡片 -->
           <CardSpotlight 
             class="long-card"
             :gradientSize="250"
@@ -219,14 +219,14 @@ const keyPrinciplesMarkdown = ref('')
 const selectedCard = ref(null)
 const isCardExpanded = ref(false)
 
-// 预览内容
+// Preview Content / 预览内容
 const previewContent = computed(() => contentGuidelinesMarkdown.value)
 const bestPracticesPreview = computed(() => bestPracticesMarkdown.value)
 const keyPrinciplesPreview = computed(() => keyPrinciplesMarkdown.value)
 
 const fetchData = async () => {
   try {
-    // 加载完整内容
+    // Load full content
     contentGuidelinesMarkdown.value = impactPreviewMD
     bestPracticesMarkdown.value = relationshipsPreviewMD
     keyPrinciplesMarkdown.value = principlesPreviewMD
@@ -249,7 +249,7 @@ const closeCard = () => {
   }, 300)
 }
 
-// 获取展开卡片的标题和内容
+// Get the expanded card title and content
 const getExpandedCardTitle = computed(() => {
   switch (selectedCard.value) {
     case 'guidelines':
@@ -492,7 +492,7 @@ onMounted(() => {
   transition: all 0.5s ease;
 }
 
-/* Hover效果增强 */
+/* Enhanced hover effect */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
@@ -509,7 +509,7 @@ onMounted(() => {
   transform: rotate(-10deg) scale(1.1);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
@@ -778,7 +778,7 @@ onMounted(() => {
   pointer-events: none;
 }
 
-/* 添加一个额外的装饰元素，确保渐变效果在卡片区域可见但不侵入标题区域 */
+/* Add an additional decorative element to ensure the gradient effect is visible in the card area but does not intrude on the title area */
 .ethic-container::after {
   content: '';
   position: absolute;
@@ -812,12 +812,12 @@ onMounted(() => {
   margin-bottom: 3rem;
 }
 
-/* 所有行的默认布局 */
+/* Default layout for all rows */
 .content-row {
   grid-template-columns: minmax(auto, 300px) 1fr;
 }
 
-/* 第二行特殊布局 */
+/* Special layout for the second row */
 .content-row:nth-child(2) {
   grid-template-columns: 1fr minmax(auto, 300px);
 }
@@ -879,7 +879,7 @@ onMounted(() => {
   width: 100%;
 }
 
-/* 第二行左侧卡片特殊样式 / Special styles for the second row left card */
+/* Special styles for the second row left card */
 .content-row:nth-child(2) .long-card .preview-content {
   position: relative;
   padding: 1.5rem 2rem 1.5rem 14rem;
@@ -907,7 +907,7 @@ onMounted(() => {
   display: none;
 }
 
-/* 移除之前可能导致右对齐的样式 */
+/* Remove previous styles that might have caused right alignment */
 .content-row:nth-child(2) .long-card .preview-text :deep(h1),
 .content-row:nth-child(2) .long-card .preview-text :deep(p),
 .content-row:nth-child(2) .long-card .preview-text :deep(ul),
@@ -998,13 +998,13 @@ onMounted(() => {
   margin-right: 0;
 }
 
-/* 确保按钮在悬停时有足够的空间显示 */
+/* Ensure the button has enough space to display when hovered */
 .long-card {
   position: relative;
   overflow: visible !important;
 }
 
-/* 按钮悬停效果增强 */
+/* Enhanced button hover effect */
 .read-more-button:hover {
   transform: translateY(-50%) translateX(5px);
 }
@@ -1199,7 +1199,7 @@ onMounted(() => {
   }
 }
 
-/* 圆形卡片和胶囊卡片的响应式设计 */
+/* Responsive design for circular and capsule cards */
 @media (max-width: 1280px) {
   .main-card {
     width: 280px;
