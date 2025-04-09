@@ -22,13 +22,16 @@ import NavBar from './components/NavBar.vue'
   width: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0;
+  margin: 0;
 }
 
 .main-content {
   flex: 1;
   width: 100%;
-  max-width: 100vw;
   overflow-x: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 /* 重置一些默认样式 */
@@ -38,10 +41,15 @@ import NavBar from './components/NavBar.vue'
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   overflow-x: hidden;
+}
+
+#app > * {
+  margin: 0;
+  padding: 0;
 }
 </style>

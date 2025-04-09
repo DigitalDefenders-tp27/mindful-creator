@@ -13,46 +13,55 @@
           <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/components/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+          <!-- 右上角第二排 / Top Row 2 Right -->
+          <div class="top-row-2">
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Red.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
-            <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+            <!-- <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
-            </div>
+              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Z" class="element hoverable">
+            </div> -->
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
             </div>
           </div>
           <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
+              <img src="/src/components/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
+              <img src="/src/components/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
             </div>
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
             </div>
             <div class="element-wrapper">
+              <img src="/src/components/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
               <img src="/src/components/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
+              <img src="/src/components/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
         </div>
@@ -92,7 +101,7 @@
           >
             <div class="preview-content">
               <div v-html="marked(previewContent)" class="preview-text"></div>
-              <div class="read-more">Click to read more...</div>
+              <div class="read-more">Read More</div>
             </div>
           </CardSpotlight>
         </div>
@@ -126,7 +135,7 @@
           >
             <div class="preview-content">
               <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
-              <div class="read-more">Click to read more...</div>
+              <div class="read-more">Read More</div>
             </div>
           </CardSpotlight>
         </div>
@@ -160,7 +169,7 @@
           >
             <div class="preview-content">
               <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
-              <div class="read-more">Click to read more...</div>
+              <div class="read-more">Read More</div>
             </div>
           </CardSpotlight>
         </div>
@@ -283,6 +292,41 @@ Every content creator faces ethical decisions. Whether you're addressing sensiti
 Ethical creators actively reflect on the consequences of their content. They consider the potential effects their messages may have, especially on vulnerable groups, and they continuously strive to uplift and positively contribute to their communities.
 
 Creating ethical content helps build trust, maintain credibility, and ensures long-term positive impact on your audience and broader online communities.`
+
+    // 更新预览内容
+    const previewContent = `Understanding Your Impact as a Content Creator
+
+Your content has the power to shape thoughts, beliefs, and actions. Learn how to create content that positively influences your audience while maintaining ethical responsibility.
+
+Key aspects:
+- The power of influence
+- Ethical responsibility
+- Engaging responsibly`
+
+    const bestPracticesPreview = `Building Authentic Relationships
+
+Discover how to build genuine connections with your audience through transparent communication and authentic interactions.
+
+Key strategies:
+- Importance of transparency
+- Personal storytelling
+- Constructive engagement
+- Handling criticism`
+
+    const keyPrinciplesPreview = `Ethical Content Creation Principles
+
+Learn the essential principles for creating content that aligns with your values while respecting your audience's rights and perspectives.
+
+Core principles:
+- Honesty and accuracy
+- Consistency in values
+- Accountability
+- Respect and inclusivity`
+
+    // 设置预览内容
+    contentGuidelinesMarkdown.value = previewContent
+    bestPracticesMarkdown.value = bestPracticesPreview
+    keyPrinciplesMarkdown.value = keyPrinciplesPreview
   } catch (error) {
     console.error('Error setting content:', error)
   }
@@ -344,7 +388,7 @@ onMounted(() => {
 
 .hero-section {
   @apply py-4 relative;
-  min-height: 45vh;
+  min-height: 75vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
@@ -357,9 +401,10 @@ onMounted(() => {
   @apply container mx-auto px-6;
   position: relative;
   width: 100%;
-  min-height: 45vh;
+  min-height: 75vh;
   display: flex;
   align-items: center;
+  padding-left: 2rem;
 }
 
 .slogan {
@@ -367,6 +412,7 @@ onMounted(() => {
   max-width: 800px;
   position: relative;
   z-index: 2;
+  margin-left: 2rem;
 }
 
 .title-group {
@@ -374,7 +420,7 @@ onMounted(() => {
 }
 
 .title-group h1 {
-  @apply text-6xl md:text-7xl lg:text-8xl font-bold;
+  @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold;
   background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -382,20 +428,21 @@ onMounted(() => {
   line-height: 1.1;
   display: block;
   margin-bottom: 1rem;
+  white-space: normal;
 }
 
 .title-group h2 {
-  @apply text-4xl sm:text-5xl md:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
+  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
   line-height: 1.2;
   display: block;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .subtitle {
-  @apply text-xl sm:text-2xl md:text-3xl text-neutral-600 dark:text-neutral-400;
+  @apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-neutral-600 dark:text-neutral-400;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .decorative-elements {
@@ -406,17 +453,18 @@ onMounted(() => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: auto 160px auto auto;
-  gap: 0;
+  grid-template-rows: repeat(4, auto);
+  row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
+  transform: translateX(-2rem);
 }
 
 .top-row {
   display: grid;
   grid-template-columns: repeat(3, 160px);
-  gap: 0;
+  gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
@@ -425,14 +473,26 @@ onMounted(() => {
   justify-self: end;
 }
 
-.bottom-row-1 {
+.top-row-2 {
   display: grid;
-  grid-template-columns: repeat(3, 160px);
-  gap: 0;
+  grid-template-columns: repeat(2, 160px);
+  gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 4 / 7;
+  grid-column: 5 / 7;
+  grid-row: 2;
+  justify-self: end;
+}
+
+.bottom-row-1 {
+  display: grid;
+  grid-template-columns: repeat(1, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 6 / 7;
   grid-row: 3;
   justify-self: end;
 }
@@ -440,13 +500,14 @@ onMounted(() => {
 .bottom-row-2 {
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  gap: 0;
+  gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
   grid-column: 1 / 7;
   grid-row: 4;
   justify-self: end;
+  margin-bottom: 2rem;
 }
 
 .element-wrapper {
@@ -459,6 +520,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   pointer-events: auto;
+  transition: transform 0.5s ease;
 }
 
 .element {
@@ -468,75 +530,41 @@ onMounted(() => {
   display: block;
   margin: 0;
   padding: 0;
-  transition: transform 0.3s ease;
+  transition: all 0.5s ease;
 }
 
-/* Wave元素的特殊尺寸 / Special dimensions for Wave elements */
-.element-wrapper:has(img[src*="Wave_Wide_Red"]),
-.element-wrapper:has(img[src*="Wave_Green"]) {
-  width: 240px;
-  height: 120px;
-}
-
-/* Z元素的特殊尺寸 / Special dimensions for Z elements */
-.element-wrapper:has(img[src*="Z_"]) {
-  width: 120px;
-  height: 160px;
-}
-
-/* 7元素的特殊尺寸 / Special dimensions for 7 elements */
-.element-wrapper:has(img[src*="7_Bold"]) {
-  width: 100px;
-  height: 160px;
-}
-
-/* Hover效果 / Hover effects */
+/* Hover效果增强 */
 .top-row .element:hover {
-  transform: rotate(-15deg);
+  transform: rotate(-15deg) scale(1.1);
+}
+
+.top-row-2 .element:hover {
+  transform: rotate(15deg) scale(1.1);
 }
 
 .bottom-row-1 .element:hover {
-  transform: rotate(-10deg);
+  transform: rotate(15deg) scale(1.1);
 }
 
 .bottom-row-2 .element:hover {
-  transform: rotate(15deg);
+  transform: rotate(-10deg) scale(1.1);
 }
 
-/* Flower元素的特殊hover效果 / Special hover effects for Flower elements */
-.element-wrapper:has(img[src*="Flower"]) .element:hover {
-  transform: rotate(-25deg);
-}
-
-.hoverable {
-  transition: transform 0.3s ease;
-  transform: rotate(0deg);
-}
-
-/* hover效果 - 只应用于非square元素 */
-.hoverable:hover {
-  transform: rotate(-15deg);
-}
-
-.top-row .hoverable:hover {
-  transform: rotate(-15deg);
-}
-
-.bottom-row-1 .hoverable:hover {
-  transform: rotate(-10deg);
-}
-
-.bottom-row-2 .hoverable:hover {
-  transform: rotate(15deg);
-}
-
-/* 响应式调整 / Responsive adjustments */
+/* 响应式调整 */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
-    transform: translateX(0);
     opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 140px);
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(1, 140px);
   }
 }
 
@@ -544,8 +572,16 @@ onMounted(() => {
   .decorative-elements {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
-    transform: translateX(5%);
     opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 120px);
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(1, 120px);
   }
 }
 
@@ -553,100 +589,121 @@ onMounted(() => {
   .decorative-elements {
     width: 600px;
     grid-template-columns: repeat(6, 100px);
-    transform: translateX(10%);
-    opacity: 0.6;
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+  
+  .top-row-2 {
+    grid-template-columns: repeat(2, 100px);
+  }
+  
+  .bottom-row-1 {
+    grid-template-columns: repeat(1, 100px);
   }
 }
 
 @media (max-width: 1024px) {
   .hero-section {
-    min-height: auto;
-    padding: 2rem 0;
+    min-height: 65vh;
   }
-
+  
   .hero-content {
-    min-height: auto;
+    min-height: 65vh;
   }
-
+  
+  .content-section {
+    margin-top: 3rem;
+  }
+  
   .slogan {
-    padding-top: 2rem;
+    margin-left: 1.5rem;
   }
-
-  .title-group h1 {
-    @apply text-4xl sm:text-5xl md:text-6xl;
-    white-space: normal;
-    margin-bottom: 0.5rem;
-  }
-
-  .title-group h2 {
-    @apply text-2xl sm:text-3xl md:text-4xl;
-    white-space: normal;
-  }
-
-  .subtitle {
-    @apply text-base sm:text-lg md:text-xl;
-    white-space: normal;
-    margin-top: 1rem;
-  }
-
+  
   .decorative-elements {
-    transform: translateX(20%);
-    opacity: 0.3;
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
   }
-
-  .content-grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "main"
-      "quiz"
-      "long1"
-      "long2";
+  
+  .top-row-2 {
+    transform: translateY(-1rem);
+  }
+  
+  .title-group h1 {
+    @apply text-5xl;
+  }
+  
+  .title-group h2 {
+    @apply text-4xl;
+  }
+  
+  .subtitle {
+    @apply text-xl;
   }
 }
 
 @media (max-width: 768px) {
-  .decorative-elements {
-    display: none;
+  .hero-section {
+    min-height: 55vh;
   }
-
+  
   .hero-content {
-    min-height: auto;
+    min-height: 55vh;
+  }
+  
+  .content-section {
+    margin-top: 2rem;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+  }
+  
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.8);
+    transition: opacity 0.3s ease;
+  }
+  
+  .top-row-2 {
+    transform: translateY(0);
+  }
+  
+  .title-group h1 {
+    @apply text-4xl;
+  }
+  
+  .title-group h2 {
+    @apply text-3xl;
+  }
+  
+  .subtitle {
+    @apply text-lg;
   }
 }
 
 @media (max-width: 640px) {
-  .hero-section {
-    padding: 1.5rem 0;
+  .title-group h1 {
+    @apply text-3xl;
   }
-
-  .hero-content {
-    padding: 0 1rem;
+  
+  .title-group h2 {
+    @apply text-2xl;
   }
-
-  .slogan {
-    padding-top: 1rem;
-  }
-
-  h2 {
-    font-size: 1.75rem !important;
-  }
-
-  h3 {
-    font-size: 1rem !important;
-  }
-
-  p {
-    font-size: 0.875rem !important;
+  
+  .subtitle {
+    @apply text-base;
   }
 }
 
 .content-section {
   @apply relative;
   position: relative;
-  margin-top: 0;
+  margin-top: 4rem;
   padding: 1rem 1.5rem;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .content-section::before {
@@ -698,11 +755,137 @@ onMounted(() => {
   background-color: rgb(255, 255, 255);
 }
 
+.main-card {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  width: 300px;
+  height: 300px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.long-card {
+  border-radius: 9999px;
+  width: 100%;
+  height: 300px;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  transition: all 0.3s ease;
+}
+
+.long-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.preview-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  max-height: 100%;
+}
+
+.preview-text {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.preview-text :deep(h1) {
+  @apply text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white;
+  margin-bottom: 0.5rem;
+}
+
+.preview-text :deep(p) {
+  @apply text-lg sm:text-xl md:text-2xl text-neutral-700 dark:text-neutral-300;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.preview-text :deep(ul) {
+  @apply text-lg sm:text-xl md:text-2xl text-neutral-700 dark:text-neutral-300;
+  list-style-type: none;
+  padding-left: 0;
+  margin-top: 0.5rem;
+}
+
+.preview-text :deep(li) {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.preview-text :deep(li)::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #007AFF;
+  font-size: 1.2em;
+}
+
+.read-more {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 1.5rem;
+  background-color: #007AFF;
+  color: white;
+  font-weight: 500;
+  font-size: 1.1rem;
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  transform: translateY(-50%);
+  margin-right: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .preview-text :deep(h1) {
+    @apply text-2xl;
+  }
+  
+  .preview-text :deep(p) {
+    @apply text-lg;
+  }
+  
+  .preview-text :deep(ul) {
+    @apply text-lg;
+  }
+}
+
+@media (max-width: 768px) {
+  .preview-text :deep(h1) {
+    @apply text-xl;
+  }
+  
+  .preview-text :deep(p) {
+    @apply text-base;
+  }
+  
+  .preview-text :deep(ul) {
+    @apply text-base;
+  }
+}
+
 .card-content-wrapper {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   height: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .card-text {
@@ -711,18 +894,20 @@ onMounted(() => {
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  align-items: center;
 }
 
 .card-title {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 1.5rem;
   min-height: 60px;
 }
 
 .card-icon {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -735,12 +920,14 @@ onMounted(() => {
   align-items: center;
   height: 100%;
   margin: 0;
+  text-align: center;
 }
 
 .card-description {
   width: 100%;
   @apply text-base text-neutral-600 dark:text-neutral-400;
   line-height: 1.5;
+  text-align: center;
 }
 
 /* Dark mode adjustments */
@@ -750,106 +937,6 @@ onMounted(() => {
 
 .dark .card-description {
   @apply text-neutral-400;
-}
-
-.preview-content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  padding: 1.2rem;
-  max-height: 180px;
-}
-
-.preview-text {
-  flex-grow: 1;
-  overflow: hidden;
-  position: relative;
-  padding-bottom: 2.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.preview-text :deep(p) {
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.preview-text :deep(h1) {
-  font-size: 1.4rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.preview-text :deep(h2) {
-  font-size: 1.2rem;
-  margin: 0.75rem 0 0.5rem;
-  font-weight: 600;
-}
-
-.read-more {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 2rem 1rem 0.75rem;
-  background: linear-gradient(180deg, transparent 0%, rgb(255, 255, 255) 50%);
-  text-align: center;
-  color: #007AFF;
-  font-weight: 500;
-  font-size: 1.1rem;
-  cursor: pointer;
-  z-index: 2;
-}
-
-/* Dark mode adjustments */
-.dark .read-more {
-  background: linear-gradient(180deg, transparent 0%, rgb(38, 38, 38) 50%);
-}
-
-/* Remove duplicate styles */
-.preview-content {
-  display: block;
-  color: #444;
-  position: relative;
-  overflow: hidden;
-  background: transparent;
-  border-radius: 12px;
-}
-
-/* Remove the separate overlay styles */
-.card-overlay {
-  display: none;
-}
-
-/* 3D效果样式 / 3D effect styles */
-.main-card:hover, .long-card:hover {
-  transform: translateY(-5px) rotateX(5deg);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Dark mode adjustments / Dark mode adjustments */
-.dark .main-card, .dark .long-card {
-  background-color: rgb(38, 38, 38);
-  border-color: rgb(255, 255, 255);
-}
-
-.dark .main-card:hover, .dark .long-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 1024px) {
-  .content-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .quiz-row {
-    justify-content: center;
-  }
 }
 
 /* Expanded Card Styles / Expanded card styles */

@@ -17,13 +17,9 @@
     <!-- 导航链接 / Navigation Links -->
     <div class="navbar-right" :class="{ 'active': isMenuOpen }">
       <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
-      <router-link to="/about" class="nav-link" @click="closeMenu">ABOUT</router-link>
       <router-link to="/ethic-influencer" class="nav-link" @click="closeMenu">ETHIC INFLUENCER</router-link>
-      <router-link to="/creator-wellbeing" class="nav-link" @click="closeMenu">CREATOR WELLBEING</router-link>
       <router-link to="/critical-response" class="nav-link" @click="closeMenu">CRITICAL RESPONSE</router-link>
       <router-link to="/relaxation" class="nav-link">RELAXATION</router-link>
-      <router-link to="/privacy" class="nav-link" @click="closeMenu">PRIVACY</router-link>
-      <router-link to="/copyright" class="nav-link" @click="closeMenu">COPYRIGHT</router-link>
     </div>
   </nav>
 </template>
