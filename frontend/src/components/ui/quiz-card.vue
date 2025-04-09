@@ -1,9 +1,7 @@
 <template>
-  <CardSpotlight 
-    class="quiz-card"
-    :gradientSize="250"
-    gradientColor="#f0f0f0"
-    :gradientOpacity="0.5"
+  <RainbowButton 
+    class="quiz-card" 
+    :speed="3"
     @click="openQuiz"
   >
     <div class="quiz-content">
@@ -14,8 +12,9 @@
         <h3>Check Your Understanding</h3>
         <p>Test your knowledge about ethical content creation</p>
       </div>
+      <div class="bottom-space"></div>
     </div>
-  </CardSpotlight>
+  </RainbowButton>
 
   <!-- Quiz Modal -->
   <div v-if="isQuizOpen" class="quiz-modal" @click.self="closeQuiz">
@@ -82,6 +81,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { marked } from 'marked'
+import { RainbowButton } from '@/components/ui/rainbow-button'
 
 const isQuizOpen = ref(false)
 const currentQuestionIndex = ref(0)
@@ -211,98 +211,184 @@ const restartQuiz = () => {
 <style scoped>
 /* 卡片容器 / Card Container */
 .quiz-card {
-  @apply bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-lg;
   @apply flex flex-col items-center justify-center;
-  height: 100%;
-  border: 1px solid #000;
-  width: 600px;
+  height: 120px;
+  width: 800px;
+  border-radius: 9999px !important; /* 胶囊形状 */
+  transition: all 0.3s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  position: relative;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border-width: 3px !important;
+}
+
+/* 胶囊形状卡片的悬停效果 */
+.quiz-card:hover {
+  transform: translateY(-5px) rotateX(5deg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .quiz-content {
-  @apply flex items-center gap-4 w-full;
+  @apply w-full;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 4rem;
+  position: relative;
+  z-index: 2;
+  flex-direction: row;
+  padding-top: 0;
+  padding-bottom: 20px;
+  gap: 1.5rem;
 }
 
 .quiz-icon {
-  @apply w-20 h-16 mb-0 text-blue-500;
-  transition: transform 0.3s ease;
+  @apply w-20 h-16;
+  transition: transform 0.3s ease, filter 0.3s ease;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  filter: none;
+  margin-right: 0;
+  margin-bottom: 0;
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
 .quiz-text {
-  @apply flex-1 text-center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  min-width: 300px;
-}
-
-/* 图标悬停效果 / Icon Hover Effect */
-.quiz-card:hover .quiz-icon {
-  transform: scale(1.2);
+  text-align: center;
 }
 
 /* 标题样式 / Title Styles */
 .quiz-card h3 {
-  @apply text-xl font-semibold mb-2 text-neutral-900 dark:text-white;
+  @apply text-xl font-semibold mb-2;
   text-align: center;
+  transition: transform 0.3s ease, color 0.3s ease;
+  color: #1E6A42; /* 深绿色标题 */
+  text-shadow: none;
+  margin-top: 0;
 }
 
 /* 描述文本样式 / Description Text Styles */
 .quiz-card p {
-  @apply text-neutral-600 dark:text-neutral-400;
   text-align: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 0;
 }
 
-/* 进度条容器 / Progress Bar Container */
-.progress-container {
-  @apply w-full mt-4;
-}
-
-/* 进度条样式 / Progress Bar Styles */
-.progress-bar {
-  @apply h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden;
-}
-
-/* 进度条填充 / Progress Bar Fill */
-.progress-fill {
-  @apply h-full bg-blue-500 transition-all duration-300;
-}
-
-/* 进度文本样式 / Progress Text Styles */
-.progress-text {
-  @apply text-sm text-neutral-600 dark:text-neutral-400 mt-2;
+/* 底部空白 / Bottom spacing */
+.bottom-space {
+  height: 20px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 
 /* 响应式调整 / Responsive Adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .quiz-card {
-    @apply p-4;
-    width: 450px;
+    width: 650px;
+    height: 110px;
   }
-
+  
   .quiz-content {
-    @apply flex-col items-center gap-2;
-  }
-
-  .quiz-icon {
-    @apply w-16 h-12 mb-2;
-  }
-
-  .quiz-text {
-    @apply text-center;
-    min-width: 250px;
+    padding-bottom: 15px;
+    gap: 1.25rem;
   }
 }
 
+@media (max-width: 768px) {
+  .quiz-card {
+    width: 450px;
+    height: 90px;
+  }
+
+  .quiz-content {
+    padding: 0 2rem 12px;
+    gap: 1rem;
+  }
+
+  .quiz-icon {
+    @apply w-16 h-12;
+  }
+  
+  .quiz-card h3 {
+    @apply text-lg mb-1;
+    font-size: 1.1rem;
+  }
+  
+  .quiz-card p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .quiz-card {
+    width: 100%;
+    height: 80px;
+    padding: 0;
+  }
+  
+  .quiz-content {
+    padding: 0 1.5rem 10px;
+    gap: 0.75rem;
+  }
+  
+  .quiz-icon {
+    @apply w-12 h-10;
+  }
+  
+  .quiz-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .quiz-card p {
+    font-size: 0.8rem;
+  }
+}
+
+/* 确保卡片内文字可读 */
+.quiz-card :deep(.rainbow-button) {
+  background-color: white !important;
+}
+
+/* 图标悬停效果 / Icon Hover Effect */
+.quiz-card:hover .quiz-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.quiz-card:hover .icon {
+  transform: scale(1.05);
+}
+
+.quiz-card:hover h3 {
+  color: #164a2e; /* 悬停时颜色变深 */
+}
+
+.quiz-card:hover p {
+  color: #555;
+}
+
+/* Modal styles */
 .quiz-modal {
   @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
 }
@@ -403,5 +489,9 @@ const restartQuiz = () => {
 
 .progress-fill {
   @apply h-full bg-blue-500 transition-all duration-300 ease-in-out;
+}
+
+.quiz-button {
+  display: none;
 }
 </style> 

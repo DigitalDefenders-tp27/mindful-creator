@@ -1,26 +1,34 @@
 <template>
   <nav class="navbar">
-    <div class="navbar-left">
-      <router-link to="/" class="logo">
-        <img src="../components/icons/elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
-        <span class="logo-text">INFLOWENCE</span>
-      </router-link>
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <router-link to="/" class="logo">
+          <img src="../components/icons/elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
+          <span class="logo-text">INFLOWENCE</span>
+        </router-link>
+      </div>
+      
+      <!-- 导航链接 / Navigation Links -->
+      <div class="navbar-center" :class="{ 'active': isMenuOpen }">
+        <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
+        <router-link to="/ethic-influencer" class="nav-link" @click="closeMenu">ETHIC INFLUENCER</router-link>
+        <router-link to="/critical-response" class="nav-link" @click="closeMenu">CRITICAL RESPONSE</router-link>
+        <router-link to="/relaxation" class="nav-link" @click="closeMenu">RELAXATION</router-link>
+      </div>
+      
+      <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
+      <div class="hamburger" @click="toggleMenu" :class="{ 'active': isMenuOpen }">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+      
+      <!-- 为了保持平衡的空占位区域 -->
+      <div class="navbar-right"></div>
     </div>
     
-    <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
-    <div class="hamburger" @click="toggleMenu" :class="{ 'active': isMenuOpen }">
-      <span class="bar"></span>
-      <span class="bar"></span>
-      <span class="bar"></span>
-    </div>
-    
-    <!-- 导航链接 / Navigation Links -->
-    <div class="navbar-right" :class="{ 'active': isMenuOpen }">
-      <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
-      <router-link to="/ethic-influencer" class="nav-link" @click="closeMenu">ETHIC INFLUENCER</router-link>
-      <router-link to="/critical-response" class="nav-link" @click="closeMenu">CRITICAL RESPONSE</router-link>
-      <router-link to="/relaxation" class="nav-link">RELAXATION</router-link>
-    </div>
+    <!-- 遮罩层 - 点击关闭菜单 -->
+    <div class="overlay" v-if="isMenuOpen" @click="closeMenu"></div>
   </nav>
 </template>
 
@@ -44,103 +52,102 @@ const closeMenu = () => {
 <style scoped>
 /* 导航栏容器 / Navbar Container */
 .navbar {
-  @apply fixed top-0 left-0 right-0 z-50;
-  @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md;
-  @apply border-b border-neutral-200 dark:border-neutral-800;
-  @apply px-4 py-3;
-  @apply flex justify-between items-center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  height: 80px; /* 增加导航栏高度 */
+  display: flex;
+  align-items: center;
 }
 
-/* 导航栏内容布局 / Navbar Content Layout */
-.navbar-content {
-  @apply max-w-7xl mx-auto;
-  @apply flex items-center justify-between;
+.navbar-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* 三等分布局：左边、中间、右边 */
+  align-items: center;
+  position: relative;
 }
 
 /* 左侧Logo区域 / Left Logo Area */
 .navbar-left {
-  @apply flex items-center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* 左对齐 */
+  padding-left: 2rem; /* 恢复内边距 */
+}
+
+/* 中间导航链接区域 / Center Navigation Links Area */
+.navbar-center {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem; /* 增加链接之间的间距 */
+  justify-content: center; /* 居中对齐 */
+  position: relative; /* 改为相对定位 */
+  transform: none; /* 移除transform */
+}
+
+/* 右侧空占位区域，保持布局平衡 */
+.navbar-right {
+  display: flex;
+  justify-content: flex-end; /* 右对齐 */
+  padding-right: 2rem; /* 保持内边距 */
 }
 
 /* Logo样式 / Logo Styles */
 .logo {
-  @apply text-xl font-bold text-neutral-900 dark:text-white;
-  @apply hover:text-blue-600 dark:hover:text-blue-400;
-  @apply transition-colors duration-200;
-  @apply flex items-center gap-2;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
 }
 
 .logo-img {
-  @apply h-9 w-auto;
+  height: 45px; /* 进一步增大 logo 尺寸 */
+  width: auto;
 }
 
 .logo-text {
-  @apply text-lg font-bold;
-}
-
-/* 右侧导航链接区域 / Right Navigation Links Area */
-.navbar-right {
-  @apply flex items-center space-x-6;
-  @apply ml-auto;
+  font-size: 1.5rem; /* 放大logo文字 */
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 /* 导航链接样式 / Navigation Link Styles */
 .nav-link {
-  @apply text-neutral-600 dark:text-neutral-400;
-  @apply hover:text-blue-600 dark:hover:text-blue-400;
-  @apply transition-colors duration-200;
-  @apply relative;
+  color: #555;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  position: relative;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-/* 活动链接样式 / Active Link Styles */
-.nav-link.active {
-  @apply text-blue-600 dark:text-blue-400;
-  @apply font-medium;
-}
-
-/* 活动链接下划线 / Active Link Underline */
-.nav-link.active::after {
-  content: '';
-  @apply absolute bottom-0 left-0 right-0;
-  @apply h-0.5 bg-blue-600 dark:bg-blue-400;
-  @apply transform scale-x-100;
-  @apply transition-transform duration-200;
-}
-
-/* 非活动链接下划线 / Inactive Link Underline */
-.nav-link::after {
-  content: '';
-  @apply absolute bottom-0 left-0 right-0;
-  @apply h-0.5 bg-blue-600 dark:bg-blue-400;
-  @apply transform scale-x-0;
-  @apply transition-transform duration-200;
-}
-
-/* 链接悬停效果 / Link Hover Effect */
-.nav-link:hover::after {
-  @apply transform scale-x-100;
-}
-
-/* 响应式调整 / Responsive Adjustments */
-@media (max-width: 768px) {
-  .navbar {
-    @apply px-3 py-2;
-  }
-
-  .navbar-right {
-    @apply space-x-4;
-  }
-
-  .nav-link {
-    @apply text-sm;
-  }
+.nav-link:hover {
+  color: #6c63ff;
 }
 
 /* 汉堡菜单按钮样式 / Hamburger Menu Button Styles */
 .hamburger {
   display: none;
   cursor: pointer;
-  z-index: 10;
+  z-index: 100; /* 增加z-index确保汉堡菜单在最上层 */
+  width: 35px;
+  height: 30px;
+  padding: 5px;
+  position: absolute; /* 添加绝对定位 */
+  right: 2rem; /* 设置右侧位置 */
+  top: 50%; /* 垂直居中 */
+  transform: translateY(-50%); /* 精确垂直居中 */
 }
 
 .bar {
@@ -149,38 +156,52 @@ const closeMenu = () => {
   height: 3px;
   margin: 5px auto;
   transition: all 0.3s ease-in-out;
-  background-color: black;
+  background-color: #333;
+  border-radius: 3px;
 }
 
 /* 响应式设计 / Responsive Design */
 @media (max-width: 1024px) {
-  .hamburger {
-    display: block;
+  .navbar-container {
+    grid-template-columns: 1fr 1fr; /* 两列布局：左边(logo)和右边(汉堡菜单) */
+    padding: 0 1rem;
   }
   
-  .navbar-right {
+  .navbar-center {
     position: fixed;
     left: -100%;
     top: 0;
     flex-direction: column;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.95);
     width: 100%;
     height: 100vh;
     text-align: center;
-    transition: 0.3s;
+    transition: 0.3s ease-in-out;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding-top: 80px;
-    z-index: 5;
-    margin-left: 0;
+    padding-top: 100px; /* 调整顶部填充以适应更高的导航栏 */
+    z-index: 90; /* 提高z-index确保在最上层 */
+    gap: 2rem;
+    justify-content: flex-start;
+    backdrop-filter: blur(10px);
   }
   
-  .navbar-right.active {
+  .navbar-center.active {
     left: 0;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   }
   
-  .navbar-right .nav-link {
-    margin: 1rem 0;
-    font-size: 1.1rem;
+  .navbar-right {
+    display: none; /* 在小屏幕上隐藏右侧空占位区域 */
+  }
+  
+  .hamburger {
+    display: block; /* 显示汉堡菜单 */
+    /* 其他属性已在基本设置中定义，不需要重复 */
+  }
+  
+  /* 防止菜单开启时页面滚动 */
+  body:has(.navbar-center.active) {
+    overflow: hidden;
   }
   
   /* 汉堡菜单动画 / Hamburger Menu Animation */
@@ -190,21 +211,180 @@ const closeMenu = () => {
   
   .hamburger.active .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
+    background-color: #6c63ff;
   }
   
   .hamburger.active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
+    background-color: #6c63ff;
+  }
+  
+  /* 菜单打开时改变链接样式 */
+  .navbar-center.active .nav-link {
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+    animation-delay: calc(0.1s * var(--i, 1));
+    position: relative; /* 确保定位上下文 */
+  }
+  
+  .navbar-center .nav-link {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  
+  .navbar-center .nav-link:active {
+    transform: scale(0.95);
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
 /* 小屏幕响应式调整 / Small Screen Responsive Adjustments */
 @media (max-width: 640px) {
+  .navbar {
+    height: 60px; /* 在小屏幕上减小高度 */
+  }
+  
+  .navbar-container {
+    padding: 0 0.5rem;
+  }
+  
+  .navbar-left {
+    padding-left: 0.5rem;
+    max-width: 75%; /* 限制Logo区域最大宽度，防止与汉堡菜单重叠 */
+  }
+  
+  .logo {
+    gap: 6px; /* 减小Logo与文字间距 */
+  }
+  
   .logo-text {
-    font-size: 1.2rem;
+    font-size: 1rem; /* 更小的屏幕上减小字体大小 */
+    max-width: calc(100% - 40px); /* 确保文本不会太长而溢出容器 */
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   
   .logo-img {
-    height: 30px;
+    height: 28px; /* 更小的屏幕上减小logo尺寸 */
+    min-width: 28px; /* 确保logo不会因为flex缩放而过小 */
+  }
+  
+  .navbar-center {
+    padding-top: 80px; /* 为小屏幕调整顶部填充 */
+  }
+  
+  .hamburger {
+    right: 0.75rem; /* 减小右侧距离，防止与Logo重叠 */
+    width: 30px; /* 缩小汉堡菜单尺寸 */
+    height: 25px;
+  }
+  
+  .bar {
+    width: 22px; /* 缩小汉堡菜单线条宽度 */
+    height: 2px; /* 缩小汉堡菜单线条高度 */
+    margin: 4px auto; /* 减小间距 */
+  }
+  
+  .nav-link {
+    font-size: 1.1rem;
+    padding: 1rem 0;
+    width: 80%;
+    margin: 0 auto;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .nav-link:last-child {
+    border-bottom: none;
+  }
+}
+
+/* 超小屏幕调整（如iPhone SE等） */
+@media (max-width: 360px) {
+  .navbar-left {
+    max-width: 70%; /* 进一步限制Logo区域宽度 */
+  }
+  
+  .logo-text {
+    font-size: 0.9rem; /* 更小的字体 */
+  }
+  
+  .logo-img {
+    height: 24px; /* 更小的logo */
+    min-width: 24px;
+  }
+  
+  .hamburger {
+    right: 0.5rem; /* 进一步减小右侧距离 */
+  }
+}
+
+/* 活动链接样式 / Active Link Styles */
+.nav-link.active {
+  color: #6c63ff;
+  font-weight: 600;
+}
+
+/* 活动链接下划线 / Active Link Underline */
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #6c63ff;
+  transform: scaleX(1);
+  transition: transform 0.2s;
+}
+
+/* 非活动链接下划线 / Inactive Link Underline */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #6c63ff;
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+
+/* 链接悬停效果 / Link Hover Effect */
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* 遮罩层样式 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 80; /* 低于菜单但高于其他内容 */
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  animation: fadeInOverlay 0.3s forwards;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 </style> 

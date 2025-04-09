@@ -33,12 +33,6 @@
           </div>
           <!-- 右下角第一排 / Bottom Row 1 Right -->
           <div class="bottom-row-1">
-            <!-- <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/components/icons/elements/Wave_Narrow_Pink.svg" alt="Z" class="element hoverable">
-            </div> -->
             <div class="element-wrapper">
               <img src="/src/components/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
             </div>
@@ -87,7 +81,7 @@
                   <h3>Understanding Your Impact</h3>
                 </div>
                 <div class="card-description">
-                  Learn how your content affects your audience and shapes online discourse.
+                  Shape audience perceptions<br>through mindful content
                 </div>
               </div>
             </div>
@@ -102,7 +96,7 @@
           >
             <div class="preview-content">
               <div v-html="marked(previewContent)" class="preview-text"></div>
-              <div class="read-more">Read More</div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
             </div>
           </CardSpotlight>
         </div>
@@ -117,7 +111,7 @@
             @click="expandCard('practices')"
           >
             <div class="preview-content">
-              <div class="read-more">Read More</div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
               <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
             </div>
           </CardSpotlight>
@@ -135,7 +129,7 @@
                   <h3>Building Authentic Relationships</h3>
                 </div>
                 <div class="card-description">
-                  Build genuine connections through transparency.
+                  Develop genuine connections<br>through transparency
                 </div>
               </div>
             </div>
@@ -158,7 +152,7 @@
                   <h3>Ethical Content Creation</h3>
                 </div>
                 <div class="card-description">
-                  Create content that aligns with your values while maintaining integrity.
+                  Create aligned content<br>with integrity
                 </div>
               </div>
             </div>
@@ -174,7 +168,7 @@
           >
             <div class="preview-content">
               <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
-              <div class="read-more">Read More</div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
             </div>
           </CardSpotlight>
         </div>
@@ -209,131 +203,35 @@ import axios from 'axios'
 import { marked } from 'marked'
 import { CardSpotlight } from '../components/ui/card-spotlight'
 import QuizCard from '@/components/ui/quiz-card.vue'
+import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
 
-const guideData = ref({
-  title: 'Mindful Creator',
-  sections: []
-})
+// 引入 Markdown 文件
+import impactMD from '../content/understanding-impact.md?raw'
+import relationshipsMD from '../content/authentic-relationships.md?raw'
+import principlesMD from '../content/ethical-principles.md?raw'
+import impactPreviewMD from '../content/impact-preview.md?raw'
+import relationshipsPreviewMD from '../content/relationships-preview.md?raw'
+import principlesPreviewMD from '../content/principles-preview.md?raw'
 
-const practices = ref([])
 const contentGuidelinesMarkdown = ref('')
 const bestPracticesMarkdown = ref('')
 const keyPrinciplesMarkdown = ref('')
 const selectedCard = ref(null)
 const isCardExpanded = ref(false)
 
-// Helper function to get preview content
-const getPreviewContent = (content) => {
-  if (!content) return ''
-  const lines = content
-    .split('\n')
-    .filter(line => line.trim() && !line.startsWith('#'))
-  return lines.slice(0, 7).join('\n')
-}
-
-const previewContent = computed(() => getPreviewContent(contentGuidelinesMarkdown.value))
-const bestPracticesPreview = computed(() => getPreviewContent(bestPracticesMarkdown.value))
-const keyPrinciplesPreview = computed(() => getPreviewContent(keyPrinciplesMarkdown.value))
+// 预览内容
+const previewContent = computed(() => contentGuidelinesMarkdown.value)
+const bestPracticesPreview = computed(() => bestPracticesMarkdown.value)
+const keyPrinciplesPreview = computed(() => keyPrinciplesMarkdown.value)
 
 const fetchData = async () => {
   try {
-    // Guidelines content
-    contentGuidelinesMarkdown.value = `# Understanding Your Impact as a Content Creator
-
-Creating digital content is more accessible than ever, but understanding how your content impacts your audience and online communities is essential. As a content creator, your posts, videos, and comments significantly influence your viewers, potentially shaping their thoughts, beliefs, and even actions.
-
-## The Power of Influence
-
-Your content reaches beyond mere entertainment or information; it carries the potential to educate, inspire, or harm. Positive content can foster healthy discussions, support mental well-being, and build inclusive communities. Conversely, harmful or insensitive content can promote misunderstanding, misinformation, and polarization.
-
-## Ethical Responsibility
-
-Every creator holds ethical responsibility for the impact of their work. Before posting, consider:
-
-- **Accuracy**: Is the information verified and trustworthy?
-- **Respectfulness**: Does your content respect diversity and avoid perpetuating stereotypes?
-- **Constructiveness**: Does it contribute positively to the discussion?
-
-## Engaging Responsibly
-
-Engagement doesn't stop after posting. Active moderation, responding thoughtfully to feedback, and correcting misinformation are critical. Engaging with your audience constructively demonstrates digital citizenship, fostering a respectful community around your content.`
-
-    // Best Practices content
-    bestPracticesMarkdown.value = `# Building Authentic Relationships
-
-Authenticity and trust are the foundations of meaningful relationships with your audience. Genuine interactions create deeper bonds, leading to a more engaged and loyal community.
-
-## The Importance of Transparency
-
-Transparency involves openly sharing your intentions, decisions, and processes. It builds credibility and reassures your audience that you genuinely value their trust. Transparent creators admit when they're wrong, clearly communicate their goals, and don't shy away from difficult conversations.
-
-## Practical Strategies for Authenticity
-
-- **Share personal stories and experiences**: Show vulnerability and humanize your interactions.
-- **Consistently engage with your audience**: Regularly respond to comments and messages to build trust.
-- **Encourage dialogue and feedback**: Promote two-way communication and actively involve your audience in discussions.
-- **Handle criticism constructively**: Welcome feedback openly, acknowledge shortcomings, and show a commitment to improvement.
-
-By emphasizing transparency and genuine interactions, you strengthen relationships and foster a supportive and authentic online community.`
-
-    // Key Principles content
-    keyPrinciplesMarkdown.value = `# Ethical Content Creation Principles
-
-Ethical content creation means crafting content that reflects your personal and professional values while respecting the rights and perspectives of your audience.
-
-## Understanding Ethical Responsibility
-
-Every content creator faces ethical decisions. Whether you're addressing sensitive social issues, navigating partnerships, or presenting facts, your integrity defines your credibility and influence.
-
-## Key Principles for Ethical Creation
-
-- **Honesty**: Always present accurate and truthful information.
-- **Consistency**: Align your content consistently with your core values and beliefs.
-- **Accountability**: Acknowledge and correct mistakes openly to maintain trust.
-- **Respectfulness**: Create content that respects diversity, promotes inclusivity, and avoids harmful stereotypes.
-
-## Real-World Applications
-
-Ethical creators actively reflect on the consequences of their content. They consider the potential effects their messages may have, especially on vulnerable groups, and they continuously strive to uplift and positively contribute to their communities.
-
-Creating ethical content helps build trust, maintain credibility, and ensures long-term positive impact on your audience and broader online communities.`
-
-    // 更新预览内容
-    const previewContent = `Understanding Your Impact as a Content Creator
-
-Your content has the power to shape thoughts, beliefs, and actions. Learn how to create content that positively influences your audience while maintaining ethical responsibility.
-
-Key aspects:
-- The power of influence
-- Ethical responsibility
-- Engaging responsibly`
-
-    const bestPracticesPreview = `Building Authentic Relationships
-
-Discover how to build genuine connections with your audience through transparent communication and authentic interactions.
-
-Key strategies:
-- Importance of transparency
-- Personal storytelling
-- Constructive engagement
-- Handling criticism`
-
-    const keyPrinciplesPreview = `Ethical Content Creation Principles
-
-Learn the essential principles for creating content that aligns with your values while respecting your audience's rights and perspectives.
-
-Core principles:
-- Honesty and accuracy
-- Consistency in values
-- Accountability
-- Respect and inclusivity`
-
-    // 设置预览内容
-    contentGuidelinesMarkdown.value = previewContent
-    bestPracticesMarkdown.value = bestPracticesPreview
-    keyPrinciplesMarkdown.value = keyPrinciplesPreview
+    // 加载完整内容
+    contentGuidelinesMarkdown.value = impactPreviewMD
+    bestPracticesMarkdown.value = relationshipsPreviewMD
+    keyPrinciplesMarkdown.value = principlesPreviewMD
   } catch (error) {
-    console.error('Error setting content:', error)
+    console.error('Error loading content:', error)
   }
 }
 
@@ -351,7 +249,7 @@ const closeCard = () => {
   }, 300)
 }
 
-// Add computed properties for expanded card
+// 获取展开卡片的标题和内容
 const getExpandedCardTitle = computed(() => {
   switch (selectedCard.value) {
     case 'guidelines':
@@ -368,11 +266,11 @@ const getExpandedCardTitle = computed(() => {
 const getExpandedCardContent = computed(() => {
   switch (selectedCard.value) {
     case 'guidelines':
-      return contentGuidelinesMarkdown.value
+      return impactMD
     case 'practices':
-      return bestPracticesMarkdown.value
+      return relationshipsMD
     case 'principles':
-      return keyPrinciplesMarkdown.value
+      return principlesMD
     default:
       return ''
   }
@@ -392,7 +290,6 @@ onMounted(() => {
 }
 
 .hero-section {
-  @apply py-4 relative;
   min-height: 75vh;
   background-color: rgb(255, 252, 244);
   display: flex;
@@ -400,33 +297,36 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
   z-index: 1;
+  padding: 1rem 0;
 }
 
 .hero-content {
-  @apply container mx-auto px-6;
   position: relative;
   width: 100%;
   min-height: 75vh;
   display: flex;
   align-items: center;
   padding-left: 2rem;
+  margin: 0 auto;
 }
 
 .slogan {
-  @apply space-y-4;
   max-width: 800px;
   position: relative;
   z-index: 2;
   margin-left: 2rem;
+  text-align: left;
 }
 
 .title-group {
-  @apply space-y-2;
+  margin-bottom: 0.5rem;
+  text-align: left;
 }
 
 .title-group h1 {
-  @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold;
-  background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+  font-size: 4rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #56D8C9 0%, #FF7676 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -434,20 +334,74 @@ onMounted(() => {
   display: block;
   margin-bottom: 1rem;
   white-space: normal;
+  text-align: left;
 }
 
 .title-group h2 {
-  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
   line-height: 1.2;
   display: block;
   white-space: normal;
+  text-align: left;
 }
 
 .subtitle {
-  @apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-neutral-600 dark:text-neutral-400;
+  font-size: 1.25rem;
+  color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
   white-space: normal;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
 }
 
 .decorative-elements {
@@ -606,15 +560,19 @@ onMounted(() => {
   .bottom-row-1 {
     grid-template-columns: repeat(1, 100px);
   }
+  
+  .read-more-button {
+    margin-right: 2.5rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 2.5rem;
+  }
 }
 
 @media (max-width: 1024px) {
-  .hero-section {
-    min-height: 65vh;
-  }
-  
-  .hero-content {
-    min-height: 65vh;
+  .content-row {
+    margin-bottom: 2.5rem;
   }
   
   .content-section {
@@ -646,9 +604,25 @@ onMounted(() => {
   .subtitle {
     @apply text-xl;
   }
+  
+  .read-more-button {
+    margin-right: 2rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 2.5rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1.5rem 3rem 1.5rem 12rem;
+  }
 }
 
 @media (max-width: 768px) {
+  .content-row {
+    margin-bottom: 2rem;
+  }
+  
   .hero-section {
     min-height: 55vh;
   }
@@ -686,9 +660,44 @@ onMounted(() => {
   .subtitle {
     @apply text-lg;
   }
+  
+  .read-more-button {
+    margin-right: 1.5rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 2rem;
+  }
+  
+  .preview-text {
+    padding: 1.5rem 3rem 1.5rem 2.5rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1.5rem 3rem 1.5rem 9rem;
+  }
+  
+  .long-card {
+    height: 280px;
+  }
+  
+  .preview-text :deep(h1) {
+    font-size: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .preview-text :deep(p) {
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+  }
 }
 
 @media (max-width: 640px) {
+  .content-row {
+    margin-bottom: 1.5rem;
+  }
+  
   .title-group h1 {
     @apply text-3xl;
   }
@@ -700,12 +709,53 @@ onMounted(() => {
   .subtitle {
     @apply text-base;
   }
+  
+  .read-more-button {
+    margin-right: 1rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 1.5rem;
+  }
+  
+  .preview-text {
+    padding: 1.5rem 3rem 1.5rem 2rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1.5rem 3rem 1.5rem 7rem;
+  }
+  
+  .long-card {
+    height: 260px;
+  }
+  
+  .card-description {
+    @apply text-sm;
+    line-height: 1.4;
+  }
+  
+  .preview-text :deep(h1) {
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  .preview-text :deep(p) {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  
+  .preview-text :deep(li) {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 .content-section {
   @apply relative;
   position: relative;
-  margin-top: 4rem;
+  margin-top: 5rem;
   padding: 1rem 1.5rem;
   position: relative;
   z-index: 2;
@@ -713,17 +763,36 @@ onMounted(() => {
 
 .content-section::before {
   content: '';
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   background: linear-gradient(to top,
-    rgb(228, 245, 138) 0%,
-    rgba(228, 245, 138, 0.3) 30%,
-    rgba(228, 245, 138, 0) 70%
+    rgba(209, 231, 125, 0.4) 0%,
+    rgba(218, 237, 148, 0.25) 20%,
+    rgba(225, 241, 158, 0.15) 40%,
+    rgba(228, 245, 138, 0) 60%
   );
   z-index: -1;
+  pointer-events: none;
+}
+
+/* 添加一个额外的装饰元素，确保渐变效果在卡片区域可见但不侵入标题区域 */
+.ethic-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 55%;
+  background: linear-gradient(to top,
+    rgba(209, 231, 125, 0.35) 0%,
+    rgba(218, 237, 148, 0.2) 15%,
+    rgba(225, 241, 158, 0.1) 50%,
+    rgba(228, 245, 138, 0) 100%
+  );
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -740,7 +809,7 @@ onMounted(() => {
 
 .content-row {
   @apply grid grid-cols-1 md:grid-cols-2 gap-6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 /* 所有行的默认布局 */
@@ -754,10 +823,11 @@ onMounted(() => {
 }
 
 .quiz-row {
-  @apply mt-6;
+  @apply mt-8;
   display: flex;
   justify-content: center;
   width: 100%;
+  margin-bottom: 4rem;
 }
 
 .main-card, .long-card {
@@ -786,8 +856,11 @@ onMounted(() => {
   height: 300px;
   justify-content: center;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 1.5rem 2.5rem;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: visible !important;
+  display: flex;
 }
 
 .long-card:hover {
@@ -803,17 +876,13 @@ onMounted(() => {
   overflow: hidden;
   padding: 0;
   max-height: 100%;
+  width: 100%;
 }
 
-/* 第二行左侧卡片特殊样式 */
-.content-row:nth-child(2) .long-card {
-  position: relative;
-  overflow: hidden;
-}
-
+/* 第二行左侧卡片特殊样式 / Special styles for the second row left card */
 .content-row:nth-child(2) .long-card .preview-content {
   position: relative;
-  padding: 1.5rem 3rem 1.5rem 10rem;
+  padding: 1.5rem 2rem 1.5rem 14rem;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(*) {
@@ -851,46 +920,47 @@ onMounted(() => {
   flex-grow: 1;
   overflow: hidden;
   position: relative;
-  padding: 1.5rem 10rem 1.5rem 4rem;
+  padding: 1.5rem 12rem 1.5rem 4rem;
   max-height: 100%;
   mask-image: linear-gradient(to bottom, 
     black 0%,
-    black 80%,
+    black 88%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(to bottom, 
     black 0%,
-    black 80%,
+    black 88%,
     transparent 100%
   );
 }
 
 .preview-text :deep(h1) {
-  @apply text-2xl font-bold text-neutral-900 dark:text-white;
-  margin-bottom: 1rem;
+  @apply text-2xl sm:text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white;
+  margin-bottom: 1.2rem;
   line-height: 1.2;
 }
 
 .preview-text :deep(p) {
-  @apply text-base text-neutral-700 dark:text-neutral-300;
+  @apply text-base sm:text-base md:text-lg text-neutral-700 dark:text-neutral-300;
   line-height: 1.5;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
 .preview-text :deep(ul) {
-  @apply text-base text-neutral-700 dark:text-neutral-300;
+  @apply text-base sm:text-base md:text-lg text-neutral-700 dark:text-neutral-300;
   list-style-type: none;
   padding-left: 0;
-  margin-top: 0.5rem;
+  margin-top: 0.7rem;
 }
 
 .preview-text :deep(li) {
   position: relative;
   padding-left: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.7rem;
   line-height: 1.5;
   font-weight: bold;
   color: #232323;
+  font-size: 1.05rem;
 }
 
 .preview-text :deep(li)::before {
@@ -898,28 +968,49 @@ onMounted(() => {
 }
 
 .read-more {
+  display: none;
+}
+
+.read-more-button {
   position: absolute;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  padding: 0.5rem 1.25rem;
-  background-color: #007AFF;
-  color: white;
-  font-weight: 500;
-  font-size: 1rem;
-  cursor: pointer;
   z-index: 2;
-  border-radius: 9999px;
-  transition: all 0.3s ease;
-  margin-right: 3.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 3rem;
+  --tw-border-opacity: 0.3;
+  background-color: transparent !important;
+  color: #1E6A42;
 }
 
-/* 第二行按钮特殊位置 */
-.content-row:nth-child(2) .long-card .read-more {
+.read-more-button :deep(.bg-primary) {
+  background-color: #1E6A42 !important;
+}
+
+.read-more-button :deep(.text-primary-foreground) {
+  color: white !important;
+}
+
+/* 第二行按钮特殊位置 / Special button position for the second row */
+.content-row:nth-child(2) .long-card .read-more-button {
   right: auto;
-  left: 3.5rem;
+  left: 3rem;
   margin-right: 0;
+}
+
+/* 确保按钮在悬停时有足够的空间显示 */
+.long-card {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* 按钮悬停效果增强 */
+.read-more-button:hover {
+  transform: translateY(-50%) translateX(5px);
+}
+
+.content-row:nth-child(2) .long-card .read-more-button:hover {
+  transform: translateY(-50%) translateX(-5px);
 }
 
 .card-content-wrapper {
@@ -1090,5 +1181,264 @@ onMounted(() => {
 .content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
   right: -0.5rem;
   left: auto;
+}
+
+/* 响应式调整文字大小 / Responsive text size adjustments */
+@media (max-width: 1200px) {
+  .preview-text :deep(h1) {
+    @apply text-2xl;
+  }
+  
+  .preview-text :deep(p),
+  .preview-text :deep(ul) {
+    @apply text-base;
+  }
+  
+  .preview-text :deep(li) {
+    font-size: 1rem;
+  }
+}
+
+/* 圆形卡片和胶囊卡片的响应式设计 */
+@media (max-width: 1280px) {
+  .main-card {
+    width: 280px;
+    height: 280px;
+    padding: 1.8rem;
+  }
+  
+  .long-card {
+    height: 280px;
+  }
+  
+  .card-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .card-text h3 {
+    font-size: 1.15rem;
+  }
+  
+  .card-description {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  
+  .preview-text {
+    padding: 1.5rem 10rem 1.5rem 3.5rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1.5rem 2rem 1.5rem 12rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-card {
+    width: 250px;
+    height: 250px;
+    padding: 1.5rem;
+  }
+  
+  .long-card {
+    height: 250px;
+  }
+  
+  .card-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .card-text h3 {
+    font-size: 1.1rem;
+  }
+  
+  .card-description {
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+  
+  .preview-text {
+    padding: 1.5rem 8rem 1.5rem 3rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1.5rem 2rem 1.5rem 10rem;
+  }
+  
+  .preview-text :deep(h1) {
+    font-size: 1.4rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .preview-text :deep(p) {
+    font-size: 0.95rem;
+    margin-bottom: 0.7rem;
+    line-height: 1.4;
+  }
+  
+  .preview-text :deep(li) {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-row {
+    grid-template-columns: 1fr !important;
+    gap: 2rem;
+  }
+  
+  .content-row:nth-child(2) {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .main-card {
+    width: 220px;
+    height: 220px;
+    padding: 1.2rem;
+    margin: 0 auto;
+  }
+  
+  .long-card {
+    height: 180px;
+    width: 100%;
+    border-radius: 24px;
+  }
+  
+  .card-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.8rem;
+  }
+  
+  .card-title {
+    gap: 0.8rem;
+  }
+  
+  .card-text h3 {
+    font-size: 1rem;
+  }
+  
+  .card-description {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+  
+  .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 1rem 2rem 1rem 6rem;
+  }
+  
+  .read-more-button {
+    margin-right: 1.5rem;
+    transform: scale(0.9) translateY(-50%);
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 1.5rem;
+  }
+  
+  .preview-text :deep(h1) {
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  .preview-text :deep(p) {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  
+  .preview-text :deep(li) {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-card {
+    width: 180px;
+    height: 180px;
+    padding: 1rem;
+  }
+  
+  .long-card {
+    height: 150px;
+    border-radius: 16px;
+  }
+  
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.6rem;
+  }
+  
+  .card-title {
+    gap: 0.6rem;
+  }
+  
+  .card-text h3 {
+    font-size: 0.9rem;
+  }
+  
+  .card-description {
+    font-size: 0.8rem;
+    line-height: 1.1;
+  }
+  
+  .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+    -webkit-mask-image: linear-gradient(to bottom, 
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom, 
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+  }
+  
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 0.8rem 1.5rem 0.8rem 4.5rem;
+  }
+  
+  .read-more-button {
+    margin-right: 1rem;
+    transform: scale(0.8) translateY(-50%);
+  }
+  
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: 1rem;
+  }
+  
+  .preview-text :deep(h1) {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .preview-text :deep(p) {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+  
+  .preview-text :deep(li) {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+  
+  .content-row {
+    margin-bottom: 1.5rem;
+  }
 }
 </style> 

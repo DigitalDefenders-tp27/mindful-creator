@@ -24,6 +24,25 @@ import NavBar from './components/NavBar.vue'
   flex-direction: column;
   padding: 0;
   margin: 0;
+
+  /* 添加主题色变量 */
+  --primary: 99 102 241;
+  --primary-foreground: 255 255 255;
+  --secondary: 244 245 246;
+  --secondary-foreground: 30 41 59;
+  --accent: 243 244 246;
+  --accent-foreground: 15 23 42;
+  --destructive: 240 82 82;
+  --destructive-foreground: 255 255 255;
+  --muted: 243 244 246;
+  --muted-foreground: 100 116 139;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --border: 226 232 240;
+  --input: 226 232 240;
+  --ring: 99 102 241;
 }
 
 .main-content {
@@ -51,5 +70,13 @@ html, body {
 #app > * {
   margin: 0;
   padding: 0;
+}
+
+.text-primary-600 {
+  color: rgb(var(--primary));
+}
+
+.dark .text-primary-400 {
+  color: rgb(var(--primary) / 0.9);
 }
 </style>

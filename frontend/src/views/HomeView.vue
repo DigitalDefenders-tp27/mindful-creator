@@ -227,7 +227,6 @@ import { FlipCard } from '@/components/ui/flip-card'
 }
 
 .hero-section {
-  @apply py-4 relative;
   min-height: 75vh;
   background-color: rgb(255, 252, 244);
   display: flex;
@@ -235,32 +234,35 @@ import { FlipCard } from '@/components/ui/flip-card'
   overflow: hidden;
   position: relative;
   z-index: 1;
+  padding: 1rem 0;
 }
 
 .hero-content {
-  @apply container mx-auto px-6;
   position: relative;
   width: 100%;
   min-height: 75vh;
   display: flex;
   align-items: center;
   padding-left: 2rem;
+  margin: 0 auto;
 }
 
 .slogan {
-  @apply space-y-4;
   max-width: 800px;
   position: relative;
   z-index: 2;
   margin-left: 2rem;
+  text-align: left;
 }
 
 .title-group {
-  @apply space-y-2;
+  margin-bottom: 0.5rem;
+  text-align: left;
 }
 
 .title-group h1 {
-  @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold;
+  font-size: 4rem;
+  font-weight: bold;
   background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -269,20 +271,74 @@ import { FlipCard } from '@/components/ui/flip-card'
   display: block;
   margin-bottom: 1rem;
   white-space: normal;
+  text-align: left;
 }
 
 .title-group h2 {
-  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-800 dark:text-neutral-100;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
   line-height: 1.2;
   display: block;
   white-space: normal;
+  text-align: left;
 }
 
 .subtitle {
-  @apply text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-neutral-600 dark:text-neutral-400;
+  font-size: 1.25rem;
+  color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
   white-space: normal;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
 }
 
 .decorative-elements {
@@ -714,8 +770,9 @@ import { FlipCard } from '@/components/ui/flip-card'
 .journey-card.purple .card-icon {
   opacity: 1;
 }
-.journey-card.purple h3 {
+.journey-card.purple .card-text h3 {
   color: rgb(252, 244, 223);
+  font-weight: 700;
 }
 .journey-card.purple :deep(.flip-card-back) {
   background: rgb(199, 170, 204);
@@ -824,7 +881,7 @@ import { FlipCard } from '@/components/ui/flip-card'
 
 .card-text h3 {
   font-size: 1.75rem;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.2;
   margin: 0;
 }
@@ -853,6 +910,83 @@ import { FlipCard } from '@/components/ui/flip-card'
   position: absolute;
   left: 0;
   font-weight: 600;
+}
+
+/* 反转卡片响应式设计 - 调整卡片背面文字大小 */
+@media (max-width: 1200px) {
+  .feature-list {
+    font-size: 1.1rem;
+    padding: 0 0.5rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .feature-list {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.3;
+  }
+  
+  .card-content {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-list {
+    font-size: 0.9rem;
+    padding: 0 0.25rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.25;
+    padding-left: 0.8rem;
+  }
+  
+  .card-content {
+    padding: 0.5rem;
+  }
+  
+  .card-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .journey-card {
+    min-height: 320px;
+  }
+  
+  .feature-list {
+    font-size: 0.85rem;
+    padding: 0 0.25rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.2;
+    padding-left: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .card-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+  }
+  
+  .card-text h3 {
+    font-size: 1.5rem;
+  }
 }
 
 /* Testimonials Section */
