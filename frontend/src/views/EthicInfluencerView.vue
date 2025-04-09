@@ -117,8 +117,8 @@
             @click="expandCard('practices')"
           >
             <div class="preview-content">
-              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
               <div class="read-more">Read More</div>
+              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
             </div>
           </CardSpotlight>
 
@@ -135,7 +135,7 @@
                   <h3>Building Authentic Relationships</h3>
                 </div>
                 <div class="card-description">
-                  Develop genuine connections with your audience through transparent communication.
+                  Build genuine connections through transparency.
                 </div>
               </div>
             </div>
@@ -805,11 +805,53 @@ onMounted(() => {
   max-height: 100%;
 }
 
+/* 第二行左侧卡片特殊样式 */
+.content-row:nth-child(2) .long-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.content-row:nth-child(2) .long-card .preview-content {
+  position: relative;
+  padding: 1.5rem 3rem 1.5rem 10rem;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(*) {
+  text-align: left !important;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(ul) {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0.5rem 0;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(li) {
+  position: relative;
+  padding-left: 0;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #232323;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
+  display: none;
+}
+
+/* 移除之前可能导致右对齐的样式 */
+.content-row:nth-child(2) .long-card .preview-text :deep(h1),
+.content-row:nth-child(2) .long-card .preview-text :deep(p),
+.content-row:nth-child(2) .long-card .preview-text :deep(ul),
+.content-row:nth-child(2) .long-card .preview-text :deep(li) {
+  text-align: left !important;
+  direction: ltr;
+}
+
 .preview-text {
   flex-grow: 1;
   overflow: hidden;
   position: relative;
-  padding: 1.5rem 6rem 3rem 4rem;
+  padding: 1.5rem 10rem 1.5rem 4rem;
   max-height: 100%;
   mask-image: linear-gradient(to bottom, 
     black 0%,
@@ -838,22 +880,21 @@ onMounted(() => {
 .preview-text :deep(ul) {
   @apply text-base text-neutral-700 dark:text-neutral-300;
   list-style-type: none;
-  padding-left: 1rem;
+  padding-left: 0;
   margin-top: 0.5rem;
 }
 
 .preview-text :deep(li) {
   position: relative;
-  padding-left: 1rem;
+  padding-left: 0;
   margin-bottom: 0.5rem;
   line-height: 1.5;
+  font-weight: bold;
+  color: #232323;
 }
 
 .preview-text :deep(li)::before {
-  content: "•";
-  position: absolute;
-  left: -0.5rem;
-  color: #007AFF;
+  display: none;
 }
 
 .read-more {
@@ -872,6 +913,13 @@ onMounted(() => {
   transition: all 0.3s ease;
   margin-right: 3.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 第二行按钮特殊位置 */
+.content-row:nth-child(2) .long-card .read-more {
+  right: auto;
+  left: 3.5rem;
+  margin-right: 0;
 }
 
 .card-content-wrapper {
@@ -1017,5 +1065,30 @@ onMounted(() => {
     color: #232323;
     font-weight: 600;
   }
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(h1) {
+  text-align: right;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(p) {
+  text-align: right;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(ul) {
+  text-align: right;
+  padding-right: 1rem;
+  padding-left: 0;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(li) {
+  padding-right: 1rem;
+  padding-left: 0;
+  text-align: right;
+}
+
+.content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
+  right: -0.5rem;
+  left: auto;
 }
 </style> 
