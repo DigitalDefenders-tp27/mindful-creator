@@ -20,8 +20,7 @@
   const checkPassword = () => {
     if (password.value === correctPassword) {
       sessionStorage.setItem('authenticated', 'true')
-      console.log('Redirecting to /home')
-      router.push('/home') // Redirect to the main app page
+      router.push({ name: 'home' }) 
     } else {
       errorMessage.value = 'Incorrect password. Please try again.'
     }
