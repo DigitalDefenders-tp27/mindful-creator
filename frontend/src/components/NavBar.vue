@@ -3,7 +3,7 @@
     <div class="navbar-container">
       <div class="navbar-left">
         <router-link to="/" class="logo">
-          <img src="../assets/icons/elements/Logo.svg" alt="Inflowence Logo" class="logo-img">
+          <img src="../assets/icons/elements/logo.svg" alt="Inflowence Logo" class="logo-img">
           <span class="logo-text">INFLOWENCE</span>
         </router-link>
       </div>
