@@ -37,7 +37,11 @@ const router = createRouter({
       name: 'password',
       component: PasswordPage  // Password page route
     }
-  ]
+  ],
+  scrollBehavior() {
+    // 始终滚动到顶部
+    return { top: 0 }
+  }
 })
 
 router.beforeEach((to, from, next) => {
