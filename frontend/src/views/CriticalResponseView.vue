@@ -122,7 +122,7 @@
   }
   
   const handleSeekHelp = () => {
-    window.open('https://www.esafety.gov.au/young-people/tough-situations/cyberbullying', '_blank')
+    window.open('https://www.betterhealth.vic.gov.au/health/healthyliving/Cyberbullying', '_blank')
   }
   
   const emojis = [
