@@ -3,7 +3,7 @@
       <h2>Breathing Exercise - 4-7-8 Breathing</h2>
       <p>Follow along with the video to perform a 4-7-8 breathing exercise to calm your mind.</p>
       <video controls>
-        <source src="../assets/resources/breathing.mp4" type="video/mp4" />
+        <source src="@/assets/resources/breathing.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
     </div>
