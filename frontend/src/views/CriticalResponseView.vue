@@ -38,7 +38,7 @@
           </div>
         </div>
       </section>
-  
+
       <!-- Feeling Box -->
       <div class="feeling-box">
         <div class="bell-container">
@@ -57,7 +57,7 @@
           </div>
         </div>
       </div>
-  
+
       <!-- Emotional Check-in Pop-up -->
       <div v-if="showCheckIn" class="overlay">
         <div class="popup">
@@ -68,7 +68,7 @@
           </div>
         </div>
       </div>
-  
+
       <!-- Comparison Section -->
       <div class="comparison">
         <div class="comparison-header">
@@ -76,18 +76,18 @@
           <div class="col label">What's the goal?</div>
           <div class="col">Cyberbullying<br /><span>(Harmful Attacks 🚨)</span></div>
         </div>
-  
+
         <div class="comparison-row" v-for="(label, i) in labels" :key="i">
           <div class="cell left">{{ leftCol[i] }}</div>
           <div class="cell label">{{ label }}</div>
           <div class="cell right">{{ rightCol[i] }}</div>
         </div>
       </div>
-  
+
       <!-- Seek Help Link -->
       <div class="seek-help">
-        <RippleButton 
-          class="help-button" 
+        <RippleButton
+          class="help-button"
           rippleColor="rgba(255, 255, 255, 0.6)"
           @click="handleSeekHelp"
         >
@@ -96,35 +96,35 @@
       </div>
     </div>
   </template>
-  
+
   <script setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
   import RippleButton from '@/components/ui/ripple-button.vue'
-  
+
   import bell from '../assets/emojis/bell.png'
   import happy from '../assets/emojis/Happy.png'
   import peace from '../assets/emojis/Peace.png'
   import angry from '../assets/emojis/Angry.png'
   import sad from '../assets/emojis/Sad.png'
   import mda from '../assets/emojis/Mad.png'
-  
+
   const router = useRouter()
   const showCheckIn = ref(false)
   const selectedEmotion = ref(null)
-  
+
   const goToRelaxation = () => router.push('/relaxation')
   const closePopup = () => (showCheckIn.value = false)
   const handleDotClick = (emotion) => {
     selectedEmotion.value = emotion
     showCheckIn.value = true
   }
-  
+
   const handleSeekHelp = () => {
     window.open('https://www.betterhealth.vic.gov.au/health/healthyliving/Cyberbullying', '_blank')
   }
-  
+
   const emojis = [
     { src: happy, alt: 'Happy' },
     { src: peace, alt: 'Sad' },
@@ -132,7 +132,7 @@
     { src: sad, alt: 'Confused' },
     { src: mda, alt: 'Frustrated' },
   ]
-  
+
   const labels = [
     "What's the goal? 🎯",
     'How does it sound? 🗣️',
@@ -140,7 +140,7 @@
     'Where does it happen? 📍',
     'How does it make you feel? 😊',
   ]
-  
+
   const leftCol = [
     'To help you improve. The person wants to share advice or opinions to make your content better. ✨',
     'Respectful, clear, and focused on your content. 🤝',
@@ -148,7 +148,7 @@
     'Often in a thoughtful comment, private message, or a discussion space. 📱',
     'Encouraged to improve and learn. 🌱',
   ]
-  
+
   const rightCol = [
     'To hurt, embarrass, or bring you down. The person is trying to make you feel bad. 👎',
     'Mean, rude, and often personal. 😠',
@@ -157,14 +157,14 @@
     'Upset, anxious, or even scared to post again. 😔',
   ]
   </script>
-  
+
   <style scoped>
   .critical-response-view {
     background: #fffdf4;
     font-family: Avenir, Helvetica, sans-serif;
     text-align: center;
   }
-  
+
   .hero-section {
     min-height: 75vh;
     background-color: rgb(255, 252, 244);
@@ -175,7 +175,7 @@
     z-index: 1;
     padding: 1rem 0;
   }
-  
+
   .hero-content {
     position: relative;
     width: 100%;
@@ -185,7 +185,7 @@
     padding-left: 2rem;
     margin: 0 auto;
   }
-  
+
   .slogan {
     max-width: 800px;
     position: relative;
@@ -193,12 +193,12 @@
     margin-left: 2rem;
     text-align: left;
   }
-  
+
   .title-group {
     margin-bottom: 0.5rem;
     text-align: left;
   }
-  
+
   .title-group h1 {
     font-size: 4rem;
     font-weight: bold;
@@ -212,7 +212,7 @@
     white-space: normal;
     text-align: left;
   }
-  
+
   .title-group h2 {
     font-size: 2.5rem;
     font-weight: bold;
@@ -222,7 +222,7 @@
     white-space: normal;
     text-align: left;
   }
-  
+
   .subtitle {
     font-size: 1.25rem;
     color: #666;
@@ -231,7 +231,7 @@
     white-space: normal;
     text-align: left;
   }
-  
+
   @media (min-width: 640px) {
     .title-group h1 {
       font-size: 3rem;
@@ -243,7 +243,7 @@
       font-size: 1.125rem;
     }
   }
-  
+
   @media (min-width: 768px) {
     .title-group h1 {
       font-size: 3.75rem;
@@ -255,7 +255,7 @@
       font-size: 1.25rem;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .title-group h1 {
       font-size: 4.5rem;
@@ -267,7 +267,7 @@
       font-size: 1.5rem;
     }
   }
-  
+
   @media (min-width: 1280px) {
     .title-group h1 {
       font-size: 6rem;
@@ -279,7 +279,7 @@
       font-size: 1.875rem;
     }
   }
-  
+
   .decorative-elements {
     position: absolute;
     top: 0;
@@ -295,7 +295,7 @@
     pointer-events: none;
     transform: translateX(-2rem);
   }
-  
+
   .top-row {
     display: grid;
     grid-template-columns: repeat(3, 160px);
@@ -307,7 +307,7 @@
     grid-row: 1;
     justify-self: end;
   }
-  
+
   .bottom-row-1 {
     display: grid;
     grid-template-columns: repeat(3, 160px);
@@ -319,7 +319,7 @@
     grid-row: 2;
     justify-self: end;
   }
-  
+
   .element-wrapper {
     width: 160px;
     height: 120px;
@@ -332,7 +332,7 @@
     pointer-events: auto;
     transition: transform 0.5s ease;
   }
-  
+
   .element {
     width: 100%;
     height: 100%;
@@ -342,16 +342,16 @@
     padding: 0;
     transition: all 0.5s ease;
   }
-  
+
   /* Hover效果增强 */
   .top-row .element:hover {
     transform: rotate(-15deg) scale(1.1);
   }
-  
+
   .bottom-row-1 .element:hover {
     transform: rotate(15deg) scale(1.1);
   }
-  
+
   /* 响应式调整 */
   @media (max-width: 1800px) {
     .decorative-elements {
@@ -361,7 +361,7 @@
       transform: translateX(-1.5rem);
     }
   }
-  
+
   @media (max-width: 1536px) {
     .decorative-elements {
       width: 720px;
@@ -370,7 +370,7 @@
       transform: translateX(-1rem);
     }
   }
-  
+
   @media (max-width: 1280px) {
     .decorative-elements {
       width: 600px;
@@ -380,20 +380,20 @@
       row-gap: 0.75rem;
     }
   }
-  
+
   @media (max-width: 1024px) {
     .hero-section {
       min-height: 65vh;
     }
-    
+
     .hero-content {
       min-height: 65vh;
     }
-    
+
     .slogan {
       margin-left: 1.5rem;
     }
-    
+
     .decorative-elements {
       transform: translateX(0) scale(0.9);
       opacity: 0.5;
@@ -403,31 +403,31 @@
     .title-group h1 {
       @apply text-5xl;
     }
-    
+
     .title-group h2 {
       @apply text-4xl;
       white-space: normal;
     }
-    
+
     .subtitle {
       @apply text-xl;
       white-space: normal;
     }
   }
-  
+
   @media (max-width: 768px) {
     .hero-section {
       min-height: 55vh;
     }
-    
+
     .hero-content {
       min-height: 55vh;
     }
-    
+
     .slogan {
       margin-left: 1rem;
     }
-    
+
     .decorative-elements {
       opacity: 0;
       transform: translateX(0) scale(0.8);
@@ -437,16 +437,16 @@
     .title-group h1 {
       @apply text-4xl;
     }
-    
+
     .title-group h2 {
       @apply text-3xl;
     }
-    
+
     .subtitle {
       @apply text-lg;
     }
   }
-  
+
   @media (max-width: 640px) {
     .hero-section {
       padding: 1.5rem 0;
@@ -463,16 +463,16 @@
     .title-group h1 {
       @apply text-3xl;
     }
-    
+
     .title-group h2 {
       @apply text-2xl;
     }
-    
+
     .subtitle {
       @apply text-base;
     }
   }
-  
+
   .feeling-box {
     border: 2px solid #333;
     padding: 2rem 1rem 1rem;
@@ -485,7 +485,7 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     z-index: 5;
   }
-  
+
   .bell-container {
     position: absolute;
     top: -48px;
@@ -504,16 +504,16 @@
     cursor: pointer;
     transition: transform 0.3s ease;
   }
-  
+
   .bell-container:hover {
     animation: bell-shake 0.5s ease-in-out infinite;
   }
-  
+
   .bell-icon {
     width: 96px;
     transition: transform 0.2s ease;
   }
-  
+
   @keyframes bell-shake {
     0% {
       transform: translateX(-50%) rotate(0deg);
@@ -531,7 +531,7 @@
       transform: translateX(-50%) rotate(0deg);
     }
   }
-  
+
   .feeling-box h2 {
     font-size: 36px;
     font-weight: 700;
@@ -539,20 +539,20 @@
     margin-bottom: 30px;
     letter-spacing: 1px;
   }
-  
+
   .emotions {
     display: flex;
     justify-content: center;
     gap: 48px;
     margin: 2rem 0 1.5rem;
   }
-  
+
   .emoji-option {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
-  
+
   .emoji-img {
     width: 150px;
     height: 150px;
@@ -563,29 +563,29 @@
     padding: 8px;
     border: 5px solid transparent;
   }
-  
+
   .emoji-img:hover {
     transform: scale(1.15);
     box-shadow: 0 0 20px rgba(212, 238, 90, 0.6);
   }
-  
+
   .emoji-img.selected {
     border-radius: 50%;
     border: 5px solid rgb(212, 238, 90);
     box-shadow: 0 0 0 8px rgba(212, 238, 90, 0.4);
   }
-  
+
   .emoji-option:last-child .emoji-img {
     width: 160px;
     height: 160px;
     margin-top: -12px;
   }
-  
+
   /* 删除圆点相关样式并不显示圆点 */
   .dot {
     display: none;
   }
-  
+
   .comparison {
     margin-top: 2rem;
     width: 100%;
@@ -594,7 +594,7 @@
     align-items: center;
     margin-bottom: 3rem;
   }
-  
+
   .comparison-header,
   .comparison-row {
     display: grid;
@@ -602,7 +602,7 @@
     width: 90%;
     max-width: 1200px;
   }
-  
+
   .comparison-header .col {
     font-weight: bold;
     padding: 1.5rem;
@@ -611,15 +611,15 @@
     font-size: 18px;
     text-align: center;
   }
-  
+
   .comparison-header .col:first-child {
     border-top-left-radius: 16px;
   }
-  
+
   .comparison-header .col:last-child {
     border-top-right-radius: 16px;
   }
-  
+
   .comparison-header .label {
     background: #fffbf3;
     display: flex;
@@ -628,7 +628,7 @@
     border-left: none;
     border-right: none;
   }
-  
+
   .comparison-row .cell {
     padding: 1.5rem;
     font-size: 16px;
@@ -638,23 +638,23 @@
     border-right: 2px solid #000;
     border-bottom: 2px solid #000;
   }
-  
+
   .comparison-row:last-child .cell:first-child {
     border-bottom-left-radius: 16px;
   }
-  
+
   .comparison-row:last-child .cell:last-child {
     border-bottom-right-radius: 16px;
   }
-  
+
   .comparison-row .left {
     background: #e1f37e;
   }
-  
+
   .comparison-row .right {
     background: #ff914d;
   }
-  
+
   .comparison-row .label {
     font-weight: bold;
     color: #2c3e50;
@@ -666,7 +666,7 @@
     border-left: none;
     border-right: none;
   }
-  
+
   .seek-help {
     margin-top: 2rem;
     margin-bottom: 3rem;
@@ -676,7 +676,7 @@
     justify-content: center;
     align-items: center;
   }
-  
+
   .overlay {
     position: fixed;
     top: 0;
@@ -689,7 +689,7 @@
     justify-content: center;
     z-index: 1000;
   }
-  
+
   .popup {
     background: white;
     padding: 2rem;
@@ -697,18 +697,18 @@
     max-width: 400px;
     text-align: center;
   }
-  
+
   .popup h2 {
     margin-bottom: 1.5rem;
   }
-  
+
   .popup .buttons {
     display: flex;
     flex-direction: column;
     gap: 15px;
     margin-top: 20px;
   }
-  
+
   .popup .buttons button {
     margin: 0;
     padding: 12px 20px;
@@ -721,20 +721,20 @@
     font-size: 16px;
     transition: background-color 0.3s, transform 0.2s;
   }
-  
+
   .popup .buttons button:hover {
     background-color: #5a52d5;
     transform: translateY(-2px);
   }
-  
+
   .popup .buttons button:first-child {
     background-color: #7963ff;
   }
-  
+
   .popup .buttons button:last-child {
     background-color: #9290a6;
   }
-  
+
   /* 为 InteractiveHoverButton 组件添加样式 */
   .read-more-button {
     position: absolute;
@@ -747,44 +747,44 @@
     background-color: transparent !important;
     color: #1E6A42;
   }
-  
+
   .read-more-button :deep(.bg-primary) {
     background-color: #1E6A42 !important;
   }
-  
+
   .read-more-button :deep(.text-primary-foreground) {
     color: white !important;
   }
-  
+
   .read-more-button:hover {
     transform: translateY(-50%) translateX(5px);
   }
-  
+
   /* Responsive button position adjustment */
   @media (max-width: 1280px) {
     .read-more-button {
       margin-right: 2.5rem;
     }
   }
-  
+
   @media (max-width: 1024px) {
     .read-more-button {
       margin-right: 2rem;
     }
   }
-  
+
   @media (max-width: 768px) {
     .read-more-button {
       margin-right: 1.5rem;
     }
   }
-  
+
   @media (max-width: 640px) {
     .read-more-button {
       margin-right: 1rem;
     }
   }
-  
+
   .help-button {
     font-size: 26px;
     font-weight: 700;
@@ -799,7 +799,7 @@
     min-width: 300px;
     text-align: center;
   }
-  
+
   .help-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
