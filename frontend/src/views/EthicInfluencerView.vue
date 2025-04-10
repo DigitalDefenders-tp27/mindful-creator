@@ -25,7 +25,7 @@
           <!-- 右上角第二排 / Top Row 2 Right -->
           <div class="top-row-2">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Red.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
