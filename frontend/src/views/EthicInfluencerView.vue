@@ -1,201 +1,191 @@
+<script setup>
+import CommentDashboard from '@/components/CommentDashboard.vue';
+</script>
+
 <template>
-  <div class="ethic-container">
-    <section class="hero-section">
-      <div class="hero-content">
-        <div class="slogan">
-          <div class="title-group">
-            <h1>Ethical Influencer</h1>
-            <h2>Building Trust Through Authenticity</h2>
-          </div>
-          <p class="subtitle">Learn to create content that makes a positive impact</p>
-        </div>
-        <div class="decorative-elements">
-          <!-- 右上角第一排 / Top Row Right -->
-          <div class="top-row">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右上角第二排 / Top Row 2 Right -->
-          <div class="top-row-2">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第一排 / Bottom Row 1 Right -->
-          <div class="bottom-row-1">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第二排 / Bottom Row 2 Right -->
-          <div class="bottom-row-2">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div class="ethic-influencer-view">
+    <!-- 🧠 Add chart at the top -->
+    <CommentDashboard />
 
-    <!-- Content Sections / 内容部分 -->
-    <section class="content-section">
-      <div class="gradient-overlay"></div>
-      <div class="content-grid">
-        <!-- First Row / 第一行  -->
-        <div class="content-row">
-          <CardSpotlight 
-            class="main-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-          >
-            <div class="card-content-wrapper">
-              <div class="card-text">
-                <div class="card-title">
-                  <img src="/src/assets/icons/elements/Eye.svg" alt="Impact" class="card-icon">
-                  <h3>Understanding Your Impact</h3>
-                </div>
-                <div class="card-description">
-                  Shape audience perceptions<br>through mindful content
-                </div>
+    <div class="ethic-container">
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="slogan">
+            <div class="title-group">
+              <h1>Ethical Influencer</h1>
+              <h2>Building Trust Through Authenticity</h2>
+            </div>
+            <p class="subtitle">Learn to create content that makes a positive impact</p>
+          </div>
+          <div class="decorative-elements">
+            <!-- 右上角第一排 / Top Row Right -->
+            <div class="top-row">
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
               </div>
             </div>
-          </CardSpotlight>
-
-          <CardSpotlight 
-            class="long-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-            @click="expandCard('guidelines')"
-          >
-            <div class="preview-content">
-              <div v-html="marked(previewContent)" class="preview-text"></div>
-              <InteractiveHoverButton text="Read More" class="read-more-button" />
-            </div>
-          </CardSpotlight>
-        </div>
-
-        <!-- Second Row / 第二行 -->
-        <div class="content-row">
-          <CardSpotlight 
-            class="long-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-            @click="expandCard('practices')"
-          >
-            <div class="preview-content">
-              <InteractiveHoverButton text="Read More" class="read-more-button" />
-              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
-            </div>
-          </CardSpotlight>
-
-          <CardSpotlight 
-            class="main-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-          >
-            <div class="card-content-wrapper">
-              <div class="card-text">
-                <div class="card-title">
-                  <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
-                  <h3>Building Authentic Relationships</h3>
-                </div>
-                <div class="card-description">
-                  Develop genuine connections<br>through transparency
-                </div>
+            <!-- 右上角第二排 / Top Row 2 Right -->
+            <div class="top-row-2">
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
               </div>
             </div>
-          </CardSpotlight>
-        </div>
-
-        <!-- Third Row / 第三行 -->
-        <div class="content-row">
-          <!-- 左侧圆形卡片 -->
-          <CardSpotlight 
-            class="main-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-          >
-            <div class="card-content-wrapper">
-              <div class="card-text">
-                <div class="card-title">
-                  <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
-                  <h3>Ethical Content Creation</h3>
-                </div>
-                <div class="card-description">
-                  Create aligned content<br>with integrity
-                </div>
+            <!-- 右下角第一排 / Bottom Row 1 Right -->
+            <div class="bottom-row-1">
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
               </div>
             </div>
-          </CardSpotlight>
-
-          <!-- Right Capsule Card / 右侧胶囊形卡片 -->
-          <CardSpotlight 
-            class="long-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-            @click="expandCard('principles')"
-          >
-            <div class="preview-content">
-              <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
-              <InteractiveHoverButton text="Read More" class="read-more-button" />
+            <!-- 右下角第二排 / Bottom Row 2 Right -->
+            <div class="bottom-row-2">
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
+              </div>
             </div>
-          </CardSpotlight>
+          </div>
         </div>
+      </section>
 
-        <!-- Quiz Card / 测验卡片 -->
-        <div class="quiz-row">
-          <QuizCard />
+      <!-- Content Sections / 内容部分 -->
+      <section class="content-section">
+        <div class="gradient-overlay"></div>
+        <div class="content-grid">
+          <!-- First Row / 第一行  -->
+          <div class="content-row">
+            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
+              <div class="card-content-wrapper">
+                <div class="card-text">
+                  <div class="card-title">
+                    <img src="/src/assets/icons/elements/Eye.svg" alt="Impact" class="card-icon">
+                    <h3>Understanding Your Impact</h3>
+                  </div>
+                  <div class="card-description">
+                    Shape audience perceptions<br>through mindful content
+                  </div>
+                </div>
+              </div>
+            </CardSpotlight>
+
+            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
+              @click="expandCard('guidelines')">
+              <div class="preview-content">
+                <div v-html="marked(previewContent)" class="preview-text"></div>
+                <InteractiveHoverButton text="Read More" class="read-more-button" />
+              </div>
+            </CardSpotlight>
+          </div>
+
+          <!-- Second Row / 第二行 -->
+          <div class="content-row">
+            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
+              @click="expandCard('practices')">
+              <div class="preview-content">
+                <InteractiveHoverButton text="Read More" class="read-more-button" />
+                <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
+              </div>
+            </CardSpotlight>
+
+            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
+              <div class="card-content-wrapper">
+                <div class="card-text">
+                  <div class="card-title">
+                    <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
+                    <h3>Building Authentic Relationships</h3>
+                  </div>
+                  <div class="card-description">
+                    Develop genuine connections<br>through transparency
+                  </div>
+                </div>
+              </div>
+            </CardSpotlight>
+          </div>
+
+          <!-- Third Row / 第三行 -->
+          <div class="content-row">
+            <!-- 左侧圆形卡片 -->
+            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
+              <div class="card-content-wrapper">
+                <div class="card-text">
+                  <div class="card-title">
+                    <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
+                    <h3>Ethical Content Creation</h3>
+                  </div>
+                  <div class="card-description">
+                    Create aligned content<br>with integrity
+                  </div>
+                </div>
+              </div>
+            </CardSpotlight>
+
+            <!-- Right Capsule Card / 右侧胶囊形卡片 -->
+            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
+              @click="expandCard('principles')">
+              <div class="preview-content">
+                <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
+                <InteractiveHoverButton text="Read More" class="read-more-button" />
+              </div>
+            </CardSpotlight>
+          </div>
+
+          <!-- Quiz Card / 测验卡片 -->
+          <div class="quiz-row">
+            <QuizCard />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Expanded card container / 展开的卡片容器 -->
-    <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
-      <div class="expanded-card">
-        <div class="card-content">
-          <h3>{{ getExpandedCardTitle }}</h3>
-          <div class="full-content">
-            <div 
-              v-html="marked(getExpandedCardContent)" 
-              class="markdown-content"
-            ></div>
+      <!-- Expanded card container / 展开的卡片容器 -->
+      <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
+        <div class="expanded-card">
+          <div class="card-content">
+            <h3>{{ getExpandedCardTitle }}</h3>
+            <div class="full-content">
+              <div v-html="marked(getExpandedCardContent)" class="markdown-content"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 </template>
+
+<script setup>
+// 📦 Import the chart component you made
+import CommentDashboard from '@/components/CommentDashboard.vue';
+</script>
+
+<style scoped>
+.ethic-influencer-view {
+  padding: 2rem;
+}
+
+.comment-dashboard {
+  margin-bottom: 2rem;
+}
+</style>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
@@ -360,9 +350,11 @@ onMounted(() => {
   .title-group h1 {
     font-size: 3rem;
   }
+
   .title-group h2 {
     font-size: 1.875rem;
   }
+
   .subtitle {
     font-size: 1.125rem;
   }
@@ -372,9 +364,11 @@ onMounted(() => {
   .title-group h1 {
     font-size: 3.75rem;
   }
+
   .title-group h2 {
     font-size: 2.25rem;
   }
+
   .subtitle {
     font-size: 1.25rem;
   }
@@ -384,9 +378,11 @@ onMounted(() => {
   .title-group h1 {
     font-size: 4.5rem;
   }
+
   .title-group h2 {
     font-size: 3rem;
   }
+
   .subtitle {
     font-size: 1.5rem;
   }
@@ -396,9 +392,11 @@ onMounted(() => {
   .title-group h1 {
     font-size: 6rem;
   }
+
   .title-group h2 {
     font-size: 3.75rem;
   }
+
   .subtitle {
     font-size: 1.875rem;
   }
@@ -517,11 +515,11 @@ onMounted(() => {
     opacity: 0.9;
     transform: translateX(-1.5rem);
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 140px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 140px);
   }
@@ -534,11 +532,11 @@ onMounted(() => {
     opacity: 0.8;
     transform: translateX(-1rem);
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 120px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 120px);
   }
@@ -552,19 +550,19 @@ onMounted(() => {
     transform: translateX(-0.5rem);
     row-gap: 0.75rem;
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 100px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 100px);
   }
-  
+
   .read-more-button {
     margin-right: 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2.5rem;
   }
@@ -574,45 +572,45 @@ onMounted(() => {
   .content-row {
     margin-bottom: 2.5rem;
   }
-  
+
   .content-section {
     margin-top: 3rem;
   }
-  
+
   .slogan {
     margin-left: 1.5rem;
   }
-  
+
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
   }
-  
+
   .top-row-2 {
     transform: translateY(-1rem);
   }
-  
+
   .title-group h1 {
     @apply text-5xl;
   }
-  
+
   .title-group h2 {
     @apply text-4xl;
   }
-  
+
   .subtitle {
     @apply text-xl;
   }
-  
+
   .read-more-button {
     margin-right: 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 12rem;
   }
@@ -622,70 +620,70 @@ onMounted(() => {
   .content-row {
     margin-bottom: 2rem;
   }
-  
+
   .hero-section {
     min-height: 55vh;
   }
-  
+
   .hero-content {
     min-height: 55vh;
   }
-  
+
   .content-section {
     margin-top: 2rem;
   }
-  
+
   .slogan {
     margin-left: 1rem;
   }
-  
+
   .decorative-elements {
     opacity: 0;
     transform: translateX(0) scale(0.8);
     transition: opacity 0.3s ease;
   }
-  
+
   .top-row-2 {
     transform: translateY(0);
   }
-  
+
   .title-group h1 {
     @apply text-4xl;
   }
-  
+
   .title-group h2 {
     @apply text-3xl;
   }
-  
+
   .subtitle {
     @apply text-lg;
   }
-  
+
   .read-more-button {
     margin-right: 1.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2rem;
   }
-  
+
   .preview-text {
     padding: 1.5rem 3rem 1.5rem 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 9rem;
   }
-  
+
   .long-card {
     height: 280px;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.5rem;
     margin-bottom: 0.8rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 1rem;
     margin-bottom: 0.6rem;
@@ -697,55 +695,55 @@ onMounted(() => {
   .content-row {
     margin-bottom: 1.5rem;
   }
-  
+
   .title-group h1 {
     @apply text-3xl;
   }
-  
+
   .title-group h2 {
     @apply text-2xl;
   }
-  
+
   .subtitle {
     @apply text-base;
   }
-  
+
   .read-more-button {
     margin-right: 1rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1.5rem;
   }
-  
+
   .preview-text {
     padding: 1.5rem 3rem 1.5rem 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 7rem;
   }
-  
+
   .long-card {
     height: 260px;
   }
-  
+
   .card-description {
     @apply text-sm;
     line-height: 1.4;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.3rem;
     margin-bottom: 0.6rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
     line-height: 1.3;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
@@ -769,11 +767,10 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.4) 0%,
-    rgba(218, 237, 148, 0.25) 20%,
-    rgba(225, 241, 158, 0.15) 40%,
-    rgba(228, 245, 138, 0) 60%
-  );
+      rgba(209, 231, 125, 0.4) 0%,
+      rgba(218, 237, 148, 0.25) 20%,
+      rgba(225, 241, 158, 0.15) 40%,
+      rgba(228, 245, 138, 0) 60%);
   z-index: -1;
   pointer-events: none;
 }
@@ -787,11 +784,10 @@ onMounted(() => {
   width: 100%;
   height: 55%;
   background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.35) 0%,
-    rgba(218, 237, 148, 0.2) 15%,
-    rgba(225, 241, 158, 0.1) 50%,
-    rgba(228, 245, 138, 0) 100%
-  );
+      rgba(209, 231, 125, 0.35) 0%,
+      rgba(218, 237, 148, 0.2) 15%,
+      rgba(225, 241, 158, 0.1) 50%,
+      rgba(228, 245, 138, 0) 100%);
   z-index: 0;
   pointer-events: none;
 }
@@ -830,7 +826,8 @@ onMounted(() => {
   margin-bottom: 4rem;
 }
 
-.main-card, .long-card {
+.main-card,
+.long-card {
   @apply h-full p-6;
   min-height: 200px;
   display: flex;
@@ -922,16 +919,14 @@ onMounted(() => {
   position: relative;
   padding: 1.5rem 12rem 1.5rem 4rem;
   max-height: 100%;
-  mask-image: linear-gradient(to bottom, 
-    black 0%,
-    black 88%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(to bottom, 
-    black 0%,
-    black 88%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 88%,
+      transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 88%,
+      transparent 100%);
 }
 
 .preview-text :deep(h1) {
@@ -1093,7 +1088,7 @@ onMounted(() => {
   height: 80vh;
   max-width: 1200px;
   background: white;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   border-radius: 20px;
   overflow: hidden;
 }
@@ -1141,7 +1136,8 @@ onMounted(() => {
     font-size: 1.1rem;
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin: 1.2rem 0 1.2rem 2rem;
   }
 
@@ -1188,12 +1184,12 @@ onMounted(() => {
   .preview-text :deep(h1) {
     @apply text-2xl;
   }
-  
+
   .preview-text :deep(p),
   .preview-text :deep(ul) {
     @apply text-base;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 1rem;
   }
@@ -1206,29 +1202,29 @@ onMounted(() => {
     height: 280px;
     padding: 1.8rem;
   }
-  
+
   .long-card {
     height: 280px;
   }
-  
+
   .card-icon {
     width: 70px;
     height: 70px;
   }
-  
+
   .card-text h3 {
     font-size: 1.15rem;
   }
-  
+
   .card-description {
     font-size: 0.95rem;
     line-height: 1.4;
   }
-  
+
   .preview-text {
     padding: 1.5rem 10rem 1.5rem 3.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 2rem 1.5rem 12rem;
   }
@@ -1240,44 +1236,44 @@ onMounted(() => {
     height: 250px;
     padding: 1.5rem;
   }
-  
+
   .long-card {
     height: 250px;
   }
-  
+
   .card-icon {
     width: 60px;
     height: 60px;
   }
-  
+
   .card-text h3 {
     font-size: 1.1rem;
   }
-  
+
   .card-description {
     font-size: 0.9rem;
     line-height: 1.3;
   }
-  
+
   .preview-text {
     padding: 1.5rem 8rem 1.5rem 3rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 2rem 1.5rem 10rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.4rem;
     margin-bottom: 0.8rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.95rem;
     margin-bottom: 0.7rem;
     line-height: 1.4;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.95rem;
     margin-bottom: 0.6rem;
@@ -1290,71 +1286,71 @@ onMounted(() => {
     grid-template-columns: 1fr !important;
     gap: 2rem;
   }
-  
+
   .content-row:nth-child(2) {
     grid-template-columns: 1fr !important;
   }
-  
+
   .main-card {
     width: 220px;
     height: 220px;
     padding: 1.2rem;
     margin: 0 auto;
   }
-  
+
   .long-card {
     height: 180px;
     width: 100%;
     border-radius: 24px;
   }
-  
+
   .card-icon {
     width: 50px;
     height: 50px;
     margin-bottom: 0.8rem;
   }
-  
+
   .card-title {
     gap: 0.8rem;
   }
-  
+
   .card-text h3 {
     font-size: 1rem;
   }
-  
+
   .card-description {
     font-size: 0.85rem;
     line-height: 1.2;
   }
-  
+
   .preview-text {
     padding: 1rem 6rem 1rem 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1rem 2rem 1rem 6rem;
   }
-  
+
   .read-more-button {
     margin-right: 1.5rem;
     transform: scale(0.9) translateY(-50%);
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1.5rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.2rem;
     margin-bottom: 0.6rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
     line-height: 1.3;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
@@ -1368,77 +1364,75 @@ onMounted(() => {
     height: 180px;
     padding: 1rem;
   }
-  
+
   .long-card {
     height: 150px;
     border-radius: 16px;
   }
-  
+
   .card-icon {
     width: 40px;
     height: 40px;
     margin-bottom: 0.6rem;
   }
-  
+
   .card-title {
     gap: 0.6rem;
   }
-  
+
   .card-text h3 {
     font-size: 0.9rem;
   }
-  
+
   .card-description {
     font-size: 0.8rem;
     line-height: 1.1;
   }
-  
+
   .preview-text {
     padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom, 
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom, 
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
+    -webkit-mask-image: linear-gradient(to bottom,
+        black 0%,
+        black 85%,
+        transparent 100%);
+    mask-image: linear-gradient(to bottom,
+        black 0%,
+        black 85%,
+        transparent 100%);
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 0.8rem 1.5rem 0.8rem 4.5rem;
   }
-  
+
   .read-more-button {
     margin-right: 1rem;
     transform: scale(0.8) translateY(-50%);
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1rem;
     margin-bottom: 0.4rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
   }
-  
+
   .content-row {
     margin-bottom: 1.5rem;
   }
 }
-</style> 
+</style>
