@@ -3,7 +3,7 @@
       <h2>Guided Meditation</h2>
       <p>Listen to a short meditation audio to relax and refocus.</p>
       <audio controls>
-        <source src="../assets/resources/meditation.mp3" type="audio/mp3" />
+        <source src="@/assets/resources/meditation.mp3" type="audio/mp3" />
         Your browser does not support the audio element.
       </audio>
     </div>
