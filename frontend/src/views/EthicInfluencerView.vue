@@ -1,191 +1,201 @@
-<script setup>
-import CommentDashboard from '@/components/CommentDashboard.vue';
-</script>
-
 <template>
-  <div class="ethic-influencer-view">
-    <!-- 🧠 Add chart at the top -->
-    <CommentDashboard />
-
-    <div class="ethic-container">
-      <section class="hero-section">
-        <div class="hero-content">
-          <div class="slogan">
-            <div class="title-group">
-              <h1>Ethical Influencer</h1>
-              <h2>Building Trust Through Authenticity</h2>
-            </div>
-            <p class="subtitle">Learn to create content that makes a positive impact</p>
+  <div class="ethic-container">
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="slogan">
+          <div class="title-group">
+            <h1>Ethical Influencer</h1>
+            <h2>Building Trust Through Authenticity</h2>
           </div>
-          <div class="decorative-elements">
-            <!-- 右上角第一排 / Top Row Right -->
-            <div class="top-row">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
-              </div>
-            </div>
-            <!-- 右上角第二排 / Top Row 2 Right -->
-            <div class="top-row-2">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
-              </div>
-            </div>
-            <!-- 右下角第一排 / Bottom Row 1 Right -->
-            <div class="bottom-row-1">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
-              </div>
-            </div>
-            <!-- 右下角第二排 / Bottom Row 2 Right -->
-            <div class="bottom-row-2">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
-              </div>
-            </div>
-          </div>
+          <p class="subtitle">Learn to create content that makes a positive impact</p>
         </div>
-      </section>
-
-      <!-- Content Sections / 内容部分 -->
-      <section class="content-section">
-        <div class="gradient-overlay"></div>
-        <div class="content-grid">
-          <!-- First Row / 第一行  -->
-          <div class="content-row">
-            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
-              <div class="card-content-wrapper">
-                <div class="card-text">
-                  <div class="card-title">
-                    <img src="/src/assets/icons/elements/Eye.svg" alt="Impact" class="card-icon">
-                    <h3>Understanding Your Impact</h3>
-                  </div>
-                  <div class="card-description">
-                    Shape audience perceptions<br>through mindful content
-                  </div>
-                </div>
-              </div>
-            </CardSpotlight>
-
-            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
-              @click="expandCard('guidelines')">
-              <div class="preview-content">
-                <div v-html="marked(previewContent)" class="preview-text"></div>
-                <InteractiveHoverButton text="Read More" class="read-more-button" />
-              </div>
-            </CardSpotlight>
+        <div class="decorative-elements">
+          <!-- 右上角第一排 / Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
+            </div>
           </div>
-
-          <!-- Second Row / 第二行 -->
-          <div class="content-row">
-            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
-              @click="expandCard('practices')">
-              <div class="preview-content">
-                <InteractiveHoverButton text="Read More" class="read-more-button" />
-                <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
-              </div>
-            </CardSpotlight>
-
-            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
-              <div class="card-content-wrapper">
-                <div class="card-text">
-                  <div class="card-title">
-                    <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
-                    <h3>Building Authentic Relationships</h3>
-                  </div>
-                  <div class="card-description">
-                    Develop genuine connections<br>through transparency
-                  </div>
-                </div>
-              </div>
-            </CardSpotlight>
+          <!-- 右上角第二排 / Top Row 2 Right -->
+          <div class="top-row-2">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+            </div>
           </div>
-
-          <!-- Third Row / 第三行 -->
-          <div class="content-row">
-            <!-- 左侧圆形卡片 -->
-            <CardSpotlight class="main-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5">
-              <div class="card-content-wrapper">
-                <div class="card-text">
-                  <div class="card-title">
-                    <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
-                    <h3>Ethical Content Creation</h3>
-                  </div>
-                  <div class="card-description">
-                    Create aligned content<br>with integrity
-                  </div>
-                </div>
-              </div>
-            </CardSpotlight>
-
-            <!-- Right Capsule Card / 右侧胶囊形卡片 -->
-            <CardSpotlight class="long-card" :gradientSize="250" gradientColor="#f0f0f0" :gradientOpacity="0.5"
-              @click="expandCard('principles')">
-              <div class="preview-content">
-                <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
-                <InteractiveHoverButton text="Read More" class="read-more-button" />
-              </div>
-            </CardSpotlight>
+          <!-- 右下角第一排 / Bottom Row 1 Right -->
+          <div class="bottom-row-1">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
+            </div>
           </div>
-
-          <!-- Quiz Card / 测验卡片 -->
-          <div class="quiz-row">
-            <QuizCard />
-          </div>
-        </div>
-      </section>
-
-      <!-- Expanded card container / 展开的卡片容器 -->
-      <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
-        <div class="expanded-card">
-          <div class="card-content">
-            <h3>{{ getExpandedCardTitle }}</h3>
-            <div class="full-content">
-              <div v-html="marked(getExpandedCardContent)" class="markdown-content"></div>
+          <!-- 右下角第二排 / Bottom Row 2 Right -->
+          <div class="bottom-row-2">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- Content Sections / 内容部分 -->
+    <section class="content-section">
+      <div class="gradient-overlay"></div>
+      <div class="content-grid">
+        <!-- First Row / 第一行  -->
+        <div class="content-row">
+          <CardSpotlight
+            class="main-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+          >
+            <div class="card-content-wrapper">
+              <div class="card-text">
+                <div class="card-title">
+                  <img src="/src/assets/icons/elements/Eye.svg" alt="Impact" class="card-icon">
+                  <h3>Understanding Your Impact</h3>
+                </div>
+                <div class="card-description">
+                  Shape audience perceptions<br>through mindful content
+                </div>
+              </div>
+            </div>
+          </CardSpotlight>
+
+          <CardSpotlight
+            class="long-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+            @click="expandCard('guidelines')"
+          >
+            <div class="preview-content">
+              <div v-html="marked(previewContent)" class="preview-text"></div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
+            </div>
+          </CardSpotlight>
+        </div>
+
+        <!-- Second Row / 第二行 -->
+        <div class="content-row">
+          <CardSpotlight
+            class="long-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+            @click="expandCard('practices')"
+          >
+            <div class="preview-content">
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
+              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
+            </div>
+          </CardSpotlight>
+
+          <CardSpotlight
+            class="main-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+          >
+            <div class="card-content-wrapper">
+              <div class="card-text">
+                <div class="card-title">
+                  <img src="/src/assets/icons/elements/Jigsaw.svg" alt="Relationships" class="card-icon">
+                  <h3>Building Authentic Relationships</h3>
+                </div>
+                <div class="card-description">
+                  Develop genuine connections<br>through transparency
+                </div>
+              </div>
+            </div>
+          </CardSpotlight>
+        </div>
+
+        <!-- Third Row / 第三行 -->
+        <div class="content-row">
+          <!-- 左侧圆形卡片 -->
+          <CardSpotlight
+            class="main-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+          >
+            <div class="card-content-wrapper">
+              <div class="card-text">
+                <div class="card-title">
+                  <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Ethics" class="card-icon">
+                  <h3>Ethical Content Creation</h3>
+                </div>
+                <div class="card-description">
+                  Create aligned content<br>with integrity
+                </div>
+              </div>
+            </div>
+          </CardSpotlight>
+
+          <!-- Right Capsule Card / 右侧胶囊形卡片 -->
+          <CardSpotlight
+            class="long-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+            @click="expandCard('principles')"
+          >
+            <div class="preview-content">
+              <div v-html="marked(keyPrinciplesPreview)" class="preview-text"></div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
+            </div>
+          </CardSpotlight>
+        </div>
+
+        <!-- Quiz Card / 测验卡片 -->
+        <div class="quiz-row">
+          <QuizCard />
+        </div>
+      </div>
+    </section>
+
+    <!-- Expanded card container / 展开的卡片容器 -->
+    <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
+      <div class="expanded-card">
+        <div class="card-content">
+          <h3>{{ getExpandedCardTitle }}</h3>
+          <div class="full-content">
+            <div
+              v-html="marked(getExpandedCardContent)"
+              class="markdown-content"
+            ></div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
-
-<script setup>
-// 📦 Import the chart component you made
-import CommentDashboard from '@/components/CommentDashboard.vue';
-</script>
-
-<style scoped>
-.ethic-influencer-view {
-  padding: 2rem;
-}
-
-.comment-dashboard {
-  margin-bottom: 2rem;
-}
-</style>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
@@ -350,11 +360,9 @@ onMounted(() => {
   .title-group h1 {
     font-size: 3rem;
   }
-
   .title-group h2 {
     font-size: 1.875rem;
   }
-
   .subtitle {
     font-size: 1.125rem;
   }
@@ -364,11 +372,9 @@ onMounted(() => {
   .title-group h1 {
     font-size: 3.75rem;
   }
-
   .title-group h2 {
     font-size: 2.25rem;
   }
-
   .subtitle {
     font-size: 1.25rem;
   }
@@ -378,11 +384,9 @@ onMounted(() => {
   .title-group h1 {
     font-size: 4.5rem;
   }
-
   .title-group h2 {
     font-size: 3rem;
   }
-
   .subtitle {
     font-size: 1.5rem;
   }
@@ -392,11 +396,9 @@ onMounted(() => {
   .title-group h1 {
     font-size: 6rem;
   }
-
   .title-group h2 {
     font-size: 3.75rem;
   }
-
   .subtitle {
     font-size: 1.875rem;
   }
@@ -767,10 +769,11 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background: linear-gradient(to top,
-      rgba(209, 231, 125, 0.4) 0%,
-      rgba(218, 237, 148, 0.25) 20%,
-      rgba(225, 241, 158, 0.15) 40%,
-      rgba(228, 245, 138, 0) 60%);
+    rgba(209, 231, 125, 0.4) 0%,
+    rgba(218, 237, 148, 0.25) 20%,
+    rgba(225, 241, 158, 0.15) 40%,
+    rgba(228, 245, 138, 0) 60%
+  );
   z-index: -1;
   pointer-events: none;
 }
@@ -784,10 +787,11 @@ onMounted(() => {
   width: 100%;
   height: 55%;
   background: linear-gradient(to top,
-      rgba(209, 231, 125, 0.35) 0%,
-      rgba(218, 237, 148, 0.2) 15%,
-      rgba(225, 241, 158, 0.1) 50%,
-      rgba(228, 245, 138, 0) 100%);
+    rgba(209, 231, 125, 0.35) 0%,
+    rgba(218, 237, 148, 0.2) 15%,
+    rgba(225, 241, 158, 0.1) 50%,
+    rgba(228, 245, 138, 0) 100%
+  );
   z-index: 0;
   pointer-events: none;
 }
@@ -826,8 +830,7 @@ onMounted(() => {
   margin-bottom: 4rem;
 }
 
-.main-card,
-.long-card {
+.main-card, .long-card {
   @apply h-full p-6;
   min-height: 200px;
   display: flex;
@@ -920,13 +923,15 @@ onMounted(() => {
   padding: 1.5rem 12rem 1.5rem 4rem;
   max-height: 100%;
   mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 88%,
-      transparent 100%);
+    black 0%,
+    black 88%,
+    transparent 100%
+  );
   -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 88%,
-      transparent 100%);
+    black 0%,
+    black 88%,
+    transparent 100%
+  );
 }
 
 .preview-text :deep(h1) {
@@ -1088,7 +1093,7 @@ onMounted(() => {
   height: 80vh;
   max-width: 1200px;
   background: white;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   border-radius: 20px;
   overflow: hidden;
 }
@@ -1136,8 +1141,7 @@ onMounted(() => {
     font-size: 1.1rem;
   }
 
-  ul,
-  ol {
+  ul, ol {
     margin: 1.2rem 0 1.2rem 2rem;
   }
 
@@ -1392,13 +1396,15 @@ onMounted(() => {
   .preview-text {
     padding: 0.8rem 4.5rem 0.8rem 1.5rem;
     -webkit-mask-image: linear-gradient(to bottom,
-        black 0%,
-        black 85%,
-        transparent 100%);
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
     mask-image: linear-gradient(to bottom,
-        black 0%,
-        black 85%,
-        transparent 100%);
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
   }
 
   .content-row:nth-child(2) .long-card .preview-content {

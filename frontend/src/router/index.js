@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import EthicInfluencerView from '../views/EthicInfluencerView.vue'
 import CriticalResponseView from '../views/CriticalResponseView.vue'
 import RelaxationView from '../views/RelaxationView.vue'
+import CommentResponseScripts from '../views/CommentResponseScripts.vue'
 import PasswordPage from '../components/PasswordPage.vue'
 
 const router = createRouter({
@@ -33,6 +34,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/comment-response-scripts',
+      name: 'comment-response-scripts',
+      component: CommentResponseScripts,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/password',
       name: 'password',
       component: PasswordPage  // Password page route
@@ -46,7 +53,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const isAuthenticated = sessionStorage.getItem('authenticated');
-  console.log(isAuthenticated);  
+  console.log(isAuthenticated);
 
   // If route requires authentication, and user is not authenticated, redirect to the password page
   if (to.meta.requiresAuth && !isAuthenticated) {
