@@ -80,9 +80,15 @@
             <p>Learn how to foster a supportive and uplifting community around you.</p>
           </div>
         </div>
-        <button class="explore-button">EXPLORE MORE OF US</button>
       </div>
     </section>
+
+    <!-- Button Section -->
+    <div class="button-section">
+      <router-link to="/ethic-influencer" class="explore-link" @click="scrollToTop">
+        <button class="explore-button">EXPLORE MORE OF US</button>
+      </router-link>
+    </div>
 
     <!-- 3. Journey Section / 旅程部分 -->
     <section class="journey-section">
@@ -213,6 +219,13 @@
 
 <script setup>
 import { FlipCard } from '@/components/ui/flip-card'
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'instant'
+  })
+}
 </script>
 
 <style scoped>
@@ -638,24 +651,8 @@ import { FlipCard } from '@/components/ui/flip-card'
   margin: 0 auto;
 }
 
-.explore-button {
-  display: block;
-  margin: 4rem auto 2rem;
-  padding: 1rem 3rem;
-  background: #FF69B4;
-  color: white;
-  border: none;
-  border-radius: 100px;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.explore-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+.button-container {
+  display: none;
 }
 
 /* 移除不需要的视频容器相关样式 / Remove unnecessary video container styles */
@@ -678,6 +675,7 @@ import { FlipCard } from '@/components/ui/flip-card'
     rgba(227, 245, 137, 0) 100%
   );
   width: 100%;
+  margin-top: 0;
 }
 
 .journey-content {
@@ -1153,6 +1151,41 @@ p {
   .wave-bottom {
     display: none;
   }
+}
+
+.button-section {
+  width: 100%;
+  text-align: center;
+  background-color: rgb(255, 252, 244);
+  padding: 0 2rem 4rem;
+  margin-top: -2rem;
+  position: relative;
+  z-index: 5;
+}
+
+.explore-link {
+  text-decoration: none;
+  display: inline-block;
+  background: none;
+}
+
+.explore-button {
+  display: block;
+  margin: 0 auto;
+  padding: 1rem 3rem;
+  background: #FF69B4;
+  color: white;
+  border: none;
+  border-radius: 100px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.explore-button:hover {
+  transform: translateY(-2px);
 }
 </style>
 
