@@ -68,7 +68,7 @@
       <div class="content-grid">
         <!-- First Row / 第一行  -->
         <div class="content-row">
-          <CardSpotlight 
+          <CardSpotlight
             class="main-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -87,7 +87,7 @@
             </div>
           </CardSpotlight>
 
-          <CardSpotlight 
+          <CardSpotlight
             class="long-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -103,7 +103,7 @@
 
         <!-- Second Row / 第二行 -->
         <div class="content-row">
-          <CardSpotlight 
+          <CardSpotlight
             class="long-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -116,7 +116,7 @@
             </div>
           </CardSpotlight>
 
-          <CardSpotlight 
+          <CardSpotlight
             class="main-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -139,7 +139,7 @@
         <!-- Third Row / 第三行 -->
         <div class="content-row">
           <!-- 左侧圆形卡片 -->
-          <CardSpotlight 
+          <CardSpotlight
             class="main-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -159,7 +159,7 @@
           </CardSpotlight>
 
           <!-- Right Capsule Card / 右侧胶囊形卡片 -->
-          <CardSpotlight 
+          <CardSpotlight
             class="long-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -186,8 +186,8 @@
         <div class="card-content">
           <h3>{{ getExpandedCardTitle }}</h3>
           <div class="full-content">
-            <div 
-              v-html="marked(getExpandedCardContent)" 
+            <div
+              v-html="marked(getExpandedCardContent)"
               class="markdown-content"
             ></div>
           </div>
@@ -517,11 +517,11 @@ onMounted(() => {
     opacity: 0.9;
     transform: translateX(-1.5rem);
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 140px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 140px);
   }
@@ -534,11 +534,11 @@ onMounted(() => {
     opacity: 0.8;
     transform: translateX(-1rem);
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 120px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 120px);
   }
@@ -552,19 +552,19 @@ onMounted(() => {
     transform: translateX(-0.5rem);
     row-gap: 0.75rem;
   }
-  
+
   .top-row-2 {
     grid-template-columns: repeat(2, 100px);
   }
-  
+
   .bottom-row-1 {
     grid-template-columns: repeat(1, 100px);
   }
-  
+
   .read-more-button {
     margin-right: 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2.5rem;
   }
@@ -574,45 +574,45 @@ onMounted(() => {
   .content-row {
     margin-bottom: 2.5rem;
   }
-  
+
   .content-section {
     margin-top: 3rem;
   }
-  
+
   .slogan {
     margin-left: 1.5rem;
   }
-  
+
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
   }
-  
+
   .top-row-2 {
     transform: translateY(-1rem);
   }
-  
+
   .title-group h1 {
     @apply text-5xl;
   }
-  
+
   .title-group h2 {
     @apply text-4xl;
   }
-  
+
   .subtitle {
     @apply text-xl;
   }
-  
+
   .read-more-button {
     margin-right: 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 12rem;
   }
@@ -622,70 +622,70 @@ onMounted(() => {
   .content-row {
     margin-bottom: 2rem;
   }
-  
+
   .hero-section {
     min-height: 55vh;
   }
-  
+
   .hero-content {
     min-height: 55vh;
   }
-  
+
   .content-section {
     margin-top: 2rem;
   }
-  
+
   .slogan {
     margin-left: 1rem;
   }
-  
+
   .decorative-elements {
     opacity: 0;
     transform: translateX(0) scale(0.8);
     transition: opacity 0.3s ease;
   }
-  
+
   .top-row-2 {
     transform: translateY(0);
   }
-  
+
   .title-group h1 {
     @apply text-4xl;
   }
-  
+
   .title-group h2 {
     @apply text-3xl;
   }
-  
+
   .subtitle {
     @apply text-lg;
   }
-  
+
   .read-more-button {
     margin-right: 1.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2rem;
   }
-  
+
   .preview-text {
     padding: 1.5rem 3rem 1.5rem 2.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 9rem;
   }
-  
+
   .long-card {
     height: 280px;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.5rem;
     margin-bottom: 0.8rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 1rem;
     margin-bottom: 0.6rem;
@@ -697,55 +697,55 @@ onMounted(() => {
   .content-row {
     margin-bottom: 1.5rem;
   }
-  
+
   .title-group h1 {
     @apply text-3xl;
   }
-  
+
   .title-group h2 {
     @apply text-2xl;
   }
-  
+
   .subtitle {
     @apply text-base;
   }
-  
+
   .read-more-button {
     margin-right: 1rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1.5rem;
   }
-  
+
   .preview-text {
     padding: 1.5rem 3rem 1.5rem 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 3rem 1.5rem 7rem;
   }
-  
+
   .long-card {
     height: 260px;
   }
-  
+
   .card-description {
     @apply text-sm;
     line-height: 1.4;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.3rem;
     margin-bottom: 0.6rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
     line-height: 1.3;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
@@ -922,12 +922,12 @@ onMounted(() => {
   position: relative;
   padding: 1.5rem 12rem 1.5rem 4rem;
   max-height: 100%;
-  mask-image: linear-gradient(to bottom, 
+  mask-image: linear-gradient(to bottom,
     black 0%,
     black 88%,
     transparent 100%
   );
-  -webkit-mask-image: linear-gradient(to bottom, 
+  -webkit-mask-image: linear-gradient(to bottom,
     black 0%,
     black 88%,
     transparent 100%
@@ -1188,12 +1188,12 @@ onMounted(() => {
   .preview-text :deep(h1) {
     @apply text-2xl;
   }
-  
+
   .preview-text :deep(p),
   .preview-text :deep(ul) {
     @apply text-base;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 1rem;
   }
@@ -1206,29 +1206,29 @@ onMounted(() => {
     height: 280px;
     padding: 1.8rem;
   }
-  
+
   .long-card {
     height: 280px;
   }
-  
+
   .card-icon {
     width: 70px;
     height: 70px;
   }
-  
+
   .card-text h3 {
     font-size: 1.15rem;
   }
-  
+
   .card-description {
     font-size: 0.95rem;
     line-height: 1.4;
   }
-  
+
   .preview-text {
     padding: 1.5rem 10rem 1.5rem 3.5rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 2rem 1.5rem 12rem;
   }
@@ -1240,44 +1240,44 @@ onMounted(() => {
     height: 250px;
     padding: 1.5rem;
   }
-  
+
   .long-card {
     height: 250px;
   }
-  
+
   .card-icon {
     width: 60px;
     height: 60px;
   }
-  
+
   .card-text h3 {
     font-size: 1.1rem;
   }
-  
+
   .card-description {
     font-size: 0.9rem;
     line-height: 1.3;
   }
-  
+
   .preview-text {
     padding: 1.5rem 8rem 1.5rem 3rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1.5rem 2rem 1.5rem 10rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.4rem;
     margin-bottom: 0.8rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.95rem;
     margin-bottom: 0.7rem;
     line-height: 1.4;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.95rem;
     margin-bottom: 0.6rem;
@@ -1290,71 +1290,71 @@ onMounted(() => {
     grid-template-columns: 1fr !important;
     gap: 2rem;
   }
-  
+
   .content-row:nth-child(2) {
     grid-template-columns: 1fr !important;
   }
-  
+
   .main-card {
     width: 220px;
     height: 220px;
     padding: 1.2rem;
     margin: 0 auto;
   }
-  
+
   .long-card {
     height: 180px;
     width: 100%;
     border-radius: 24px;
   }
-  
+
   .card-icon {
     width: 50px;
     height: 50px;
     margin-bottom: 0.8rem;
   }
-  
+
   .card-title {
     gap: 0.8rem;
   }
-  
+
   .card-text h3 {
     font-size: 1rem;
   }
-  
+
   .card-description {
     font-size: 0.85rem;
     line-height: 1.2;
   }
-  
+
   .preview-text {
     padding: 1rem 6rem 1rem 2rem;
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 1rem 2rem 1rem 6rem;
   }
-  
+
   .read-more-button {
     margin-right: 1.5rem;
     transform: scale(0.9) translateY(-50%);
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1.5rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1.2rem;
     margin-bottom: 0.6rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
     line-height: 1.3;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
@@ -1368,77 +1368,77 @@ onMounted(() => {
     height: 180px;
     padding: 1rem;
   }
-  
+
   .long-card {
     height: 150px;
     border-radius: 16px;
   }
-  
+
   .card-icon {
     width: 40px;
     height: 40px;
     margin-bottom: 0.6rem;
   }
-  
+
   .card-title {
     gap: 0.6rem;
   }
-  
+
   .card-text h3 {
     font-size: 0.9rem;
   }
-  
+
   .card-description {
     font-size: 0.8rem;
     line-height: 1.1;
   }
-  
+
   .preview-text {
     padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom, 
+    -webkit-mask-image: linear-gradient(to bottom,
       black 0%,
       black 85%,
       transparent 100%
     );
-    mask-image: linear-gradient(to bottom, 
+    mask-image: linear-gradient(to bottom,
       black 0%,
       black 85%,
       transparent 100%
     );
   }
-  
+
   .content-row:nth-child(2) .long-card .preview-content {
     padding: 0.8rem 1.5rem 0.8rem 4.5rem;
   }
-  
+
   .read-more-button {
     margin-right: 1rem;
     transform: scale(0.8) translateY(-50%);
   }
-  
+
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 1rem;
   }
-  
+
   .preview-text :deep(h1) {
     font-size: 1rem;
     margin-bottom: 0.4rem;
   }
-  
+
   .preview-text :deep(p) {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
   }
-  
+
   .preview-text :deep(li) {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
   }
-  
+
   .content-row {
     margin-bottom: 1.5rem;
   }
 }
-</style> 
+</style>
