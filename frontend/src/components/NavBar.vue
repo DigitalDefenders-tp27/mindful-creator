@@ -7,26 +7,27 @@
           <span class="logo-text">INFLOWENCE</span>
         </router-link>
       </div>
-      
+
       <!-- 导航链接 / Navigation Links -->
       <div class="navbar-center" :class="{ 'active': isMenuOpen }">
         <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
         <router-link to="/ethic-influencer" class="nav-link" @click="closeMenu">ETHIC INFLUENCER</router-link>
         <router-link to="/critical-response" class="nav-link" @click="closeMenu">CRITICAL RESPONSE</router-link>
         <router-link to="/relaxation" class="nav-link" @click="closeMenu">RELAXATION</router-link>
+        <router-link to="/comment-response-scripts" class="nav-link" @click="closeMenu">COMMENT RESPONSE</router-link>
       </div>
-      
+
       <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
       <div class="hamburger" @click="toggleMenu" :class="{ 'active': isMenuOpen }">
         <span class="bar"></span>
         <span class="bar"></span>
         <span class="bar"></span>
       </div>
-      
+
       <!-- 为了保持平衡的空占位区域 / Empty space to maintain layout balance -->
       <div class="navbar-right"></div>
     </div>
-    
+
     <!-- 遮罩层 - 点击关闭菜单 / Overlay - Click to close menu -->
     <div class="overlay" v-if="isMenuOpen" @click="closeMenu"></div>
   </nav>
@@ -166,7 +167,7 @@ const closeMenu = () => {
     grid-template-columns: 1fr 1fr; /* 两列布局：左边(logo)和右边(汉堡菜单) / Two-column layout: left (logo) and right (hamburger menu) */
     padding: 0 1rem;
   }
-  
+
   .navbar-center {
     position: fixed;
     left: -100%;
@@ -184,41 +185,41 @@ const closeMenu = () => {
     justify-content: flex-start;
     backdrop-filter: blur(10px);
   }
-  
+
   .navbar-center.active {
     left: 0;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   }
-  
+
   .navbar-right {
     display: none; /* 在小屏幕上隐藏右侧空占位区域 / Hide right placeholder area on small screens */
   }
-  
+
   .hamburger {
     display: block; /* 显示汉堡菜单 / Display hamburger menu */
     /* 其他属性已在基本设置中定义，不需要重复 / Other properties already defined in base settings, no need to repeat */
   }
-  
+
   /* 防止菜单开启时页面滚动 / Prevent page scrolling when menu is open */
   body:has(.navbar-center.active) {
     overflow: hidden;
   }
-  
+
   /* 汉堡菜单动画 / Hamburger Menu Animation */
   .hamburger.active .bar:nth-child(2) {
     opacity: 0;
   }
-  
+
   .hamburger.active .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
     background-color: #6c63ff;
   }
-  
+
   .hamburger.active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
     background-color: #6c63ff;
   }
-  
+
   /* 菜单打开时改变链接样式 / Change link styles when menu is open */
   .navbar-center.active .nav-link {
     opacity: 0;
@@ -226,16 +227,16 @@ const closeMenu = () => {
     animation-delay: calc(0.1s * var(--i, 1));
     position: relative; /* 确保定位上下文 / Ensure positioning context */
   }
-  
+
   .navbar-center .nav-link {
     font-size: 1.2rem;
     transition: transform 0.2s ease, color 0.2s ease;
   }
-  
+
   .navbar-center .nav-link:active {
     transform: scale(0.95);
   }
-  
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -253,48 +254,48 @@ const closeMenu = () => {
   .navbar {
     height: 60px; /* 在小屏幕上减小高度 / Reduce height on small screens */
   }
-  
+
   .navbar-container {
     padding: 0 0.5rem;
   }
-  
+
   .navbar-left {
     padding-left: 0.5rem;
     max-width: 75%; /* 限制Logo区域最大宽度，防止与汉堡菜单重叠 / Limit logo area max width to prevent overlap with hamburger menu */
   }
-  
+
   .logo {
     gap: 6px; /* 减小Logo与文字间距 / Reduce spacing between logo and text */
   }
-  
+
   .logo-text {
     font-size: 1rem; /* 更小的屏幕上减小字体大小 / Reduce font size on smaller screens */
     max-width: calc(100% - 40px); /* 确保文本不会太长而溢出容器 / Ensure text doesn't overflow container */
     text-overflow: ellipsis;
     overflow: hidden;
   }
-  
+
   .logo-img {
     height: 28px; /* 更小的屏幕上减小logo尺寸 / Reduce logo size on smaller screens */
     min-width: 28px; /* 确保logo不会因为flex缩放而过小 / Ensure logo doesn't become too small due to flex scaling */
   }
-  
+
   .navbar-center {
     padding-top: 80px; /* 为小屏幕调整顶部填充 / Adjust top padding for small screens */
   }
-  
+
   .hamburger {
     right: 0.75rem; /* 减小右侧距离，防止与Logo重叠 / Reduce right distance to prevent overlap with logo */
     width: 30px; /* 缩小汉堡菜单尺寸 / Reduce hamburger menu size */
     height: 25px;
   }
-  
+
   .bar {
     width: 22px; /* 缩小汉堡菜单线条宽度 / Reduce hamburger menu bar width */
     height: 2px; /* 缩小汉堡菜单线条高度 / Reduce hamburger menu bar height */
     margin: 4px auto; /* 减小间距 / Reduce spacing */
   }
-  
+
   .nav-link {
     font-size: 1.1rem;
     padding: 1rem 0;
@@ -302,7 +303,7 @@ const closeMenu = () => {
     margin: 0 auto;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   }
-  
+
   .nav-link:last-child {
     border-bottom: none;
   }
@@ -313,16 +314,16 @@ const closeMenu = () => {
   .navbar-left {
     max-width: 70%; /* 进一步限制Logo区域宽度 / Further limit logo area width */
   }
-  
+
   .logo-text {
     font-size: 0.9rem; /* 更小的字体 / Smaller font */
   }
-  
+
   .logo-img {
     height: 24px; /* 更小的logo / Smaller logo */
     min-width: 24px;
   }
-  
+
   .hamburger {
     right: 0.5rem; /* 进一步减小右侧距离 / Further reduce right distance */
   }
@@ -387,4 +388,4 @@ const closeMenu = () => {
     opacity: 1;
   }
 }
-</style> 
+</style>
