@@ -10,12 +10,24 @@
 
       <!-- 导航链接 / Navigation Links -->
       <div class="navbar-center" :class="{ 'active': isMenuOpen }">
-        <router-link to="/" class="nav-link" exact-active-class="active" @click="closeMenu">HOME</router-link>
-        <router-link to="/ethic-influencer" class="nav-link" active-class="active" @click="closeMenu">ETHIC INFLUENCER</router-link>
-        <router-link to="/critical-response" class="nav-link" active-class="active" @click="closeMenu">CRITICAL RESPONSE</router-link>
-        <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu">RELAXATION</router-link>
-        <router-link to="/comment-response-scripts" class="nav-link" active-class="active" @click="closeMenu">COMMENT RESPONSE</router-link>
-        <router-link to="/creator-wellbeing" class="nav-link" active-class="active" @click="closeMenu">CREATOR WELLBEING</router-link>
+        <router-link to="/" class="nav-link" exact-active-class="active" @click="closeMenu"><span>HOME</span></router-link>
+        <router-link to="/ethic-influencer" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>ETHIC</span>
+          <span>INFLUENCER</span>
+        </router-link>
+        <router-link to="/critical-response" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>CRITICAL</span>
+          <span>RESPONSE</span>
+        </router-link>
+        <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu"><span>RELAXATION</span></router-link>
+        <router-link to="/comment-response-scripts" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>COMMENT</span>
+          <span>RESPONSE</span>
+        </router-link>
+        <router-link to="/creator-wellbeing" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>CREATOR</span>
+          <span>WELLBEING</span>
+        </router-link>
       </div>
 
       <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
@@ -134,6 +146,31 @@ const closeMenu = () => {
   white-space: nowrap;
 }
 
+/* 单个单词导航链接的样式 */
+.nav-link span {
+  display: block;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* 两个单词的导航链接样式 / Two-word Navigation Link Styles */
+.nav-link.two-words {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  gap: 2px;
+  text-align: center;
+  width: max-content;
+}
+
+.nav-link.two-words span {
+  display: block;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
 .nav-link:hover {
   color: #e75a97;
 }
@@ -232,6 +269,23 @@ const closeMenu = () => {
   .navbar-center .nav-link {
     font-size: 1.2rem;
     transition: transform 0.2s ease, color 0.2s ease;
+  }
+  
+  /* 移动端导航链接样式 */
+  .navbar-center.active .nav-link span {
+    font-size: 1.2rem;
+  }
+  
+  /* 移动端两个单词的导航链接样式 / Mobile Two-word Navigation Link Styles */
+  .navbar-center.active .nav-link.two-words {
+    flex-direction: row;
+    gap: 8px;
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+  
+  .navbar-center.active .nav-link.two-words span {
+    font-size: 1.2rem;
   }
 
   .navbar-center .nav-link:active {
@@ -352,6 +406,11 @@ const closeMenu = () => {
   background-color: #e75a97;
   transform: scaleX(1);
   transition: transform 0.2s;
+}
+
+/* 两个单词的活动链接下划线 / Two-word Active Link Underline */
+.nav-link.two-words.active::after {
+  bottom: -8px;
 }
 
 /* 非活动链接下划线 / Inactive Link Underline */
