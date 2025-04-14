@@ -72,7 +72,7 @@ except Exception as e:
     exit()
 
 # --- Chart Generation Functions ---
-
+'''
 def generate_sentiment_pie_chart(sentiment_probs, sentiment_map):
     """Generates and displays a pie chart for sentiment probabilities."""
     labels = [sentiment_map.get(i, f"Unknown_{i}") for i in range(len(sentiment_probs))]
@@ -102,6 +102,7 @@ def generate_toxicity_bar_chart(toxicity_probs, toxicity_cols):
 
     plt.tight_layout() # Adjust layout
     plt.show()
+'''
 
 # --- Prediction Function ---
 def predict_text(text):
@@ -171,6 +172,7 @@ def predict_text(text):
     }
 
 # --- Main Loop for Interactive Input ---
+'''
 if __name__ == "__main__":
     print("\n--- Interactive Prediction ---")
     print("Enter text below to get predictions. Type 'quit' to exit.")
@@ -212,4 +214,4 @@ if __name__ == "__main__":
             print(f"An unexpected error occurred: {e}")
             # Optionally add more robust error handling or logging
 
-    print("\nExiting prediction script.")
+    print("\nExiting prediction script.") '''
