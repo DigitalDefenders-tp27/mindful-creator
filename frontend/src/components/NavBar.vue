@@ -10,11 +10,12 @@
 
       <!-- 导航链接 / Navigation Links -->
       <div class="navbar-center" :class="{ 'active': isMenuOpen }">
-        <router-link to="/" class="nav-link" @click="closeMenu">HOME</router-link>
-        <router-link to="/ethic-influencer" class="nav-link" @click="closeMenu">ETHIC INFLUENCER</router-link>
-        <router-link to="/critical-response" class="nav-link" @click="closeMenu">CRITICAL RESPONSE</router-link>
-        <router-link to="/relaxation" class="nav-link" @click="closeMenu">RELAXATION</router-link>
-        <router-link to="/comment-response-scripts" class="nav-link" @click="closeMenu">COMMENT RESPONSE</router-link>
+        <router-link to="/" class="nav-link" exact-active-class="active" @click="closeMenu">HOME</router-link>
+        <router-link to="/ethic-influencer" class="nav-link" active-class="active" @click="closeMenu">ETHIC INFLUENCER</router-link>
+        <router-link to="/critical-response" class="nav-link" active-class="active" @click="closeMenu">CRITICAL RESPONSE</router-link>
+        <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu">RELAXATION</router-link>
+        <router-link to="/comment-response-scripts" class="nav-link" active-class="active" @click="closeMenu">COMMENT RESPONSE</router-link>
+        <router-link to="/creator-wellbeing" class="nav-link" active-class="active" @click="closeMenu">CREATOR WELLBEING</router-link>
       </div>
 
       <!-- 汉堡菜单按钮 / Hamburger Menu Button -->
@@ -134,7 +135,7 @@ const closeMenu = () => {
 }
 
 .nav-link:hover {
-  color: #6c63ff;
+  color: #e75a97;
 }
 
 /* 汉堡菜单按钮样式 / Hamburger Menu Button Styles */
@@ -212,12 +213,12 @@ const closeMenu = () => {
 
   .hamburger.active .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
-    background-color: #6c63ff;
+    background-color: #e75a97;
   }
 
   .hamburger.active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
-    background-color: #6c63ff;
+    background-color: #e75a97;
   }
 
   /* 菜单打开时改变链接样式 / Change link styles when menu is open */
@@ -246,6 +247,11 @@ const closeMenu = () => {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* 确保最后一个导航项没有底部边框 */
+  .nav-link:last-child {
+    border-bottom: none !important;
   }
 }
 
@@ -331,7 +337,7 @@ const closeMenu = () => {
 
 /* 活动链接样式 / Active Link Styles */
 .nav-link.active {
-  color: #6c63ff;
+  color: #e75a97;
   font-weight: 600;
 }
 
@@ -343,7 +349,7 @@ const closeMenu = () => {
   left: 0;
   right: 0;
   height: 3px;
-  background-color: #6c63ff;
+  background-color: #e75a97;
   transform: scaleX(1);
   transition: transform 0.2s;
 }
@@ -356,7 +362,7 @@ const closeMenu = () => {
   left: 0;
   right: 0;
   height: 3px;
-  background-color: #6c63ff;
+  background-color: #e75a97;
   transform: scaleX(0);
   transition: transform 0.2s;
 }

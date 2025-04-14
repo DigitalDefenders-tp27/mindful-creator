@@ -5,6 +5,7 @@ import CriticalResponseView from '../views/CriticalResponseView.vue'
 import RelaxationView from '../views/RelaxationView.vue'
 import CommentResponseScripts from '../views/CommentResponseScripts.vue'
 import PasswordPage from '../components/PasswordPage.vue'
+import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +38,12 @@ const router = createRouter({
       path: '/comment-response-scripts',
       name: 'comment-response-scripts',
       component: CommentResponseScripts,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/creator-wellbeing',
+      name: 'creator-wellbeing',
+      component: CreatorWellbeingView,
       meta: { requiresAuth: true }
     },
     {

@@ -1,0 +1,61 @@
+<svg width="300" height="180" xmlns="http://www.w3.org/2000/svg">
+  <!-- 天空 -->
+  <rect width="300" height="60" fill="#87ceeb" />
+  
+  <!-- 远山 -->
+  <path d="M0,60 L50,30 L100,50 L150,20 L200,40 L250,25 L300,50 L300,60 Z" fill="#9b7653" />
+  <path d="M0,60 L30,40 L60,55 L90,35 L120,50 L180,30 L240,50 L300,35 L300,60 Z" fill="#7d6645" />
+  
+  <!-- 森林背景 -->
+  <rect x="0" y="60" width="300" height="120" fill="#2e8b57" />
+  
+  <!-- 小路 -->
+  <path d="M100,180 C150,150 200,160 220,120 C240,80 260,70 300,60 L300,180 L100,180 Z" fill="#d2b48c" />
+  
+  <!-- 树木 -->
+  <!-- 树1 -->
+  <rect x="50" y="90" width="6" height="25" fill="#8b4513" />
+  <path d="M53,60 L40,90 L66,90 Z" fill="#228b22" />
+  <path d="M53,75 L38,100 L68,100 Z" fill="#228b22" />
+  
+  <!-- 树2 -->
+  <rect x="90" y="85" width="5" height="30" fill="#8b4513" />
+  <circle cx="92.5" cy="70" r="15" fill="#228b22" />
+  
+  <!-- 树3 -->
+  <rect x="30" y="100" width="7" height="20" fill="#8b4513" />
+  <circle cx="33.5" cy="90" r="12" fill="#228b22" />
+  
+  <!-- 树4 -->
+  <rect x="150" y="80" width="6" height="35" fill="#8b4513" />
+  <path d="M153,55 L138,85 L168,85 Z" fill="#228b22" />
+  <path d="M153,70 L140,95 L166,95 Z" fill="#228b22" />
+  
+  <!-- 人物 -->
+  <!-- 人物1 -->
+  <circle cx="220" cy="130" r="5" fill="#ffdab9" /> <!-- 头部 -->
+  <rect x="218" y="135" width="4" height="12" fill="#ff6347" /> <!-- 身体 -->
+  <path d="M218,135 L213,145" stroke="#ff6347" stroke-width="2" /> <!-- 左臂 -->
+  <path d="M222,135 L227,147" stroke="#ff6347" stroke-width="2" /> <!-- 右臂 -->
+  <path d="M218,147 L215,160" stroke="#1e90ff" stroke-width="2" /> <!-- 左腿 -->
+  <path d="M222,147 L225,160" stroke="#1e90ff" stroke-width="2" /> <!-- 右腿 -->
+  <line x1="225" y1="125" x2="228" y2="118" stroke="#8b4513" stroke-width="2" /> <!-- 登山杖 -->
+  
+  <!-- 人物2 -->
+  <circle cx="240" cy="120" r="5" fill="#ffdab9" /> <!-- 头部 -->
+  <rect x="238" y="125" width="4" height="12" fill="#32cd32" /> <!-- 身体 -->
+  <path d="M238,125 L233,135" stroke="#32cd32" stroke-width="2" /> <!-- 左臂 -->
+  <path d="M242,125 L247,137" stroke="#32cd32" stroke-width="2" /> <!-- 右臂 -->
+  <path d="M238,137 L235,150" stroke="#1e90ff" stroke-width="2" /> <!-- 左腿 -->
+  <path d="M242,137 L245,150" stroke="#1e90ff" stroke-width="2" /> <!-- 右腿 -->
+  <line x1="233" y1="135" x2="230" y2="128" stroke="#8b4513" stroke-width="2" /> <!-- 登山杖 -->
+  
+  <!-- 鸟 -->
+  <path d="M40,40 C43,37 46,37 48,40 C50,37 53,37 56,40 L48,45 Z" fill="#000" />
+  <path d="M160,30 C163,27 166,27 168,30 C170,27 173,27 176,30 L168,35 Z" fill="#000" />
+  <path d="M260,45 C263,42 266,42 268,45 C270,42 273,42 276,45 L268,50 Z" fill="#000" />
+  
+  <!-- 文字 -->
+  <rect x="0" y="160" width="300" height="20" fill="rgba(0,0,0,0.5)" />
+  <text x="150" y="175" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">Bushwalking in national parks</text>
+</svg> 

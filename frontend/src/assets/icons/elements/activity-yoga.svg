@@ -1,0 +1,45 @@
+<svg width="300" height="180" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 海滩场景 -->
+  <rect width="300" height="180" fill="#fde2a7" />
+  
+  <!-- 海水 -->
+  <rect x="0" y="120" width="300" height="60" fill="#8bbae5" />
+  <path d="M0,120 Q75,100 150,120 Q225,140 300,120 L300,180 L0,180 Z" fill="#8bbae5" />
+  
+  <!-- 沙滩 -->
+  <path d="M0,120 Q75,140 150,120 Q225,100 300,120 L300,130 Q225,110 150,130 Q75,150 0,130 Z" fill="#f9cb9c" />
+  
+  <!-- 太阳 -->
+  <circle cx="250" cy="40" r="20" fill="#ffcc29" />
+  <line x1="250" y1="10" x2="250" y2="0" stroke="#ffcc29" stroke-width="3" />
+  <line x1="250" y1="70" x2="250" y2="80" stroke="#ffcc29" stroke-width="3" />
+  <line x1="220" y1="40" x2="210" y2="40" stroke="#ffcc29" stroke-width="3" />
+  <line x1="280" y1="40" x2="290" y2="40" stroke="#ffcc29" stroke-width="3" />
+  <line x1="229" y1="19" x2="222" y2="12" stroke="#ffcc29" stroke-width="3" />
+  <line x1="271" y1="61" x2="278" y2="68" stroke="#ffcc29" stroke-width="3" />
+  <line x1="229" y1="61" x2="222" y2="68" stroke="#ffcc29" stroke-width="3" />
+  <line x1="271" y1="19" x2="278" y2="12" stroke="#ffcc29" stroke-width="3" />
+  
+  <!-- 瑜伽人物 -->
+  <!-- 人物1 -->
+  <circle cx="70" cy="100" r="8" fill="#f06292" /> <!-- 头部 -->
+  <path d="M70,110 C65,125 60,130 60,140" stroke="#f06292" stroke-width="3" fill="none" /> <!-- 左臂 -->
+  <path d="M70,110 L70,130 L80,145" stroke="#f06292" stroke-width="3" fill="none" /> <!-- 躯干和右腿 -->
+  <path d="M70,130 L60,145" stroke="#f06292" stroke-width="3" fill="none" /> <!-- 左腿 -->
+  
+  <!-- 人物2 -->
+  <circle cx="120" cy="100" r="8" fill="#7986cb" /> <!-- 头部 -->
+  <path d="M120,110 C130,115 135,120 140,130" stroke="#7986cb" stroke-width="3" fill="none" /> <!-- 右臂 -->
+  <path d="M120,110 C110,115 105,120 100,130" stroke="#7986cb" stroke-width="3" fill="none" /> <!-- 左臂 -->
+  <path d="M120,110 L120,135" stroke="#7986cb" stroke-width="3" fill="none" /> <!-- 躯干 -->
+  <path d="M120,135 L130,150" stroke="#7986cb" stroke-width="3" fill="none" /> <!-- 右腿 -->
+  <path d="M120,135 L110,150" stroke="#7986cb" stroke-width="3" fill="none" /> <!-- 左腿 -->
+  
+  <!-- 人物3 -->
+  <circle cx="170" cy="100" r="8" fill="#4db6ac" /> <!-- 头部 -->
+  <path d="M170,110 L170,125" stroke="#4db6ac" stroke-width="3" fill="none" /> <!-- 躯干 -->
+  <path d="M170,115 L185,105" stroke="#4db6ac" stroke-width="3" fill="none" /> <!-- 右臂 -->
+  <path d="M170,115 L155,105" stroke="#4db6ac" stroke-width="3" fill="none" /> <!-- 左臂 -->
+  <path d="M170,125 L180,145" stroke="#4db6ac" stroke-width="3" fill="none" /> <!-- 右腿 -->
+  <path d="M170,125 L160,145" stroke="#4db6ac" stroke-width="3" fill="none" /> <!-- 左腿 -->
+</svg> 
