@@ -3,8 +3,10 @@
     <div class="navbar-container">
       <div class="navbar-left">
         <router-link to="/" class="logo">
-          <img src="../assets/icons/elements/logo.svg" alt="Inflowence Logo" class="logo-img">
-          <span class="logo-text">INFLOWENCE</span>
+          <div class="logo-img-container">
+            <img src="/src/assets/icons/elements/logo.svg" alt="Inflowence Logo" class="logo-img">
+          </div>
+          <span class="logo-text liquid-text">INFLOWENCE</span>
         </router-link>
       </div>
 
@@ -48,6 +50,8 @@
 
 <script setup>
 import { ref } from 'vue'
+// 注释掉LiquidLogo组件，直到问题解决
+// import LiquidLogo from './Activities/LiquidLogo/LiquidLogo.vue'
 
 // 菜单状态控制 / Menu State Control
 const isMenuOpen = ref(false)
@@ -70,8 +74,8 @@ const closeMenu = () => {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
-  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1000; /* 增加z-index确保导航栏在最上层 */
+  background-color: rgba(255, 255, 255, 0.95); /* 增加不透明度 */
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   height: 80px; /* 增加导航栏高度 / Increase navbar height */
@@ -123,15 +127,59 @@ const closeMenu = () => {
   text-decoration: none;
 }
 
+.logo-img-container {
+  height: 45px;
+  width: 45px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .logo-img {
-  height: 45px; /* 进一步增大 logo 尺寸 / Further increase logo size */
-  width: auto;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
 }
 
 .logo-text {
   font-size: 1.5rem; /* 放大logo文字 / Enlarge logo text */
   font-weight: bold;
   letter-spacing: 1px;
+}
+
+/* 液体文字效果 */
+.liquid-text {
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 3s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+}
+
+.liquid-text:hover {
+  filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 1.5s linear infinite; /* 悬停时加速动画 */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* 导航链接样式 / Navigation Link Styles */
@@ -335,8 +383,9 @@ const closeMenu = () => {
     overflow: hidden;
   }
 
-  .logo-img {
+  .logo-img-container {
     height: 28px; /* 更小的屏幕上减小logo尺寸 / Reduce logo size on smaller screens */
+    width: 28px;
     min-width: 28px; /* 确保logo不会因为flex缩放而过小 / Ensure logo doesn't become too small due to flex scaling */
   }
 
@@ -367,6 +416,11 @@ const closeMenu = () => {
   .nav-link:last-child {
     border-bottom: none;
   }
+
+  .logo-text.liquid-text {
+    font-size: 1rem;
+    background-size: 150% auto; /* 缩小背景尺寸以适应较小文字 */
+  }
 }
 
 /* 超小屏幕调整（如iPhone SE等） / Extra small screen adjustments (e.g. iPhone SE) */
@@ -379,13 +433,19 @@ const closeMenu = () => {
     font-size: 0.9rem; /* 更小的字体 / Smaller font */
   }
 
-  .logo-img {
+  .logo-img-container {
     height: 24px; /* 更小的logo / Smaller logo */
+    width: 24px;
     min-width: 24px;
   }
 
   .hamburger {
     right: 0.5rem; /* 进一步减小右侧距离 / Further reduce right distance */
+  }
+
+  .logo-text.liquid-text {
+    font-size: 0.9rem;
+    background-size: 120% auto; /* 进一步缩小背景尺寸 */
   }
 }
 
