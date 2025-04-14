@@ -1,0 +1,41 @@
+<svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="100%" height="100%" fill="#f9f9f9" />
+  
+  <!-- 月份横轴 -->
+  <line x1="50" y1="200" x2="450" y2="200" stroke="#ccc" stroke-width="1" />
+  <text x="60" y="220" font-family="Arial" font-size="10" fill="#666">Jan</text>
+  <text x="90" y="220" font-family="Arial" font-size="10" fill="#666">Feb</text>
+  <text x="120" y="220" font-family="Arial" font-size="10" fill="#666">Mar</text>
+  <text x="150" y="220" font-family="Arial" font-size="10" fill="#666">Apr</text>
+  <text x="180" y="220" font-family="Arial" font-size="10" fill="#666">May</text>
+  <text x="210" y="220" font-family="Arial" font-size="10" fill="#666">Jun</text>
+  <text x="240" y="220" font-family="Arial" font-size="10" fill="#666">Jul</text>
+  <text x="270" y="220" font-family="Arial" font-size="10" fill="#666">Aug</text>
+  <text x="300" y="220" font-family="Arial" font-size="10" fill="#666">Sep</text>
+  <text x="330" y="220" font-family="Arial" font-size="10" fill="#666">Oct</text>
+  <text x="360" y="220" font-family="Arial" font-size="10" fill="#666">Nov</text>
+  <text x="390" y="220" font-family="Arial" font-size="10" fill="#666">Dec</text>
+  
+  <!-- 工作时间面积图 -->
+  <path d="M50,200 L50,150 L90,130 L120,150 L150,100 L180,120 L210,80 L240,110 L270,100 L300,120 L330,90 L360,130 L390,140 L420,120 L450,140 L450,200 Z" fill="#ffccd5" opacity="0.7" />
+  <path d="M50,200 L50,180 L90,170 L120,190 L150,160 L180,170 L210,140 L240,160 L270,150 L300,170 L330,150 L360,175 L390,180 L420,165 L450,175 L450,200 Z" fill="#ff758f" opacity="0.7" />
+  
+  <!-- 折线图和数据点 -->
+  <polyline points="50,150 90,130 120,150 150,100 180,120 210,80 240,110 270,100 300,120 330,90 360,130 390,140 420,120 450,140" fill="none" stroke="#e75a97" stroke-width="2" />
+  
+  <circle cx="50" cy="150" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="90" cy="130" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="120" cy="150" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="150" cy="100" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="180" cy="120" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="210" cy="80" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="240" cy="110" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="270" cy="100" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="300" cy="120" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="330" cy="90" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="360" cy="130" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="390" cy="140" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="420" cy="120" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+  <circle cx="450" cy="140" r="4" fill="#fff" stroke="#e75a97" stroke-width="2" />
+</svg> 
