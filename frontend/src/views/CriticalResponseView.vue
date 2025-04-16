@@ -94,6 +94,51 @@
           SEEK HELP
         </RippleButton>
       </div>
+
+      <!-- Check Your Comment Section -->
+      <div class="comment-section-checker">
+        <h2 class="section-title">🔍 Check Your Comment Section</h2>
+        
+        <p class="section-description">
+          Not sure if your comment section is a space for healthy
+          discussion or if there's negativity creeping in?
+        </p>
+        
+        <div class="cards-container">
+          <div class="process-card">
+            <div class="card-number">1</div>
+            <div class="card-content">
+              <img src="/src/assets/icons/elements/post.png" alt="Smartphone icon" class="card-icon">
+              <p class="card-text">Open your social media platform and find your post.</p>
+            </div>
+          </div>
+          
+          <div class="process-card">
+            <div class="card-number">2</div>
+            <div class="card-content">
+              <img src="/src/assets/icons/elements/copy.png" alt="Copy icon" class="card-icon">
+              <p class="card-text">Copy the comment you want to analyze.</p>
+            </div>
+          </div>
+          
+          <div class="process-card">
+            <div class="card-number">3</div>
+            <div class="card-content">
+              <img src="/src/assets/icons/elements/paste.png" alt="Link icon" class="card-icon">
+              <p class="card-text">Paste it into the box below.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Response Scripts Section -->
+      <div class="comments-scripts-section">
+        <h2 class="comments-scripts-title">Comments Response Scripts</h2>
+        <div class="search-container">
+          <input type="text" class="search-input" placeholder="Search comment scripts...">
+          <button class="search-close-btn">×</button>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -804,5 +849,163 @@
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
     background-color: #FF5252;
+  }
+
+  .comment-section-checker {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    padding: 3rem 2rem;
+    background: #fffdf4;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #000;
+  }
+
+  .section-description {
+    font-size: 1.5rem;
+    color: #333;
+    line-height: 1.4;
+    max-width: 800px;
+    margin: 0 auto 2rem auto;
+  }
+
+  .cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+  }
+
+  .process-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 2px solid #000;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #fffdf4;
+  }
+
+  .card-number {
+    font-size: 5rem;
+    font-weight: 700;
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    color: #333;
+    line-height: 1;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding-top: 40px;
+  }
+
+  .card-icon {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 2.5rem;
+  }
+
+  .card-text {
+    font-size: 1.25rem;
+    color: #333;
+    line-height: 1.4;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Card hover effects */
+  .process-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .process-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+  
+  .process-card:hover .card-icon {
+    transform: scale(1.1);
+  }
+  
+  .card-icon {
+    transition: transform 0.3s ease;
+  }
+
+  /* Comments Response Scripts Section styles */
+  .comments-scripts-section {
+    margin: 3rem auto 4rem;
+    max-width: 1200px;
+    padding: 0 2rem;
+  }
+  
+  .comments-scripts-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #000;
+    text-align: center;
+  }
+  
+  .search-container {
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+    border: 2px solid #000;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 1.1rem;
+    border: none;
+    outline: none;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") 12px center no-repeat;
+  }
+  
+  .search-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    padding: 0 1rem;
+    cursor: pointer;
+    color: #000;
+  }
+
+  @media (max-width: 1024px) {
+    .cards-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .process-card {
+      width: 90%;
+      max-width: 320px;
+      height: auto;
+      min-height: 280px;
+    }
   }
   </style>
