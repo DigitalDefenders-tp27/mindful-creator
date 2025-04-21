@@ -378,9 +378,7 @@ const closeMenu = () => {
 
   .logo-text {
     font-size: 1rem; /* 更小的屏幕上减小字体大小 / Reduce font size on smaller screens */
-    max-width: calc(100% - 40px); /* 确保文本不会太长而溢出容器 / Ensure text doesn't overflow container */
-    text-overflow: ellipsis;
-    overflow: hidden;
+    white-space: nowrap; /* 确保文本不换行 / Ensure text doesn't wrap */
   }
 
   .logo-img-container {
