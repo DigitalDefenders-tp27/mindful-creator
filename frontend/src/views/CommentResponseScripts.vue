@@ -73,7 +73,7 @@ const sendMessage = async () => {
   if (userMessage.value.trim()) {
     chatHistory.value.push({ role: 'user', text: userMessage.value })
     try {
-      const res = await axios.post('http://localhost:5000/api/chatbot', {
+      const res = await axios.post('http://localhost:8000/api/chatbot', {
         message: userMessage.value,
       })
       chatHistory.value.push({ role: 'bot', text: res.data.reply })
@@ -104,7 +104,7 @@ const gaugeData = [
       },
     ],
     q: 'This is such a biased take. You only presented one perspective and completely ignored the other side of the argument. Disappointing content.',
-    a: 'Tks🙏 Fair point on balance – def working with time limits but that’s on me. Planning a follow-up with more perspectives soon! Any recs for sources? Always looking to improve! 💯',
+    a: 'Tks🙏 Fair point on balance – def working with time limits but that\'s on me. Planning a follow-up with more perspectives soon! Any recs for sources? Always looking to improve! 💯',
   },
   {
     label: 'Emotional Comments',
@@ -125,7 +125,7 @@ const gaugeData = [
       },
     ],
     q: "Why do you always talk like you know everything? This is so annoying!",
-    a: "Appreciate you chiming in! Definitely not my intention to come off that way – I’ll keep it more conversational next time 🙏",
+    a: "Appreciate you chiming in! Definitely not my intention to come off that way – I'll keep it more conversational next time 🙏",
   },
   {
     label: 'Misunderstanding Comments',
@@ -146,7 +146,7 @@ const gaugeData = [
       },
     ],
     q: "Wait, are you saying everyone should quit their job and do this instead?",
-    a: "Not quite! I meant this approach works *for some* – not one-size-fits-all. Thanks for pointing that out, I’ll make it clearer!",
+    a: "Not quite! I meant this approach works *for some* – not one-size-fits-all. Thanks for pointing that out, I'll make it clearer!",
   },
   {
     label: 'Attacking Comments',
@@ -155,7 +155,7 @@ const gaugeData = [
     strategy: [
       {
         title: 'Avoid engaging emotionally',
-        text: 'Don’t match their tone or insults',
+        text: 'Don\'t match their tone or insults',
       },
       {
         title: 'Set boundaries',
@@ -167,7 +167,7 @@ const gaugeData = [
       },
     ],
     q: "You're such a clown. This is garbage advice!",
-    a: "Let’s keep it constructive here. Open to hearing thoughtful counterpoints if you have suggestions!",
+    a: "Let's keep it constructive here. Open to hearing thoughtful counterpoints if you have suggestions!",
   },
   {
     label: 'Constructive Comments',
@@ -188,7 +188,7 @@ const gaugeData = [
       },
     ],
     q: "I think this could be stronger if you added more sources.",
-    a: "Love that suggestion! I’m adding more citations in the next update – stay tuned and feel free to share any links!",
+    a: "Love that suggestion! I'm adding more citations in the next update – stay tuned and feel free to share any links!",
   },
 ]
 

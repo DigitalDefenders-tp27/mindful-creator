@@ -81,7 +81,7 @@
                   <h3>Understanding Your Impact</h3>
                 </div>
                 <div class="card-description">
-                  Shape audience perceptions<br>through mindful content
+                  Shape audience perceptions<br>with mindful content
                 </div>
               </div>
             </div>
@@ -104,19 +104,6 @@
         <!-- Second Row / 第二行 -->
         <div class="content-row">
           <CardSpotlight
-            class="long-card"
-            :gradientSize="250"
-            gradientColor="#f0f0f0"
-            :gradientOpacity="0.5"
-            @click="expandCard('practices')"
-          >
-            <div class="preview-content">
-              <InteractiveHoverButton text="Read More" class="read-more-button" />
-              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
-            </div>
-          </CardSpotlight>
-
-          <CardSpotlight
             class="main-card"
             :gradientSize="250"
             gradientColor="#f0f0f0"
@@ -129,9 +116,22 @@
                   <h3>Building Authentic Relationships</h3>
                 </div>
                 <div class="card-description">
-                  Develop genuine connections<br>through transparency
+                  Develop genuine connections<br>with transparency
                 </div>
               </div>
+            </div>
+          </CardSpotlight>
+
+          <CardSpotlight
+            class="long-card"
+            :gradientSize="250"
+            gradientColor="#f0f0f0"
+            :gradientOpacity="0.5"
+            @click="expandCard('practices')"
+          >
+            <div class="preview-content">
+              <div v-html="marked(bestPracticesPreview)" class="preview-text"></div>
+              <InteractiveHoverButton text="Read More" class="read-more-button" />
             </div>
           </CardSpotlight>
         </div>
@@ -568,6 +568,18 @@ onMounted(() => {
   .content-row:nth-child(2) .long-card .read-more-button {
     left: 2.5rem;
   }
+
+  .content-row:nth-child(2) .long-card .preview-content {
+    padding: 0;
+  }
+
+  .preview-text {
+    padding: 1.5rem 10rem 1.5rem 3.5rem;
+  }
+
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 1.5rem 10rem 1.5rem 3.5rem;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -610,145 +622,204 @@ onMounted(() => {
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 2.5rem;
+    left: auto;
+    right: 0;
+    margin-right: 2rem;
   }
 
   .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1.5rem 3rem 1.5rem 12rem;
+    padding: 0;
+  }
+
+  .preview-text {
+    padding: 1.5rem 8rem 1.5rem 3rem;
+  }
+
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 1.5rem 8rem 1.5rem 3rem;
   }
 }
 
 @media (max-width: 768px) {
   .content-row {
-    margin-bottom: 2rem;
+    grid-template-columns: 1fr !important;
+    gap: 2rem;
   }
 
-  .hero-section {
-    min-height: 55vh;
+  .content-row:nth-child(2) {
+    grid-template-columns: 1fr !important;
   }
 
-  .hero-content {
-    min-height: 55vh;
+  .main-card {
+    width: 220px;
+    height: 220px;
+    padding: 1.2rem 1rem;
+    margin: 0 auto;
   }
 
-  .content-section {
-    margin-top: 2rem;
+  .card-content-wrapper {
+    gap: 0.8rem;
   }
 
-  .slogan {
-    margin-left: 1rem;
+  .long-card {
+    height: 180px;
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
   }
 
-  .decorative-elements {
-    opacity: 0;
-    transform: translateX(0) scale(0.8);
-    transition: opacity 0.3s ease;
+  .card-icon {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.5rem;
   }
 
-  .top-row-2 {
-    transform: translateY(0);
+  .card-title {
+    gap: 0.6rem;
   }
 
-  .title-group h1 {
-    @apply text-4xl;
+  .card-text h3 {
+    font-size: 1rem;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
   }
 
-  .title-group h2 {
-    @apply text-3xl;
+  .card-description {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    margin-top: 0.3rem;
   }
 
-  .subtitle {
-    @apply text-lg;
+  .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
+  }
+
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
   }
 
   .read-more-button {
     margin-right: 1.5rem;
+    transform: scale(0.9) translateY(-50%);
+    position: absolute;
+    top: 50%;
+    z-index: 5;
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 2rem;
-  }
-
-  .preview-text {
-    padding: 1.5rem 3rem 1.5rem 2.5rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1.5rem 3rem 1.5rem 9rem;
-  }
-
-  .long-card {
-    height: 280px;
+    left: auto;
+    right: 0;
+    margin-right: 1.5rem;
   }
 
   .preview-text :deep(h1) {
-    font-size: 1.5rem;
-    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(p) {
-    font-size: 1rem;
-    margin-bottom: 0.6rem;
-    line-height: 1.4;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    -webkit-line-clamp: 2;
+  }
+
+  .preview-text :deep(li) {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
   }
 }
 
 @media (max-width: 640px) {
-  .content-row {
-    margin-bottom: 1.5rem;
+  .main-card {
+    width: 180px;
+    height: 180px;
+    padding: 0.8rem 0.5rem;
   }
 
-  .title-group h1 {
-    @apply text-3xl;
+  .card-content-wrapper {
+    gap: 0.5rem;
   }
 
-  .title-group h2 {
-    @apply text-2xl;
+  .long-card {
+    height: 150px;
+    border-radius: 9999px;
   }
 
-  .subtitle {
-    @apply text-base;
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-title {
+    gap: 0.4rem;
+  }
+
+  .card-text h3 {
+    font-size: 0.9rem;
+    line-height: 1.1;
+    margin-bottom: 0.1rem;
+  }
+
+  .card-description {
+    font-size: 0.8rem;
+    line-height: 1.1;
+    margin-top: 0.2rem;
+  }
+
+  .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+  }
+
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
   }
 
   .read-more-button {
     margin-right: 1rem;
+    transform: scale(0.8) translateY(-50%);
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 1.5rem;
-  }
-
-  .preview-text {
-    padding: 1.5rem 3rem 1.5rem 2rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1.5rem 3rem 1.5rem 7rem;
-  }
-
-  .long-card {
-    height: 260px;
-  }
-
-  .card-description {
-    @apply text-sm;
-    line-height: 1.4;
+    left: auto;
+    right: 0;
+    margin-right: 1rem;
   }
 
   .preview-text :deep(h1) {
-    font-size: 1.3rem;
-    margin-bottom: 0.6rem;
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(p) {
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(li) {
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+
+  .content-row {
+    margin-bottom: 1.5rem;
   }
 }
 
@@ -817,11 +888,6 @@ onMounted(() => {
   grid-template-columns: minmax(auto, 300px) 1fr;
 }
 
-/* Special layout for the second row */
-.content-row:nth-child(2) {
-  grid-template-columns: 1fr minmax(auto, 300px);
-}
-
 .quiz-row {
   @apply mt-8;
   display: flex;
@@ -848,6 +914,7 @@ onMounted(() => {
   align-items: center;
   text-align: center;
   padding: 2rem;
+  overflow: hidden;
 }
 
 .long-card {
@@ -859,7 +926,7 @@ onMounted(() => {
   padding: 1.5rem 2.5rem;
   transition: all 0.3s ease;
   position: relative;
-  overflow: visible !important;
+  overflow: hidden !important;
   display: flex;
 }
 
@@ -882,7 +949,7 @@ onMounted(() => {
 /* Special styles for the second row left card */
 .content-row:nth-child(2) .long-card .preview-content {
   position: relative;
-  padding: 1.5rem 2rem 1.5rem 14rem;
+  padding: 0;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(*) {
@@ -922,6 +989,7 @@ onMounted(() => {
   position: relative;
   padding: 1.5rem 12rem 1.5rem 4rem;
   max-height: 100%;
+  text-overflow: ellipsis;
   mask-image: linear-gradient(to bottom,
     black 0%,
     black 88%,
@@ -934,16 +1002,31 @@ onMounted(() => {
   );
 }
 
+/* 确保第二行长卡片的文本内边距与其他行一致 */
+.content-row:nth-child(2) .long-card .preview-text {
+  padding: 1.5rem 12rem 1.5rem 4rem;
+}
+
 .preview-text :deep(h1) {
   @apply text-2xl sm:text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white;
   margin-bottom: 1.2rem;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .preview-text :deep(p) {
   @apply text-base sm:text-base md:text-lg text-neutral-700 dark:text-neutral-300;
   line-height: 1.5;
   margin-bottom: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .preview-text :deep(ul) {
@@ -951,6 +1034,7 @@ onMounted(() => {
   list-style-type: none;
   padding-left: 0;
   margin-top: 0.7rem;
+  overflow: hidden;
 }
 
 .preview-text :deep(li) {
@@ -961,6 +1045,9 @@ onMounted(() => {
   font-weight: bold;
   color: #232323;
   font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-text :deep(li)::before {
@@ -993,9 +1080,9 @@ onMounted(() => {
 
 /* 第二行按钮特殊位置 / Special button position for the second row */
 .content-row:nth-child(2) .long-card .read-more-button {
-  right: auto;
-  left: 3rem;
-  margin-right: 0;
+  right: 0;
+  left: auto;
+  margin-right: 3rem;
 }
 
 /* Ensure the button has enough space to display when hovered */
@@ -1020,6 +1107,7 @@ onMounted(() => {
   height: 100%;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 .card-text {
@@ -1055,6 +1143,7 @@ onMounted(() => {
   height: 100%;
   margin: 0;
   text-align: center;
+  line-height: 1.3;
 }
 
 .card-description {
@@ -1159,28 +1248,28 @@ onMounted(() => {
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(h1) {
-  text-align: right;
+  text-align: left;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(p) {
-  text-align: right;
+  text-align: left;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(ul) {
-  text-align: right;
-  padding-right: 1rem;
+  text-align: left;
+  padding-right: 0;
   padding-left: 0;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(li) {
-  padding-right: 1rem;
+  padding-right: 0;
   padding-left: 0;
-  text-align: right;
+  text-align: left;
 }
 
 .content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
-  right: -0.5rem;
-  left: auto;
+  right: auto;
+  left: -0.5rem;
 }
 
 /* 响应式调整文字大小 / Responsive text size adjustments */
@@ -1209,6 +1298,7 @@ onMounted(() => {
 
   .long-card {
     height: 280px;
+    border-radius: 9999px;
   }
 
   .card-icon {
@@ -1230,7 +1320,7 @@ onMounted(() => {
   }
 
   .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1.5rem 2rem 1.5rem 12rem;
+    padding: 0;
   }
 }
 
@@ -1243,6 +1333,7 @@ onMounted(() => {
 
   .long-card {
     height: 250px;
+    border-radius: 9999px;
   }
 
   .card-icon {
@@ -1264,7 +1355,13 @@ onMounted(() => {
   }
 
   .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1.5rem 2rem 1.5rem 10rem;
+    padding: 0;
+  }
+
+  .content-row:nth-child(2) .long-card .read-more-button {
+    left: auto;
+    right: 0;
+    margin-right: 2rem;
   }
 
   .preview-text :deep(h1) {
@@ -1298,61 +1395,76 @@ onMounted(() => {
   .main-card {
     width: 220px;
     height: 220px;
-    padding: 1.2rem;
+    padding: 1.2rem 1rem;
     margin: 0 auto;
+  }
+
+  .card-content-wrapper {
+    gap: 0.8rem;
   }
 
   .long-card {
     height: 180px;
     width: 100%;
-    border-radius: 24px;
+    border-radius: 9999px;
+    overflow: hidden;
   }
 
   .card-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 0.8rem;
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.5rem;
   }
 
   .card-title {
-    gap: 0.8rem;
+    gap: 0.6rem;
   }
 
   .card-text h3 {
     font-size: 1rem;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
   }
 
   .card-description {
     font-size: 0.85rem;
     line-height: 1.2;
+    margin-top: 0.3rem;
   }
 
   .preview-text {
     padding: 1rem 6rem 1rem 2rem;
   }
 
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 1rem 2rem 1rem 6rem;
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
   }
 
   .read-more-button {
     margin-right: 1.5rem;
     transform: scale(0.9) translateY(-50%);
+    position: absolute;
+    top: 50%;
+    z-index: 5;
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 1.5rem;
+    left: auto;
+    right: 0;
+    margin-right: 1.5rem;
   }
 
   .preview-text :deep(h1) {
     font-size: 1.2rem;
     margin-bottom: 0.6rem;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(p) {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
     line-height: 1.3;
+    -webkit-line-clamp: 2;
   }
 
   .preview-text :deep(li) {
@@ -1366,31 +1478,38 @@ onMounted(() => {
   .main-card {
     width: 180px;
     height: 180px;
-    padding: 1rem;
+    padding: 0.8rem 0.5rem;
+  }
+
+  .card-content-wrapper {
+    gap: 0.5rem;
   }
 
   .long-card {
     height: 150px;
-    border-radius: 16px;
+    border-radius: 9999px;
   }
 
   .card-icon {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 0.6rem;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.4rem;
   }
 
   .card-title {
-    gap: 0.6rem;
+    gap: 0.4rem;
   }
 
   .card-text h3 {
     font-size: 0.9rem;
+    line-height: 1.1;
+    margin-bottom: 0.1rem;
   }
 
   .card-description {
     font-size: 0.8rem;
     line-height: 1.1;
+    margin-top: 0.2rem;
   }
 
   .preview-text {
@@ -1407,8 +1526,8 @@ onMounted(() => {
     );
   }
 
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 0.8rem 1.5rem 0.8rem 4.5rem;
+  .content-row:nth-child(2) .long-card .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
   }
 
   .read-more-button {
@@ -1417,18 +1536,22 @@ onMounted(() => {
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 1rem;
+    left: auto;
+    right: 0;
+    margin-right: 1rem;
   }
 
   .preview-text :deep(h1) {
     font-size: 1rem;
     margin-bottom: 0.4rem;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(p) {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
+    -webkit-line-clamp: 1;
   }
 
   .preview-text :deep(li) {
