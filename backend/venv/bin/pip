@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/tiezhumacbook/Desktop/24 S2/FIT 5120/MindfulCreator/backend/venv/bin/python3.12" "$0" "$@"
-' '''
+#!/Users/tiezhumacbook/Desktop/mindful-creator/backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys
