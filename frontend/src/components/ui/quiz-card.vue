@@ -35,19 +35,31 @@
         <div v-if="!quizCompleted" class="question-container">
           <h3>{{ currentQuestion.question }}</h3>
           <div class="options">
-            <button 
+            <div 
               v-for="(option, key) in currentQuestion.options" 
               :key="key"
-              :class="['option-button', { 
-                'selected': selectedAnswer === key,
-                'correct': showAnswer && key === currentQuestion.correctAnswer,
-                'incorrect': showAnswer && selectedAnswer === key && key !== currentQuestion.correctAnswer
-              }]"
-              @click="selectAnswer(key)"
-              :disabled="showAnswer"
+              class="option-wrapper"
             >
-              {{ key }}. {{ option }}
-            </button>
+              <button 
+                :class="['option-button', { 
+                  'selected': selectedAnswer === key,
+                  'correct': showAnswer && key === currentQuestion.correctAnswer,
+                  'incorrect': showAnswer && selectedAnswer === key && key !== currentQuestion.correctAnswer
+                }]"
+                @click="selectAnswer(key)"
+                :disabled="showAnswer"
+              >
+                {{ key }}. {{ option }}
+              </button>
+              <div 
+                v-if="showAnswer && (key === currentQuestion.correctAnswer || selectedAnswer === key)" 
+                class="option-explanation"
+              >
+                <div class="explanation-content">
+                  {{ getExplanationForOption(currentQuestionIndex, key) }}
+                </div>
+              </div>
+            </div>
           </div>
           <div class="quiz-controls">
             <button 
@@ -100,7 +112,13 @@ const questions = ref([
       C: "Responsible and ethical participation online",
       D: "Achieving a high follower count"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Digital citizenship is more than just frequent use of social media platforms; it involves responsible behavior online.",
+      B: "Creating viral content is just one aspect of online activity, not the definition of digital citizenship.",
+      C: "Digital citizenship is about being responsible, ethical, and respectful when participating in online communities.",
+      D: "While followers are important for influencers, digital citizenship focuses on responsible online behavior rather than popularity metrics."
+    }
   },
   {
     question: "How does constructive engagement benefit your audience?",
@@ -110,7 +128,13 @@ const questions = ref([
       C: "Increases follower count",
       D: "Limits audience interaction"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Constructive engagement actually combats misinformation by encouraging thoughtful dialogue.",
+      B: "When you engage constructively, you create space for meaningful conversations that lead to greater understanding among your audience.",
+      C: "While engagement may increase followers, the primary benefit is building quality relationships through meaningful interactions.",
+      D: "Constructive engagement expands rather than limits audience interaction by encouraging participation."
+    }
   },
   {
     question: "Transparency with your audience primarily builds:",
@@ -120,7 +144,13 @@ const questions = ref([
       C: "Higher revenue",
       D: "Increased followers instantly"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Transparency may contribute to popularity, but its primary purpose is building authentic relationships.",
+      B: "Being transparent about your values, processes, and partnerships creates trust with your audience, establishing long-term credibility.",
+      C: "While trust can lead to better business outcomes, revenue isn't the primary benefit of transparency.",
+      D: "Transparency builds followers gradually through authentic connection rather than providing instant growth."
+    }
   },
   {
     question: "What best illustrates genuine audience engagement?",
@@ -130,7 +160,13 @@ const questions = ref([
       C: "Regularly responding sincerely to comments and questions",
       D: "Avoiding personal stories and experiences"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Genuine engagement means addressing all feedback, including criticism, to build stronger relationships.",
+      B: "Promotional content alone doesn't foster meaningful connections; authentic engagement requires diverse content.",
+      C: "Taking time to personally respond to your audience shows that you value their input and are committed to building authentic relationships.",
+      D: "Personal stories actually strengthen engagement by making authentic connections with your audience."
+    }
   },
   {
     question: "Ethical content creation involves:",
@@ -140,7 +176,13 @@ const questions = ref([
       C: "Avoiding audience opinions completely",
       D: "Changing values frequently to match trends"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Chasing views without consideration for ethics can lead to harmful content and damage trust.",
+      B: "Ethical creators maintain consistent values and produce content that reflects their authentic beliefs and intentions.",
+      C: "Ethical creation should consider audience feedback while maintaining core values.",
+      D: "Constantly shifting values for trends appears inauthentic and undermines credibility."
+    }
   },
   {
     question: "Accountability in content creation means:",
@@ -150,7 +192,13 @@ const questions = ref([
       C: "Acknowledging and correcting errors openly",
       D: "Posting controversial content without moderation"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Ignoring mistakes damages trust and prevents learning opportunities.",
+      B: "Shifting blame demonstrates a lack of responsibility and damages credibility.",
+      C: "Accountability means taking responsibility for errors, addressing them openly, and making visible corrections.",
+      D: "Unmoderated controversial content shows a lack of responsibility toward your audience."
+    }
   }
 ])
 
@@ -205,6 +253,11 @@ const nextQuestion = () => {
 
 const restartQuiz = () => {
   resetQuiz()
+}
+
+const getExplanationForOption = (questionIndex, optionKey) => {
+  const question = questions.value[questionIndex]
+  return question.explanations[optionKey] || ''
 }
 </script>
 
@@ -425,6 +478,10 @@ const restartQuiz = () => {
   @apply space-y-3;
 }
 
+.option-wrapper {
+  @apply w-full mb-4;
+}
+
 .option-button {
   @apply w-full p-4 text-left rounded-lg border border-neutral-200 dark:border-neutral-700;
   @apply bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white;
@@ -441,6 +498,17 @@ const restartQuiz = () => {
 
 .option-button.incorrect {
   @apply border-red-500 bg-red-50 dark:bg-red-900/20;
+}
+
+.option-explanation {
+  @apply mt-2 px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-900/50;
+  @apply border-l-4 border-neutral-400 dark:border-neutral-600;
+  @apply text-sm text-neutral-700 dark:text-neutral-300;
+}
+
+.explanation-content {
+  @apply text-sm text-neutral-700 dark:text-neutral-300;
+  line-height: 1.5;
 }
 
 .quiz-controls {
