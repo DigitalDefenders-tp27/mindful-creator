@@ -1,10 +1,22 @@
 <template>
   <div class="creator-wellbeing">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="slogan">
+          <div class="title-group">
+            <h1>Creator Wellbeing</h1>
+            <h2>Digital Impact Analysis Dashboard</h2>
+          </div>
+          <p class="subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
+        </div>
+      </div>
+    </section>
+    
     <!-- 数字影响分析仪表板 / Digital Impact Analysis Dashboard -->
     <section class="dashboard-section">
       <div class="container">
-        <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
-        <p class="section-subtitle">Explore how your usage patterns affect wellbeing<br>based on real data</p>
+        <h1 class="section-title">Average working time</h1>
         
         <div class="tabs">
           <div class="tab active">Average working time</div>
@@ -15,7 +27,7 @@
         
         <div class="dashboard-content">
           <div class="chart-container">
-            <h3 class="chart-title">AVERAGE WORKING TIME FOR<br>CONTENT CREATOR</h3>
+            <h3 class="chart-title">AVERAGE WORKING TIME FOR CONTENT CREATOR</h3>
             <div class="chart">
               <img src="../assets/icons/elements/chart-placeholder.svg" alt="Chart" class="chart-img">
             </div>
@@ -41,7 +53,7 @@
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
-        <p class="section-subtitle">Find and navigate yourself to get wellbeing<br>resources easily near you.</p>
+        <p class="section-subtitle">Find and navigate yourself to get wellbeing resources easily near you.</p>
         
         <div class="resource-finder-content">
           <div class="resource-tabs">
@@ -119,7 +131,7 @@
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
-        <p class="section-subtitle">Release your stress by joining fun activities and<br>making like-minded friends.</p>
+        <p class="section-subtitle">Release your stress by joining fun activities and making like-minded friends.</p>
         
         <div class="activities-header">
           <h3 class="recent-title">RECENT CAMPAIGNS...</h3>
@@ -363,7 +375,366 @@ const closeModal = () => {
     radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
   min-height: 100vh;
-  padding-top: 80px;
+  padding-top: 0;
+}
+
+/* Hero Section Styles */
+.hero-section {
+  min-height: 40vh;
+  background-color: rgb(255, 252, 244);
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  padding: 6rem 0 1rem;
+  margin-bottom: 2rem;
+}
+
+.hero-content {
+  position: relative;
+  width: 100%;
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.slogan {
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+  margin-left: 2rem;
+  text-align: left;
+}
+
+.title-group {
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.title-group h1 {
+  font-size: 5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6B64F3 0%, #8BDFE7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.4;
+  display: block;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  text-align: left;
+  overflow: visible;
+  padding-right: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.title-group h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+  text-align: left;
+  overflow: visible;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  white-space: nowrap;
+  text-align: left;
+  overflow: visible;
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto;
+  row-gap: 1rem;
+  padding: 2rem 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translateX(0);
+  justify-content: end;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: transform 0.5s ease;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: all 0.5s ease;
+}
+
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* 添加响应式媒体查询 */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+  
+  .title-group h2,
+  .subtitle {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+  
+  .title-group h1 {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+  
+  .hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+    min-height: 22vh;
+  }
+  
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+  
+  .slogan {
+    max-width: 90%;
+  }
+  
+  .title-group h1 {
+    font-size: 3.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+  
+  .hero-content {
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+  
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .title-group h1 {
+    font-size: 2.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+  
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
+}
+
+/* 响应式布局支持 */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 95%;
+  }
+  
+  .dashboard-content,
+  .resource-content {
+    flex-direction: column;
+  }
+  
+  .chart-container, 
+  .insights-container,
+  .map-container, 
+  .resource-details {
+    width: 100%;
+    margin-bottom: 2rem;
+  }
+  
+  .activities-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
+  }
+  
+  .tabs, 
+  .resource-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab,
+  .resource-tab {
+    margin: 0.25rem;
+  }
+  
+  .activities-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .activities-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .recent-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .chart-title,
+  .insights-title,
+  .resource-name {
+    font-size: 1.25rem;
+  }
+  
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .event-card {
+    flex-direction: column;
+  }
+  
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+.dashboard-section {
+  padding: 5rem 0;
+  position: relative;
+  margin-bottom: 7rem;
 }
 
 .container {
@@ -408,26 +779,7 @@ section:last-child {
 }
 
 section:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  bottom: -150px;
-  left: 0;
-  right: 0;
-  height: 300px;
-  background: linear-gradient(to bottom, 
-    rgba(230, 239, 182, 0) 0%, 
-    rgba(230, 239, 182, 0.08) 10%,
-    rgba(230, 239, 182, 0.15) 20%,
-    rgba(230, 239, 182, 0.25) 30%,
-    rgba(230, 239, 182, 0.4) 40%,
-    rgba(230, 239, 182, 0.5) 50%, 
-    rgba(230, 239, 182, 0.4) 60%,
-    rgba(230, 239, 182, 0.25) 70%,
-    rgba(230, 239, 182, 0.15) 80%,
-    rgba(230, 239, 182, 0.08) 90%,
-    rgba(230, 239, 182, 0) 100%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 /* 仪表板部分 / Dashboard section */
@@ -1053,4 +1405,4 @@ section:not(:last-child)::after {
     flex-direction: column;
   }
 }
-</style> 
+</style>
