@@ -196,7 +196,7 @@
     </section>
 
     <!-- 4. Testimonials Section / 推荐部分 -->
-    <section class="testimonials-section">
+    <!-- <section class="testimonials-section">
       <div class="section-background">
         <img src="../assets/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
       </div>
@@ -213,7 +213,7 @@
           <button class="next">→</button>
         </div>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>
 
@@ -670,9 +670,10 @@ const scrollToTop = () => {
   position: relative;
   padding: 0 0 8rem;
   background: linear-gradient(to top,
-    rgb(227, 245, 137) 0%,
-    rgb(227, 245, 137) 50%,
-    rgba(227, 245, 137, 0) 100%
+    rgba(209, 231, 125, 0.4) 0%,
+    rgba(218, 237, 148, 0.25) 20%,
+    rgba(225, 241, 158, 0.15) 40%,
+    rgba(228, 245, 138, 0) 60%
   );
   width: 100%;
   margin-top: 0;

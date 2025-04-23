@@ -164,7 +164,7 @@ const activities = [
     title: 'Sensory Grounding',
     description: 'Try a 5-4-3-2-1 activity to bring yourself into the present.',
     type: 'grounding',
-    image: 'SensoryGrounding.jpg'
+    image: 'SensoryGrounding.png'
   },
   {
     title: 'Nature Sounds',
@@ -188,7 +188,7 @@ const activities = [
     title: 'Affirmation Reflection',
     description: 'Read and reflect on positive affirmations for a mental reset.',
     type: 'affirmation',
-    image: 'Affirmation.png'
+    image: 'Affirmation.jpg'
   },
   {
     title: 'Mini Journal Prompt',
