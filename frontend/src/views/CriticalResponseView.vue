@@ -6,33 +6,21 @@
           <div class="slogan">
             <div class="title-group">
               <h1>Critical Response</h1>
-              <h2>Turning Feedback into Growth</h2>
+              <h2>Navigating Feedback with Resilience</h2>
             </div>
-            <p class="subtitle">Learn to handle criticism and protect yourself</p>
+            <p class="subtitle">Transform challenging interactions into growth opportunities</p>
           </div>
           <div class="decorative-elements">
             <!-- 右上角第一排 / Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
-              </div>
-            </div>
-            <!-- 右下角第一排 / Bottom Row 1 Right -->
-            <div class="bottom-row-1">
-              <div class="element-wrapper">
                 <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
               </div>
             </div>
           </div>
@@ -211,24 +199,26 @@
   }
 
   .hero-section {
-    min-height: 75vh;
+    min-height: 40vh;
     background-color: rgb(255, 252, 244);
     display: flex;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     z-index: 1;
-    padding: 1rem 0;
+    padding: 6rem 0 1rem;
+    margin-bottom: 2rem;
   }
 
   .hero-content {
     position: relative;
     width: 100%;
-    min-height: 75vh;
+    min-height: 40vh;
     display: flex;
     align-items: center;
     padding-left: 2rem;
     margin: 0 auto;
+    overflow: visible;
   }
 
   .slogan {
@@ -245,17 +235,20 @@
   }
 
   .title-group h1 {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #8E2DE2 0%, #FF6B9B 100%);
+    background: linear-gradient(135deg, #E67F83 0%, #A86ADD 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.1;
+    line-height: 1.4;
     display: block;
-    margin-bottom: 1rem;
-    white-space: normal;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
     text-align: left;
+    overflow: visible;
+    padding-right: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   .title-group h2 {
@@ -264,8 +257,9 @@
     color: #333;
     line-height: 1.2;
     display: block;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
+    overflow: visible;
   }
 
   .subtitle {
@@ -273,56 +267,9 @@
     color: #666;
     line-height: 1.4;
     margin-top: 1.5rem;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
-  }
-
-  @media (min-width: 640px) {
-    .title-group h1 {
-      font-size: 3rem;
-    }
-    .title-group h2 {
-      font-size: 1.875rem;
-    }
-    .subtitle {
-      font-size: 1.125rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .title-group h1 {
-      font-size: 3.75rem;
-    }
-    .title-group h2 {
-      font-size: 2.25rem;
-    }
-    .subtitle {
-      font-size: 1.25rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .title-group h1 {
-      font-size: 4.5rem;
-    }
-    .title-group h2 {
-      font-size: 3rem;
-    }
-    .subtitle {
-      font-size: 1.5rem;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .title-group h1 {
-      font-size: 6rem;
-    }
-    .title-group h2 {
-      font-size: 3.75rem;
-    }
-    .subtitle {
-      font-size: 1.875rem;
-    }
+    overflow: visible;
   }
 
   .decorative-elements {
@@ -333,12 +280,13 @@
     height: 100%;
     display: grid;
     grid-template-columns: repeat(6, 160px);
-    grid-template-rows: repeat(4, auto);
+    grid-template-rows: auto;
     row-gap: 1rem;
     padding: 2rem 0;
     z-index: 1;
     pointer-events: none;
-    transform: translateX(-2rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 
   .top-row {
@@ -350,18 +298,6 @@
     padding: 0;
     grid-column: 4 / 7;
     grid-row: 1;
-    justify-self: end;
-  }
-
-  .bottom-row-1 {
-    display: grid;
-    grid-template-columns: repeat(3, 160px);
-    gap: 0.5rem;
-    align-items: start;
-    margin: 0;
-    padding: 0;
-    grid-column: 4 / 7;
-    grid-row: 2;
     justify-self: end;
   }
 
@@ -388,16 +324,15 @@
     transition: all 0.5s ease;
   }
 
-  /* Hover效果增强 */
   .top-row .element:hover {
     transform: rotate(-15deg) scale(1.1);
   }
 
-  .bottom-row-1 .element:hover {
-    transform: rotate(15deg) scale(1.1);
+  section:not(:last-child)::after {
+    display: none;
   }
 
-  /* 响应式调整 */
+  /* 添加响应式媒体查询 */
   @media (max-width: 1800px) {
     .decorative-elements {
       width: 840px;
@@ -424,97 +359,103 @@
       transform: translateX(-0.5rem);
       row-gap: 0.75rem;
     }
+    
+    .title-group h2,
+    .subtitle {
+      white-space: normal;
+    }
   }
 
   @media (max-width: 1024px) {
-    .hero-section {
-      min-height: 65vh;
-    }
-
-    .hero-content {
-      min-height: 65vh;
-    }
-
-    .slogan {
-      margin-left: 1.5rem;
-    }
-
     .decorative-elements {
       transform: translateX(0) scale(0.9);
       opacity: 0.5;
       row-gap: 0.5rem;
     }
-
+    
     .title-group h1 {
-      @apply text-5xl;
-    }
-
-    .title-group h2 {
-      @apply text-4xl;
-      white-space: normal;
-    }
-
-    .subtitle {
-      @apply text-xl;
       white-space: normal;
     }
   }
 
   @media (max-width: 768px) {
-    .hero-section {
-      min-height: 55vh;
-    }
-
-    .hero-content {
-      min-height: 55vh;
-    }
-
-    .slogan {
-      margin-left: 1rem;
-    }
-
     .decorative-elements {
-      opacity: 0;
+      opacity: 0.1;
       transform: translateX(0) scale(0.8);
-      transition: opacity 0.3s ease;
     }
-
+    
+    .hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 0.75rem;
+      min-height: 22vh;
+    }
+    
+    .hero-section {
+      min-height: 22vh;
+      padding: 7rem 0 0.5rem;
+    }
+    
+    .slogan {
+      max-width: 90%;
+    }
+    
     .title-group h1 {
-      @apply text-4xl;
+      font-size: 3.5rem;
     }
-
+    
     .title-group h2 {
-      @apply text-3xl;
+      font-size: 2rem;
     }
-
+    
     .subtitle {
-      @apply text-lg;
+      font-size: 1.125rem;
     }
   }
 
   @media (max-width: 640px) {
-    .hero-section {
-      padding: 1.5rem 0;
+    .decorative-elements {
+      opacity: 0;
+      transform: translateX(0) scale(0.7);
     }
-
+    
     .hero-content {
-      padding: 0 1rem;
+      min-height: 18vh;
+      padding-top: 0.25rem;
     }
-
-    .slogan {
-      padding-top: 1rem;
+    
+    .hero-section {
+      min-height: 18vh;
+      padding: 7.5rem 0 0.5rem;
+      margin-bottom: 1rem;
     }
-
+    
     .title-group h1 {
-      @apply text-3xl;
+      font-size: 2.5rem;
     }
-
+    
     .title-group h2 {
-      @apply text-2xl;
+      font-size: 1.5rem;
     }
-
+    
     .subtitle {
-      @apply text-base;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .decorative-elements {
+      opacity: 0;
+      display: none;
+    }
+    
+    .hero-content {
+      min-height: 16vh;
+    }
+    
+    .hero-section {
+      min-height: 16vh;
+      padding: 8rem 0 0.5rem;
     }
   }
 
@@ -1006,6 +947,36 @@
       max-width: 320px;
       height: auto;
       min-height: 280px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .feeling-box {
+      margin: -20px auto 3rem;
+      padding: 1.75rem 1rem 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .feeling-box {
+      margin: -10px auto 2.5rem;
+      padding: 1.5rem 0.75rem 0.75rem;
+    }
+    
+    .feeling-box h2 {
+      font-size: 28px;
+      margin-top: 50px;
+      margin-bottom: 20px;
+    }
+    
+    .emotions {
+      gap: 24px;
+      margin: 1.5rem 0 1rem;
+    }
+    
+    .emoji-img {
+      width: 120px;
+      height: 120px;
     }
   }
   </style>

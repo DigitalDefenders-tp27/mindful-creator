@@ -22,42 +22,6 @@
               <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
-          <!-- 右上角第二排 / Top Row 2 Right -->
-          <div class="top-row-2">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第一排 / Bottom Row 1 Right -->
-          <div class="bottom-row-1">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第二排 / Bottom Row 2 Right -->
-          <div class="bottom-row-2">
-            <!-- <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
-            </div> -->
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -290,24 +254,26 @@ onMounted(() => {
 }
 
 .hero-section {
-  min-height: 75vh;
+  min-height: 40vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 1;
-  padding: 1rem 0;
+  padding: 6rem 0 1rem;
+  margin-bottom: 2rem;
 }
 
 .hero-content {
   position: relative;
   width: 100%;
-  min-height: 75vh;
+  min-height: 40vh;
   display: flex;
   align-items: center;
   padding-left: 2rem;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .slogan {
@@ -324,17 +290,20 @@ onMounted(() => {
 }
 
 .title-group h1 {
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: bold;
   background: linear-gradient(135deg, #56D8C9 0%, #FF7676 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.1;
+  line-height: 1.4;
   display: block;
-  margin-bottom: 1rem;
-  white-space: normal;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
+  padding-right: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .title-group h2 {
@@ -343,8 +312,9 @@ onMounted(() => {
   color: #333;
   line-height: 1.2;
   display: block;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
 }
 
 .subtitle {
@@ -352,8 +322,9 @@ onMounted(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
 }
 
 @media (min-width: 640px) {
@@ -412,7 +383,7 @@ onMounted(() => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: repeat(4, auto);
+  grid-template-rows: auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
@@ -432,44 +403,127 @@ onMounted(() => {
   justify-self: end;
 }
 
-.top-row-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 5 / 7;
-  grid-row: 2;
-  justify-self: end;
+.top-row-2, .bottom-row-1, .bottom-row-2 {
+  display: none;
 }
 
-.bottom-row-1 {
-  display: grid;
-  grid-template-columns: repeat(1, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 6 / 7;
-  grid-row: 3;
-  justify-self: end;
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
 }
 
-.bottom-row-2 {
-  display: grid;
-  grid-template-columns: repeat(4, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 3 / 7;
-  grid-row: 4;
-  justify-self: end;
-  margin-bottom: 2rem;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: 0;
+/* Responsive adjustments */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+  
+  .title-group h2,
+  .subtitle {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+  
+  .title-group h1 {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+  
+  .hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+    min-height: 22vh;
+  }
+  
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+  
+  .slogan {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+  
+  .hero-content {
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+  
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .title-group h1 {
+    font-size: 2.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+  
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
 }
 
 .element-wrapper {
@@ -510,322 +564,6 @@ onMounted(() => {
 
 .bottom-row-2 .element:hover {
   transform: rotate(-10deg) scale(1.1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1800px) {
-  .decorative-elements {
-    width: 840px;
-    grid-template-columns: repeat(6, 140px);
-    opacity: 0.9;
-    transform: translateX(-1.5rem);
-  }
-
-  .top-row-2 {
-    grid-template-columns: repeat(2, 140px);
-  }
-
-  .bottom-row-1 {
-    grid-template-columns: repeat(1, 140px);
-  }
-}
-
-@media (max-width: 1536px) {
-  .decorative-elements {
-    width: 720px;
-    grid-template-columns: repeat(6, 120px);
-    opacity: 0.8;
-    transform: translateX(-1rem);
-  }
-
-  .top-row-2 {
-    grid-template-columns: repeat(2, 120px);
-  }
-
-  .bottom-row-1 {
-    grid-template-columns: repeat(1, 120px);
-  }
-}
-
-@media (max-width: 1280px) {
-  .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
-    opacity: 0.7;
-    transform: translateX(-0.5rem);
-    row-gap: 0.75rem;
-  }
-
-  .top-row-2 {
-    grid-template-columns: repeat(2, 100px);
-  }
-
-  .bottom-row-1 {
-    grid-template-columns: repeat(1, 100px);
-  }
-
-  .read-more-button {
-    margin-right: 2.5rem;
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    right: 0;
-    left: auto;
-    margin-right: 2.5rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 0;
-  }
-
-  .preview-text {
-    padding: 1.5rem 10rem 1.5rem 3.5rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 1.5rem 10rem 1.5rem 3.5rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .content-row {
-    margin-bottom: 2.5rem;
-  }
-
-  .content-section {
-    margin-top: 3rem;
-  }
-
-  .slogan {
-    margin-left: 1.5rem;
-  }
-
-  .decorative-elements {
-    transform: translateX(0) scale(0.9);
-    opacity: 0.5;
-    row-gap: 0.5rem;
-  }
-
-  .top-row-2 {
-    transform: translateY(-1rem);
-  }
-
-  .title-group h1 {
-    @apply text-5xl;
-  }
-
-  .title-group h2 {
-    @apply text-4xl;
-  }
-
-  .subtitle {
-    @apply text-xl;
-  }
-
-  .read-more-button {
-    margin-right: 2rem;
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 2rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 0;
-  }
-
-  .preview-text {
-    padding: 1.5rem 8rem 1.5rem 3rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 1.5rem 8rem 1.5rem 3rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .content-row {
-    grid-template-columns: 1fr !important;
-    gap: 2rem;
-  }
-
-  .content-row:nth-child(2) {
-    grid-template-columns: 1fr !important;
-  }
-
-  .main-card {
-    width: 220px;
-    height: 220px;
-    padding: 1.2rem 1rem;
-    margin: 0 auto;
-  }
-
-  .card-content-wrapper {
-    gap: 0.8rem;
-  }
-
-  .long-card {
-    height: 180px;
-    width: 100%;
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .card-icon {
-    width: 45px;
-    height: 45px;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-title {
-    gap: 0.6rem;
-  }
-
-  .card-text h3 {
-    font-size: 1rem;
-    line-height: 1.2;
-    margin-bottom: 0.2rem;
-  }
-
-  .card-description {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    margin-top: 0.3rem;
-  }
-
-  .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
-  }
-
-  .read-more-button {
-    margin-right: 1.5rem;
-    transform: scale(0.9) translateY(-50%);
-    position: absolute;
-    top: 50%;
-    z-index: 5;
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 1.5rem;
-  }
-
-  .preview-text :deep(h1) {
-    font-size: 1.2rem;
-    margin-bottom: 0.6rem;
-    -webkit-line-clamp: 1;
-  }
-
-  .preview-text :deep(p) {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-    -webkit-line-clamp: 2;
-  }
-
-  .preview-text :deep(li) {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-}
-
-@media (max-width: 640px) {
-  .main-card {
-    width: 180px;
-    height: 180px;
-    padding: 0.8rem 0.5rem;
-  }
-
-  .card-content-wrapper {
-    gap: 0.5rem;
-  }
-
-  .long-card {
-    height: 150px;
-    border-radius: 9999px;
-  }
-
-  .card-icon {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 0.4rem;
-  }
-
-  .card-title {
-    gap: 0.4rem;
-  }
-
-  .card-text h3 {
-    font-size: 0.9rem;
-    line-height: 1.1;
-    margin-bottom: 0.1rem;
-  }
-
-  .card-description {
-    font-size: 0.8rem;
-    line-height: 1.1;
-    margin-top: 0.2rem;
-  }
-
-  .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-  }
-
-  .read-more-button {
-    margin-right: 1rem;
-    transform: scale(0.8) translateY(-50%);
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 1rem;
-  }
-
-  .preview-text :deep(h1) {
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
-    -webkit-line-clamp: 1;
-  }
-
-  .preview-text :deep(p) {
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-    line-height: 1.2;
-    -webkit-line-clamp: 1;
-  }
-
-  .preview-text :deep(li) {
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-    line-height: 1.2;
-  }
-
-  .content-row {
-    margin-bottom: 1.5rem;
-  }
 }
 
 .content-section {
@@ -1453,5 +1191,9 @@ onMounted(() => {
     margin-bottom: 0.4rem;
     line-height: 1.2;
   }
+}
+
+section:not(:last-child)::after {
+  display: none;
 }
 </style>
