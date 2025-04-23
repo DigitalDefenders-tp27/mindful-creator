@@ -8,7 +8,7 @@
               <h1>Critical Response</h1>
               <h2>Turning Feedback into Growth</h2>
             </div>
-            <p class="subtitle">Learn to handle criticism constructively and protect yourself from cyberbullying</p>
+            <p class="subtitle">Learn to handle criticism and protect yourself</p>
           </div>
           <div class="decorative-elements">
             <!-- 右上角第一排 / Top Row Right -->

@@ -4,7 +4,7 @@
       <div class="hero-content">
         <div class="slogan">
           <div class="title-group">
-            <h1>Ethical Influencer</h1>
+            <h1>Ethic Influencer</h1>
             <h2>Building Trust Through Authenticity</h2>
           </div>
           <p class="subtitle">Learn to create content that makes a positive impact</p>
@@ -39,12 +39,12 @@
           </div>
           <!-- 右下角第二排 / Bottom Row 2 Right -->
           <div class="bottom-row-2">
-            <div class="element-wrapper">
+            <!-- <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Z" class="element hoverable">
             </div>
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Switch" class="element hoverable">
-            </div>
+            </div> -->
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
             </div>
@@ -458,15 +458,18 @@ onMounted(() => {
 
 .bottom-row-2 {
   display: grid;
-  grid-template-columns: repeat(6, 160px);
+  grid-template-columns: repeat(4, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 1 / 7;
+  grid-column: 3 / 7;
   grid-row: 4;
   justify-self: end;
   margin-bottom: 2rem;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .element-wrapper {
@@ -566,7 +569,9 @@ onMounted(() => {
   }
 
   .content-row:nth-child(2) .long-card .read-more-button {
-    left: 2.5rem;
+    right: 0;
+    left: auto;
+    margin-right: 2.5rem;
   }
 
   .content-row:nth-child(2) .long-card .preview-content {
@@ -947,22 +952,22 @@ onMounted(() => {
 }
 
 /* Special styles for the second row left card */
-.content-row:nth-child(2) .long-card .preview-content {
+.content-row .long-card .preview-content {
   position: relative;
   padding: 0;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(*) {
+.content-row .long-card .preview-text :deep(*) {
   text-align: left !important;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(ul) {
+.content-row .long-card .preview-text :deep(ul) {
   list-style-type: none;
   padding-left: 0;
   margin: 0.5rem 0;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(li) {
+.content-row .long-card .preview-text :deep(li) {
   position: relative;
   padding-left: 0;
   margin-bottom: 0.5rem;
@@ -970,15 +975,15 @@ onMounted(() => {
   color: #232323;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
+.content-row .long-card .preview-text :deep(li)::before {
   display: none;
 }
 
 /* Remove previous styles that might have caused right alignment */
-.content-row:nth-child(2) .long-card .preview-text :deep(h1),
-.content-row:nth-child(2) .long-card .preview-text :deep(p),
-.content-row:nth-child(2) .long-card .preview-text :deep(ul),
-.content-row:nth-child(2) .long-card .preview-text :deep(li) {
+.content-row .long-card .preview-text :deep(h1),
+.content-row .long-card .preview-text :deep(p),
+.content-row .long-card .preview-text :deep(ul),
+.content-row .long-card .preview-text :deep(li) {
   text-align: left !important;
   direction: ltr;
 }
@@ -1002,8 +1007,8 @@ onMounted(() => {
   );
 }
 
-/* 确保第二行长卡片的文本内边距与其他行一致 */
-.content-row:nth-child(2) .long-card .preview-text {
+/* 统一所有长卡片的文本内边距 */
+.content-row .long-card .preview-text {
   padding: 1.5rem 12rem 1.5rem 4rem;
 }
 
@@ -1078,8 +1083,8 @@ onMounted(() => {
   color: white !important;
 }
 
-/* 第二行按钮特殊位置 / Special button position for the second row */
-.content-row:nth-child(2) .long-card .read-more-button {
+/* 统一所有长卡片的按钮位置和悬停效果 */
+.content-row .long-card .read-more-button {
   right: 0;
   left: auto;
   margin-right: 3rem;
@@ -1091,13 +1096,108 @@ onMounted(() => {
   overflow: visible !important;
 }
 
-/* Enhanced button hover effect */
-.read-more-button:hover {
+/* 统一按钮悬停效果 */
+.content-row .long-card .read-more-button:hover {
   transform: translateY(-50%) translateX(5px);
 }
 
-.content-row:nth-child(2) .long-card .read-more-button:hover {
-  transform: translateY(-50%) translateX(-5px);
+@media (max-width: 1280px) {
+  .preview-text {
+    padding: 1.5rem 10rem 1.5rem 3.5rem;
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 1.5rem 10rem 1.5rem 3.5rem;
+  }
+  
+  .content-row .long-card .preview-content {
+    padding: 0;
+  }
+  
+  .read-more-button {
+    margin-right: 2.5rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 2.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .preview-text {
+    padding: 1.5rem 8rem 1.5rem 3rem;
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 1.5rem 8rem 1.5rem 3rem;
+  }
+  
+  .content-row .long-card .preview-content {
+    padding: 0;
+  }
+  
+  .read-more-button {
+    margin-right: 2rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 1rem 6rem 1rem 2rem;
+  }
+  
+  .read-more-button {
+    margin-right: 1.5rem;
+    transform: scale(0.9) translateY(-50%);
+    position: absolute;
+    top: 50%;
+    z-index: 5;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+  }
+  
+  .read-more-button {
+    margin-right: 1rem;
+    transform: scale(0.8) translateY(-50%);
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 1rem;
+  }
+  
+  .content-row .long-card .read-more-button:hover {
+    transform: translateY(-50%) translateX(5px) scale(0.8);
+  }
 }
 
 .card-content-wrapper {
@@ -1210,66 +1310,40 @@ onMounted(() => {
 }
 
 /* Markdown content styles / Markdown content styles */
-.expanded-card :deep(.markdown-content) {
-  h1 {
-    font-size: 2.2rem;
-    margin-bottom: 2rem;
-    color: #232323;
-  }
-
-  h2 {
-    font-size: 1.8rem;
-    margin: 2rem 0 1.2rem;
-    color: #333;
-  }
-
-  p {
-    margin-bottom: 1.2rem;
-    color: #444;
-    line-height: 1.8;
-    font-size: 1.1rem;
-  }
-
-  ul, ol {
-    margin: 1.2rem 0 1.2rem 2rem;
-  }
-
-  li {
-    margin-bottom: 0.8rem;
-    color: #444;
-    line-height: 1.6;
-    font-size: 1.1rem;
-  }
-
-  strong {
-    color: #232323;
-    font-weight: 600;
-  }
+.expanded-card :deep(.markdown-content) h1 {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  color: #232323;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(h1) {
-  text-align: left;
+.expanded-card :deep(.markdown-content) h2 {
+  font-size: 1.8rem;
+  margin: 2rem 0 1.2rem;
+  color: #333;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(p) {
-  text-align: left;
+.expanded-card :deep(.markdown-content) p {
+  margin-bottom: 1.2rem;
+  color: #444;
+  line-height: 1.8;
+  font-size: 1.1rem;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(ul) {
-  text-align: left;
-  padding-right: 0;
-  padding-left: 0;
+.expanded-card :deep(.markdown-content) ul, 
+.expanded-card :deep(.markdown-content) ol {
+  margin: 1.2rem 0 1.2rem 2rem;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(li) {
-  padding-right: 0;
-  padding-left: 0;
-  text-align: left;
+.expanded-card :deep(.markdown-content) li {
+  margin-bottom: 0.8rem;
+  color: #444;
+  line-height: 1.6;
+  font-size: 1.1rem;
 }
 
-.content-row:nth-child(2) .long-card .preview-text :deep(li)::before {
-  right: auto;
-  left: -0.5rem;
+.expanded-card :deep(.markdown-content) strong {
+  color: #232323;
+  font-weight: 600;
 }
 
 /* 响应式调整文字大小 / Responsive text size adjustments */
@@ -1314,14 +1388,6 @@ onMounted(() => {
     font-size: 0.95rem;
     line-height: 1.4;
   }
-
-  .preview-text {
-    padding: 1.5rem 10rem 1.5rem 3.5rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 0;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -1349,21 +1415,7 @@ onMounted(() => {
     font-size: 0.9rem;
     line-height: 1.3;
   }
-
-  .preview-text {
-    padding: 1.5rem 8rem 1.5rem 3rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-content {
-    padding: 0;
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 2rem;
-  }
-
+  
   .preview-text :deep(h1) {
     font-size: 1.4rem;
     margin-bottom: 0.8rem;
@@ -1382,165 +1434,7 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 768px) {
-  .content-row {
-    grid-template-columns: 1fr !important;
-    gap: 2rem;
-  }
-
-  .content-row:nth-child(2) {
-    grid-template-columns: 1fr !important;
-  }
-
-  .main-card {
-    width: 220px;
-    height: 220px;
-    padding: 1.2rem 1rem;
-    margin: 0 auto;
-  }
-
-  .card-content-wrapper {
-    gap: 0.8rem;
-  }
-
-  .long-card {
-    height: 180px;
-    width: 100%;
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .card-icon {
-    width: 45px;
-    height: 45px;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-title {
-    gap: 0.6rem;
-  }
-
-  .card-text h3 {
-    font-size: 1rem;
-    line-height: 1.2;
-    margin-bottom: 0.2rem;
-  }
-
-  .card-description {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    margin-top: 0.3rem;
-  }
-
-  .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
-  }
-
-  .read-more-button {
-    margin-right: 1.5rem;
-    transform: scale(0.9) translateY(-50%);
-    position: absolute;
-    top: 50%;
-    z-index: 5;
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 1.5rem;
-  }
-
-  .preview-text :deep(h1) {
-    font-size: 1.2rem;
-    margin-bottom: 0.6rem;
-    -webkit-line-clamp: 1;
-  }
-
-  .preview-text :deep(p) {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-    -webkit-line-clamp: 2;
-  }
-
-  .preview-text :deep(li) {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-}
-
 @media (max-width: 640px) {
-  .main-card {
-    width: 180px;
-    height: 180px;
-    padding: 0.8rem 0.5rem;
-  }
-
-  .card-content-wrapper {
-    gap: 0.5rem;
-  }
-
-  .long-card {
-    height: 150px;
-    border-radius: 9999px;
-  }
-
-  .card-icon {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 0.4rem;
-  }
-
-  .card-title {
-    gap: 0.4rem;
-  }
-
-  .card-text h3 {
-    font-size: 0.9rem;
-    line-height: 1.1;
-    margin-bottom: 0.1rem;
-  }
-
-  .card-description {
-    font-size: 0.8rem;
-    line-height: 1.1;
-    margin-top: 0.2rem;
-  }
-
-  .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-  }
-
-  .content-row:nth-child(2) .long-card .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
-  }
-
-  .read-more-button {
-    margin-right: 1rem;
-    transform: scale(0.8) translateY(-50%);
-  }
-
-  .content-row:nth-child(2) .long-card .read-more-button {
-    left: auto;
-    right: 0;
-    margin-right: 1rem;
-  }
-
   .preview-text :deep(h1) {
     font-size: 1rem;
     margin-bottom: 0.4rem;
@@ -1558,10 +1452,6 @@ onMounted(() => {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
     line-height: 1.2;
-  }
-
-  .content-row {
-    margin-bottom: 1.5rem;
   }
 }
 </style>
