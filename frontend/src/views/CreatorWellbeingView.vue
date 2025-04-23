@@ -211,23 +211,45 @@
           
           <div class="events-grid">
             <div class="event-card">
-              <img src="../assets/icons/elements/activity-yoga.svg" alt="Beach yoga" class="event-img">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Beach yoga" class="event-img">
               <div class="event-info">
-                <h3>Beach yoga at St.kilda</h3>
+                <h3>Mentally Healthy Workplaces Workshop</h3>
                 <div class="event-tags">
-                  <span class="tag april">April</span>
-                  <span class="tag outdoor">Outdoor Wellness</span>
-                  <span class="tag charged">Charged Event</span>
+                  <span class="tag may">May</span>
+                  <span class="tag workshop">Workshop</span>
+                  <span class="tag free">Free Event</span>
                 </div>
-                <p class="event-description">Join our sunrise yoga sessions at St Kilda Beach. Perfect for all levels of experience. Feel the sand between your toes as you stretch and strengthen.</p>
+                <p class="event-description">JThis workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Melbourne</div>
-                  <div><strong>Group size:</strong> 10-20</div>
-                  <div><strong>Date:</strong> Every Sunday in April</div>
+                  <div><strong>Location:</strong> Brisbane</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
+                  <div><strong>Date:</strong> 1st May 2025</div>
+                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Beach yoga" class="event-img">
+              <div class="event-info">
+                <h3>Mentally Healthy Workplaces Workshop</h3>
+                <div class="event-tags">
+                  <span class="tag june">June</span>
+                  <span class="tag workshop">Workshop</span>
+                  <span class="tag free">Free Event</span>
+                </div>
+                <p class="event-description">JThis workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Brisbane</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
+                  <div><strong>Date:</strong> 4th June 2025</div>
+                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
+                </div>
+                <button class="register-btn">Register Now</button>
+              </div>
+            </div>
+
             
             <div class="event-card">
               <img src="../assets/icons/elements/activity-workshop.svg" alt="Emotional workshops" class="event-img">
