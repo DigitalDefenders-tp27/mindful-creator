@@ -135,48 +135,54 @@
         
         <div class="activities-header">
           <h3 class="recent-title">RECENT CAMPAIGNS...</h3>
-          <a href="#" class="view-all">VIEW ALL EVENTS</a>
+          <button @click="openModal" class="view-all-btn">VIEW ALL EVENTS</button>
         </div>
         
         <div class="activities-grid">
-          <div class="activity-card">
-            <img src="../assets/icons/elements/activity-yoga.svg" alt="Yoga" class="activity-img">
-            <h3 class="activity-title">Beach yoga at St Kilda</h3>
-            <div class="activity-tags">
-              <span class="tag april">April</span>
-              <span class="tag outdoor">Outdoor activities</span>
+          <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+            <div class="activity-card">
+              <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Wellness Walk" class="activity-img">
+              <h3 class="activity-title">MeTreat Retreats Women's Wellness Walk</h3>
+              <div class="activity-tags">
+                <span class="tag april">April</span>
+                <span class="tag outdoor">Outdoor Wellness</span>
+              </div>
+              <div class="activity-details">
+                <span class="group-size">Torquay Beach</span>
+                <span class="location">Melbourne</span>
+              </div>
             </div>
-            <div class="activity-details">
-              <span class="group-size">Group size 10-20</span>
-              <span class="location">Melbourne</span>
-            </div>
-          </div>
+          </a>
           
-          <div class="activity-card">
-            <img src="../assets/icons/elements/activity-workshop.svg" alt="Workshop" class="activity-img">
-            <h3 class="activity-title">Emotional resilience workshops</h3>
-            <div class="activity-tags">
-              <span class="tag online">Online</span>
-              <span class="tag mental">Mental health</span>
+          <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+            <div class="activity-card">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Workshop" class="activity-img">
+              <h3 class="activity-title">Mentally Healthy Workplaces Workshop</h3>
+              <div class="activity-tags">
+                <span class="tag may">May</span>
+                <span class="tag mental">Mental Health</span>
+              </div>
+              <div class="activity-details">
+                <span class="group-size">Free Event</span>
+                <span class="location">Brisbane</span>
+              </div>
             </div>
-            <div class="activity-details">
-              <span class="group-size">Group size 15-30</span>
-              <span class="location">Melbourne</span>
-            </div>
-          </div>
+          </a>
           
-          <div class="activity-card">
-            <img src="../assets/icons/elements/activity-bushwalking.svg" alt="Bushwalking" class="activity-img">
-            <h3 class="activity-title">Bushwalking in national parks</h3>
-            <div class="activity-tags">
-              <span class="tag april">April</span>
-              <span class="tag outdoor">Outdoor activities</span>
+          <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+            <div class="activity-card">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Business Workshop" class="activity-img">
+              <h3 class="activity-title">Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
+              <div class="activity-tags">
+                <span class="tag may">May</span>
+                <span class="tag workplace">Workplace Wellbeing</span>
+              </div>
+              <div class="activity-details">
+                <span class="group-size">$20</span>
+                <span class="location">Warrnambool</span>
+              </div>
             </div>
-            <div class="activity-details">
-              <span class="group-size">Group size 5-15</span>
-              <span class="location">Melbourne</span>
-            </div>
-          </div>
+          </a>
         </div>
       </div>
     </section>
@@ -189,34 +195,42 @@
           <button class="close-modal-btn" @click="closeModal">×</button>
         </div>
         <div class="modal-content">
+          <div class="search-bar">
+            <input type="text" v-model="searchQuery" placeholder="Search by name" class="search-input">
+          </div>
           <div class="event-filters">
             <div class="filter-group">
               <label>Location:</label>
-              <select>
+              <select v-model="selectedLocation">
                 <option>All locations</option>
                 <option>Melbourne</option>
                 <option>Sydney</option>
                 <option>Brisbane</option>
+                <option>Warrnambool</option>
+                <option>Geelong</option>
+                <option>Torquay</option>
               </select>
             </div>
             <div class="filter-group">
               <label>Category:</label>
-              <select>
+              <select v-model="selectedCategory">
                 <option>All types</option>
                 <option>Outdoor Wellness</option>
                 <option>Mental Health</option>
                 <option>Physical Fitness</option>
                 <option>Healthy Eating</option>
+                <option>Workplace Wellbeing</option>
               </select>
             </div>
             <div class="filter-group">
               <label>Month:</label>
-              <select>
+              <select v-model="selectedMonth">
                 <option>Any time</option>
                 <option>March</option>
                 <option>April</option>
                 <option>May</option>
                 <option>June</option>
+                <option>October</option>
               </select>
             </div>
           </div>
@@ -238,9 +252,11 @@
                   <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
                   <div><strong>Date:</strong> 1st May 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
 
@@ -260,9 +276,11 @@
                   <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
                   <div><strong>Date:</strong> June 4th 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
 
@@ -281,9 +299,11 @@
                   <!-- <div><strong>Group size:</strong> 15-30</div> -->
                   <div><strong>Date:</strong> October 11st 2025</div>
                   <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
             
@@ -303,9 +323,11 @@
                   <!-- <div><strong>Group size:</strong> 5-15</div> -->
                   <div><strong>Date:</strong> May 28th</div>
                   <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
             
@@ -325,9 +347,11 @@
                   <!-- <div><strong>Group size:</strong> 5-10</div> -->
                   <div><strong>Date:</strong> October 9th 2025</div>
                   <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
             
@@ -347,9 +371,11 @@
                   <!-- <div><strong>Group size:</strong> 8-12</div> -->
                   <div><strong>Date:</strong> April 25th</div>
                   <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
-                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
                 </div>
-                <button class="register-btn">Register Now</button>
+                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
             </div>
           </div>
@@ -358,13 +384,32 @@
     </div>
     
     <div class="footer">
-      <p>© 2025 by Inflowence</p>
+      <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">隐私政策</router-link></p>
     </div>
   </div>
 </template>
 
 <script setup>
-// 组件逻辑可以在这里添加 / Component logic can be added here
+import { ref } from 'vue';
+
+// 模态窗口显示状态
+const isModalVisible = ref(false);
+
+// 打开模态窗口
+const openModal = () => {
+  isModalVisible.value = true;
+};
+
+// 关闭模态窗口
+const closeModal = () => {
+  isModalVisible.value = false;
+};
+
+// 搜索相关
+const searchQuery = ref('');
+const selectedLocation = ref('All locations');
+const selectedCategory = ref('All types');
+const selectedMonth = ref('Any time');
 </script>
 
 <style scoped>
@@ -1085,9 +1130,23 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-.view-all {
-  color: #666;
-  text-decoration: none;
+/* 统一使用此处的view-all-btn样式定义 */
+.view-all-btn {
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.view-all-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .activities-grid {
@@ -1104,12 +1163,29 @@ section:not(:last-child)::after {
   border: 1px solid rgba(230, 239, 182, 0.4);
   position: relative;
   z-index: 2;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.activity-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  border-color: rgba(231, 90, 151, 0.2);
+}
+
+.activity-card:hover .activity-title {
+  color: #e75a97;
+}
+
+.activity-card:hover .activity-img {
+  transform: scale(1.05);
 }
 
 .activity-img {
   width: 100%;
   height: 180px;
   object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
 .activity-title {
@@ -1166,6 +1242,17 @@ section:not(:last-child)::after {
   font-size: 0.9rem;
 }
 
+.footer-link {
+  color: #e75a97;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-link:hover {
+  color: #d4407f;
+  text-decoration: underline;
+}
+
 /* 响应式设计 / Responsive design */
 @media (max-width: 1024px) {
   .dashboard-content,
@@ -1202,5 +1289,275 @@ section:not(:last-child)::after {
   .resource-tabs {
     flex-direction: column;
   }
+}
+
+/* 模态窗口样式 */
+.activities-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 2rem 0;
+}
+
+.activities-modal {
+  background-color: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+}
+
+.modal-header h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.close-modal-btn:hover {
+  color: #e75a97;
+}
+
+.modal-content {
+  padding: 2rem;
+}
+
+/* 搜索栏样式 */
+.search-bar {
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #e75a97;
+}
+
+/* 筛选器样式 */
+.event-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.filter-group select:focus {
+  border-color: #e75a97;
+}
+
+/* 事件卡片样式 */
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.event-card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+}
+
+.event-img {
+  width: 280px;
+  height: auto;
+  object-fit: cover;
+}
+
+.event-info {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.event-info h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.event-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tag.ticket {
+  background-color: #ff5252;
+}
+
+.tag.may {
+  background-color: #2196F3;
+}
+
+.tag.june {
+  background-color: #9C27B0;
+}
+
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.free {
+  background-color: #4CAF50;
+}
+
+.tag.october {
+  background-color: #FF9800;
+}
+
+.tag.workplace {
+  background-color: #607D8B;
+}
+
+.tag.charged {
+  background-color: #F44336;
+}
+
+.tag.end {
+  background-color: #9E9E9E;
+}
+
+.event-description {
+  margin-bottom: 1.5rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.event-meta {
+  margin-bottom: 1.5rem;
+}
+
+.event-meta div {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.register-btn {
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.register-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .event-card {
+    flex-direction: column;
+  }
+  
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .event-filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .activities-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+  }
+}
+
+/* 隐藏链接标签 */
+.event-meta div.event-link {
+  display: none;
+}
+
+/* 为按钮链接添加样式 */
+.register-btn-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* 活动卡片链接样式 */
+.activity-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
 }
 </style>
