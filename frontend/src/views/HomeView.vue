@@ -22,36 +22,7 @@
               <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
             </div>
           </div>
-          <!-- 右下角第一排 / Bottom Row 1 Right -->
-          <div class="bottom-row-1">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第二排 / Bottom Row 2 Right -->
-          <div class="bottom-row-2">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_red.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
+          
         </div>
       </div>
     </section>
@@ -196,7 +167,7 @@
     </section>
 
     <!-- 4. Testimonials Section / 推荐部分 -->
-    <section class="testimonials-section">
+    <!-- <section class="testimonials-section">
       <div class="section-background">
         <img src="../assets/icons/elements/BG_Gradient_Green.svg" alt="Background" class="bg-gradient">
       </div>
@@ -213,7 +184,7 @@
           <button class="next">→</button>
         </div>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>
 
@@ -237,24 +208,26 @@ const scrollToTop = () => {
 }
 
 .hero-section {
-  min-height: 75vh;
+  min-height: 40vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 1;
-  padding: 1rem 0;
+  padding: 6rem 0 1rem;
+  margin-bottom: 2rem;
 }
 
 .hero-content {
   position: relative;
   width: 100%;
-  min-height: 75vh;
+  min-height: 40vh;
   display: flex;
   align-items: center;
   padding-left: 2rem;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .slogan {
@@ -290,8 +263,9 @@ const scrollToTop = () => {
   color: #333;
   line-height: 1.2;
   display: block;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
 }
 
 .subtitle {
@@ -359,7 +333,7 @@ const scrollToTop = () => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: repeat(4, auto);
+  grid-template-rows: auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
@@ -378,32 +352,6 @@ const scrollToTop = () => {
   grid-column: 4 / 7;
   grid-row: 1;
   justify-self: end;
-}
-
-.bottom-row-1 {
-  display: grid;
-  grid-template-columns: repeat(3, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 4 / 7;
-  grid-row: 2;
-  justify-self: end;
-}
-
-.bottom-row-2 {
-  display: grid;
-  grid-template-columns: repeat(5, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 4 / 7;
-  grid-row: 4;
-  justify-self: end;
-  justify-content: end;
-  margin-bottom: 2rem;
 }
 
 .element-wrapper {
@@ -434,14 +382,6 @@ const scrollToTop = () => {
   transform: rotate(-15deg) scale(1.1);
 }
 
-.bottom-row-1 .element:hover {
-  transform: rotate(15deg) scale(1.1);
-}
-
-.bottom-row-2 .element:hover {
-  transform: rotate(-10deg) scale(1.1);
-}
-
 /* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
@@ -450,10 +390,6 @@ const scrollToTop = () => {
     opacity: 0.9;
     transform: translateX(0);
     justify-content: end;
-  }
-  
-  .bottom-row-2 {
-    grid-template-columns: repeat(5, 140px);
   }
 }
 
@@ -464,10 +400,6 @@ const scrollToTop = () => {
     opacity: 0.8;
     transform: translateX(0);
     justify-content: end;
-  }
-  
-  .bottom-row-2 {
-    grid-template-columns: repeat(5, 120px);
   }
 }
 
@@ -480,19 +412,16 @@ const scrollToTop = () => {
     row-gap: 0.75rem;
     justify-content: end;
   }
-  
-  .bottom-row-2 {
-    grid-template-columns: repeat(5, 100px);
-  }
 }
 
 @media (max-width: 1024px) {
   .hero-section {
-    min-height: 65vh;
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
   }
   
   .hero-content {
-    min-height: 65vh;
+    min-height: 40vh;
   }
   
   .slogan {
@@ -506,10 +435,6 @@ const scrollToTop = () => {
     justify-content: end;
   }
   
-  .bottom-row-2 {
-    grid-template-columns: repeat(5, 90px);
-  }
-
   .title-group h1 {
     @apply text-5xl;
   }
@@ -525,21 +450,25 @@ const scrollToTop = () => {
 
 @media (max-width: 768px) {
   .hero-section {
-    min-height: 55vh;
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
   }
   
   .hero-content {
-    min-height: 55vh;
+    min-height: 22vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
   }
   
   .slogan {
     margin-left: 1rem;
+    max-width: 90%;
   }
   
   .decorative-elements {
-    opacity: 0;
+    opacity: 0.1;
     transform: translateX(0) scale(0.8);
-    transition: opacity 0.3s ease;
   }
 
   .title-group h1 {
@@ -557,15 +486,24 @@ const scrollToTop = () => {
 
 @media (max-width: 640px) {
   .hero-section {
-    padding: 1.5rem 0;
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .hero-content {
     padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
   }
 
   .slogan {
-    padding-top: 1rem;
+    padding-top: 0;
+  }
+
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
   }
 
   .title-group h1 {
@@ -578,6 +516,22 @@ const scrollToTop = () => {
   
   .subtitle {
     @apply text-base;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+  
+  .decorative-elements {
+    opacity: 0;
+    display: none;
   }
 }
 
@@ -670,9 +624,10 @@ const scrollToTop = () => {
   position: relative;
   padding: 0 0 8rem;
   background: linear-gradient(to top,
-    rgb(227, 245, 137) 0%,
-    rgb(227, 245, 137) 50%,
-    rgba(227, 245, 137, 0) 100%
+    rgba(209, 231, 125, 0.4) 0%,
+    rgba(218, 237, 148, 0.25) 20%,
+    rgba(225, 241, 158, 0.15) 40%,
+    rgba(228, 245, 138, 0) 60%
   );
   width: 100%;
   margin-top: 0;
