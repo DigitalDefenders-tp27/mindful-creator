@@ -223,117 +223,131 @@
           
           <div class="events-grid">
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Beach yoga" class="event-img">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
               <div class="event-info">
                 <h3>Mentally Healthy Workplaces Workshop</h3>
                 <div class="event-tags">
+                  <span class="tag ticket">Sold out</span>
                   <span class="tag may">May</span>
                   <span class="tag workshop">Workshop</span>
                   <span class="tag free">Free Event</span>
                 </div>
-                <p class="event-description">JThis workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Brisbane</div>
                   <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
                   <div><strong>Date:</strong> 1st May 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
 
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Beach yoga" class="event-img">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
               <div class="event-info">
                 <h3>Mentally Healthy Workplaces Workshop</h3>
                 <div class="event-tags">
+                  <span class="tag ticket">Nearly full</span>
                   <span class="tag june">June</span>
                   <span class="tag workshop">Workshop</span>
                   <span class="tag free">Free Event</span>
                 </div>
-                <p class="event-description">JThis workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Brisbane</div>
                   <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
-                  <div><strong>Date:</strong> 4th June 2025</div>
+                  <div><strong>Date:</strong> June 4th 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
 
-            
             <div class="event-card">
-              <img src="../assets/icons/elements/activity-workshop.svg" alt="Emotional workshops" class="event-img">
+              <img src="../assets/icons/activitiesImages/workplace.avif" alt="Workplace Wellbeing" class="event-img">
               <div class="event-info">
-                <h3>Emotional resilience workshops</h3>
+                <h3>Workplace Wellbeing - How to Build Confidence and Manage Stress</h3>
                 <div class="event-tags">
-                  <span class="tag april">April</span>
-                  <span class="tag mental">Mental Health</span>
-                  <span class="tag charged">Charged Event</span>
+                  <span class="tag october">October</span>
+                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
+                  <span class="tag charged">$525.44</span>
                 </div>
-                <p class="event-description">Build your emotional resilience toolbox with our expert-led workshops. Learn practical techniques to manage stress and enhance wellbeing.</p>
+                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Melbourne</div>
-                  <div><strong>Group size:</strong> 15-30</div>
-                  <div><strong>Date:</strong> April 15th & 22nd</div>
+                  <div><strong>Location:</strong> Sydney</div>
+                  <!-- <div><strong>Group size:</strong> 15-30</div> -->
+                  <div><strong>Date:</strong> October 11st 2025</div>
+                  <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
             
             <div class="event-card">
-              <img src="../assets/icons/elements/activity-bushwalking.svg" alt="Bushwalking" class="event-img">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing" class="event-img">
               <div class="event-info">
-                <h3>Bushwalking in national parks</h3>
+                <h3>Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
                 <div class="event-tags">
-                  <span class="tag april">April</span>
-                  <span class="tag outdoor">Outdoor Wellness</span>
-                  <span class="tag free">Free Event</span>
+                  <span class="tag may">May</span>
+                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
+                  <span class="tag charged">$20</span>
                 </div>
                 <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Melbourne</div>
-                  <div><strong>Group size:</strong> 5-15</div>
-                  <div><strong>Date:</strong> April 8th & 29th</div>
+                  <div><strong>Location:</strong> Warrnambool</div>
+                  <div><strong>Address:</strong> 185 Timor Street Warrnambool, VIC 3280</div>
+                  <!-- <div><strong>Group size:</strong> 5-15</div> -->
+                  <div><strong>Date:</strong> May 28th</div>
+                  <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
             
             <div class="event-card">
-              <img src="../assets/icons/elements/activity-gym.svg" alt="Gym sessions" class="event-img">
+              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing" class="event-img">
               <div class="event-info">
-                <h3>Local gym sessions</h3>
+                <h3>Strategies for Mental Health at Work and Keeping Psychologically Safe.</h3>
                 <div class="event-tags">
-                  <span class="tag march">March</span>
-                  <span class="tag physical">Physical Fitness</span>
-                  <span class="tag charged">Charged Event</span>
+                  <span class="tag october">October</span>
+                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
+                  <span class="tag charged">$108.9</span>
                 </div>
-                <p class="event-description">Join our creator-friendly gym sessions designed specifically for people who spend long hours at desks. Focus on posture, strength and energy.</p>
+                <p class="event-description"> HR professionals, managers, and business leaders , here's practical strategies to foster wellbeing and mental health in your workplace.</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Sydney</div>
-                  <div><strong>Group size:</strong> 5-10</div>
-                  <div><strong>Date:</strong> Every Tuesday in March</div>
+                  <div><strong>Location:</strong> Geelong</div>
+                  <div><strong>Address:</strong> 60 Moorabool Street Geelong, VIC 3220</div>
+                  <!-- <div><strong>Group size:</strong> 5-10</div> -->
+                  <div><strong>Date:</strong> October 9th 2025</div>
+                  <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
             </div>
             
             <div class="event-card">
-              <img src="../assets/icons/elements/activity-market.svg" alt="Farmers market" class="event-img">
+              <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Outdoor Walking" class="event-img">
               <div class="event-info">
-                <h3>Farmers' market tours</h3>
+                <h3>MeTreat Retreats Women's Wellness Walk</h3>
                 <div class="event-tags">
                   <span class="tag april">April</span>
-                  <span class="tag healthy">Healthy Eating</span>
-                  <span class="tag charged">Charged Event</span>
+                  <span class="tag outdoor">Outdoor Walking</span>
+                  <span class="tag end">Sales Ended</span>
                 </div>
-                <p class="event-description">Discover local produce and learn about sustainable eating with our guided farmers' market tours. Includes cooking demonstrations and tastings.</p>
+                <p class="event-description">CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Melbourne</div>
-                  <div><strong>Group size:</strong> 8-12</div>
-                  <div><strong>Date:</strong> April 1st & 15th</div>
+                  <div><strong>Location:</strong> Torquay Beach</div>
+                  <div><strong>Address:</strong> Torquay Beach Torquay, VIC 3228</div>
+                  <!-- <div><strong>Group size:</strong> 8-12</div> -->
+                  <div><strong>Date:</strong> April 25th</div>
+                  <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
+                  <div><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
                 </div>
                 <button class="register-btn">Register Now</button>
               </div>
