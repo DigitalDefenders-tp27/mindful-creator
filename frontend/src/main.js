@@ -9,7 +9,7 @@ app.use(router)
 
 // Add global configuration
 app.config.globalProperties.$api = {
-  baseURL: 'http://localhost:8000',
+  baseURL: 'http://localhost:5000',
   async getInfluencerGuide() {
     const response = await fetch(`${this.baseURL}/api/influencer-guide`)
     return response.json()

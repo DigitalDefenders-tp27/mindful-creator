@@ -135,7 +135,7 @@
         
         <div class="activities-header">
           <h3 class="recent-title">RECENT CAMPAIGNS...</h3>
-          <button @click="showAllEvents" class="view-all-btn">VIEW ALL EVENTS</button>
+          <a href="#" class="view-all">VIEW ALL EVENTS</a>
         </div>
         
         <div class="activities-grid">
@@ -350,22 +350,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
-// Modal state management
-const isModalVisible = ref(false);
-
-// Show all events modal
-const showAllEvents = () => {
-  isModalVisible.value = true;
-  document.body.style.overflow = 'hidden'; // Prevent background scrolling
-};
-
-// Close modal
-const closeModal = () => {
-  isModalVisible.value = false;
-  document.body.style.overflow = ''; // Restore scrolling
-};
+// 组件逻辑可以在这里添加 / Component logic can be added here
 </script>
 
 <style scoped>
@@ -1086,22 +1071,9 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-.view-all-btn {
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(231, 90, 151, 0.3);
-}
-
-.view-all-btn:hover {
-  background-color: #d4488b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(231, 90, 151, 0.4);
+.view-all {
+  color: #666;
+  text-decoration: none;
 }
 
 .activities-grid {
@@ -1170,194 +1142,6 @@ section:not(:last-child)::after {
   justify-content: space-between;
   color: #666;
   font-size: 0.9rem;
-}
-
-/* Activities modal styles */
-.activities-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.activities-modal {
-  background-color: #fff;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 1000px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-}
-
-.modal-header h2 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.close-modal-btn {
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  color: #666;
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
-.modal-content {
-  padding: 1.5rem;
-}
-
-.event-filters {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 180px;
-}
-
-.filter-group label {
-  font-weight: 500;
-  color: #333;
-}
-
-.filter-group select {
-  padding: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9;
-}
-
-.events-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.event-card {
-  display: flex;
-  background-color: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(230, 239, 182, 0.4);
-}
-
-.event-img {
-  width: 200px;
-  height: 100%;
-  object-fit: cover;
-  background-color: #f5f5f5;
-}
-
-.event-info {
-  padding: 1.5rem;
-  flex: 1;
-}
-
-.event-info h3 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.event-tags {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.tag.march {
-  background-color: #3498db;
-}
-
-.tag.charged {
-  background-color: #e67e22;
-}
-
-.tag.free {
-  background-color: #2ecc71;
-}
-
-.tag.physical {
-  background-color: #9b59b6;
-}
-
-.tag.healthy {
-  background-color: #27ae60;
-}
-
-.event-description {
-  margin-bottom: 1rem;
-  color: #555;
-  line-height: 1.5;
-}
-
-.event-meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.register-btn {
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.register-btn:hover {
-  background-color: #d4488b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(231, 90, 151, 0.3);
-}
-
-/* Responsive styles for the modal */
-@media (max-width: 768px) {
-  .event-card {
-    flex-direction: column;
-  }
-  
-  .event-img {
-    width: 100%;
-    height: 180px;
-  }
-  
-  .event-meta {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* 页脚 / Footer */
