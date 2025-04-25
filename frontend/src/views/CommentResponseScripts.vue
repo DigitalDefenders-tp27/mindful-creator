@@ -5,7 +5,11 @@
     <p class="click-hint">(Click on a comment type to see the response strategy)</p>
 
     <div class="gauge-grid">
-      <div v-for="(item, idx) in gaugeData" :key="idx" class="gauge-item" @click="selectedIndex = idx"
+      <div 
+        v-for="(item, idx) in gaugeData" 
+        :key="idx" 
+        class="gauge-item" 
+        @click="selectedIndex = idx"
         :class="{ active: selectedIndex === idx }">
         <div class="gauge-wrapper">
           <HalfDonutChart :percentage="item.value" :color="item.color" />
@@ -15,7 +19,9 @@
       </div>
     </div>
 
-    <div v-if="selectedType" class="strategy-section">
+    <div 
+      v-if="selectedType" 
+      class="strategy-section">
       <h2 class="strategy-title">Step-by-Step Response Strategy</h2>
 
       <div class="nav-arrows">
@@ -38,7 +44,9 @@
       </div>
     </div>
   </div>
+
   <!-- Floating Chatbot Button and Window -->
+
   <div class="chatbot-container" @click="toggleChat">
     💬
   </div>
@@ -52,12 +60,141 @@
       <input v-model="userMessage" @keyup.enter="sendMessage" placeholder="Ask something..." />
       <button @click="sendMessage">Send</button>
     </div>
+
+    <!-- ───── NEW dynamic results; appears only when store has data ───── -->
+  <section
+    v-if="hasData"
+    class="analysis-section mt-16 p-6 bg-white rounded-lg shadow max-w-5xl mx-auto"
+  >
+    <!-- ① Original comment ---------------------------------------------------->
+    <div class="mb-8 p-4 bg-gray-50 rounded border">
+      <p class="font-medium mb-1">Original Comment</p>
+      <p class="whitespace-pre-wrap">{{ data.analysis.input_text }}</p>
+    </div>
+
+    <!-- ② Sentiment pie ------------------------------------------------------->
+    <div class="mb-12">
+      <ApexChart
+        type="pie"
+        height="320"
+        :series="sentSeries"
+        :options="sentOptions"
+      />
+    </div>
+
+    <!-- ③ Toxicity gauges ----------------------------------------------------->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-12">
+      <div
+        v-for="(label, key) in toxicityLabels"
+        :key="key"
+        class="text-center"
+      >
+        <HalfDonutChart
+          :percentage="(toxicity[key].probability * 100).toFixed(1)"
+          :color="toxicityColors[key]"
+        />
+        <p class="mt-2 font-medium">{{ label }}</p>
+        <p class="text-sm">
+          {{ (toxicity[key].probability * 100).toFixed(1) }} % 
+          ({{ toxicity[key].prediction }})
+        </p>
+      </div>
+    </div>
+
+    <!-- ④ Strategy text ------------------------------------------------------->
+    <div class="p-4 bg-gray-50 rounded">
+      <h3 class="font-medium mb-2">Response Strategy</h3>
+      <p class="whitespace-pre-wrap">{{ strategy }}</p>
+    </div>
+  </section>
   </div>
 
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+
+// ─── New: import Pinia store & ApexCharts for analysis display ─────────
+import { useAnalysisStore } from '@/stores/analysisStore'
+import ApexChart from 'vue3-apexcharts'
+import { useRoute } from 'vue-router'
+
+/* reactive refs pulled via storeToRefs isn’t required because we don’t
+   destructure – we keep the whole `store` object */
+const hasData  = computed(() => store.hasData)
+const data     = computed(() => store.data ?? {})            // safe default
+const toxicity = computed(() => data.value.analysis?.toxicity_details ?? {})
+
+const route = useRoute()
+const store = useAnalysisStore()
+const showAnalysisResults = computed(() => Boolean(store.data?.analysis))
+
+const showDynamicResults = computed(() => {
+  return route.query.fromAnalysis === 'true' && store.data !== null
+})
+
+const analyzedComment = computed(() => {
+  return store.data?.analysis?.input_text || 'No comment available'
+})
+
+const responseStrategy = computed(() => {
+  if (!store.data?.strategy) return 'No strategy generated'
+  return typeof store.data.strategy === 'string' 
+    ? store.data.strategy 
+    : JSON.stringify(store.data.strategy, null, 2)
+})
+
+const toxicityData = computed(() => {
+  return store.data?.analysis?.toxicity_details || {}
+})
+
+
+// Prepare the pie-chart series & options
+const sentSeries = computed(() => {
+  if (!hasData.value) return []
+
+  const conf = Number(data.value.analysis.sentiment_confidence) || 0
+  return [ +(conf * 100).toFixed(1), +(100 - conf * 100).toFixed(1) ]
+})
+const sentOptions = computed(() => ({
+  labels: [
+    data.value.analysis?.predicted_sentiment ?? 'Sentiment',
+    'Other'
+  ],
+  legend: { position: 'bottom' }
+}))
+
+// Toxicity labels & colors
+const toxicityLabels = {
+  toxic:         'Toxic',
+  severe_toxic:  'Severe Toxic',
+  obscene:       'Obscene',
+  threat:        'Threat',
+  insult:        'Insult',
+  identity_hate: 'Identity Hate'
+}
+
+const getToxicityColor = (key) =>
+  ({
+    toxic:         '#EF5350',
+    severe_toxic:  '#D32F2F',
+    obscene:       '#FF7043',
+    threat:        '#AB47BC',
+    insult:        '#FFA726',
+    identity_hate: '#7E57C2'
+  }[key] || '#888')
+
+/* ------------------------------------------------------------------------
+   Strategy text
+   -----------------------------------------------------------------------*/
+const strategy = computed(() =>
+  typeof data.value.strategy === 'string'
+    ? data.value.strategy
+    : JSON.stringify(data.value.strategy, null, 2)
+)
+
+// ─────────────────────────────────────────────────────────────────────
+
+import { ref, computed, onMounted } from 'vue'
 import HalfDonutChart from '@/components/ui/HalfDonutChart.vue'
 import axios from 'axios'
 
@@ -73,7 +210,7 @@ const sendMessage = async () => {
   if (userMessage.value.trim()) {
     chatHistory.value.push({ role: 'user', text: userMessage.value })
     try {
-      const res = await axios.post('http://localhost:5000/api/chatbot', {
+      const res = await axios.post('http://localhost:5001/api/chatbot', {
         message: userMessage.value,
       })
       chatHistory.value.push({ role: 'bot', text: res.data.reply })
@@ -202,6 +339,9 @@ function prevType() {
 function nextType() {
   selectedIndex.value = (selectedIndex.value + 1) % gaugeData.length
 }
+defineExpose({ ApexChart
+})
+
 </script>
 
 <style scoped>
@@ -426,6 +566,103 @@ function nextType() {
 .bot {
   text-align: left;
   margin: 0.3rem 0;
+}
+
+/* New styles for dynamic results section */
+.dynamic-results-section {
+  margin: 4rem auto;
+  padding: 2rem;
+  max-width: 1200px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.results-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a365d;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.comment-display,
+.strategy-display,
+.sentiment-analysis,
+.toxicity-analysis {
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.comment-content,
+.strategy-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.chart-container {
+  margin: 0 auto;
+  max-width: 380px;
+}
+
+.gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.toxicity-gauge {
+  text-align: center;
+}
+
+.toxicity-gauge h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.toxicity-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sentiment-analysis,
+  .toxicity-analysis {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .toxicity-analysis {
+    grid-column: span 3;
+  }
 }
 
 </style>
