@@ -120,50 +120,7 @@
       </div>
 
       <!-- Comments Response Scripts Section -->
-      <div class="comments-scripts-section">
-        <h2 class="comments-scripts-title">Comments Response Scripts</h2>
-        <div class="search-container">
-          <input type="text" class="search-input" placeholder="Search comment scripts...">
-          <button class="search-close-btn">×</button>
-        </div>
-        
-        <div class="highlight-box">Negative Comment Type</div>
-        <p class="click-hint">(Click on a comment type to see the response strategy)</p>
-
-        <div class="gauge-grid">
-          <div v-for="(item, idx) in gaugeData" :key="idx" class="gauge-item" @click="selectedIndex = idx"
-            :class="{ active: selectedIndex === idx }">
-            <div class="gauge-wrapper">
-              <HalfDonutChart :percentage="item.value" :color="item.color" />
-              <div class="percent-text">{{ item.value }}%</div>
-            </div>
-            <p class="label">{{ item.label }}</p>
-          </div>
-        </div>
-
-        <div v-if="selectedType" class="strategy-section">
-          <h2 class="strategy-title">Step-by-Step Response Strategy</h2>
-
-          <div class="nav-arrows">
-            <span class="arrow" @click="prevType">&lt;</span>
-
-            <div class="steps-grid">
-              <div v-for="(step, index) in selectedType.strategy" :key="index" class="step-box">
-                <strong>{{ step.title }}</strong>
-                <p>{{ step.text }}</p>
-                <div class="step-num">{{ index + 1 }}</div>
-              </div>
-            </div>
-
-            <span class="arrow" @click="nextType">&gt;</span>
-          </div>
-
-          <div class="qa-box">
-            <p><strong>Q:</strong> "{{ selectedType.q }}"</p>
-            <p><strong>A:</strong> "{{ selectedType.a }}"</p>
-          </div>
-        </div>
-      </div>
+      <CommentInput />
     </div>
   </template>
 
@@ -173,6 +130,11 @@
   import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
   import RippleButton from '@/components/ui/ripple-button.vue'
   import HalfDonutChart from '@/components/ui/HalfDonutChart.vue'
+  import CommentInput from '@/components/CommentInput.vue'
+
+  import { useAnalysisStore } from '@/stores/analysisStore'
+  const analysisStore = useAnalysisStore()
+  analysisStore.$reset()
 
   import bell from '../assets/emojis/bell.png'
   import happy from '../assets/emojis/Happy.png'
