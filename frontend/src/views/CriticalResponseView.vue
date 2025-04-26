@@ -242,7 +242,7 @@
             </div>
             
             <!-- Recommendations Section -->
-            <div class="recommendations-section">
+            <!-- <div class="recommendations-section">
               <h3>Recommendations</h3>
               <p>Based on the analysis of your YouTube comments, we recommend:</p>
               <ul class="recommendations-list">
@@ -251,7 +251,7 @@
                 <li>Consider addressing common concerns in your next video</li>
                 <li>Set healthy boundaries with toxic commenters</li>
               </ul>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
