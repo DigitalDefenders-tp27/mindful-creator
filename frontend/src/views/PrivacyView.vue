@@ -23,51 +23,68 @@
         
         <!-- Youtube section -->
         <div class="platform-section youtube-section">
-          <div class="platform-header">
+          <div class="platform-header" @click="togglePlatform('youtube')" :class="{ 'active': activePlatform === 'youtube' }">
             <img src="../assets/icons/logo/youtube.svg.png" alt="Youtube Logo" class="platform-logo">
             <h2>Youtube</h2>
+            <div class="expand-icon">
+              <span :class="{ 'rotated': activePlatform === 'youtube' }">▼</span>
+            </div>
           </div>
           
-          <div class="privacy-settings">
-            <div class="settings-sidebar">
-              <h3>Privacy setting guides</h3>
-              <ul>
-                <li class="active">· Browser version</li>
-                <li>· Mobile version</li>
-              </ul>
-              <div class="sidebar-links">
-                <a href="#" class="sidebar-link">Privacy tips</a>
-                <a href="#" class="sidebar-link">Boundary tips</a>
-              </div>
-            </div>
-            
-            <div class="settings-content">
-              <div class="settings-header">
-                <h3>How to change your default privacy settings</h3>
-                <p>If you use Youtube in your browser</p>
-                <span class="update-date">Update to: 04/14/2025</span>
+          <div class="platform-content" v-show="activePlatform === 'youtube'">
+            <div class="privacy-settings">
+              <div class="settings-sidebar">
+                <div class="sidebar-nav">
+                  <div class="nav-group">
+                    <div class="nav-item" :class="{ 'active': activeGuide === 'settings' }" @click="switchGuide('settings')">
+                      <h3>Privacy setting guides</h3>
+                    </div>
+                    
+                    <div v-if="activeGuide === 'settings'" class="guide-options">
+                      <ul>
+                        <li class="active">· Browser version</li>
+                        <li>· Mobile version</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div class="nav-item" :class="{ 'active': activeGuide === 'tips' }" @click="switchGuide('tips')">
+                    <h3>Privacy tips</h3>
+                  </div>
+                  <div class="nav-item" :class="{ 'active': activeGuide === 'boundary' }" @click="switchGuide('boundary')">
+                    <h3>Boundary tips</h3>
+                  </div>
+                </div>
               </div>
               
-              <div class="settings-steps">
-                <div class="step">
-                  <h4>Step 1:</h4>
-                  <p>Open YouTube in your web browser and sign in to your account. Look for your profile picture in the top-right corner of the screen and click on it to reveal a dropdown menu.</p>
-                  <div class="step-image">
-                    <img src="../assets/screenshots/youtube-step1.png" alt="YouTube Step 1" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'">
+              <div class="settings-content">
+                <div class="settings-header">
+                  <h3>How to change your default privacy settings</h3>
+                  <p>If you use Youtube in your browser</p>
+                  <span class="update-date">Update to: 04/14/2025</span>
+                </div>
+                
+                <div class="settings-steps">
+                  <div class="step">
+                    <h4>Step 1:</h4>
+                    <p>Open YouTube in your web browser and sign in to your account. Look for your profile picture in the top-right corner of the screen and click on it to reveal a dropdown menu.</p>
+                    <div class="step-image">
+                      <img src="../assets/screenshots/youtube-step1.png" alt="YouTube Step 1" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'">
+                    </div>
+                  </div>
+                  
+                  <div class="step">
+                    <h4>Step 2:</h4>
+                    <p>In the dropdown menu that appears, click on "Settings." This will take you to the YouTube settings page where you can manage all aspects of your account.</p>
+                    <div class="step-image">
+                      <img src="../assets/screenshots/youtube-step2.png" alt="YouTube Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'">
+                    </div>
                   </div>
                 </div>
                 
-                <div class="step">
-                  <h4>Step 2:</h4>
-                  <p>In the dropdown menu that appears, click on "Settings." This will take you to the YouTube settings page where you can manage all aspects of your account.</p>
-                  <div class="step-image">
-                    <img src="../assets/screenshots/youtube-step2.png" alt="YouTube Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'">
-                  </div>
+                <div class="quick-view">
+                  <button>Quick view</button>
                 </div>
-              </div>
-              
-              <div class="quick-view">
-                <button>Quick view</button>
               </div>
             </div>
           </div>
@@ -75,25 +92,35 @@
         
         <!-- TikTok section -->
         <div class="platform-section tiktok-section">
-          <div class="platform-header">
+          <div class="platform-header" @click="togglePlatform('tiktok')" :class="{ 'active': activePlatform === 'tiktok' }">
             <img src="../assets/icons/logo/tiktok.png" alt="TikTok Logo" class="platform-logo">
             <h2>Tiktok</h2>
+            <div class="expand-icon">
+              <span :class="{ 'rotated': activePlatform === 'tiktok' }">▼</span>
+            </div>
           </div>
           
-          <div class="coming-soon">
-            <p>Privacy settings guide coming soon</p>
+          <div class="platform-content" v-show="activePlatform === 'tiktok'">
+            <div class="coming-soon">
+              <p>Privacy settings guide coming soon</p>
+            </div>
           </div>
         </div>
         
         <!-- Instagram section -->
         <div class="platform-section instagram-section">
-          <div class="platform-header">
+          <div class="platform-header" @click="togglePlatform('instagram')" :class="{ 'active': activePlatform === 'instagram' }">
             <img src="../assets/icons/logo/insta.png" alt="Instagram Logo" class="platform-logo">
             <h2>Instagram</h2>
+            <div class="expand-icon">
+              <span :class="{ 'rotated': activePlatform === 'instagram' }">▼</span>
+            </div>
           </div>
           
-          <div class="coming-soon">
-            <p>Privacy settings guide coming soon</p>
+          <div class="platform-content" v-show="activePlatform === 'instagram'">
+            <div class="coming-soon">
+              <p>Privacy settings guide coming soon</p>
+            </div>
           </div>
         </div>
       </div>
@@ -106,7 +133,27 @@
 </template>
 
 <script setup>
-// No special logic needed
+import { ref } from 'vue';
+
+// 跟踪当前激活的平台
+const activePlatform = ref(null);
+
+// 跟踪当前激活的指南类型（设置指南、隐私提示、边界提示）
+const activeGuide = ref('settings');
+
+// 切换平台展开/折叠状态
+const togglePlatform = (platform) => {
+  if (activePlatform.value === platform) {
+    activePlatform.value = null;
+  } else {
+    activePlatform.value = platform;
+  }
+};
+
+// 切换指南类型
+const switchGuide = (guide) => {
+  activeGuide.value = guide;
+};
 </script>
 
 <style scoped>
@@ -244,8 +291,43 @@
 .platform-header {
   display: flex;
   align-items: center;
-  margin-bottom: 2rem;
   gap: 1rem;
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.platform-header:hover {
+  background-color: rgba(235, 250, 180, 0.8);
+}
+
+.platform-header.active {
+  background-color: rgba(231, 90, 151, 0.1);
+}
+
+.expand-icon {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expand-icon span {
+  font-size: 1rem;
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+.expand-icon span.rotated {
+  transform: rotate(180deg);
+}
+
+.platform-content {
+  margin-top: 1rem;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
 }
 
 .platform-logo {
@@ -292,20 +374,62 @@
   border-right: 1px solid #eee;
 }
 
-.settings-sidebar h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.settings-sidebar ul {
-  list-style: none;
-  padding: 0;
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.settings-sidebar li {
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-item {
+  cursor: pointer;
+  padding: 0.5rem 0;
+  border-left: 3px solid transparent;
+  padding-left: 0.5rem;
+  transition: all 0.3s;
+}
+
+.nav-item:hover {
+  border-left-color: #e75a97;
+}
+
+.nav-item.active {
+  border-left-color: #e75a97;
+}
+
+.nav-item h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #555;
+  transition: color 0.3s;
+  margin: 0;
+}
+
+.nav-item:hover h3 {
+  color: #e75a97;
+}
+
+.nav-item.active h3 {
+  color: #e75a97;
+}
+
+.guide-options {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.guide-options ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.guide-options li {
   padding: 0.5rem 0;
   cursor: pointer;
   font-size: 1.1rem;
@@ -313,31 +437,13 @@
   transition: color 0.3s;
 }
 
-.settings-sidebar li:hover {
+.guide-options li:hover {
   color: #e75a97;
 }
 
-.settings-sidebar li.active {
+.guide-options li.active {
   color: #e75a97;
   font-weight: 500;
-}
-
-.sidebar-links {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.sidebar-link {
-  color: #555;
-  text-decoration: none;
-  font-size: 1.1rem;
-  transition: color 0.3s;
-}
-
-.sidebar-link:hover {
-  color: #e75a97;
-  text-decoration: underline;
 }
 
 .settings-content {
@@ -477,6 +583,34 @@
     padding-bottom: 1rem;
   }
   
+  .sidebar-nav {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+  }
+  
+  .nav-group {
+    width: 100%;
+  }
+  
+  .nav-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding-left: 0;
+    padding-bottom: 0.5rem;
+  }
+  
+  .nav-item:hover, 
+  .nav-item.active {
+    border-left-color: transparent;
+    border-bottom-color: #e75a97;
+  }
+  
+  .guide-options {
+    margin-left: 0;
+    margin-top: 0.75rem;
+  }
+  
   .section-title {
     font-size: 2rem;
   }
@@ -532,6 +666,12 @@
   
   .step-image {
     height: 180px;
+  }
+  
+  .expand-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
   }
 }
 </style>

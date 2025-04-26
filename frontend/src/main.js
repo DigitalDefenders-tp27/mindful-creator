@@ -3,17 +3,22 @@ import './styles/index.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import { createPinia } from 'pinia'
+// import { createPinia } from 'pinia'
 import VueApexCharts from 'vue3-apexcharts'
+// 使用测试文件中的pinia实例
+import pinia from './piniaTest.js'
 
+// 创建应用实例
 const app = createApp(App)
+
+// 使用插件
 app.use(router)
-app.use(createPinia())
+app.use(pinia)
 app.use(VueApexCharts)
 
-// Add global configuration
+// 添加全局配置
 app.config.globalProperties.$api = {
-  baseURL: 'http://localhost:5001',
+  baseURL: 'http://localhost:8000',
   async getInfluencerGuide() {
     const response = await fetch(`${this.baseURL}/api/influencer-guide`)
     return response.json()
@@ -24,4 +29,5 @@ app.config.globalProperties.$api = {
   }
 }
 
+// 挂载应用
 app.mount('#app')
