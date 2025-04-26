@@ -33,21 +33,35 @@
 
       <div class="quiz-body">
         <div v-if="!quizCompleted" class="question-container">
-          <h3>{{ currentQuestion.question }}</h3>
-          <div class="options">
-            <button 
-              v-for="(option, key) in currentQuestion.options" 
-              :key="key"
-              :class="['option-button', { 
-                'selected': selectedAnswer === key,
-                'correct': showAnswer && key === currentQuestion.correctAnswer,
-                'incorrect': showAnswer && selectedAnswer === key && key !== currentQuestion.correctAnswer
-              }]"
-              @click="selectAnswer(key)"
-              :disabled="showAnswer"
-            >
-              {{ key }}. {{ option }}
-            </button>
+          <div class="question-content">
+            <h3>{{ currentQuestion.question }}</h3>
+            <div class="options">
+              <div 
+                v-for="(option, key) in currentQuestion.options" 
+                :key="key"
+                class="option-wrapper"
+              >
+                <button 
+                  :class="['option-button', { 
+                    'selected': selectedAnswer === key,
+                    'correct': showAnswer && key === currentQuestion.correctAnswer,
+                    'incorrect': showAnswer && selectedAnswer === key && key !== currentQuestion.correctAnswer
+                  }]"
+                  @click="selectAnswer(key)"
+                  :disabled="showAnswer"
+                >
+                  {{ key }}. {{ option }}
+                </button>
+                <div 
+                  v-if="showAnswer && (key === currentQuestion.correctAnswer || selectedAnswer === key)" 
+                  class="option-explanation"
+                >
+                  <div class="explanation-content">
+                    {{ getExplanationForOption(currentQuestionIndex, key) }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="quiz-controls">
             <button 
@@ -71,7 +85,68 @@
         <div v-else class="quiz-results">
           <h3>Quiz Completed!</h3>
           <p>Your score: {{ score }} out of {{ questions.length }}</p>
-          <button class="restart-button" @click="restartQuiz">Try Again</button>
+          
+          <!-- Try Again button moved between score and review -->
+          <div class="quiz-controls-final">
+            <button class="restart-button" @click="restartQuiz">Try Again</button>
+          </div>
+          
+          <!-- Review Section -->
+          <div class="review-section">
+            <h4>Review Your Answers</h4>
+            
+            <div class="review-categories">
+              <div 
+                v-for="(category, index) in reviewCategories" 
+                :key="index"
+                class="review-category"
+              >
+                <h5>{{ category.name }}</h5>
+                <div 
+                  v-for="questionIndex in category.questions" 
+                  :key="questionIndex"
+                  :class="['review-question', getQuestionReviewClass(questionIndex)]"
+                >
+                  <div class="review-question-header">
+                    <span class="review-question-number">Question {{ questionIndex + 1 }}</span>
+                    <span 
+                      :class="['review-status', userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? 'correct' : 'incorrect']"
+                    >
+                      {{ userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? '✓' : '✗' }}
+                    </span>
+                  </div>
+                  
+                  <div class="review-question-content">
+                    <p class="review-question-text">{{ questions[questionIndex].question }}</p>
+                    <div class="review-answer">
+                      <span class="user-answer">Your answer: <strong>{{ getUserAnswerText(questionIndex) }}</strong></span>
+                      <span 
+                        v-if="userAnswers[questionIndex] !== questions[questionIndex].correctAnswer"
+                        class="correct-answer"
+                      >
+                        Correct answer: <strong>{{ getCorrectAnswerText(questionIndex) }}</strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Recommendations Section -->
+            <div v-if="recommendedCategories.length > 0" class="recommendations">
+              <h4>Recommended Review</h4>
+              <p>Based on your answers, we recommend reviewing these topics:</p>
+              <ul class="recommended-topics">
+                <li 
+                  v-for="(category, index) in recommendedCategories" 
+                  :key="index"
+                  class="recommended-topic"
+                >
+                  {{ category }}
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -89,6 +164,7 @@ const selectedAnswer = ref(null)
 const showAnswer = ref(false)
 const score = ref(0)
 const quizCompleted = ref(false)
+const userAnswers = ref([])
 
 // 从 Markdown 文件加载问题 / Load questions from Markdown file
 const questions = ref([
@@ -100,7 +176,14 @@ const questions = ref([
       C: "Responsible and ethical participation online",
       D: "Achieving a high follower count"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Digital citizenship is more than just frequent use of social media platforms; it involves responsible behavior online.",
+      B: "Creating viral content is just one aspect of online activity, not the definition of digital citizenship.",
+      C: "Digital citizenship is about being responsible, ethical, and respectful when participating in online communities.",
+      D: "While followers are important for influencers, digital citizenship focuses on responsible online behavior rather than popularity metrics."
+    },
+    category: "Understanding Your Impact"
   },
   {
     question: "How does constructive engagement benefit your audience?",
@@ -110,7 +193,14 @@ const questions = ref([
       C: "Increases follower count",
       D: "Limits audience interaction"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Constructive engagement actually combats misinformation by encouraging thoughtful dialogue.",
+      B: "When you engage constructively, you create space for meaningful conversations that lead to greater understanding among your audience.",
+      C: "While engagement may increase followers, the primary benefit is building quality relationships through meaningful interactions.",
+      D: "Constructive engagement expands rather than limits audience interaction by encouraging participation."
+    },
+    category: "Understanding Your Impact"
   },
   {
     question: "Transparency with your audience primarily builds:",
@@ -120,7 +210,14 @@ const questions = ref([
       C: "Higher revenue",
       D: "Increased followers instantly"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Transparency may contribute to popularity, but its primary purpose is building authentic relationships.",
+      B: "Being transparent about your values, processes, and partnerships creates trust with your audience, establishing long-term credibility.",
+      C: "While trust can lead to better business outcomes, revenue isn't the primary benefit of transparency.",
+      D: "Transparency builds followers gradually through authentic connection rather than providing instant growth."
+    },
+    category: "Building Authentic Relationships"
   },
   {
     question: "What best illustrates genuine audience engagement?",
@@ -130,7 +227,14 @@ const questions = ref([
       C: "Regularly responding sincerely to comments and questions",
       D: "Avoiding personal stories and experiences"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Genuine engagement means addressing all feedback, including criticism, to build stronger relationships.",
+      B: "Promotional content alone doesn't foster meaningful connections; authentic engagement requires diverse content.",
+      C: "Taking time to personally respond to your audience shows that you value their input and are committed to building authentic relationships.",
+      D: "Personal stories actually strengthen engagement by making authentic connections with your audience."
+    },
+    category: "Building Authentic Relationships"
   },
   {
     question: "Ethical content creation involves:",
@@ -140,7 +244,14 @@ const questions = ref([
       C: "Avoiding audience opinions completely",
       D: "Changing values frequently to match trends"
     },
-    correctAnswer: "B"
+    correctAnswer: "B",
+    explanations: {
+      A: "Chasing views without consideration for ethics can lead to harmful content and damage trust.",
+      B: "Ethical creators maintain consistent values and produce content that reflects their authentic beliefs and intentions.",
+      C: "Ethical creation should consider audience feedback while maintaining core values.",
+      D: "Constantly shifting values for trends appears inauthentic and undermines credibility."
+    },
+    category: "Ethical Content Creation"
   },
   {
     question: "Accountability in content creation means:",
@@ -150,7 +261,14 @@ const questions = ref([
       C: "Acknowledging and correcting errors openly",
       D: "Posting controversial content without moderation"
     },
-    correctAnswer: "C"
+    correctAnswer: "C",
+    explanations: {
+      A: "Ignoring mistakes damages trust and prevents learning opportunities.",
+      B: "Shifting blame demonstrates a lack of responsibility and damages credibility.",
+      C: "Accountability means taking responsibility for errors, addressing them openly, and making visible corrections.",
+      D: "Unmoderated controversial content shows a lack of responsibility toward your audience."
+    },
+    category: "Ethical Content Creation"
   }
 ])
 
@@ -160,6 +278,41 @@ const isLastQuestion = computed(() => currentQuestionIndex.value === questions.v
 // 添加进度计算 / Add progress calculation
 const progressPercentage = computed(() => {
   return (currentQuestionIndex.value / questions.value.length) * 100
+})
+
+// 复习部分的类别 / Categories for review section
+const reviewCategories = computed(() => {
+  const categories = [
+    {
+      name: "Understanding Your Impact",
+      questions: [0, 1],
+    },
+    {
+      name: "Building Authentic Relationships",
+      questions: [2, 3],
+    },
+    {
+      name: "Ethical Content Creation",
+      questions: [4, 5],
+    }
+  ]
+  
+  return categories
+})
+
+// 推荐复习的类别 / Recommended categories to review
+const recommendedCategories = computed(() => {
+  if (userAnswers.value.length === 0) return []
+  
+  const incorrectCategories = new Set()
+  
+  userAnswers.value.forEach((answer, index) => {
+    if (answer !== questions.value[index].correctAnswer) {
+      incorrectCategories.add(questions.value[index].category)
+    }
+  })
+  
+  return Array.from(incorrectCategories)
 })
 
 const openQuiz = () => {
@@ -178,6 +331,7 @@ const resetQuiz = () => {
   showAnswer.value = false
   score.value = 0
   quizCompleted.value = false
+  userAnswers.value = Array(questions.value.length).fill(null)
 }
 
 const selectAnswer = (answer) => {
@@ -188,6 +342,10 @@ const selectAnswer = (answer) => {
 
 const checkAnswer = () => {
   showAnswer.value = true
+  
+  // 保存用户答案 / Save user's answer
+  userAnswers.value[currentQuestionIndex.value] = selectedAnswer.value
+  
   if (selectedAnswer.value === currentQuestion.value.correctAnswer) {
     score.value++
   }
@@ -205,6 +363,32 @@ const nextQuestion = () => {
 
 const restartQuiz = () => {
   resetQuiz()
+}
+
+const getExplanationForOption = (questionIndex, optionKey) => {
+  const question = questions.value[questionIndex]
+  return question.explanations[optionKey] || ''
+}
+
+// 获取问题复习的CSS类 / Get CSS class for question review
+const getQuestionReviewClass = (questionIndex) => {
+  if (!userAnswers.value[questionIndex]) return ''
+  return userAnswers.value[questionIndex] === questions.value[questionIndex].correctAnswer
+    ? 'correct-question'
+    : 'incorrect-question'
+}
+
+// 获取用户选择的答案文本 / Get user's answer text
+const getUserAnswerText = (questionIndex) => {
+  const answer = userAnswers.value[questionIndex]
+  if (!answer) return 'Not answered'
+  return `${answer}. ${questions.value[questionIndex].options[answer]}`
+}
+
+// 获取正确答案文本 / Get correct answer text
+const getCorrectAnswerText = (questionIndex) => {
+  const correctKey = questions.value[questionIndex].correctAnswer
+  return `${correctKey}. ${questions.value[questionIndex].options[correctKey]}`
 }
 </script>
 
@@ -390,43 +574,71 @@ const restartQuiz = () => {
 
 /* Modal styles */
 .quiz-modal {
-  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2;
 }
 
 .quiz-modal-content {
-  @apply bg-white dark:bg-neutral-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+  @apply bg-white dark:bg-neutral-800 rounded-xl shadow-2xl max-w-[1200px] w-full max-h-[90vh] overflow-y-auto;
+  height: 840px; /* 进一步增大问答窗口高度 */
 }
 
 .quiz-header {
-  @apply flex items-center justify-between p-6 border-b border-neutral-200 dark:border-neutral-700;
+  @apply flex items-center justify-between py-6 px-8 border-b border-neutral-200 dark:border-neutral-700;
+  height: 100px; /* 增大头部高度 */
+  flex-shrink: 0;
 }
 
 .quiz-header h2 {
-  @apply text-2xl font-bold text-neutral-900 dark:text-white;
+  @apply text-3xl font-bold text-neutral-900 dark:text-white;
 }
 
 .close-button {
-  @apply text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 text-2xl;
+  @apply text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 text-3xl;
 }
 
 .quiz-body {
-  @apply p-6;
+  @apply p-8;
+  height: calc(100% - 100px - 60px); /* 总高度减去头部高度和进度条高度 */
+  overflow: hidden; /* 防止滚动条出现 */
+  display: flex;
+  flex-direction: column;
 }
 
 .question-container {
-  @apply space-y-6;
+  @apply space-y-4;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* 允许内容溢出 */
+  position: relative; /* 添加相对定位，便于绝对定位按钮 */
+  padding-bottom: 80px; /* 为按钮预留空间 */
+}
+
+.question-content {
+  flex: 1;
+  overflow: visible; /* 改为visible以避免滚动 */
+  padding-right: 8px;
+  margin-bottom: 0; /* 移除内容与按钮之间的距离 */
 }
 
 .question-container h3 {
   @apply text-xl font-semibold text-neutral-900 dark:text-white;
+  margin-bottom: 1.5rem;
 }
 
 .options {
-  @apply space-y-3;
+  @apply space-y-4; /* 减少选项之间的间距 */
+  min-height: auto; /* 移除固定高度约束 */
+  padding-bottom: 0; /* 移除底部留白 */
+}
+
+.option-wrapper {
+  @apply w-full mb-3;
 }
 
 .option-button {
-  @apply w-full p-4 text-left rounded-lg border border-neutral-200 dark:border-neutral-700;
+  @apply w-full p-4 text-left rounded-lg border border-neutral-200 dark:border-neutral-700 text-base;
   @apply bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white;
   @apply hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors;
 }
@@ -443,12 +655,37 @@ const restartQuiz = () => {
   @apply border-red-500 bg-red-50 dark:bg-red-900/20;
 }
 
+.option-explanation {
+  @apply mt-2 px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-900/50;
+  @apply border-l-4 border-neutral-400 dark:border-neutral-600;
+  @apply text-sm text-neutral-700 dark:text-neutral-300;
+  margin-bottom: 6px; /* 减少解释框底部留白 */
+}
+
+.explanation-content {
+  @apply text-sm text-neutral-700 dark:text-neutral-300;
+  line-height: 1.4;
+}
+
 .quiz-controls {
-  @apply flex justify-end mt-6;
+  @apply flex justify-end;
+  height: 60px; /* 减小按钮区域高度 */
+  margin-top: 0; /* 移除按钮区域的上方留白 */
+  padding-bottom: 0; /* 移除底部留白 */
+  flex-shrink: 0; /* 防止按钮区域被压缩 */
+  position: absolute; /* 使用绝对定位 */
+  bottom: 0; /* 固定在底部 */
+  right: 0; /* 右对齐 */
+  width: 100%; /* 宽度占满 */
 }
 
 .submit-button, .next-button, .restart-button {
-  @apply px-6 py-2 rounded-lg font-medium transition-colors;
+  @apply px-8 py-3 rounded-lg font-medium transition-colors text-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px; /* 减小按钮高度 */
+  line-height: 1;
 }
 
 .submit-button {
@@ -465,26 +702,30 @@ const restartQuiz = () => {
 
 .quiz-results {
   @apply text-center space-y-4;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 1rem;
 }
 
 .quiz-results h3 {
-  @apply text-2xl font-bold text-neutral-900 dark:text-white;
+  @apply text-2xl font-bold text-neutral-900 dark:text-white mt-4 mb-3;
 }
 
 .quiz-results p {
-  @apply text-xl text-neutral-600 dark:text-neutral-400;
+  @apply text-lg text-neutral-600 dark:text-neutral-400 mb-3;
 }
 
 .quiz-progress {
-  @apply px-6 py-3 border-b border-neutral-200 dark:border-neutral-700;
+  @apply px-8 py-4 border-b border-neutral-200 dark:border-neutral-700;
+  height: 60px; /* 增大进度条高度 */
 }
 
 .progress-text {
-  @apply text-sm text-neutral-600 dark:text-neutral-400 mb-2;
+  @apply text-base text-neutral-600 dark:text-neutral-400 mb-2;
 }
 
 .progress-bar {
-  @apply h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden;
+  @apply h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden;
 }
 
 .progress-fill {
@@ -493,5 +734,219 @@ const restartQuiz = () => {
 
 .quiz-button {
   display: none;
+}
+
+/* Review Section Styles */
+.review-section {
+  @apply mt-4 text-left;
+}
+
+.review-section h4 {
+  @apply text-lg font-semibold text-neutral-900 dark:text-white mb-4;
+}
+
+.review-categories {
+  @apply space-y-5;
+  display: block;
+}
+
+.review-category {
+  @apply p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg mb-5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.review-category h5 {
+  @apply text-base font-semibold text-neutral-900 dark:text-white mb-3;
+  color: #1E6A42;
+}
+
+.review-question {
+  @apply mb-4 p-3 rounded-md;
+  @apply bg-neutral-50 dark:bg-neutral-800;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.review-question.correct-question {
+  @apply bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500;
+}
+
+.review-question.incorrect-question {
+  @apply bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500;
+}
+
+.review-question-header {
+  @apply flex justify-between items-center mb-2;
+}
+
+.review-question-number {
+  @apply font-semibold text-neutral-700 dark:text-neutral-300;
+}
+
+.review-status {
+  @apply font-bold text-xl;
+}
+
+.review-status.correct {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.review-status.incorrect {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.review-question-content {
+  @apply ml-0;
+}
+
+.review-question-text {
+  @apply font-medium text-base text-neutral-800 dark:text-neutral-200 mb-2;
+}
+
+.review-answer {
+  @apply space-y-1;
+}
+
+.user-answer, .correct-answer {
+  @apply block text-sm;
+}
+
+.user-answer {
+  @apply text-neutral-700 dark:text-neutral-300;
+}
+
+.correct-answer {
+  @apply text-green-600 dark:text-green-400;
+}
+
+/* Recommendations styles */
+.recommendations {
+  @apply mt-4 p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg;
+  @apply bg-blue-50 dark:bg-blue-900/20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.recommendations h4 {
+  @apply text-base font-semibold text-neutral-900 dark:text-white mb-2;
+  color: #1E6A42;
+}
+
+.recommendations p {
+  @apply text-sm text-neutral-700 dark:text-neutral-300 mb-3;
+  text-align: left;
+}
+
+.recommended-topics {
+  @apply list-disc pl-6 space-y-1;
+  display: block;
+}
+
+.recommended-topic {
+  @apply text-sm text-neutral-800 dark:text-neutral-200;
+  font-weight: 500;
+}
+
+.quiz-controls-final {
+  @apply flex justify-center;
+  margin: 0.5rem 0 1rem;
+}
+
+.quiz-controls-final .restart-button {
+  @apply px-6 py-2 text-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px; /* 减小按钮高度 */
+  line-height: 1;
+}
+
+/* 响应式调整 / Responsive Adjustments for review section */
+@media (max-width: 768px) {
+  .quiz-modal-content {
+    height: 520px;
+  }
+  
+  .quiz-header {
+    height: 70px;
+  }
+  
+  .quiz-body {
+    height: calc(100% - 70px - 40px);
+  }
+  
+  .quiz-progress {
+    height: 40px;
+  }
+  
+  .options {
+    min-height: 220px;
+  }
+  
+  .review-question-header {
+    @apply flex-col items-start space-y-1;
+  }
+  
+  .review-status {
+    @apply self-end;
+  }
+  
+  .user-answer, .correct-answer {
+    font-size: 0.8rem;
+  }
+  
+  .review-question-text {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .quiz-modal-content {
+    height: 480px;
+  }
+  
+  .quiz-header {
+    height: 65px;
+    padding: 1rem;
+  }
+  
+  .quiz-body {
+    height: calc(100% - 65px - 36px);
+    padding: 1rem;
+  }
+  
+  .quiz-progress {
+    height: 36px;
+    padding: 0.75rem 1rem;
+  }
+  
+  .options {
+    min-height: 200px;
+  }
+  
+  .option-button {
+    padding: 0.75rem;
+  }
+}
+
+/* 添加自定义滚动条样式 */
+.question-content::-webkit-scrollbar,
+.quiz-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.question-content::-webkit-scrollbar-track,
+.quiz-results::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.question-content::-webkit-scrollbar-thumb,
+.quiz-results::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.question-content::-webkit-scrollbar-thumb:hover,
+.quiz-results::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 </style> 

@@ -14,7 +14,7 @@
   </template>
   
   <script setup>
-  // Displaying a list of positive affirmations for reflection.
+
   </script>
   
   <style scoped>
