@@ -1,6 +1,8 @@
 <script setup>
 // Import navigation bar component / 导入导航栏组件
 import NavBar from './components/NavBar.vue'
+// Import footer component / 导入页脚组件
+import Footer from './components/Footer.vue'
 </script>
 
 <template>
@@ -9,6 +11,7 @@ import NavBar from './components/NavBar.vue'
     <main class="main-content">
       <router-view></router-view>
     </main>
+    <Footer />
   </div>
 </template>
 
