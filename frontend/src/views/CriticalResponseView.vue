@@ -6,33 +6,21 @@
           <div class="slogan">
             <div class="title-group">
               <h1>Critical Response</h1>
-              <h2>Turning Feedback into Growth</h2>
+              <h2>Navigating Feedback with Resilience</h2>
             </div>
-            <p class="subtitle">Learn to handle criticism constructively and protect yourself from cyberbullying</p>
+            <p class="subtitle">Transform challenging interactions into growth opportunities</p>
           </div>
           <div class="decorative-elements">
             <!-- 右上角第一排 / Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
-              </div>
-            </div>
-            <!-- 右下角第一排 / Bottom Row 1 Right -->
-            <div class="bottom-row-1">
-              <div class="element-wrapper">
                 <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
               </div>
             </div>
           </div>
@@ -132,21 +120,21 @@
       </div>
 
       <!-- Comments Response Scripts Section -->
-      <div class="comments-scripts-section">
-        <h2 class="comments-scripts-title">Comments Response Scripts</h2>
-        <div class="search-container">
-          <input type="text" class="search-input" placeholder="Search comment scripts...">
-          <button class="search-close-btn">×</button>
-        </div>
-      </div>
+      <CommentInput />
     </div>
   </template>
 
   <script setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import { useRouter } from 'vue-router'
   import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
   import RippleButton from '@/components/ui/ripple-button.vue'
+  import HalfDonutChart from '@/components/ui/HalfDonutChart.vue'
+  import CommentInput from '@/components/CommentInput.vue'
+
+  import { useAnalysisStore } from '@/stores/analysisStore'
+  const analysisStore = useAnalysisStore()
+  analysisStore.$reset()
 
   import bell from '../assets/emojis/bell.png'
   import happy from '../assets/emojis/Happy.png'
@@ -201,6 +189,126 @@
     'Usually in public comments, DMs, or even shared posts to mock you. 📢',
     'Upset, anxious, or even scared to post again. 😔',
   ]
+
+  // Added from CommentResponseScripts.vue
+  const selectedIndex = ref(0)
+  const selectedType = computed(() => gaugeData[selectedIndex.value])
+
+  function prevType() {
+    selectedIndex.value = (selectedIndex.value - 1 + gaugeData.length) % gaugeData.length
+  }
+
+  function nextType() {
+    selectedIndex.value = (selectedIndex.value + 1) % gaugeData.length
+  }
+
+  const gaugeData = [
+    {
+      label: 'Accusatory Comments',
+      value: 40,
+      color: '#FF3B30',
+      strategy: [
+        {
+          title: 'Acknowledge the criticism',
+          text: 'Validate their perspective and thank them for the feedback'
+        },
+        {
+          title: 'Provide brief context',
+          text: 'Share relevant information without being defensive'
+        },
+        {
+          title: 'Offer a positive path forward',
+          text: 'Suggest a constructive next step or solution'
+        }
+      ],
+      q: 'This is such a biased take. You only presented one perspective and completely ignored the other side of the argument. Disappointing content.',
+      a: "Thanks 🙏 Fair point on balance – definitely working with time limits but that's on me. Planning a follow-up with more perspectives soon! Any recommendations for sources? Always looking to improve! 💯"
+    },
+    {
+      label: 'Emotional Comments',
+      value: 25,
+      color: '#FFA726',
+      strategy: [
+        {
+          title: 'Acknowledge their emotions',
+          text: 'Recognise the intensity and validate their feelings'
+        },
+        {
+          title: 'Stay calm and neutral',
+          text: 'Respond without escalating the emotional tone'
+        },
+        {
+          title: 'Invite further conversation',
+          text: 'Show openness to hearing more constructively'
+        }
+      ],
+      q: "Why do you always talk like you know everything? This is so annoying!",
+      a: "Appreciate you chiming in! Definitely not my intention to come off that way – I'll keep it more conversational next time 🙏"
+    },
+    {
+      label: 'Misunderstanding Comments',
+      value: 15,
+      color: '#FF7043',
+      strategy: [
+        {
+          title: 'Clarify gently',
+          text: 'Provide accurate info without implying fault'
+        },
+        {
+          title: 'Use simple language',
+          text: 'Keep the explanation clear and concise'
+        },
+        {
+          title: 'Offer resources',
+          text: 'Suggest links or follow-up posts for context'
+        }
+      ],
+      q: "Wait, are you saying everyone should quit their job and do this instead?",
+      a: "Not quite! I meant this approach works *for some* – not one-size-fits-all. Thanks for pointing that out, I'll make it clearer!"
+    },
+    {
+      label: 'Attacking Comments',
+      value: 10,
+      color: '#66BB6A',
+      strategy: [
+        {
+          title: 'Avoid engaging emotionally',
+          text: "Don't match their tone or insults"
+        },
+        {
+          title: 'Set boundaries',
+          text: 'Politely assert your intent to keep it respectful'
+        },
+        {
+          title: 'Redirect to the topic',
+          text: 'Bring focus back to the content or idea'
+        }
+      ],
+      q: "You're such a clown. This is garbage advice!",
+      a: "Let's keep it constructive here. Open to hearing thoughtful counterpoints if you have suggestions!"
+    },
+    {
+      label: 'Constructive Comments',
+      value: 10,
+      color: '#81C784',
+      strategy: [
+        {
+          title: 'Appreciate the input',
+          text: 'Thank them for thoughtful feedback'
+        },
+        {
+          title: 'Engage with the idea',
+          text: 'Build upon or reflect on their suggestion'
+        },
+        {
+          title: 'Show willingness to act',
+          text: 'Indicate any upcoming improvements or plans'
+        }
+      ],
+      q: "I think this could be stronger if you added more sources.",
+      a: "Love that suggestion! I'm adding more citations in the next update – stay tuned and feel free to share any links!"
+    }
+  ]
   </script>
 
   <style scoped>
@@ -211,24 +319,26 @@
   }
 
   .hero-section {
-    min-height: 75vh;
+    min-height: 40vh;
     background-color: rgb(255, 252, 244);
     display: flex;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     z-index: 1;
-    padding: 1rem 0;
+    padding: 6rem 0 1rem;
+    margin-bottom: 2rem;
   }
 
   .hero-content {
     position: relative;
     width: 100%;
-    min-height: 75vh;
+    min-height: 40vh;
     display: flex;
     align-items: center;
     padding-left: 2rem;
     margin: 0 auto;
+    overflow: visible;
   }
 
   .slogan {
@@ -245,17 +355,20 @@
   }
 
   .title-group h1 {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #8E2DE2 0%, #FF6B9B 100%);
+    background: linear-gradient(135deg, #E67F83 0%, #A86ADD 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.1;
+    line-height: 1.4;
     display: block;
-    margin-bottom: 1rem;
-    white-space: normal;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
     text-align: left;
+    overflow: visible;
+    padding-right: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   .title-group h2 {
@@ -264,8 +377,9 @@
     color: #333;
     line-height: 1.2;
     display: block;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
+    overflow: visible;
   }
 
   .subtitle {
@@ -273,56 +387,9 @@
     color: #666;
     line-height: 1.4;
     margin-top: 1.5rem;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
-  }
-
-  @media (min-width: 640px) {
-    .title-group h1 {
-      font-size: 3rem;
-    }
-    .title-group h2 {
-      font-size: 1.875rem;
-    }
-    .subtitle {
-      font-size: 1.125rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .title-group h1 {
-      font-size: 3.75rem;
-    }
-    .title-group h2 {
-      font-size: 2.25rem;
-    }
-    .subtitle {
-      font-size: 1.25rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .title-group h1 {
-      font-size: 4.5rem;
-    }
-    .title-group h2 {
-      font-size: 3rem;
-    }
-    .subtitle {
-      font-size: 1.5rem;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .title-group h1 {
-      font-size: 6rem;
-    }
-    .title-group h2 {
-      font-size: 3.75rem;
-    }
-    .subtitle {
-      font-size: 1.875rem;
-    }
+    overflow: visible;
   }
 
   .decorative-elements {
@@ -333,12 +400,13 @@
     height: 100%;
     display: grid;
     grid-template-columns: repeat(6, 160px);
-    grid-template-rows: repeat(4, auto);
+    grid-template-rows: auto;
     row-gap: 1rem;
     padding: 2rem 0;
     z-index: 1;
     pointer-events: none;
-    transform: translateX(-2rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 
   .top-row {
@@ -350,18 +418,6 @@
     padding: 0;
     grid-column: 4 / 7;
     grid-row: 1;
-    justify-self: end;
-  }
-
-  .bottom-row-1 {
-    display: grid;
-    grid-template-columns: repeat(3, 160px);
-    gap: 0.5rem;
-    align-items: start;
-    margin: 0;
-    padding: 0;
-    grid-column: 4 / 7;
-    grid-row: 2;
     justify-self: end;
   }
 
@@ -388,16 +444,15 @@
     transition: all 0.5s ease;
   }
 
-  /* Hover效果增强 */
   .top-row .element:hover {
     transform: rotate(-15deg) scale(1.1);
   }
 
-  .bottom-row-1 .element:hover {
-    transform: rotate(15deg) scale(1.1);
+  section:not(:last-child)::after {
+    display: none;
   }
 
-  /* 响应式调整 */
+  /* 添加响应式媒体查询 */
   @media (max-width: 1800px) {
     .decorative-elements {
       width: 840px;
@@ -424,97 +479,103 @@
       transform: translateX(-0.5rem);
       row-gap: 0.75rem;
     }
+    
+    .title-group h2,
+    .subtitle {
+      white-space: normal;
+    }
   }
 
   @media (max-width: 1024px) {
-    .hero-section {
-      min-height: 65vh;
-    }
-
-    .hero-content {
-      min-height: 65vh;
-    }
-
-    .slogan {
-      margin-left: 1.5rem;
-    }
-
     .decorative-elements {
       transform: translateX(0) scale(0.9);
       opacity: 0.5;
       row-gap: 0.5rem;
     }
-
+    
     .title-group h1 {
-      @apply text-5xl;
-    }
-
-    .title-group h2 {
-      @apply text-4xl;
-      white-space: normal;
-    }
-
-    .subtitle {
-      @apply text-xl;
       white-space: normal;
     }
   }
 
   @media (max-width: 768px) {
-    .hero-section {
-      min-height: 55vh;
-    }
-
-    .hero-content {
-      min-height: 55vh;
-    }
-
-    .slogan {
-      margin-left: 1rem;
-    }
-
     .decorative-elements {
-      opacity: 0;
+      opacity: 0.1;
       transform: translateX(0) scale(0.8);
-      transition: opacity 0.3s ease;
     }
-
+    
+    .hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 0.75rem;
+      min-height: 22vh;
+    }
+    
+    .hero-section {
+      min-height: 22vh;
+      padding: 7rem 0 0.5rem;
+    }
+    
+    .slogan {
+      max-width: 90%;
+    }
+    
     .title-group h1 {
-      @apply text-4xl;
+      font-size: 3.5rem;
     }
-
+    
     .title-group h2 {
-      @apply text-3xl;
+      font-size: 2rem;
     }
-
+    
     .subtitle {
-      @apply text-lg;
+      font-size: 1.125rem;
     }
   }
 
   @media (max-width: 640px) {
-    .hero-section {
-      padding: 1.5rem 0;
+    .decorative-elements {
+      opacity: 0;
+      transform: translateX(0) scale(0.7);
     }
-
+    
     .hero-content {
-      padding: 0 1rem;
+      min-height: 18vh;
+      padding-top: 0.25rem;
     }
-
-    .slogan {
-      padding-top: 1rem;
+    
+    .hero-section {
+      min-height: 18vh;
+      padding: 7.5rem 0 0.5rem;
+      margin-bottom: 1rem;
     }
-
+    
     .title-group h1 {
-      @apply text-3xl;
+      font-size: 2.5rem;
     }
-
+    
     .title-group h2 {
-      @apply text-2xl;
+      font-size: 1.5rem;
     }
-
+    
     .subtitle {
-      @apply text-base;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .decorative-elements {
+      opacity: 0;
+      display: none;
+    }
+    
+    .hero-content {
+      min-height: 16vh;
+    }
+    
+    .hero-section {
+      min-height: 16vh;
+      padding: 8rem 0 0.5rem;
     }
   }
 
@@ -956,6 +1017,11 @@
     margin: 3rem auto 4rem;
     max-width: 1200px;
     padding: 0 2rem;
+    background-color: #f8f9fa;
+    border-radius: 24px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+    padding: 3rem 2rem;
+    border: 2px solid #eaeaea;
   }
   
   .comments-scripts-title {
@@ -964,17 +1030,32 @@
     margin-bottom: 2rem;
     color: #000;
     text-align: center;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .comments-scripts-title:after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: #e4f052;
+    border-radius: 2px;
   }
   
   .search-container {
     position: relative;
     max-width: 500px;
-    margin: 0 auto;
+    margin: 0 auto 2rem;
     border: 2px solid #000;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
   .search-input {
@@ -993,19 +1074,292 @@
     padding: 0 1rem;
     cursor: pointer;
     color: #000;
+    transition: color 0.2s;
+  }
+  
+  .search-close-btn:hover {
+    color: #ff5252;
   }
 
-  @media (max-width: 1024px) {
-    .cards-container {
+  /* Added styles from CommentResponseScripts.vue */
+  .highlight-box {
+    background-color: #e4f052;
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .click-hint {
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 2.5rem;
+    font-style: italic;
+  }
+
+  .gauge-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 3rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+  }
+
+  .gauge-item {
+    cursor: pointer;
+    text-align: center;
+    width: 160px;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-bottom: 1rem;
+  }
+
+  .gauge-item:hover {
+    transform: translateY(-5px);
+  }
+
+  .gauge-item.active {
+    transform: scale(1.05);
+  }
+
+  .gauge-item.active:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: #e4f052;
+    border-radius: 2px;
+  }
+
+  .gauge-item.active .label {
+    color: #1e88e5;
+    font-weight: 800;
+  }
+
+  .gauge-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .percent-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: -8px;
+    color: #000;
+  }
+
+  .label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1c1c1c;
+    line-height: 1.3;
+    transition: color 0.3s;
+  }
+
+  .strategy-section {
+    margin-top: 4rem;
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaeaea;
+  }
+
+  .strategy-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: #1e293b;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .strategy-title:after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #e4f052;
+    border-radius: 2px;
+  }
+
+  .nav-arrows {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .arrow {
+    font-size: 2rem;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    user-select: none;
+    transition: transform 0.2s, color 0.2s;
+    color: #555;
+  }
+  
+  .arrow:hover {
+    transform: scale(1.2);
+    color: #000;
+  }
+
+  .steps-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin: 0 2rem;
+  }
+
+  .step-box {
+    background-color: #e4f052;
+    border-radius: 16px;
+    padding: 1.5rem 1.5rem 1.2rem;
+    width: 200px;
+    font-weight: 600;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 220px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .step-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .step-box strong {
+    font-size: 1.1rem;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    z-index: 1;
+  }
+
+  .step-box p {
+    margin-top: 0.5rem;
+    font-weight: normal;
+    font-size: 0.95rem;
+    text-align: center;
+    color: #333;
+    line-height: 1.4;
+    z-index: 1;
+  }
+
+  .step-num {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1e293b;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.6);
+    z-index: 1;
+  }
+
+  .qa-box {
+    border: 2px solid #c4e7c2;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    background-color: #fff;
+    max-width: 750px;
+    margin: 2.5rem auto 0;
+    text-align: left;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    position: relative;
+  }
+
+  .qa-box p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  
+  .qa-box p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .qa-box p strong {
+    color: #1e88e5;
+    font-size: 1.1rem;
+  }
+  
+  /* 添加响应式样式 */
+  @media (max-width: 768px) {
+    .steps-grid {
+      gap: 1.5rem;
+      margin: 0 1rem;
+    }
+    
+    .step-box {
+      width: 160px;
+      min-height: 200px;
+      padding: 1.2rem 1rem 1rem;
+    }
+    
+    .gauge-grid {
+      gap: 2rem;
+    }
+    
+    .strategy-section {
+      padding: 1.5rem;
+    }
+    
+    .qa-box {
+      padding: 1.2rem 1.5rem;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .comments-scripts-title {
+      font-size: 2rem;
+    }
+    
+    .gauge-item {
+      width: 130px;
+    }
+    
+    .steps-grid {
       flex-direction: column;
       align-items: center;
     }
     
-    .process-card {
-      width: 90%;
-      max-width: 320px;
-      height: auto;
-      min-height: 280px;
+    .step-box {
+      width: 80%;
+      max-width: 250px;
+    }
+    
+    .nav-arrows {
+      flex-direction: column;
+    }
+    
+    .arrow {
+      padding: 0.2rem 0.5rem;
     }
   }
   </style>

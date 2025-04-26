@@ -1,14 +1,13 @@
 <template>
-  <div class="relaxation-view">
-    <!-- Hero Section -->
+  <div class="relaxation-container">
     <section class="hero-section">
       <div class="hero-content">
         <div class="slogan">
           <div class="title-group">
             <h1>Relaxation Zone</h1>
-            <h2>Peaceful Moments for Mental Reset</h2>
+            <h2>Mindfulness Moments for Creators</h2>
           </div>
-          <p class="subtitle">Try these activities to calm your mind and regain focus</p>
+          <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
         </div>
         <div class="decorative-elements">
           <!-- 右上角第一排 / Top Row Right -->
@@ -21,42 +20,6 @@
             </div>
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右上角第二排 / Top Row 2 Right -->
-          <div class="top-row-2">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第一排 / Bottom Row 1 Right -->
-          <div class="bottom-row-1">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Z_Pink.svg" alt="Z" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Green.svg" alt="Wave" class="element hoverable">
-            </div>
-          </div>
-          <!-- 右下角第二排 / Bottom Row 2 Right -->
-          <div class="bottom-row-2">
-            <div class="element-wrapper element-1">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper element-2">
-              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Switch" class="element hoverable">
-            </div>
-            <div class="element-wrapper element-3">
-              <img src="/src/assets/icons/elements/Capsule.svg" alt="Capsule" class="element hoverable">
-            </div>
-            <div class="element-wrapper element-4">
-              <img src="/src/assets/icons/elements/7_Bold_Pink.svg" alt="7" class="element hoverable">
-            </div>
-            <div class="element-wrapper element-5">
-              <img src="/src/assets/icons/elements/Z_Red.svg" alt="Z" class="element hoverable">
             </div>
           </div>
         </div>
@@ -164,7 +127,7 @@ const activities = [
     title: 'Sensory Grounding',
     description: 'Try a 5-4-3-2-1 activity to bring yourself into the present.',
     type: 'grounding',
-    image: 'SensoryGrounding.jpg'
+    image: 'SensoryGrounding.png'
   },
   {
     title: 'Nature Sounds',
@@ -188,7 +151,7 @@ const activities = [
     title: 'Affirmation Reflection',
     description: 'Read and reflect on positive affirmations for a mental reset.',
     type: 'affirmation',
-    image: 'Affirmation.png'
+    image: 'Affirmation.jpg'
   },
   {
     title: 'Mini Journal Prompt',
@@ -310,31 +273,34 @@ const submitFeedback = async () => {
 </script>
 
 <style scoped>
-.relaxation-view {
-  font-family: Avenir, Helvetica, sans-serif;
-  background: #fefbf4;
-  text-align: center;
+.relaxation-container {
+  background-color: rgb(254, 251, 244);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .hero-section {
-  min-height: 75vh;
+  min-height: 40vh;
   background-color: rgb(255, 252, 244);
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 1;
-  padding: 1rem 0;
+  padding: 6rem 0 1rem;
+  margin-bottom: 2rem;
 }
 
 .hero-content {
   position: relative;
   width: 100%;
-  min-height: 75vh;
+  min-height: 40vh;
   display: flex;
   align-items: center;
   padding-left: 2rem;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .slogan {
@@ -351,17 +317,20 @@ const submitFeedback = async () => {
 }
 
 .title-group h1 {
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #4ECDC4 0%, #6c63ff 100%);
+  background: linear-gradient(135deg, #6CBDB5 0%, #9BCCA6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.1;
+  line-height: 1.4;
   display: block;
-  margin-bottom: 1rem;
-  white-space: normal;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
+  padding-right: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .title-group h2 {
@@ -370,8 +339,9 @@ const submitFeedback = async () => {
   color: #333;
   line-height: 1.2;
   display: block;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  overflow: visible;
 }
 
 .subtitle {
@@ -379,56 +349,9 @@ const submitFeedback = async () => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
-}
-
-@media (min-width: 640px) {
-  .title-group h1 {
-    font-size: 3rem;
-  }
-  .title-group h2 {
-    font-size: 1.875rem;
-  }
-  .subtitle {
-    font-size: 1.125rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .title-group h1 {
-    font-size: 3.75rem;
-  }
-  .title-group h2 {
-    font-size: 2.25rem;
-  }
-  .subtitle {
-    font-size: 1.25rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .title-group h1 {
-    font-size: 4.5rem;
-  }
-  .title-group h2 {
-    font-size: 3rem;
-  }
-  .subtitle {
-    font-size: 1.5rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .title-group h1 {
-    font-size: 6rem;
-  }
-  .title-group h2 {
-    font-size: 3.75rem;
-  }
-  .subtitle {
-    font-size: 1.875rem;
-  }
+  overflow: visible;
 }
 
 .decorative-elements {
@@ -439,12 +362,13 @@ const submitFeedback = async () => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: repeat(4, auto);
+  grid-template-rows: auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(-2rem);
+  transform: translateX(0);
+  justify-content: end;
 }
 
 .top-row {
@@ -457,46 +381,6 @@ const submitFeedback = async () => {
   grid-column: 4 / 7;
   grid-row: 1;
   justify-self: end;
-}
-
-.top-row-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 5 / 7;
-  grid-row: 2;
-  justify-self: end;
-}
-
-.bottom-row-1 {
-  display: grid;
-  grid-template-columns: repeat(2, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 5 / 7;
-  grid-row: 3;
-  justify-self: end;
-}
-
-.bottom-row-2 {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 2 / 7;
-  grid-row: 4;
-}
-
-.bottom-row-2 .element-wrapper {
-  width: 160px;
-  height: 120px;
 }
 
 .element-wrapper {
@@ -522,201 +406,12 @@ const submitFeedback = async () => {
   transition: all 0.5s ease;
 }
 
-/* Hover效果增强 */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
 
-.top-row-2 .element:hover {
-  transform: rotate(15deg) scale(1.1);
-}
-
-.bottom-row-1 .element:hover {
-  transform: rotate(15deg) scale(1.1);
-}
-
-.bottom-row-2 .element:hover {
-  transform: rotate(-10deg) scale(1.1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1800px) {
-  .decorative-elements {
-    width: 840px;
-    grid-template-columns: repeat(6, 140px);
-    opacity: 0.9;
-    transform: translateX(-1.5rem);
-  }
-  
-  .top-row {
-    grid-template-columns: repeat(3, 140px);
-  }
-  
-  .top-row-2 {
-    grid-template-columns: repeat(2, 140px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-1 {
-    grid-template-columns: repeat(2, 140px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-2 .element-wrapper {
-    width: 140px;
-    height: 105px;
-  }
-}
-
-@media (max-width: 1536px) {
-  .decorative-elements {
-    width: 720px;
-    grid-template-columns: repeat(6, 120px);
-    opacity: 0.8;
-    transform: translateX(-1rem);
-  }
-  
-  .top-row {
-    grid-template-columns: repeat(3, 120px);
-  }
-  
-  .top-row-2 {
-    grid-template-columns: repeat(2, 120px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-1 {
-    grid-template-columns: repeat(2, 120px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-2 .element-wrapper {
-    width: 120px;
-    height: 90px;
-  }
-}
-
-@media (max-width: 1280px) {
-  .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
-    opacity: 0.7;
-    transform: translateX(-0.5rem);
-    row-gap: 0.75rem;
-  }
-  
-  .top-row {
-    grid-template-columns: repeat(3, 100px);
-  }
-  
-  .top-row-2 {
-    grid-template-columns: repeat(2, 100px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-1 {
-    grid-template-columns: repeat(2, 100px);
-    grid-column: 5 / 7;
-  }
-  
-  .bottom-row-2 .element-wrapper {
-    width: 100px;
-    height: 75px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .hero-section {
-    min-height: 65vh;
-  }
-  
-  .hero-content {
-    min-height: 65vh;
-  }
-  
-  .slogan {
-    margin-left: 1.5rem;
-  }
-  
-  .decorative-elements {
-    transform: translateX(0) scale(0.9);
-    opacity: 0.5;
-    row-gap: 0.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-section {
-    min-height: 55vh;
-  }
-  
-  .hero-content {
-    min-height: 55vh;
-  }
-  
-  .slogan {
-    margin-left: 1rem;
-  }
-  
-  .decorative-elements {
-    opacity: 0;
-    transform: translateX(0) scale(0.8);
-    transition: opacity 0.3s ease;
-  }
-  
-  .activities-container {
-    padding: 2rem 1rem;
-    margin-top: -1rem;
-    border-radius: 1rem;
-  }
-  
-  .activities-title {
-    font-size: 1.75rem;
-  }
-  
-  .activities-subtitle {
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .activity-modal {
-    width: 95%;
-    border-radius: 12px;
-  }
-  
-  .activity-modal-content {
-    padding: 1.5rem;
-  }
-  
-  .breathing-video h2,
-  .meditation-audio h2,
-  .color-breathing h2,
-  .grounding-guide h2,
-  .nature-sounds h2,
-  .stretching-routine h2,
-  .affirmation-reflection h2,
-  .journal-prompt h2 {
-    font-size: 30px !important;
-  }
-  
-  .close-modal-btn {
-    top: 10px;
-    right: 15px;
-  }
-}
-
-@media (max-width: 640px) {
-  .hero-section {
-    padding: 1.5rem 0;
-  }
-
-  .hero-content {
-    padding: 0 1rem;
-  }
-
-  .slogan {
-    padding-top: 1rem;
-  }
+section:not(:last-child)::after {
+  display: none;
 }
 
 .activities-container {
@@ -725,7 +420,7 @@ const submitFeedback = async () => {
   margin: 0 auto;
   background-color: rgb(250, 247, 240);
   border-radius: 2rem;
-  margin-top: -2rem;
+  margin-top: -1rem;
   position: relative;
   z-index: 2;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
@@ -870,53 +565,125 @@ const submitFeedback = async () => {
   transform: translateY(0);
 }
 
-@media (max-width: 1024px) {
-  .activities-container {
-    padding: 2.5rem 1.5rem;
-    margin-top: -1.5rem;
-    border-radius: 1.5rem;
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
   }
   
-  .activities-title {
+  .title-group h2,
+  .subtitle {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+  
+  .title-group h1 {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+  
+  .hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+    min-height: 22vh;
+  }
+  
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+  
+  .slogan {
+    max-width: 90%;
+  }
+  
+  .title-group h1 {
+    font-size: 3.5rem;
+  }
+  
+  .title-group h2 {
     font-size: 2rem;
   }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
   
-  .activities-subtitle {
+  .hero-content {
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+  
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .title-group h1 {
+    font-size: 2.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
     font-size: 1rem;
-    margin-bottom: 2rem;
   }
 }
 
 @media (max-width: 480px) {
-  .activity-modal-content {
-    padding: 1rem;
+  .decorative-elements {
+    opacity: 0;
+    display: none;
   }
   
-  .breathing-video h2,
-  .meditation-audio h2,
-  .color-breathing h2,
-  .grounding-guide h2,
-  .nature-sounds h2,
-  .stretching-routine h2,
-  .affirmation-reflection h2,
-  .journal-prompt h2 {
-    font-size: 26px !important;
+  .hero-content {
+    min-height: 16vh;
   }
   
-  .activity-modal .feedback h2 {
-    font-size: 1.25rem;
-  }
-  
-  .stars {
-    gap: 5px;
-  }
-  
-  .star {
-    width: 28px;
-  }
-  
-  .comment-box {
-    width: 100%;
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
   }
 }
 

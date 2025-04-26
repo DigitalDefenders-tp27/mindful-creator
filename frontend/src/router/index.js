@@ -6,6 +6,8 @@ import RelaxationView from '../views/RelaxationView.vue'
 import CommentResponseScripts from '../views/CommentResponseScripts.vue'
 import PasswordPage from '../components/PasswordPage.vue'
 import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
+import PrivacyView from '../views/PrivacyView.vue'
+import TestView from '../views/TestView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,18 @@ const router = createRouter({
       name: 'creator-wellbeing',
       component: CreatorWellbeingView,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: PrivacyView,
+      meta: { requiresAuth: false }  // 无需身份验证即可访问隐私政策
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: TestView,
+      meta: { requiresAuth: false }  // 无需身份验证即可访问测试页面
     },
     {
       path: '/password',
