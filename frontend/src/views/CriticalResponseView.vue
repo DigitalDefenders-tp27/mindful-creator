@@ -120,7 +120,109 @@
       </div>
 
       <!-- Comments Response Scripts Section -->
-      <CommentInput />
+      <div class="youtube-analysis-section">
+        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white max-w-3xl mx-auto">
+          <h3 class="section-title">YouTube Comment Analysis</h3>
+          <div class="input-group">
+            <input 
+              v-model="youtubeUrl" 
+              type="text" 
+              class="youtube-input"
+              placeholder="Enter YouTube video URL (https://www.youtube.com/watch?v=...)"
+            />
+            <button 
+              @click="analyzeYoutubeComments" 
+              class="analyze-button"
+              :disabled="isLoading"
+            >
+              {{ isLoading ? 'Analysing...' : 'Analyse Comments' }}
+            </button>
+          </div>
+          <p v-if="analysisError" class="error-message">{{ analysisError }}</p>
+        </div>
+      </div>
+      
+      <!-- Analysis Results Modal -->
+      <div v-if="showResultsModal" class="modal-overlay" @click="closeModal">
+        <div class="analysis-modal" @click.stop>
+          <div class="modal-header">
+            <h2>YouTube Comments Analysis Results</h2>
+            <button class="close-button" @click="closeModal">×</button>
+          </div>
+          
+          <div class="modal-content">
+            <!-- Video Info -->
+            <div class="video-info-section">
+              <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
+              <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
+            </div>
+            
+            <!-- Results Grid -->
+            <div class="results-grid">
+              <!-- Sentiment Analysis Results -->
+              <div class="result-card">
+                <h3>Sentiment Analysis</h3>
+                <div class="sentiment-stats">
+                  <div class="stat-box positive">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.positive_count || 0 }}</div>
+                    <div class="stat-label">Positive</div>
+                  </div>
+                  <div class="stat-box neutral">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.neutral_count || 0 }}</div>
+                    <div class="stat-label">Neutral</div>
+                  </div>
+                  <div class="stat-box negative">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.negative_count || 0 }}</div>
+                    <div class="stat-label">Negative</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Toxicity Analysis Results -->
+              <div class="result-card">
+                <h3>Toxicity Analysis</h3>
+                <div class="toxic-count">
+                  <div class="stat-number">{{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }}</div>
+                  <div class="stat-label">Toxic Comments ({{ (analysisResult?.analysis?.toxicity?.toxic_percentage || 0).toFixed(1) }}%)</div>
+                </div>
+                
+                <div class="toxicity-types">
+                  <h4>Toxicity Types:</h4>
+                  <div class="types-grid">
+                    <div v-for="(count, type) in analysisResult?.analysis?.toxicity?.toxic_types" :key="type" class="type-item">
+                      {{ formatToxicityType(type) }}: {{ count }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Donut Charts Section -->
+            <div class="charts-section">
+              <h3>Toxicity Breakdown</h3>
+              <div class="donut-charts">
+                <div v-for="(item, index) in gaugeData" :key="index" class="donut-item">
+                  <HalfDonutChart :percentage="item.value" :color="item.color" />
+                  <p class="donut-label">{{ item.label }}</p>
+                  <p class="donut-percent">{{ item.value }}%</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Analysis Recommendations -->
+            <div class="recommendations-section">
+              <h3>Recommendations</h3>
+              <p>Based on the analysis of your YouTube comments, we recommend:</p>
+              <ul class="recommendations-list">
+                <li>Review comments with high toxicity scores to moderate as needed</li>
+                <li>Engage positively with constructive feedback</li>
+                <li>Consider addressing common concerns in your next video</li>
+                <li>Set healthy boundaries with toxic commenters</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -146,6 +248,78 @@
   const router = useRouter()
   const showCheckIn = ref(false)
   const selectedEmotion = ref(null)
+
+  // YouTube analysis variables
+  const youtubeUrl = ref('')
+  const isLoading = ref(false)
+  const analysisError = ref(null)
+  const showResultsModal = ref(false)
+  const analysisResult = ref({})
+
+  // Format toxicity type names to more readable format
+  const formatToxicityType = (type) => {
+    const typeMap = {
+      'toxic': 'General Toxicity',
+      'severe_toxic': 'Severe Toxicity',
+      'obscene': 'Obscene',
+      'threat': 'Threat',
+      'insult': 'Insult',
+      'identity_hate': 'Identity Hate'
+    }
+    return typeMap[type] || type
+  }
+
+  // Analyse YouTube comments
+  const analyzeYoutubeComments = async () => {
+    // Reset state
+    analysisError.value = null
+    
+    // Validate URL
+    if (!youtubeUrl.value) {
+      analysisError.value = 'Please enter a YouTube video URL'
+      return
+    }
+    
+    // Set loading state
+    isLoading.value = true
+    
+    try {
+      // Send request to backend API
+      const response = await fetch('http://localhost:8000/api/youtube/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          video_url: youtubeUrl.value
+        })
+      })
+      
+      // Parse response
+      const data = await response.json()
+      
+      // Check API response status
+      if (data.status === 'error') {
+        analysisError.value = data.message || 'Analysis failed, please try again later'
+        return
+      }
+      
+      // Save result and show modal
+      analysisResult.value = data
+      showResultsModal.value = true
+      
+    } catch (err) {
+      console.error('API request error:', err)
+      analysisError.value = 'Failed to connect to backend service, please ensure the backend is running'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Close the modal
+  const closeModal = () => {
+    showResultsModal.value = false
+  }
 
   const goToRelaxation = () => router.push('/relaxation')
   const closePopup = () => (showCheckIn.value = false)
@@ -1360,6 +1534,339 @@
     
     .arrow {
       padding: 0.2rem 0.5rem;
+    }
+  }
+
+  /* YouTube Analysis Section Styles */
+  .youtube-analysis-section {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 4rem;
+  }
+
+  .analysis-container {
+    width: 100%;
+    text-align: center;
+  }
+
+  .analysis-container h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .input-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .youtube-input {
+    flex: 1;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .youtube-input:focus {
+    border-color: #7db3d9;
+    box-shadow: 0 0 0 2px rgba(125, 179, 217, 0.2);
+  }
+
+  .analyze-button {
+    padding: 0.5rem 1.5rem;
+    background-color: #7db3d9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  .analyze-button:not(:disabled):hover {
+    background-color: #6ca3c9;
+    transform: translateY(-2px);
+  }
+
+  .analyze-button:disabled {
+    background-color: #b3d1e3;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    color: #e74c3c;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+  }
+
+  .analysis-modal {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 950px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+  }
+
+  .modal-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #666;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  .close-button:hover {
+    color: #e74c3c;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+
+  /* Video Info Section */
+  .video-info-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .video-info-section p {
+    margin: 0.5rem 0;
+    color: #333;
+  }
+
+  /* Results Grid */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .result-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .result-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Sentiment Stats */
+  .sentiment-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-box {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-box.positive {
+    background-color: rgba(76, 175, 80, 0.15);
+  }
+
+  .stat-box.neutral {
+    background-color: rgba(158, 158, 158, 0.15);
+  }
+
+  .stat-box.negative {
+    background-color: rgba(244, 67, 54, 0.15);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* Toxicity Section */
+  .toxic-count {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .toxicity-types h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    color: #333;
+  }
+
+  .types-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .type-item {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* Donut Charts Section */
+  .charts-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .charts-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .donut-charts {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+
+  .donut-item {
+    text-align: center;
+    width: 140px;
+  }
+
+  .donut-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.2rem;
+    color: #333;
+  }
+
+  .donut-percent {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #555;
+  }
+
+  /* Recommendations Section */
+  .recommendations-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .recommendations-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .recommendations-section p {
+    margin-bottom: 1rem;
+    color: #555;
+  }
+
+  .recommendations-list {
+    padding-left: 1.5rem;
+  }
+
+  .recommendations-list li {
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+
+  /* Responsive Media Queries */
+  @media (max-width: 768px) {
+    .input-group {
+      flex-direction: column;
+    }
+    
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .donut-charts {
+      gap: 1.5rem;
+    }
+    
+    .donut-item {
+      width: 120px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .analysis-container h3 {
+      font-size: 1.5rem;
+    }
+    
+    .modal-header h2 {
+      font-size: 1.5rem;
+    }
+    
+    .sentiment-stats {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    
+    .types-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+      padding: 1.5rem;
     }
   }
   </style>
