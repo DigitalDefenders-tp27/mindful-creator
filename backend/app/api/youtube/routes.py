@@ -9,7 +9,7 @@ router = APIRouter()
 
 class YouTubeAnalysisRequest(BaseModel):
     video_url: str
-    max_comments: int = 5  # Default to 20 comments
+    max_comments: int = 100  # Default to 20 comments
     
     class Config:
         schema_extra = {

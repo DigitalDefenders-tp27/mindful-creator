@@ -79,7 +79,7 @@ def extract_video_id(youtube_url: str) -> str:
     logger.warning(f"Could not extract video ID from URL: {youtube_url}")
     return None
 
-def fetch_youtube_comments(video_url: str, max_comments: int = 5) -> List[str]:
+def fetch_youtube_comments(video_url: str, max_comments: int = 100) -> List[str]:
     """
     Fetch comments from a YouTube video
     
@@ -199,7 +199,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     Analyse comments using Space API for sentiment and toxicity
     
     Args:
-        comments: List of comments (can be either 1D or 2D array)
+        comments: List of comments (should be a list of strings)
         
     Returns:
         Analysis results summary
@@ -210,22 +210,25 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             "error": "No comments available for analysis"
         }
     
-    # Process comments - handle both 1D and 2D arrays
-    processed_comments = comments
-    is_2d = False
+    # Validate comments format
+    if not isinstance(comments, list):
+        logger.error("Comments must be a list")
+        return {"error": "Comments must be a list"}
+        
+    # Ensure all comments are strings and limit to 100
+    processed_comments = []
+    for comment in comments[:100]:  # Limit to 100 comments
+        if isinstance(comment, str) and comment.strip():
+            processed_comments.append(comment)
+        else:
+            logger.warning(f"Skipping invalid comment: {comment}")
     
-    # Check if we have a 2D array (list of lists)
-    if comments and isinstance(comments[0], list):
-        logger.info("Processing 2D comment array")
-        is_2d = True
-    else:
-        # Convert 1D array to 2D for the Space API
-        logger.info("Converting 1D comment array to 2D format for Space API")
-        processed_comments = [[comment] for comment in comments]
-        is_2d = True
+    if not processed_comments:
+        logger.warning("No valid comments after filtering")
+        return {"error": "No valid comments available for analysis"}
     
     # Calculate total number of comments for percentage calculations
-    total_comments = len(comments)
+    total_comments = len(processed_comments)
     logger.info(f"Total comments to analyze: {total_comments}")
     
     try:
@@ -233,17 +236,19 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         logger.info("Initialising Gradio client for Space inference...")
         cli = Client("Jet-12138/CommentResponse", verbose=False)
 
-        # Call predict with comments
+        # Call predict with comments - gradio-client will handle the wrapping
         api_start = time.time()
         
         # Log what we're sending to the API for debugging
         logger.info(f"Sending {len(processed_comments)} comments to Space API")
-        sample_comment = processed_comments[0] if processed_comments else "[]"
-        logger.info(f"Sample comment format: {sample_comment}")
+        sample_comment = processed_comments[0] if processed_comments else ""
+        logger.info(f"Sample comment: {sample_comment[:50]}...")
         
         try:
+            # When using gradio-client, directly pass the list of comments
+            # The client will handle the wrapping in {"data": [...]} format
             raw_result = cli.predict(
-                processed_comments,
+                processed_comments,  # Just pass the list of strings
                 api_name="/predict"
             )
             logger.info("Space call completed in %.2fs", time.time() - api_start)
