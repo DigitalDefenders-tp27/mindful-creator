@@ -62,7 +62,7 @@ def extract_video_id(youtube_url: str) -> str:
     logger.warning(f"Could not extract video ID from URL: {youtube_url}")
     return None
 
-def fetch_youtube_comments(video_url: str, max_comments: int = 10) -> List[str]:
+def fetch_youtube_comments(video_url: str, max_comments: int = 50) -> List[str]:
     """
     Fetch comments from a YouTube video
     
