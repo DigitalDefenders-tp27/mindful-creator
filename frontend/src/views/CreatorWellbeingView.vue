@@ -13,7 +13,7 @@
       </div>
     </section>
     
-    <!-- 数字影响分析仪表板 / Digital Impact Analysis Dashboard -->
+    <!-- Digital Impact Analysis Dashboard -->
     <section class="dashboard-section">
       <div class="container">
         <h1 class="section-title">Average working time</h1>
@@ -49,7 +49,7 @@
       </div>
     </section>
     
-    <!-- 健康资源查找器 / Wellbeing Resource Finder -->
+    <!-- Wellbeing Resource Finder -->
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
@@ -127,7 +127,7 @@
       </div>
     </section>
     
-    <!-- 健康活动中心 / Wellbeing Activities Hub -->
+    <!-- Wellbeing Activities Hub -->
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
@@ -236,144 +236,22 @@
           </div>
           
           <div class="events-grid">
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
+            <div v-for="event in filteredEvents" :key="event.id" class="event-card">
+              <img :src="event.image" :alt="event.title" class="event-img">
               <div class="event-info">
-                <h3>Mentally Healthy Workplaces Workshop</h3>
+                <h3>{{ event.title }}</h3>
                 <div class="event-tags">
-                  <span class="tag ticket">Sold out</span>
-                  <span class="tag may">May</span>
-                  <span class="tag workshop">Workshop</span>
-                  <span class="tag free">Free Event</span>
+                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
                 </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">{{ event.description }}</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
-                  <div><strong>Date:</strong> 1st May 2025</div>
-                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div><strong>Location:</strong> {{ event.location }}</div>
+                  <div v-if="event.address"><strong>Address:</strong> {{ event.address }}</div>
+                  <div><strong>Date:</strong> {{ event.date }}</div>
+                  <div><strong>Time:</strong> {{ event.time }}</div>
+                  <div class="event-link"><strong>Link:</strong> {{ event.link }}</div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
-              <div class="event-info">
-                <h3>Mentally Healthy Workplaces Workshop</h3>
-                <div class="event-tags">
-                  <span class="tag ticket">Nearly full</span>
-                  <span class="tag june">June</span>
-                  <span class="tag workshop">Workshop</span>
-                  <span class="tag free">Free Event</span>
-                </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
-                  <div><strong>Date:</strong> June 4th 2025</div>
-                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplace.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Workplace Wellbeing - How to Build Confidence and Manage Stress</h3>
-                <div class="event-tags">
-                  <span class="tag october">October</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$525.44</span>
-                </div>
-                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Sydney</div>
-                  <!-- <div><strong>Group size:</strong> 15-30</div> -->
-                  <div><strong>Date:</strong> October 11st 2025</div>
-                  <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
-                <div class="event-tags">
-                  <span class="tag may">May</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$20</span>
-                </div>
-                <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Warrnambool</div>
-                  <div><strong>Address:</strong> 185 Timor Street Warrnambool, VIC 3280</div>
-                  <!-- <div><strong>Group size:</strong> 5-15</div> -->
-                  <div><strong>Date:</strong> May 28th</div>
-                  <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Strategies for Mental Health at Work and Keeping Psychologically Safe.</h3>
-                <div class="event-tags">
-                  <span class="tag october">October</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$108.9</span>
-                </div>
-                <p class="event-description"> HR professionals, managers, and business leaders , here's practical strategies to foster wellbeing and mental health in your workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Geelong</div>
-                  <div><strong>Address:</strong> 60 Moorabool Street Geelong, VIC 3220</div>
-                  <!-- <div><strong>Group size:</strong> 5-10</div> -->
-                  <div><strong>Date:</strong> October 9th 2025</div>
-                  <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Outdoor Walking" class="event-img">
-              <div class="event-info">
-                <h3>MeTreat Retreats Women's Wellness Walk</h3>
-                <div class="event-tags">
-                  <span class="tag april">April</span>
-                  <span class="tag outdoor">Outdoor Walking</span>
-                  <span class="tag end">Sales Ended</span>
-                </div>
-                <p class="event-description">CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Torquay Beach</div>
-                  <div><strong>Address:</strong> Torquay Beach Torquay, VIC 3228</div>
-                  <!-- <div><strong>Group size:</strong> 8-12</div> -->
-                  <div><strong>Date:</strong> April 25th</div>
-                  <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a :href="event.link" target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -384,32 +262,142 @@
     </div>
     
     <div class="footer">
-      <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">隐私政策</router-link></p>
+      <p>© 2025 by Inflowence</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-// 模态窗口显示状态
+// Modal window display status
 const isModalVisible = ref(false);
 
-// 打开模态窗口
+// Open modal window
 const openModal = () => {
   isModalVisible.value = true;
 };
 
-// 关闭模态窗口
+// Close modal window
 const closeModal = () => {
   isModalVisible.value = false;
 };
 
-// 搜索相关
+// Search related
 const searchQuery = ref('');
 const selectedLocation = ref('All locations');
 const selectedCategory = ref('All types');
 const selectedMonth = ref('Any time');
+
+// All event data
+const allEvents = [
+  {
+    id: 1,
+    title: "Mentally Healthy Workplaces Workshop",
+    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
+    tags: ["Sold out", "May", "Workshop", "Free Event"],
+    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
+    location: "Brisbane",
+    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
+    date: "1st May 2025",
+    time: "8:00 AM - 12:00 PM",
+    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
+    category: "Mental Health",
+    month: "May"
+  },
+  {
+    id: 2,
+    title: "Mentally Healthy Workplaces Workshop",
+    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
+    tags: ["Nearly full", "June", "Workshop", "Free Event"],
+    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
+    location: "Brisbane",
+    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
+    date: "June 4th 2025",
+    time: "8:00 AM - 12:00 PM",
+    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
+    category: "Mental Health",
+    month: "June"
+  },
+  {
+    id: 3,
+    title: "Workplace Wellbeing - How to Build Confidence and Manage Stress",
+    image: "../assets/icons/activitiesImages/workplace.avif",
+    tags: ["October", "Workplace Wellbeing Workshop", "$525.44"],
+    description: "You'll learn about both positive and negative factors at play in workplace.",
+    location: "Sydney",
+    date: "October 11st 2025",
+    time: "7:30 AM - 11:30 AM",
+    link: "https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "October"
+  },
+  {
+    id: 4,
+    title: "Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop",
+    image: "../assets/icons/activitiesImages/workplaceWarrnambool.avif",
+    tags: ["May", "Workplace Wellbeing Workshop", "$20"],
+    description: "Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.",
+    location: "Warrnambool",
+    address: "185 Timor Street Warrnambool, VIC 3280",
+    date: "May 28th",
+    time: "1:00 PM - 3:00 PM",
+    link: "https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "May"
+  },
+  {
+    id: 5,
+    title: "Strategies for Mental Health at Work and Keeping Psychologically Safe.",
+    image: "../assets/icons/activitiesImages/workplaceGeelong.avif",
+    tags: ["October", "Workplace Wellbeing Workshop", "$108.9"],
+    description: "HR professionals, managers, and business leaders, here's practical strategies to foster wellbeing and mental health in your workplace.",
+    location: "Geelong",
+    address: "60 Moorabool Street Geelong, VIC 3220",
+    date: "October 9th 2025",
+    time: "9:30 AM - 11:30 AM",
+    link: "https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "October"
+  },
+  {
+    id: 6,
+    title: "MeTreat Retreats Women's Wellness Walk",
+    image: "../assets/icons/activitiesImages/TorquayWalking.avif",
+    tags: ["April", "Outdoor Walking", "Sales Ended"],
+    description: "CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!",
+    location: "Torquay Beach",
+    address: "Torquay Beach Torquay, VIC 3228",
+    date: "April 25th",
+    time: "11:00 AM - 2:00 AM",
+    link: "https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch",
+    category: "Outdoor Wellness",
+    month: "April"
+  }
+];
+
+// Filter events based on selected and search conditions
+const filteredEvents = computed(() => {
+  return allEvents.filter(event => {
+    // Check name search
+    const matchesSearch = event.title.toLowerCase().includes(searchQuery.value.toLowerCase());
+    
+    // Check location filter
+    const matchesLocation = selectedLocation.value === 'All locations' || 
+                           event.location === selectedLocation.value;
+    
+    // Check category filter
+    const matchesCategory = selectedCategory.value === 'All types' || 
+                           event.category === selectedCategory.value;
+    
+    // Check month filter
+    const matchesMonth = selectedMonth.value === 'Any time' || 
+                        event.month === selectedMonth.value;
+    
+    // All conditions must match
+    return matchesSearch && matchesLocation && matchesCategory && matchesMonth;
+  });
+});
 </script>
 
 <style scoped>
@@ -553,7 +541,7 @@ const selectedMonth = ref('Any time');
   transform: rotate(-15deg) scale(1.1);
 }
 
-/* 添加响应式媒体查询 */
+/* Add responsive media queries */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
@@ -680,7 +668,7 @@ const selectedMonth = ref('Any time');
   }
 }
 
-/* 响应式布局支持 */
+/* Responsive layout support */
 @media (max-width: 1200px) {
   .container {
     max-width: 95%;
@@ -789,7 +777,7 @@ const selectedMonth = ref('Any time');
   z-index: 1;
 }
 
-/* 通用部分样式 / Common section styles */
+/* Common section styles */
 .section-title, .section-subtitle {
   position: relative;
   z-index: 2;
@@ -826,7 +814,7 @@ section:not(:last-child)::after {
   display: none;
 }
 
-/* 仪表板部分 / Dashboard section */
+/* Dashboard section */
 .dashboard-section {
   background-color: #fffcf5;
 }
@@ -933,7 +921,7 @@ section:not(:last-child)::after {
   line-height: 1.5;
 }
 
-/* 资源查找器部分 / Resource finder section */
+/* Resource finder section */
 .resource-finder-section {
   background-color: #fffcf5;
 }
@@ -1112,7 +1100,7 @@ section:not(:last-child)::after {
   height: 18px;
 }
 
-/* 活动中心部分 / Activities hub section */
+/* Activities hub section */
 .activities-section {
   background-color: #fffcf5;
 }
@@ -1130,7 +1118,7 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-/* 统一使用此处的view-all-btn样式定义 */
+/* Use this view-all-btn style definition */
 .view-all-btn {
   background-color: #e75a97;
   color: white;
@@ -1234,7 +1222,7 @@ section:not(:last-child)::after {
   font-size: 0.9rem;
 }
 
-/* 页脚 / Footer */
+/* Footer */
 .footer {
   padding: 2rem;
   text-align: center;
@@ -1253,7 +1241,7 @@ section:not(:last-child)::after {
   text-decoration: underline;
 }
 
-/* 响应式设计 / Responsive design */
+/* Responsive design */
 @media (max-width: 1024px) {
   .dashboard-content,
   .resource-content {
@@ -1291,7 +1279,7 @@ section:not(:last-child)::after {
   }
 }
 
-/* 模态窗口样式 */
+/* Modal window styles */
 .activities-modal-overlay {
   position: fixed;
   top: 0;
@@ -1353,7 +1341,7 @@ section:not(:last-child)::after {
   padding: 2rem;
 }
 
-/* 搜索栏样式 */
+/* Search bar styles */
 .search-bar {
   margin-bottom: 1.5rem;
 }
@@ -1372,7 +1360,7 @@ section:not(:last-child)::after {
   border-color: #e75a97;
 }
 
-/* 筛选器样式 */
+/* Filter styles */
 .event-filters {
   display: flex;
   gap: 1rem;
@@ -1405,7 +1393,7 @@ section:not(:last-child)::after {
   border-color: #e75a97;
 }
 
-/* 事件卡片样式 */
+/* Event card styles */
 .events-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1513,7 +1501,7 @@ section:not(:last-child)::after {
   transform: translateY(-2px);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .event-card {
     flex-direction: column;
@@ -1542,18 +1530,18 @@ section:not(:last-child)::after {
   }
 }
 
-/* 隐藏链接标签 */
+/* Hide link tags */
 .event-meta div.event-link {
   display: none;
 }
 
-/* 为按钮链接添加样式 */
+/* Add styles for button links */
 .register-btn-link {
   text-decoration: none;
   display: inline-block;
 }
 
-/* 活动卡片链接样式 */
+/* Activity card link styles */
 .activity-card-link {
   text-decoration: none;
   color: inherit;
