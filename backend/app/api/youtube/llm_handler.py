@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 from typing import List, Dict, Any, Optional
+import time
 
 # Ensure project root is on PYTHONPATH
 proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -158,48 +159,77 @@ def generate_response_strategies(critical_comments: List[str]) -> str:
     Returns:
         String with general strategies for handling these types of comments
     """
-    if not API_KEY or not critical_comments:
-        return "No specific strategies could be generated."
+    if not API_KEY:
+        logger.error("API_KEY is not set - cannot generate strategies")
+        return "No specific strategies could be generated. API key is missing."
+        
+    if not critical_comments:
+        logger.warning("No critical comments provided to generate strategies")
+        return "No specific strategies could be generated. No critical comments found."
     
     comments_text = "\n".join([f"- {comment}" for comment in critical_comments])
     prompt = f"""Based on these critical YouTube comments:
 
 {comments_text}
 
-Provide 3-5 professional strategies for content creators to respond effectively. Include:
+Provide 3-5 brief, professional strategies for content creators to respond effectively. Include:
 1. General principles for handling criticism
 2. Specific techniques based on comment themes
 3. Tips for maintaining creator wellbeing
 
-Format as concise, actionable bullet points.
+Format as very concise, actionable bullet points.
+BE EXTREMELY CONCISE. USE NO MORE THAN 2-3 SHORT SENTENCES PER POINT.
 """
     
     system_message = """You are a digital wellbeing expert specialising in social media and online content creation. 
-    You provide balanced, thoughtful advice on handling difficult interactions online. Your guidance is practical, 
-    specific, and focused on both professional response and personal wellbeing."""
+    You provide balanced, practical advice in the most concise format possible. 
+    Your guidance must be extremely brief, specific, and focused on actionable steps.
+    Avoid unnecessary elaboration, background information, or lengthy explanations."""
     
-    try:
-        payload = {
-            "model": MODEL_NAME,
-            "messages": [
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 1000
-        }
-        
-        resp = _session.post(API_URL, json=payload, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
-        if content:
-            return content.strip()
+    # Try up to 2 times with a small delay
+    max_attempts = 2
+    for attempt in range(max_attempts):
+        try:
+            logger.info(f"Generating strategies - attempt {attempt+1}/{max_attempts}")
             
-        logger.warning("No content returned from LLM for strategies")
-    except Exception as e:
-        logger.error(f"Error generating strategies: {e}")
+            payload = {
+                "model": MODEL_NAME,
+                "messages": [
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": 500,  # Reduced token limit to encourage brevity
+                "temperature": 0.3  # Lower temperature for more focused, predictable responses
+            }
+            
+            resp = _session.post(API_URL, json=payload, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            
+            # Log the API response for debugging
+            logger.debug(f"OpenRouter API response for strategies: {data}")
+            
+            content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+            if content and len(content.strip()) > 0:
+                return content.strip()
+            
+            logger.warning(f"No content returned from LLM for strategies on attempt {attempt+1}")
+            
+            # Wait a bit before retrying
+            if attempt < max_attempts - 1:
+                time.sleep(1)  # Sleep for 1 second before retrying
+                
+        except Exception as e:
+            logger.error(f"Error generating strategies on attempt {attempt+1}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            # Wait a bit before retrying
+            if attempt < max_attempts - 1:
+                time.sleep(1)  # Sleep for 1 second before retrying
     
+    # 修改这里，不再使用预设内容，而是返回错误消息
+    logger.warning("All attempts to generate strategies failed")
     return "Could not generate specific strategies at this time."
 
 def generate_example_responses(critical_comments: List[str]) -> List[Dict[str, str]]:
@@ -212,61 +242,85 @@ def generate_example_responses(critical_comments: List[str]) -> List[Dict[str, s
     Returns:
         List of dictionaries with original comments and suggested responses
     """
-    if not API_KEY or not critical_comments:
+    if not API_KEY:
+        logger.error("API_KEY is not set - cannot generate example responses")
+        return []
+        
+    if not critical_comments:
+        logger.warning("No critical comments provided to generate example responses")
         return []
     
     responses = []
     
     for comment in critical_comments:
+        # Create a prompt specific to this comment
         prompt = f"""This is a critical comment on my YouTube video:
 
 "{comment}"
 
 Write a thoughtful, professional response that:
 1. Acknowledges the comment without being defensive
-2. Maintains a positive, constructive tone
-3. Provides clarification if needed
+2. Maintains a positive tone
+3. Provides minimal clarification if needed
 4. Ends with a forward-looking statement
 
-Keep the response conversational but professional, under 100 words.
+KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
 """
         
         system_message = """You are a professional community manager who specialises in crafting 
-        tactful responses to difficult social media comments. Your responses are authentic, clear, 
-        and maintain the creator's dignity while respecting the commenter's perspective."""
+        extremely concise responses to difficult social media comments. Your responses are authentic and clear,
+        but prioritize brevity above all else. Keep responses under 50 words."""
         
-        try:
-            payload = {
-                "model": MODEL_NAME,
-                "messages": [
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": prompt}
-                ],
-                "max_tokens": 500
-            }
-            
-            resp = _session.post(API_URL, json=payload, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            
-            content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
-            if content:
-                responses.append({
-                    "comment": comment,
-                    "response": content.strip()
-                })
-            else:
-                logger.warning(f"No content returned for comment: {comment}")
-                responses.append({
-                    "comment": comment,
-                    "response": "I appreciate your feedback and will take it into consideration. Thank you for watching!"
-                })
+        response_text = None
+        # Try up to 2 times with a small delay
+        max_attempts = 2
+        
+        for attempt in range(max_attempts):
+            try:
+                logger.info(f"Generating response for comment (attempt {attempt+1}/{max_attempts}): {comment[:50]}...")
                 
-        except Exception as e:
-            logger.error(f"Error generating response for comment: {e}")
-            responses.append({
-                "comment": comment,
-                "response": "I appreciate your feedback and will take it into consideration. Thank you for watching!"
-            })
+                payload = {
+                    "model": MODEL_NAME,
+                    "messages": [
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 250,  # Reduced from 500
+                    "temperature": 0.4  # Slightly lower temperature for more focused responses
+                }
+                
+                resp = _session.post(API_URL, json=payload, timeout=30)
+                resp.raise_for_status()
+                data = resp.json()
+                
+                # Get the model's response
+                content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+                if content and len(content.strip()) > 0:
+                    response_text = content.strip()
+                    break  # Successfully got a response, break the retry loop
+                
+                logger.warning(f"No content returned for comment on attempt {attempt+1}: {comment[:50]}...")
+                
+                # Wait a bit before retrying
+                if attempt < max_attempts - 1:
+                    time.sleep(1)
+                    
+            except Exception as e:
+                logger.error(f"Error generating response on attempt {attempt+1}: {e}")
+                
+                # Wait a bit before retrying
+                if attempt < max_attempts - 1:
+                    time.sleep(1)
+        
+        # 修改这里，不再使用预设内容，而是跳过该评论
+        if not response_text:
+            logger.warning(f"Could not generate response for comment: {comment[:50]}... - skipping")
+            continue
+        
+        # Add to our responses list
+        responses.append({
+            "comment": comment,
+            "response": response_text
+        })
     
     return responses

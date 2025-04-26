@@ -2,8 +2,8 @@
 """
 Test script: Verify Space API comment processing functionality
 This script tests:
-1. Generate 100 test comments
-2. Call Space API to analyze these comments (as a list of strings)
+1. Generate 100 test comments as a list of strings
+2. Call Space API to analyze these comments 
 3. Validate the structure and content of the returned results
 """
 
@@ -139,9 +139,14 @@ async def test_space_api():
     """Test Space API comment processing functionality"""
     logger.info("Testing Space API comment processing...")
     
-    # Generate 100 test comments
+    # Generate test comments (max 100 as per API limits)
     comments = generate_test_comments(100)
     logger.info(f"Generated {len(comments)} comments")
+    
+    # Verify comments format
+    assert isinstance(comments, list), "Comments should be a list"
+    assert len(comments) <= 100, "Comments list should have 100 or fewer items"
+    assert all(isinstance(c, str) and c.strip() for c in comments), "All comments should be non-empty strings"
     
     try:
         # Directly call the imported analysis function
@@ -191,19 +196,65 @@ async def test_space_api():
         logger.error(traceback.format_exc())
         return False
 
+async def test_space_api_validation():
+    """Test the validation aspects of the Space API function"""
+    logger.info("Testing Space API input validation...")
+    
+    # Test case 1: Empty comments list
+    logger.info("Test case 1: Empty comments list")
+    result = analyse_comments_with_space_api([])
+    assert "error" in result, "Empty list should return an error"
+    assert "No comments available" in result["error"], "Error message should mention no comments"
+    logger.info("✅ Empty list test passed")
+    
+    # Test case 2: Non-list input (string)
+    logger.info("Test case 2: Non-list input")
+    result = analyse_comments_with_space_api("This is not a list")
+    assert "error" in result, "Non-list input should return an error"
+    assert "must be a list" in result["error"], "Error message should mention input must be a list"
+    logger.info("✅ Non-list input test passed")
+    
+    # Test case 3: List with invalid comments
+    logger.info("Test case 3: List with invalid items")
+    result = analyse_comments_with_space_api([None, 123, "", "   ", {"text": "Not a string"}])
+    assert "error" in result, "List with all invalid items should return an error"
+    logger.info("✅ Invalid items test passed")
+    
+    # Test case 4: Mixed valid and invalid comments
+    logger.info("Test case 4: Mixed valid and invalid comments")
+    result = analyse_comments_with_space_api(["Valid comment", None, 123, "Another valid"])
+    assert "error" not in result, "Mixed valid/invalid should process the valid ones"
+    logger.info("✅ Mixed items test passed")
+    
+    # Test case 5: Over limit (more than 100 comments)
+    logger.info("Test case 5: Over limit comments")
+    many_comments = ["Comment " + str(i) for i in range(150)]
+    result = analyse_comments_with_space_api(many_comments)
+    assert "error" not in result, "Over limit should be handled gracefully"
+    logger.info("✅ Over limit test passed")
+    
+    logger.info("All validation tests passed")
+    return True
+
 # Main entry point
 if __name__ == "__main__":
     logger.info("=" * 50)
-    logger.info("Running SPACE API Comment Test")
+    logger.info("Running SPACE API Comment Tests")
     logger.info("=" * 50)
     
-    # Run async test
+    # Run async tests
     loop = asyncio.get_event_loop()
     success = loop.run_until_complete(test_space_api())
     
     if success:
-        logger.info("🎉 Test passed")
-        sys.exit(0)
+        # If main test passes, run validation tests
+        validation_success = loop.run_until_complete(test_space_api_validation())
+        if validation_success:
+            logger.info("🎉 All tests passed")
+            sys.exit(0)
+        else:
+            logger.error("❌ Validation tests failed")
+            sys.exit(1)
     else:
-        logger.error("❌ Test failed")
+        logger.error("❌ Main test failed")
         sys.exit(1) 
