@@ -2,15 +2,17 @@ import os
 import requests
 import json
 import logging
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from urllib.parse import urlparse, parse_qs
 from googleapiclient.discovery import build
 from gradio_client import Client
+import pathlib
 import time
+import tempfile
 
 # Configure logging
-# logging.basicConfig(level=logging.INFO, 
-#                    format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Environment variables
@@ -21,7 +23,7 @@ logger.info(f"YOUTUBE_API_KEY set: {bool(YOUTUBE_API_KEY)}")
 
 # If environment variables are not set, set them manually
 if not YOUTUBE_API_KEY:
-    YOUTUBE_API_KEY = "AIzaSy…"
+    YOUTUBE_API_KEY = "AIzaSyDU95gTm6jKz85RdDj84QpU1tUETrCCP8M"
     logger.info(f"Manually set YOUTUBE_API_KEY: {bool(YOUTUBE_API_KEY)}")
 
 def extract_video_id(youtube_url: str) -> str:
@@ -60,7 +62,7 @@ def extract_video_id(youtube_url: str) -> str:
     logger.warning(f"Could not extract video ID from URL: {youtube_url}")
     return None
 
-def fetch_youtube_comments(video_url: str, max_comments: int = 10) -> List[str]:
+def fetch_youtube_comments(video_url: str, max_comments: int = 50) -> List[str]:
     """
     Fetch comments from a YouTube video
     
@@ -137,6 +139,44 @@ def fetch_youtube_comments(video_url: str, max_comments: int = 10) -> List[str]:
     
     return comments
 
+def _normalise_space_result(result: Any) -> Dict:
+    """
+    Normalise the result from Space API to always be a dictionary with consistent structure
+    
+    Args:
+        result: The result from Space API (can be string or dict with various structures)
+        
+    Returns:
+        Normalised result with consistent dictionary structure
+    """
+    logger.debug(f"Normalising Space result type: {type(result)}")
+    
+    # First convert string to dict if needed
+    if isinstance(result, str):
+        logger.debug("Decoding JSON string returned by Space...")
+        try:
+            result = json.loads(result)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON string: {e}")
+            raise ValueError(f"Invalid JSON response from Space API: {e}")
+    
+    # Check if we have a dict now
+    if not isinstance(result, dict):
+        logger.error(f"Unexpected Space API result format: {type(result)}")
+        raise ValueError(f"Unexpected Space API result format: {type(result)}")
+    
+    # If the result has a "data" field with a list inside (REST API format)
+    if "data" in result and isinstance(result["data"], list) and len(result["data"]) > 0:
+        logger.debug("Unwrapping data array from REST API response")
+        # Extract the first item from the data array (should be our actual result)
+        result = result["data"][0]
+    
+    # Ensure we have the expected keys
+    if not any(key in result for key in ["sentiment_counts", "toxicity_counts", "comments_with_any_toxicity"]):
+        logger.warning(f"Normalised result may not have expected structure: {list(result.keys())}")
+    
+    return result
+
 def analyse_comments_with_space_api(comments: List[str]) -> Dict:
     """
     Analyse comments using Space API for sentiment and toxicity
@@ -155,18 +195,10 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
     
     try:
         # Attempt inference via Hugging Face Space using gradio-client.
-        # We wrap the list[str] in a JSON string to prevent the well-known
-        # `PosixPath / list` type error deep inside gradio-client's
-        # JSONSerialiser. This keeps the payload fully compatible with the
-        # Space's `gr.JSON` input component while looking like a plain string
-        # to the serialiser.
-        logger.info("Initialising Gradio client for Space inference …")
+        logger.info("Initialising Gradio client for Space inference...")
         cli = Client("Jet-12138/CommentResponse", verbose=False)
 
-        # Call predict with the plain list[str] of comments. The gradio-client
-        # SDK handles wrapping this into the appropriate JSON schema (i.e.
-        # {"data": [[…]]}) before sending the request. This is now the
-        # preferred method per project requirements.
+        # Call predict with the plain list[str] of comments
         api_start = time.time()
         raw_result: Any = cli.predict(
             comments,                # direct list of comments
@@ -174,17 +206,12 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
         )
         logger.info("Space call completed in %.2fs", time.time() - api_start)
 
-        # The Space may reply with either JSON already parsed or a JSON
-        # serialised string – cover both cases.
-        if isinstance(raw_result, str):
-            logger.debug("Decoding JSON string returned by Space …")
-            space_data = json.loads(raw_result)
-        else:
-            space_data = raw_result
+        # Normalise the result to ensure consistent structure
+        space_data = _normalise_space_result(raw_result)
 
-        logger.debug("Raw payload from Space: %s", space_data)
+        logger.debug("Normalised payload from Space: %s", space_data)
 
-        # Expected keys according to Space's README
+        # Extract data from normalised result
         sentiment_counts = space_data.get("sentiment_counts", {})
         toxicity_counts = space_data.get("toxicity_counts", {})
         toxicity_total = space_data.get("comments_with_any_toxicity", 0)
@@ -232,32 +259,85 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
         )
 
         try:
-            import requests
+            import requests, time as _t
             space_base = "https://jet-12138-commentresponse.hf.space"
 
-            queue_resp = requests.post(
-                f"{space_base}/call/predict",
-                json={"data": [comments]},
+            logger.info("Falling back to REST API queue...")
+            # 使用标准队列API格式
+            logger.info("Pushing task to queue...")
+            push_resp = requests.post(
+                f"{space_base}/queue/push",
+                json={"data": [comments]},  # 使用简单的数据格式
                 timeout=60,
             ).json()
-
-            event_id = str(queue_resp.get("event_id"))
-            if not event_id:
-                raise RuntimeError("Space did not return an event_id")
-
-            stream_url = f"{space_base}/call/predict/{event_id}"
-            stream = requests.get(stream_url, stream=True, timeout=600)
-
-            for ln in stream.iter_lines(decode_unicode=True):
-                if ln.startswith("data:") and "sentiment_counts" in ln:
-                    space_data = json.loads(ln.removeprefix("data: "))
+            
+            # 获取会话哈希
+            session_hash = push_resp.get("hash") or push_resp.get("session_hash")
+            if not session_hash:
+                logger.error(f"Queue response: {push_resp}")
+                raise RuntimeError("Space queue/push did not return a session hash")
+            
+            logger.info(f"Queue task submitted, session hash: {session_hash}")
+            
+            # 轮询结果
+            stream_url = f"{space_base}/queue/data?session_hash={session_hash}"
+            space_data = None
+            start_time = _t.time()
+            
+            logger.info("Polling for results...")
+            while _t.time() - start_time < 120:  # 最多等待2分钟
+                r = requests.get(stream_url, timeout=60)
+                if r.status_code != 200:
+                    logger.warning(f"Got status code {r.status_code}, retrying...")
+                    _t.sleep(2)
+                    continue
+                    
+                response_data = r.json()
+                logger.debug(f"Poll response: {str(response_data)[:100]}...")
+                
+                # 检查是否有data字段且不为空
+                arr = response_data.get("data", [])
+                if arr and len(arr) > 0 and arr[0]:
+                    logger.info("Received result from queue")
+                    space_data = _normalise_space_result({"data": arr})
                     break
-            else:
-                raise RuntimeError("Stream ended without final payload")
+                    
+                # 检查是否任务仍在队列中
+                status = response_data.get("status")
+                position = response_data.get("queue_position")
+                if status:
+                    logger.info(f"Task status: {status}, position: {position}")
+                
+                _t.sleep(2)  # 等待2秒再次轮询
+                
+            if space_data is None:
+                raise RuntimeError("Space queue/data did not return output within timeout")
 
+            # Extract normalised data
             sentiment_counts = space_data.get("sentiment_counts", {})
             toxicity_counts = space_data.get("toxicity_counts", {})
             toxicity_total = space_data.get("comments_with_any_toxicity", 0)
+            
+            # Return the same structured result as the websocket path
+            return {
+                "sentiment": {
+                    "positive_count": sentiment_counts.get("Positive", 0),
+                    "neutral_count": sentiment_counts.get("Neutral", 0),
+                    "negative_count": sentiment_counts.get("Negative", 0)
+                },
+                "toxicity": {
+                    "toxic_count": toxicity_total,
+                    "toxic_percentage": (toxicity_total / len(comments) * 100) if comments else 0,
+                    "toxic_types": {
+                        "toxic": toxicity_counts.get("Toxic", 0),
+                        "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
+                        "obscene": toxicity_counts.get("Obscene", 0),
+                        "threat": toxicity_counts.get("Threat", 0),
+                        "insult": toxicity_counts.get("Insult", 0),
+                        "identity_hate": toxicity_counts.get("Identity Hate", 0)
+                    }
+                }
+            }
 
         except Exception as rest_err:
             logger.error("Fallback REST request also failed: %s", rest_err)

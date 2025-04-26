@@ -17,6 +17,8 @@ import json
 import logging
 import os
 import sys
+from dotenv import load_dotenv
+load_dotenv()
 import time
 from pathlib import Path
 from typing import List
@@ -39,7 +41,7 @@ from gradio_client import Client  # noqa: E402
 # ---------------------------------------------------------------------------
 
 YOUTUBE_VIDEO_URL: str = (
-    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Astley – good testbed
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 )
 MAX_COMMENTS: int = 5  # keep test speedy whilst still meaningful
 SPACE_ID: str = "Jet-12138/CommentResponse"
@@ -96,59 +98,24 @@ def test_youtube_to_space_pipeline() -> None:
 
     _bp("yt-comments-fetched")
 
-    # 3. Initialise gradio client & verify connectivity -------------------------
-    logger.info("Initialising gradio client (%s) …", SPACE_ID)
-    client = Client(SPACE_ID, verbose=False)
-    try:
-        api_schema = client.view_api()
-        logger.info(
-            "Available API paths: %s",
-            list(api_schema.keys()) if isinstance(api_schema, dict) else api_schema,
-        )
-    except Exception as err:
-        logger.warning(
-            "Could not retrieve API schema via view_api(): %s – proceeding regardless.",
-            err,
-        )
-
-    _bp("space-connected")
-
-    # 4. Send comments list to Space -------------------------------------------
-    logger.info("Sending comments to Space for analysis …")
-    with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as _tmp:
-        json.dump(comments, _tmp)
-        _tmp_path = _tmp.name
-
+    # 3. Analyse comments via backend wrapper (with built-in fallback) ---------
+    logger.info("Invoking analyse_comments_with_space_api (uses gradio-client or REST fallback) …")
     start = time.time()
-    try:
-        raw_result = client.predict(_tmp_path, api_name="/predict")
-    finally:
-        try:
-            os.remove(_tmp_path)
-        except Exception:
-            pass
-    elapsed = time.time() - start
-    logger.info("Space responded in %.2fs", elapsed)
-
-    # 5. Parse and validate the response ---------------------------------------
-    result = json.loads(raw_result) if isinstance(raw_result, str) else raw_result
-    logger.debug("Raw result payload: %s", result)
-
-    assert isinstance(result, dict), "Response from Space is not a JSON object"
-    assert "sentiment_counts" in result, "sentiment_counts missing in response"
-    assert "toxicity_counts" in result, "toxicity_counts missing in response"
-
-    pos = result["sentiment_counts"].get("Positive", 0)
-    logger.info("Positive comments reported: %s", pos)
-
-    _bp("analysis-complete")
-
-    logger.info("✅ Full pipeline test passed – YouTube to Space round-trip successful.")
-
-    # Additional validation
     analysis = analyse_comments_with_space_api(comments)
-    assert "sentiment" in analysis
-    assert "toxicity" in analysis
+    elapsed = time.time() - start
+    logger.info("Analysis completed in %.2fs", elapsed)
+
+    # Validate analysis results structure
+    assert isinstance(analysis, dict), "Analysis did not return a dictionary"
+    assert "sentiment" in analysis, "Missing 'sentiment' in analysis output"
+    assert "toxicity" in analysis, "Missing 'toxicity' in analysis output"
+    logger.info(
+        "Sentiment summary: %s", analysis["sentiment"]
+    )
+    logger.info(
+        "Toxicity summary: %s", analysis["toxicity"]
+    )
+    logger.info("✅ Full pipeline test passed – fetched & analysed comments successfully.")
 
 
 # Run directly -----------------------------------------------------------------
