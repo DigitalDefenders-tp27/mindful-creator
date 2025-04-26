@@ -31,6 +31,7 @@
           <span>WELLBEING</span>
         </router-link>
         <router-link to="/privacy" class="nav-link" active-class="active" @click="closeMenu"><span>PRIVACY</span></router-link>
+        <router-link to="/test" class="nav-link" active-class="active" @click="closeMenu"><span>TEST</span></router-link>
       </div>
 
       <!-- Hamburger Menu Button -->
