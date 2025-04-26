@@ -2,13 +2,30 @@ import os
 import requests
 import json
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from urllib.parse import urlparse, parse_qs
 from googleapiclient.discovery import build
 from gradio_client import Client
 import pathlib
 import time
 import tempfile
+import sys
+
+# Ensure project root directory is in the Python path
+proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if proj_root not in sys.path:
+    sys.path.insert(0, proj_root)
+
+# Import LLM handler if available
+# Disabled: OpenRouter fallback is disabled as requested
+# try:
+#     from app.api.youtube.llm_handler import analyse_youtube_comments as llm_analyse_comments
+#     HAS_LLM_HANDLER = True
+# except ImportError:
+#     HAS_LLM_HANDLER = False
+#     logging.warning("LLM handler not available, fallback to OpenRouter will not work")
+
+HAS_LLM_HANDLER = False  # Explicitly disable LLM fallback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -62,7 +79,7 @@ def extract_video_id(youtube_url: str) -> str:
     logger.warning(f"Could not extract video ID from URL: {youtube_url}")
     return None
 
-def fetch_youtube_comments(video_url: str, max_comments: int = 50) -> List[str]:
+def fetch_youtube_comments(video_url: str, max_comments: int = 5) -> List[str]:
     """
     Fetch comments from a YouTube video
     
@@ -177,12 +194,12 @@ def _normalise_space_result(result: Any) -> Dict:
     
     return result
 
-def analyse_comments_with_space_api(comments: List[str]) -> Dict:
+def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     """
     Analyse comments using Space API for sentiment and toxicity
     
     Args:
-        comments: List of comments
+        comments: List of comments (can be either 1D or 2D array)
         
     Returns:
         Analysis results summary
@@ -193,41 +210,92 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
             "error": "No comments available for analysis"
         }
     
+    # Process comments - handle both 1D and 2D arrays
+    processed_comments = comments
+    is_2d = False
+    
+    # Check if we have a 2D array (list of lists)
+    if comments and isinstance(comments[0], list):
+        logger.info("Processing 2D comment array")
+        is_2d = True
+    else:
+        # Convert 1D array to 2D for the Space API
+        logger.info("Converting 1D comment array to 2D format for Space API")
+        processed_comments = [[comment] for comment in comments]
+        is_2d = True
+    
+    # Calculate total number of comments for percentage calculations
+    total_comments = len(comments)
+    logger.info(f"Total comments to analyze: {total_comments}")
+    
     try:
-        # Attempt inference via Hugging Face Space using gradio-client.
+        # Attempt inference via Hugging Face Space using gradio-client
         logger.info("Initialising Gradio client for Space inference...")
         cli = Client("Jet-12138/CommentResponse", verbose=False)
 
-        # Call predict with the plain list[str] of comments
+        # Call predict with comments
         api_start = time.time()
-        raw_result: Any = cli.predict(
-            comments,                # direct list of comments
-            api_name="/predict"
-        )
-        logger.info("Space call completed in %.2fs", time.time() - api_start)
-
-        # Normalise the result to ensure consistent structure
-        space_data = _normalise_space_result(raw_result)
-
-        logger.debug("Normalised payload from Space: %s", space_data)
-
-        # Extract data from normalised result
-        sentiment_counts = space_data.get("sentiment_counts", {})
-        toxicity_counts = space_data.get("toxicity_counts", {})
-        toxicity_total = space_data.get("comments_with_any_toxicity", 0)
-
-        logger.info(
-            "Sentiment counts received – positive=%s, neutral=%s, negative=%s",
-            sentiment_counts.get("Positive", 0),
-            sentiment_counts.get("Neutral", 0),
-            sentiment_counts.get("Negative", 0),
-        )
-
-        logger.info(
-            "Toxicity: %s toxic comments (%.1f%%)",
-            toxicity_total,
-            (toxicity_total / len(comments) * 100) if comments else 0,
-        )
+        
+        # Log what we're sending to the API for debugging
+        logger.info(f"Sending {len(processed_comments)} comments to Space API")
+        sample_comment = processed_comments[0] if processed_comments else "[]"
+        logger.info(f"Sample comment format: {sample_comment}")
+        
+        try:
+            raw_result = cli.predict(
+                processed_comments,
+                api_name="/predict"
+            )
+            logger.info("Space call completed in %.2fs", time.time() - api_start)
+            
+            # If we get here, the call succeeded
+            # Log the raw result for debugging
+            logger.info(f"Raw result type: {type(raw_result)}")
+            if isinstance(raw_result, dict):
+                logger.info(f"Raw result keys: {list(raw_result.keys())}")
+            elif isinstance(raw_result, str):
+                logger.info(f"Raw result (first 200 chars): {raw_result[:200]}...")
+            else:
+                logger.info(f"Raw result format: {raw_result.__class__.__name__}")
+            
+            # Normalize the result to ensure consistent structure
+            space_data = _normalise_space_result(raw_result)
+            logger.info(f"Normalized result keys: {list(space_data.keys()) if isinstance(space_data, dict) else 'not a dict'}")
+            
+            # Extract and log sentiment and toxicity data
+            sentiment_counts = space_data.get("sentiment_counts", {})
+            logger.info(f"Sentiment counts: {sentiment_counts}")
+            
+            toxicity_counts = space_data.get("toxicity_counts", {})
+            logger.info(f"Toxicity counts: {toxicity_counts}")
+            
+            toxicity_total = space_data.get("comments_with_any_toxicity", 0)
+            logger.info(f"Total toxic comments: {toxicity_total}")
+        except Exception as e:
+            logger.error(f"Space API call failed: {str(e)}")
+            
+            # If the Space API fails completely, return a standardized error structure 
+            # that the frontend can handle
+            return {
+                "sentiment": {
+                    "positive_count": 0,
+                    "neutral_count": 0,
+                    "negative_count": 0
+                },
+                "toxicity": {
+                    "toxic_count": 0,
+                    "toxic_percentage": 0,
+                    "toxic_types": {
+                        "toxic": 0,
+                        "severe_toxic": 0,
+                        "obscene": 0,
+                        "threat": 0,
+                        "insult": 0,
+                        "identity_hate": 0
+                    }
+                },
+                "note": f"API Error: {str(e)[:100]}..."
+            }
 
         result = {
             "sentiment": {
@@ -237,7 +305,7 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
             },
             "toxicity": {
                 "toxic_count": toxicity_total,
-                "toxic_percentage": (toxicity_total / len(comments) * 100) if comments else 0,
+                "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
                 "toxic_types": {
                     "toxic": toxicity_counts.get("Toxic", 0),
                     "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
@@ -251,106 +319,30 @@ def analyse_comments_with_space_api(comments: List[str]) -> Dict:
 
         return result
     
-    except Exception as ws_err:  # noqa: BLE001 – websocket path failed
-        logger.warning(
-            "Gradio client websocket path failed (%s); falling back to REST queue "
-            "API as a contingency.",
-            ws_err,
-        )
-
-        try:
-            import requests, time as _t
-            space_base = "https://jet-12138-commentresponse.hf.space"
-
-            logger.info("Falling back to REST API queue...")
-            # 使用标准队列API格式
-            logger.info("Pushing task to queue...")
-            push_resp = requests.post(
-                f"{space_base}/queue/push",
-                json={"data": [comments]},  # 使用简单的数据格式
-                timeout=60,
-            ).json()
-            
-            # 获取会话哈希
-            session_hash = push_resp.get("hash") or push_resp.get("session_hash")
-            if not session_hash:
-                logger.error(f"Queue response: {push_resp}")
-                raise RuntimeError("Space queue/push did not return a session hash")
-            
-            logger.info(f"Queue task submitted, session hash: {session_hash}")
-            
-            # 轮询结果
-            stream_url = f"{space_base}/queue/data?session_hash={session_hash}"
-            space_data = None
-            start_time = _t.time()
-            
-            logger.info("Polling for results...")
-            while _t.time() - start_time < 120:  # 最多等待2分钟
-                r = requests.get(stream_url, timeout=60)
-                if r.status_code != 200:
-                    logger.warning(f"Got status code {r.status_code}, retrying...")
-                    _t.sleep(2)
-                    continue
-                    
-                response_data = r.json()
-                logger.debug(f"Poll response: {str(response_data)[:100]}...")
-                
-                # 检查是否有data字段且不为空
-                arr = response_data.get("data", [])
-                if arr and len(arr) > 0 and arr[0]:
-                    logger.info("Received result from queue")
-                    space_data = _normalise_space_result({"data": arr})
-                    break
-                    
-                # 检查是否任务仍在队列中
-                status = response_data.get("status")
-                position = response_data.get("queue_position")
-                if status:
-                    logger.info(f"Task status: {status}, position: {position}")
-                
-                _t.sleep(2)  # 等待2秒再次轮询
-                
-            if space_data is None:
-                raise RuntimeError("Space queue/data did not return output within timeout")
-
-            # Extract normalised data
-            sentiment_counts = space_data.get("sentiment_counts", {})
-            toxicity_counts = space_data.get("toxicity_counts", {})
-            toxicity_total = space_data.get("comments_with_any_toxicity", 0)
-            
-            # Return the same structured result as the websocket path
-            return {
-                "sentiment": {
-                    "positive_count": sentiment_counts.get("Positive", 0),
-                    "neutral_count": sentiment_counts.get("Neutral", 0),
-                    "negative_count": sentiment_counts.get("Negative", 0)
-                },
-                "toxicity": {
-                    "toxic_count": toxicity_total,
-                    "toxic_percentage": (toxicity_total / len(comments) * 100) if comments else 0,
-                    "toxic_types": {
-                        "toxic": toxicity_counts.get("Toxic", 0),
-                        "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
-                        "obscene": toxicity_counts.get("Obscene", 0),
-                        "threat": toxicity_counts.get("Threat", 0),
-                        "insult": toxicity_counts.get("Insult", 0),
-                        "identity_hate": toxicity_counts.get("Identity Hate", 0)
-                    }
-                }
-            }
-
-        except Exception as rest_err:
-            logger.error("Fallback REST request also failed: %s", rest_err)
-            raise
-
     except Exception as e:
-        logger.error("Space inference failed: %s", e)
-        logger.exception("Traceback details:")
-
-        # Fallback – return structured error so that frontend can handle it.
+        logger.error(f"Unexpected error in Space API analysis: {str(e)}")
+        
+        # Always return a consistent structure even on error
         return {
-            "error": "Space inference failed",
-            "details": str(e)
+            "sentiment": {
+                "positive_count": 0,
+                "neutral_count": 0,
+                "negative_count": 0
+            },
+            "toxicity": {
+                "toxic_count": 0,
+                "toxic_percentage": 0,
+                "toxic_types": {
+                    "toxic": 0,
+                    "severe_toxic": 0,
+                    "obscene": 0,
+                    "threat": 0,
+                    "insult": 0,
+                    "identity_hate": 0
+                }
+            },
+            "error": str(e),
+            "note": "Analysis failed, please try again or with different comments."
         }
 
 async def analyze_youtube_video(video_url: str) -> Dict:

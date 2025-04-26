@@ -88,7 +88,7 @@
         <h2 class="section-title">🔍 Check Your Comment Section</h2>
         
         <p class="section-description">
-          Not sure if your comment section is a space for healthy
+          Not sure if your Youtube comment section is a space for healthy
           discussion or if there's negativity creeping in?
         </p>
         
@@ -97,7 +97,7 @@
             <div class="card-number">1</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/post.png" alt="Smartphone icon" class="card-icon">
-              <p class="card-text">Open your social media platform and find your post.</p>
+              <p class="card-text">Open your Youtube video.</p>
             </div>
           </div>
           
@@ -105,7 +105,7 @@
             <div class="card-number">2</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/copy.png" alt="Copy icon" class="card-icon">
-              <p class="card-text">Copy the comment you want to analyze.</p>
+              <p class="card-text">Copy the URL.</p>
             </div>
           </div>
           
@@ -139,6 +139,10 @@
             </button>
           </div>
           <p v-if="analysisError" class="error-message">{{ analysisError }}</p>
+          <p v-if="isLoading" class="loading-message">
+            <span class="loading-spinner"></span>
+            Fetching and analysing comments. This may take a moment...
+          </p>
         </div>
       </div>
       
@@ -155,6 +159,15 @@
             <div class="video-info-section">
               <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
               <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
+            </div>
+            
+            <!-- Debug Information (Add after video info section) -->
+            <div v-if="analysisResult?.analysis?.note" class="debug-info">
+              <p class="note-message"><strong>Note:</strong> {{ analysisResult.analysis.note }}</p>
+              <details>
+                <summary>Debug Information</summary>
+                <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
+              </details>
             </div>
             
             <!-- Results Grid -->
@@ -178,38 +191,57 @@
                 </div>
               </div>
               
-              <!-- Toxicity Analysis Results -->
+              <!-- Total Toxic Comments Card -->
               <div class="result-card">
-                <h3>Toxicity Analysis</h3>
+                <h3>Toxic Comments Overview</h3>
                 <div class="toxic-count">
                   <div class="stat-number">{{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }}</div>
-                  <div class="stat-label">Toxic Comments ({{ (analysisResult?.analysis?.toxicity?.toxic_percentage || 0).toFixed(1) }}%)</div>
+                  <div class="stat-label">Total Toxic Comments ({{ (analysisResult?.analysis?.toxicity?.toxic_percentage || 0).toFixed(1) }}%)</div>
                 </div>
-                
-                <div class="toxicity-types">
-                  <h4>Toxicity Types:</h4>
-                  <div class="types-grid">
-                    <div v-for="(count, type) in analysisResult?.analysis?.toxicity?.toxic_types" :key="type" class="type-item">
-                      {{ formatToxicityType(type) }}: {{ count }}
-                    </div>
-                  </div>
-                </div>
+                <p class="toxic-explanation">These are comments that may require moderation or careful consideration when responding.</p>
               </div>
             </div>
             
             <!-- Donut Charts Section -->
             <div class="charts-section">
               <h3>Toxicity Breakdown</h3>
+              <p class="toxicity-subtitle">Breakdown of the {{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }} toxic comments by category</p>
               <div class="donut-charts">
-                <div v-for="(item, index) in gaugeData" :key="index" class="donut-item">
-                  <HalfDonutChart :percentage="item.value" :color="item.color" />
-                  <p class="donut-label">{{ item.label }}</p>
-                  <p class="donut-percent">{{ item.value }}%</p>
+                <div v-for="(count, type) in analysisResult?.analysis?.toxicity?.toxic_types" :key="type" class="donut-item">
+                  <HalfDonutChart 
+                    :percentage="calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count)" 
+                    :color="getToxicityColor(type)" 
+                  />
+                  <p class="donut-label">{{ formatToxicityType(type) }}</p>
+                  <p class="donut-percent">{{ count }} ({{ calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count) }}%)</p>
                 </div>
               </div>
             </div>
             
-            <!-- Analysis Recommendations -->
+            <!-- Strategies Section (Added) -->
+            <div class="strategies-section" v-if="analysisResult?.strategies">
+              <h3>Response Strategies</h3>
+              <div class="strategy-content" v-html="formatStrategies(analysisResult.strategies)"></div>
+            </div>
+            
+            <!-- Example Comments Section (Added) -->
+            <div class="examples-section" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
+              <h3>Example Responses</h3>
+              <div class="example-cards">
+                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="example-card">
+                  <div class="example-comment">
+                    <h4>Critical Comment:</h4>
+                    <p>{{ example.comment }}</p>
+                  </div>
+                  <div class="example-response">
+                    <h4>Suggested Response:</h4>
+                    <p>{{ example.response }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Recommendations Section -->
             <div class="recommendations-section">
               <h3>Recommendations</h3>
               <p>Based on the analysis of your YouTube comments, we recommend:</p>
@@ -267,6 +299,36 @@
       'identity_hate': 'Identity Hate'
     }
     return typeMap[type] || type
+  }
+  
+  // Format strategies with HTML
+  const formatStrategies = (strategies) => {
+    if (!strategies) return '';
+    
+    // Replace line breaks with <br> and convert bullet points to HTML
+    return strategies
+      .replace(/\n/g, '<br>')
+      .replace(/•/g, '&bull;')
+      .replace(/- /g, '&bull; ');
+  }
+  
+  // Calculate percentage for toxicity types
+  const calculatePercentage = (count, total) => {
+    if (!total || total === 0) return 0
+    return Math.round((count / total) * 100)
+  }
+  
+  // Get color for toxicity type
+  const getToxicityColor = (type) => {
+    const colorMap = {
+      'toxic': '#EF5350',        // Red
+      'severe_toxic': '#D32F2F',  // Dark Red
+      'obscene': '#FF7043',      // Orange
+      'threat': '#AB47BC',       // Purple
+      'insult': '#FFA726',       // Amber
+      'identity_hate': '#7E57C2' // Deep Purple
+    }
+    return colorMap[type] || '#888888'
   }
 
   // Analyse YouTube comments
@@ -1604,6 +1666,31 @@
     margin-top: 0.5rem;
     font-size: 0.9rem;
   }
+  
+  .loading-message {
+    color: #3498db;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    border-radius: 50%;
+    border-top-color: #3498db;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 
   /* Modal Overlay */
   .modal-overlay {
@@ -1612,12 +1699,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 1000;
-    padding: 2rem;
+    align-items: center;
+    backdrop-filter: blur(3px);
   }
 
   .analysis-modal {
@@ -1743,11 +1830,19 @@
     text-align: center;
     margin-bottom: 1.5rem;
   }
+  
+  .toxic-explanation {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+    line-height: 1.5;
+  }
 
-  .toxicity-types h4 {
-    font-size: 1.1rem;
-    margin-bottom: 0.8rem;
-    color: #333;
+  .toxicity-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 2rem;
+    font-size: 1rem;
   }
 
   .types-grid {
@@ -1799,6 +1894,91 @@
     color: #555;
   }
 
+  /* Strategies Section (Added) */
+  .strategies-section {
+    margin-bottom: 2.5rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .strategies-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .strategy-content {
+    color: #555;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* Example Comments Section (Added) */
+  .examples-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .examples-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .example-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .example-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #eee;
+    width: 100%;
+  }
+
+  .example-comment {
+    background-color: #fff2f2;
+    padding: 1.2rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .example-comment h4 {
+    font-weight: 600;
+    color: #d32f2f;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .example-response {
+    background-color: #f0f8ff;
+    padding: 1.2rem;
+  }
+
+  .example-response h4 {
+    font-weight: 600;
+    color: #1976d2;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .example-comment p,
+  .example-response p {
+    margin: 0;
+    color: #333;
+    line-height: 1.5;
+  }
+
   /* Recommendations Section */
   .recommendations-section {
     background-color: #f8f9fa;
@@ -1845,6 +2025,15 @@
     .donut-item {
       width: 120px;
     }
+    
+    .example-cards {
+      gap: 1rem;
+    }
+    
+    .example-comment,
+    .example-response {
+      padding: 1rem;
+    }
   }
 
   @media (max-width: 480px) {
@@ -1868,5 +2057,41 @@
     .modal-content {
       padding: 1.5rem;
     }
+    
+    .strategies-section h3,
+    .examples-section h3 {
+      font-size: 1.3rem;
+    }
+    
+    .example-comment h4,
+    .example-response h4 {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Debug Information Styles */
+  .debug-info {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #fff8e1;
+    border: 1px solid #ffecb3;
+    border-radius: 8px;
+  }
+  
+  .note-message {
+    color: #ff6f00;
+    margin-bottom: 0.5rem;
+  }
+  
+  .debug-data {
+    background-color: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
   }
   </style>

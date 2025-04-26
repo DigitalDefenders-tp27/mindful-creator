@@ -182,3 +182,90 @@ TypeError: unsupported operand type(s) for /: 'PosixPath' and 'list'
 2025-04-26 08:54:49,635 - server - INFO - - YOUTUBE_API_KEY: Set
 2025-04-26 08:54:49,635 - server - INFO - - SPACE_API_URL: Set
 2025-04-26 08:54:49,635 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:08:05,478 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:08:05,479 - server - INFO - Loading environment variables...
+2025-04-27 00:08:05,480 - server - INFO - Environment variable configuration status:
+2025-04-27 00:08:05,480 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:08:05,480 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:08:05,480 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:08:05,480 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 00:08:05,606 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:08:05,606 - server - INFO - Loading environment variables...
+2025-04-27 00:08:05,607 - server - INFO - Environment variable configuration status:
+2025-04-27 00:08:05,607 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:08:05,607 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:08:05,607 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:10:03,237 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:10:03,237 - server - INFO - Loading environment variables...
+2025-04-27 00:10:03,238 - server - INFO - Environment variable configuration status:
+2025-04-27 00:10:03,238 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:10:03,238 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:10:03,238 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:10:03,238 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 00:10:22,049 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:10:22,049 - server - INFO - Loading environment variables...
+2025-04-27 00:10:22,050 - server - INFO - Environment variable configuration status:
+2025-04-27 00:10:22,050 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:10:22,050 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:10:22,050 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:10:22,050 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 00:11:03,636 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:11:03,636 - server - INFO - Loading environment variables...
+2025-04-27 00:11:03,637 - server - INFO - Environment variable configuration status:
+2025-04-27 00:11:03,637 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:11:03,637 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:11:03,637 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:11:03,637 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 00:11:03,741 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 00:11:03,742 - server - INFO - Loading environment variables...
+2025-04-27 00:11:03,742 - server - INFO - Environment variable configuration status:
+2025-04-27 00:11:03,742 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 00:11:03,742 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 00:11:03,742 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 00:13:15,728 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 00:13:24,255 - app.api.youtube.analyzer - INFO - Starting YouTube video comment analysis: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 00:13:24,255 - app.api.youtube.analyzer - INFO - Fetching YouTube comments...
+2025-04-27 00:13:24,255 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 00:13:24,256 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: dQw4w9WgXcQ
+2025-04-27 00:13:24,256 - app.api.youtube.analyzer - INFO - Extracted video ID: dQw4w9WgXcQ
+2025-04-27 00:13:24,256 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 00:13:24,259 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 00:13:24,261 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 5
+2025-04-27 00:13:24,262 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 00:13:24,571 - app.api.youtube.analyzer - INFO - Retrieved 5 comments in this batch
+2025-04-27 00:13:24,571 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 00:13:24,571 - app.api.youtube.analyzer - INFO - Successfully retrieved 5 comments
+2025-04-27 00:13:24,571 - app.api.youtube.analyzer - INFO - Starting Space API analysis of 5 comments...
+2025-04-27 00:13:24,571 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 00:13:49,791 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 00:13:50,751 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 00:13:51,796 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/9b3785ce-53e8-485b-a85c-1fe185248e89 "HTTP/1.1 200 OK"
+2025-04-27 00:13:51,809 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 00:13:52,812 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=9b3785ce-53e8-485b-a85c-1fe185248e89 "HTTP/1.1 200 OK"
+2025-04-27 00:13:52,832 - app.api.youtube.analyzer - INFO - Space call completed in 2.08s
+2025-04-27 00:13:52,832 - app.api.youtube.analyzer - INFO - Sentiment counts received – positive=3, neutral=1, negative=1
+2025-04-27 00:13:52,832 - app.api.youtube.analyzer - INFO - Toxicity: 0 toxic comments (0.0%)
+2025-04-27 00:13:52,832 - app.api.youtube.analyzer - INFO - Comment analysis complete, preparing results
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Starting YouTube video comment analysis: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Fetching YouTube comments...
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: dQw4w9WgXcQ
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Extracted video ID: dQw4w9WgXcQ
+2025-04-27 00:14:24,080 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 00:14:24,083 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 00:14:24,092 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 5
+2025-04-27 00:14:24,094 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 00:14:24,415 - app.api.youtube.analyzer - INFO - Retrieved 5 comments in this batch
+2025-04-27 00:14:24,416 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 00:14:24,416 - app.api.youtube.analyzer - INFO - Successfully retrieved 5 comments
+2025-04-27 00:14:24,416 - app.api.youtube.analyzer - INFO - Starting Space API analysis of 5 comments...
+2025-04-27 00:14:24,416 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 00:14:26,186 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 00:14:27,182 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 00:14:28,168 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 00:14:28,169 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/ca6f115a-707d-4f46-8966-f77f89cbefdb "HTTP/1.1 200 OK"
+2025-04-27 00:14:29,165 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=ca6f115a-707d-4f46-8966-f77f89cbefdb "HTTP/1.1 200 OK"
+2025-04-27 00:14:29,190 - app.api.youtube.analyzer - INFO - Space call completed in 2.01s
+2025-04-27 00:14:29,190 - app.api.youtube.analyzer - INFO - Sentiment counts received – positive=3, neutral=1, negative=1
+2025-04-27 00:14:29,190 - app.api.youtube.analyzer - INFO - Toxicity: 0 toxic comments (0.0%)
+2025-04-27 00:14:29,190 - app.api.youtube.analyzer - INFO - Comment analysis complete, preparing results
