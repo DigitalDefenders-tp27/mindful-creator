@@ -12,55 +12,51 @@
         </div>
       </div>
     </section>
-    
-    <!-- 数字影响分析仪表板 / Digital Impact Analysis Dashboard -->
+
+    <!-- Dashboard Section -->
     <section class="dashboard-section">
       <div class="container">
-        <h1 class="section-title">Average working time</h1>
-        
+
+        <!-- Tabs -->
         <div class="tabs">
-          <div class="tab active">Average working time</div>
-          <div class="tab">Anxiety correlation</div>
-          <div class="tab">...</div>
-          <div class="tab">...</div>
+          <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+            @click="currentTab = index">
+            {{ tab.name }}
+          </div>
         </div>
-        
+
+        <!-- Chart and Insights -->
         <div class="dashboard-content">
           <div class="chart-container">
-            <h3 class="chart-title">AVERAGE WORKING TIME FOR CONTENT CREATOR</h3>
-            <div class="chart">
-              <img src="../assets/icons/elements/chart-placeholder.svg" alt="Chart" class="chart-img">
+            <h3 class="chart-title">{{ tabs[currentTab].title }}</h3>
+            <div class="chart hover-zoom">
+              <img :src="tabs[currentTab].image" :alt="tabs[currentTab].title" class="chart-img" />
             </div>
           </div>
-          
+
           <div class="insights-container">
-            <h3 class="insights-title">KEY INSIGHT:</h3>
-            <div class="insight-card">
-              <p>Content creators tend to work 20% longer hours during seasonal campaigns.</p>
-            </div>
-            <div class="insight-card">
-              <p>Weekend work hours have increased by 15% in the last quarter.</p>
-            </div>
-            <div class="insight-card">
-              <p>Taking regular breaks can reduce stress levels by up to 30%.</p>
+            <h3 class="insights-title">KEY INSIGHTS:</h3>
+            <div class="insight-card" v-for="(insight, idx) in tabs[currentTab].insights" :key="idx">
+              <p>{{ insight }}</p>
             </div>
           </div>
         </div>
+
       </div>
     </section>
-    
+
     <!-- 健康资源查找器 / Wellbeing Resource Finder -->
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
         <p class="section-subtitle">Find and navigate yourself to get wellbeing resources easily near you.</p>
-        
+
         <div class="resource-finder-content">
           <div class="resource-tabs">
             <div class="resource-tab active">Psychologist (Offline Resources)</div>
             <div class="resource-tab">Online Resources</div>
           </div>
-          
+
           <div class="resource-content">
             <div class="map-container">
               <img src="../assets/icons/elements/map-placeholder.svg" alt="Map" class="map-img">
@@ -69,7 +65,7 @@
                 Get My Position
               </button>
             </div>
-            
+
             <div class="resource-details">
               <h3 class="resource-name">Calm 'n' Caring Psychology Melbourne</h3>
               <div class="rating">
@@ -77,18 +73,18 @@
                 <div class="stars">★★★★★</div>
                 <span class="reviews">(5)</span>
               </div>
-              
+
               <div class="resource-location">
                 <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
                 <span>101 Collins St, Melbourne VIC 3000</span>
               </div>
-              
+
               <div class="resource-website">
                 <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
                 <a href="https://calmandcaring.com/melbourne" target="_blank">https://calmandcaring.com/melbourne</a>
                 <button class="online-switch">Switch to online</button>
               </div>
-              
+
               <div class="opening-hours">
                 <h4>Opening hours</h4>
                 <div class="hours-grid">
@@ -110,7 +106,7 @@
                   <div class="hours">Hours might differ</div>
                 </div>
               </div>
-              
+
               <div class="resource-actions">
                 <button class="action-btn direction-btn">
                   <img src="../assets/icons/elements/direction.svg" alt="Direction" class="btn-icon">
@@ -126,20 +122,21 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 健康活动中心 / Wellbeing Activities Hub -->
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
         <p class="section-subtitle">Release your stress by joining fun activities and making like-minded friends.</p>
-        
+
         <div class="activities-header">
           <h3 class="recent-title">RECENT CAMPAIGNS...</h3>
           <button @click="openModal" class="view-all-btn">VIEW ALL EVENTS</button>
         </div>
-        
+
         <div class="activities-grid">
-          <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+          <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
               <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Wellness Walk" class="activity-img">
               <h3 class="activity-title">MeTreat Retreats Women's Wellness Walk</h3>
@@ -153,8 +150,9 @@
               </div>
             </div>
           </a>
-          
-          <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+
+          <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
               <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Workshop" class="activity-img">
               <h3 class="activity-title">Mentally Healthy Workplaces Workshop</h3>
@@ -168,10 +166,12 @@
               </div>
             </div>
           </a>
-          
-          <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+
+          <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
-              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Business Workshop" class="activity-img">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Business Workshop"
+                class="activity-img">
               <h3 class="activity-title">Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
               <div class="activity-tags">
                 <span class="tag may">May</span>
@@ -186,7 +186,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Activities Details Modal -->
     <div v-if="isModalVisible" class="activities-modal-overlay" @click="closeModal">
       <div class="activities-modal" @click.stop>
@@ -234,10 +234,11 @@
               </select>
             </div>
           </div>
-          
+
           <div class="events-grid">
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops"
+                class="event-img">
               <div class="event-info">
                 <h3>Mentally Healthy Workplaces Workshop</h3>
                 <div class="event-tags">
@@ -246,22 +247,28 @@
                   <span class="tag workshop">Workshop</span>
                   <span class="tag free">Free Event</span>
                 </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and
+                  sustain a mentally healthy and safe workplace.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000
+                  </div>
                   <div><strong>Date:</strong> 1st May 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
             </div>
 
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops"
+                class="event-img">
               <div class="event-info">
                 <h3>Mentally Healthy Workplaces Workshop</h3>
                 <div class="event-tags">
@@ -270,15 +277,20 @@
                   <span class="tag workshop">Workshop</span>
                   <span class="tag free">Free Event</span>
                 </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and
+                  sustain a mentally healthy and safe workplace.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000
+                  </div>
                   <div><strong>Date:</strong> June 4th 2025</div>
                   <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -293,22 +305,27 @@
                   <span class="tag workplace">Workplace Wellbeing Workshop</span>
                   <span class="tag charged">$525.44</span>
                 </div>
-                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.</p>
+                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.
+                </p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Sydney</div>
                   <!-- <div><strong>Group size:</strong> 15-30</div> -->
                   <div><strong>Date:</strong> October 11st 2025</div>
                   <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
             </div>
-            
+
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing" class="event-img">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing"
+                class="event-img">
               <div class="event-info">
                 <h3>Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
                 <div class="event-tags">
@@ -316,23 +333,28 @@
                   <span class="tag workplace">Workplace Wellbeing Workshop</span>
                   <span class="tag charged">$20</span>
                 </div>
-                <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.</p>
+                <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking
+                  groups. Connect with nature and like-minded creators.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Warrnambool</div>
                   <div><strong>Address:</strong> 185 Timor Street Warrnambool, VIC 3280</div>
                   <!-- <div><strong>Group size:</strong> 5-15</div> -->
                   <div><strong>Date:</strong> May 28th</div>
                   <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
             </div>
-            
+
             <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing" class="event-img">
+              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing"
+                class="event-img">
               <div class="event-info">
                 <h3>Strategies for Mental Health at Work and Keeping Psychologically Safe.</h3>
                 <div class="event-tags">
@@ -340,21 +362,25 @@
                   <span class="tag workplace">Workplace Wellbeing Workshop</span>
                   <span class="tag charged">$108.9</span>
                 </div>
-                <p class="event-description"> HR professionals, managers, and business leaders , here's practical strategies to foster wellbeing and mental health in your workplace.</p>
+                <p class="event-description"> HR professionals, managers, and business leaders , here's practical
+                  strategies to foster wellbeing and mental health in your workplace.</p>
                 <div class="event-meta">
                   <div><strong>Location:</strong> Geelong</div>
                   <div><strong>Address:</strong> 60 Moorabool Street Geelong, VIC 3220</div>
                   <!-- <div><strong>Group size:</strong> 5-10</div> -->
                   <div><strong>Date:</strong> October 9th 2025</div>
                   <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
             </div>
-            
+
             <div class="event-card">
               <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Outdoor Walking" class="event-img">
               <div class="event-info">
@@ -371,9 +397,12 @@
                   <!-- <div><strong>Group size:</strong> 8-12</div> -->
                   <div><strong>Date:</strong> April 25th</div>
                   <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -382,7 +411,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="footer">
       <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">隐私政策</router-link></p>
     </div>
@@ -390,32 +419,187 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue'
+import * as echarts from 'echarts'
+import 'echarts-wordcloud'
+import axios from 'axios'
+import Chart from 'chart.js/auto'
 
-// 模态窗口显示状态
-const isModalVisible = ref(false);
+import avgLikes from '@/assets/images/avg_likes_by_sentiment.png'
+import commentLengthDist from '@/assets/images/comment_length_distribution.png'
+import sentimentDistCountplot from '@/assets/images/sentiment_dist_countplot.png'
+import sentimentDistribution from '@/assets/images/sentiment_distribution.png'
+import toxicityCommentLengthBoxplot from '@/assets/images/toxicity_comment_length_boxplot.png'
+import toxicityPieChart from '@/assets/images/toxicity_pie_chart.png'
+import viewsVsAvgSentiment from '@/assets/images/views_vs_avg_sentiment.png'
+import viewsVsLikesScatter from '@/assets/images/views_vs_likes_scatter.png'
+import wordcloudPositive from '@/assets/images/wordcloud_positive_youtube_comments.png'
+import wordcloudToxic from '@/assets/images/wordcloud_toxic_comments.png'
 
-// 打开模态窗口
-const openModal = () => {
-  isModalVisible.value = true;
-};
+const currentTab = ref(0)
+const wordcloudChart = ref(null)
+let wordcloudInstance = null
 
-// 关闭模态窗口
-const closeModal = () => {
-  isModalVisible.value = false;
-};
+const tabs = [
+  {
+    name: 'Comment Length',
+    title: 'Comment Length Distribution',
+    image: commentLengthDist,
+    insights: [
+      'Short comments are often more emotional.',
+      'Longer comments provide more detailed feedback.',
+      'Comment length varies based on video type.'
+    ]
+  },
+  {
+    name: 'Sentiment Spread',
+    title: 'Sentiment Distribution',
+    image: sentimentDistribution,
+    insights: [
+      'Positive comments dominate entertainment videos.',
+      'Neutral comments are common in tutorials.',
+      'Negative sentiment spikes during controversies.'
+    ]
+  },
+  {
+    name: 'Toxicity vs Length',
+    title: 'Toxicity vs Comment Length',
+    image: toxicityCommentLengthBoxplot,
+    insights: [
+      'Highly toxic comments are usually very short.',
+      'Medium-length comments show mixed sentiment.',
+      'Longer comments tend to be constructive.'
+    ]
+  },
+  {
+    name: 'Toxicity Overview',
+    title: 'Toxicity Pie Chart',
+    image: toxicityPieChart,
+    insights: [
+      '80% of comments are non-toxic.',
+      'Mild toxicity is more common than severe toxicity.',
+      'Toxicity levels vary across content categories.'
+    ]
+  },
+  {
+    name: 'Views vs Sentiment',
+    title: 'Views vs Average Sentiment',
+    image: viewsVsAvgSentiment,
+    insights: [
+      'Videos with higher sentiment positivity attract more views.',
+      'Neutral sentiment correlates with moderate viewership.',
+      'Negative videos tend to have lower retention rates.'
+    ]
+  },
+  {
+    name: 'Views vs Likes',
+    title: 'Views vs Likes Scatter',
+    image: viewsVsLikesScatter,
+    insights: [
+      'Higher views generally correlate with more likes.',
+      'Viral videos show strong likes-to-views ratios.',
+      'Outliers exist where views are high but likes are low.'
+    ]
+  },
+  {
+    name: 'Positive Wordcloud',
+    title: 'Positive YouTube Comments Wordcloud',
+    image: wordcloudPositive,
+    insights: [
+      '"Amazing", "Great", and "Awesome" are most common.',
+      'Positive feedback clusters around quality content.',
+      'Engagement rises with positive audience tone.'
+    ]
+  },
+  {
+    name: 'Toxic Wordcloud',
+    title: 'Toxic YouTube Comments Wordcloud',
+    image: wordcloudToxic,
+    insights: [
+      '"Terrible", "Worst", and "Fake" dominate toxic comments.',
+      'Toxicity increases during trending or divisive topics.',
+      'Toxicity can harm creator wellbeing and audience trust.'
+    ]
+  }
+]
 
-// 搜索相关
-const searchQuery = ref('');
-const selectedLocation = ref('All locations');
-const selectedCategory = ref('All types');
-const selectedMonth = ref('Any time');
+let chartInstance = null
+const sentimentData = ref([])
+
+const fetchAndRenderChart = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/api/comments-with-sentiment')
+    sentimentData.value = response.data
+
+    const sentimentCounts = {
+      Positive: 0,
+      Neutral: 0,
+      Negative: 0,
+    }
+
+    sentimentData.value.forEach(comment => {
+      if (sentimentCounts.hasOwnProperty(comment.sentiment)) {
+        sentimentCounts[comment.sentiment]++
+      }
+    })
+
+    const ctx = document.getElementById('sentimentChart')
+    if (chartInstance) chartInstance.destroy()
+
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Positive', 'Neutral', 'Negative'],
+        datasets: [{
+          label: 'Sentiment Distribution',
+          data: [
+            sentimentCounts.Positive,
+            sentimentCounts.Neutral,
+            sentimentCounts.Negative
+          ],
+          backgroundColor: ['#66d9ef', '#ffc94d', '#ff4c4c'],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+          },
+          title: {
+            display: true,
+            text: 'Sentiment Analysis from Comments'
+          }
+        }
+      }
+    })
+
+  } catch (error) {
+    console.error('Error fetching sentiment data:', error)
+  }
+}
+
+onMounted(() => {
+  fetchAndRenderChart()
+})
 </script>
 
+
 <style scoped>
+/* Add hover zoom for charts */
+.hover-zoom img {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.hover-zoom img:hover {
+  transform: scale(1.05);
+}
+
 .creator-wellbeing {
   background-color: #fffcf5;
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
   min-height: 100vh;
@@ -580,7 +764,7 @@ const selectedMonth = ref('Any time');
     transform: translateX(-0.5rem);
     row-gap: 0.75rem;
   }
-  
+
   .title-group h2,
   .subtitle {
     white-space: normal;
@@ -593,7 +777,7 @@ const selectedMonth = ref('Any time');
     opacity: 0.5;
     row-gap: 0.5rem;
   }
-  
+
   .title-group h1 {
     white-space: normal;
   }
@@ -604,31 +788,31 @@ const selectedMonth = ref('Any time');
     opacity: 0.1;
     transform: translateX(0) scale(0.8);
   }
-  
+
   .hero-content {
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.75rem;
     min-height: 22vh;
   }
-  
+
   .hero-section {
     min-height: 22vh;
     padding: 7rem 0 0.5rem;
   }
-  
+
   .slogan {
     max-width: 90%;
   }
-  
+
   .title-group h1 {
     font-size: 3.5rem;
   }
-  
+
   .title-group h2 {
     font-size: 2rem;
   }
-  
+
   .subtitle {
     font-size: 1.125rem;
   }
@@ -639,26 +823,26 @@ const selectedMonth = ref('Any time');
     opacity: 0;
     transform: translateX(0) scale(0.7);
   }
-  
+
   .hero-content {
     min-height: 18vh;
     padding-top: 0.25rem;
   }
-  
+
   .hero-section {
     min-height: 18vh;
     padding: 7.5rem 0 0.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .title-group h1 {
     font-size: 2.5rem;
   }
-  
+
   .title-group h2 {
     font-size: 1.5rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
@@ -669,11 +853,11 @@ const selectedMonth = ref('Any time');
     opacity: 0;
     display: none;
   }
-  
+
   .hero-content {
     min-height: 16vh;
   }
-  
+
   .hero-section {
     min-height: 16vh;
     padding: 8rem 0 0.5rem;
@@ -685,20 +869,20 @@ const selectedMonth = ref('Any time');
   .container {
     max-width: 95%;
   }
-  
+
   .dashboard-content,
   .resource-content {
     flex-direction: column;
   }
-  
-  .chart-container, 
+
+  .chart-container,
   .insights-container,
-  .map-container, 
+  .map-container,
   .resource-details {
     width: 100%;
     margin-bottom: 2rem;
   }
-  
+
   .activities-grid {
     gap: 1.5rem;
   }
@@ -708,38 +892,38 @@ const selectedMonth = ref('Any time');
   .container {
     padding: 0 1rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .section-subtitle {
     font-size: 1rem;
   }
-  
-  .tabs, 
+
+  .tabs,
   .resource-tabs {
     flex-wrap: wrap;
   }
-  
+
   .tab,
   .resource-tab {
     margin: 0.25rem;
   }
-  
+
   .activities-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .events-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .activities-header {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .recent-title {
     font-size: 1.2rem;
   }
@@ -749,26 +933,26 @@ const selectedMonth = ref('Any time');
   .section-title {
     font-size: 1.75rem;
   }
-  
+
   .chart-title,
   .insights-title,
   .resource-name {
     font-size: 1.25rem;
   }
-  
+
   .resource-actions {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .action-btn {
     width: 100%;
   }
-  
+
   .event-card {
     flex-direction: column;
   }
-  
+
   .event-img {
     width: 100%;
     height: 200px;
@@ -790,7 +974,8 @@ const selectedMonth = ref('Any time');
 }
 
 /* 通用部分样式 / Common section styles */
-.section-title, .section-subtitle {
+.section-title,
+.section-subtitle {
   position: relative;
   z-index: 2;
 }
@@ -831,7 +1016,10 @@ section:not(:last-child)::after {
   background-color: #fffcf5;
 }
 
-.tabs, .resource-tabs, .activities-header, .activities-grid {
+.tabs,
+.resource-tabs,
+.activities-header,
+.activities-grid {
   position: relative;
   z-index: 2;
 }
@@ -871,7 +1059,9 @@ section:not(:last-child)::after {
   gap: 2rem;
 }
 
-.chart-container, .resource-content, .activity-card {
+.chart-container,
+.resource-content,
+.activity-card {
   position: relative;
   z-index: 2;
   background-color: #fff;
@@ -1036,7 +1226,8 @@ section:not(:last-child)::after {
   color: #666;
 }
 
-.resource-location, .resource-website {
+.resource-location,
+.resource-website {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1044,7 +1235,8 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-.location-icon, .website-icon {
+.location-icon,
+.website-icon {
   width: 18px;
   height: 18px;
 }
@@ -1255,15 +1447,16 @@ section:not(:last-child)::after {
 
 /* 响应式设计 / Responsive design */
 @media (max-width: 1024px) {
+
   .dashboard-content,
   .resource-content {
     grid-template-columns: 1fr;
   }
-  
+
   .map-container {
     min-height: 300px;
   }
-  
+
   .activities-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1273,19 +1466,19 @@ section:not(:last-child)::after {
   .container {
     padding: 0 1rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .tabs {
     flex-wrap: wrap;
   }
-  
+
   .activities-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .resource-tabs {
     flex-direction: column;
   }
@@ -1518,25 +1711,25 @@ section:not(:last-child)::after {
   .event-card {
     flex-direction: column;
   }
-  
+
   .event-img {
     width: 100%;
     height: 200px;
   }
-  
+
   .event-filters {
     flex-direction: column;
   }
-  
+
   .filter-group {
     width: 100%;
   }
-  
+
   .activities-modal {
     width: 95%;
     max-height: 90vh;
   }
-  
+
   .modal-content {
     padding: 1.5rem;
   }
@@ -1559,5 +1752,23 @@ section:not(:last-child)::after {
   color: inherit;
   display: block;
   cursor: pointer;
+}
+
+.insights-gallery {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.image-grid img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 </style>
