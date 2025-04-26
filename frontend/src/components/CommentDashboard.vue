@@ -14,6 +14,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import Chart from 'chart.js/auto'
+import axios from 'axios';
 
 const chartData = {
   labels: ['Accusatory', 'Emotional', 'Misunderstanding', 'Attacking', 'Constructive'],
@@ -35,7 +36,7 @@ const comments = ref([])
 
 const fetchComments = async (videoId) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/comments/${videoId}`)
+    const response = await fetch(http://localhost:8000/api/comments/${videoId})
     const data = await response.json()
     comments.value = data
   } catch (error) {

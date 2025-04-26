@@ -142,3 +142,57 @@ def get_comments_with_sentiment():
     ]
 
     return jsonify(response)
+
+@main.route('/api/sentiment-summary', methods=['GET'])
+def sentiment_summary():
+    from .models import SentimentScore
+
+    results = db.session.query(
+        SentimentScore.sentiment_label,
+        db.func.count(SentimentScore.sentiment_label)
+    ).group_by(SentimentScore.sentiment_label).all()
+
+    response = [
+        {"sentiment": row[0], "count": row[1]}
+        for row in results
+    ]
+    return jsonify(response)
+
+@main.route('/api/toxicity-summary', methods=['GET'])
+def toxicity_summary():
+    from .models import ToxicityScore
+
+    toxic_count = db.session.query(ToxicityScore).filter(
+        (ToxicityScore.toxic == True) |
+        (ToxicityScore.severe_toxic == True) |
+        (ToxicityScore.obscene == True) |
+        (ToxicityScore.threat == True) |
+        (ToxicityScore.insult == True) |
+        (ToxicityScore.identity_hate == True)
+    ).count()
+
+    clean_count = db.session.query(ToxicityScore).filter(
+        (ToxicityScore.toxic == False) &
+        (ToxicityScore.severe_toxic == False) &
+        (ToxicityScore.obscene == False) &
+        (ToxicityScore.threat == False) &
+        (ToxicityScore.insult == False) &
+        (ToxicityScore.identity_hate == False)
+    ).count()
+
+    return jsonify([
+        {"label": "Toxic", "count": toxic_count},
+        {"label": "Non-Toxic", "count": clean_count}
+    ])
+
+@main.route('/api/comment-lengths', methods=['GET'])
+def comment_lengths():
+    from .models import Comment
+
+    comments = Comment.query.all()
+
+    response = [
+        {"length": len(c.comment_text)} for c in comments
+    ]
+    return jsonify(response)
+
