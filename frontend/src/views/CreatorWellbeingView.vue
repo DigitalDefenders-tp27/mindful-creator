@@ -10,10 +10,24 @@
           </div>
           <p class="subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         </div>
+        <div class="decorative-elements">
+          <!-- 右上角第一排 / Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     
-    <!-- 数字影响分析仪表板 / Digital Impact Analysis Dashboard -->
+    <!-- Digital Impact Analysis Dashboard -->
     <section class="dashboard-section">
       <div class="container">
         <h1 class="section-title">Average working time</h1>
@@ -49,7 +63,7 @@
       </div>
     </section>
     
-    <!-- 健康资源查找器 / Wellbeing Resource Finder -->
+    <!-- Wellbeing Resource Finder -->
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
@@ -127,7 +141,7 @@
       </div>
     </section>
     
-    <!-- 健康活动中心 / Wellbeing Activities Hub -->
+    <!-- Wellbeing Activities Hub -->
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
@@ -203,22 +217,26 @@
               <label>Location:</label>
               <select v-model="selectedLocation">
                 <option>All locations</option>
-                <option>Melbourne</option>
-                <option>Sydney</option>
                 <option>Brisbane</option>
-                <option>Warrnambool</option>
+                <option>Flinders Blowhole</option>
                 <option>Geelong</option>
-                <option>Torquay</option>
+                <option>Little River</option>
+                <option>Melbourne</option>
+                <option>Narrabeen</option>
+                <option>Sydney</option>
+                <option>Torquay Beach</option>
+                <option>Warrnambool</option>
+                <option>West End</option>
               </select>
             </div>
             <div class="filter-group">
               <label>Category:</label>
               <select v-model="selectedCategory">
                 <option>All types</option>
-                <option>Outdoor Wellness</option>
+                <option>Festival</option>
                 <option>Mental Health</option>
-                <option>Physical Fitness</option>
-                <option>Healthy Eating</option>
+                <option>Outdoor Wellness</option>
+                <option>physical wellness practice</option>
                 <option>Workplace Wellbeing</option>
               </select>
             </div>
@@ -226,154 +244,52 @@
               <label>Month:</label>
               <select v-model="selectedMonth">
                 <option>Any time</option>
-                <option>March</option>
                 <option>April</option>
                 <option>May</option>
                 <option>June</option>
                 <option>October</option>
               </select>
             </div>
+            <div class="filter-group">
+              <label>Price:</label>
+              <select v-model="selectedPrice">
+                <option>Any price</option>
+                <option>Free</option>
+                <option>Paid</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Sort by:</label>
+              <select v-model="sortOption">
+                <option value="dateAsc">Date (Earliest first)</option>
+                <option value="dateDesc">Date (Latest first)</option>
+                <option value="name">Name (A-Z)</option>
+                <option value="location">Location (A-Z)</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <button @click="resetFilters" class="clear-filters-btn">Clear All Filters</button>
+            </div>
           </div>
           
           <div class="events-grid">
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
-              <div class="event-info">
-                <h3>Mentally Healthy Workplaces Workshop</h3>
-                <div class="event-tags">
-                  <span class="tag ticket">Sold out</span>
-                  <span class="tag may">May</span>
-                  <span class="tag workshop">Workshop</span>
-                  <span class="tag free">Free Event</span>
-                </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
-                  <div><strong>Date:</strong> 1st May 2025</div>
-                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
+            <div v-for="event in sortedFilteredEvents" :key="event.id" class="event-card">
+              <div class="event-img-container">
+                <img :src="getImageUrl(event.image)" :alt="event.title" class="event-img">
               </div>
-            </div>
-
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops" class="event-img">
               <div class="event-info">
-                <h3>Mentally Healthy Workplaces Workshop</h3>
+                <h3>{{ event.title }}</h3>
                 <div class="event-tags">
-                  <span class="tag ticket">Nearly full</span>
-                  <span class="tag june">June</span>
-                  <span class="tag workshop">Workshop</span>
-                  <span class="tag free">Free Event</span>
+                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
                 </div>
-                <p class="event-description">This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.</p>
+                <p class="event-description">{{ event.description }}</p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> Brisbane</div>
-                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000</div>
-                  <div><strong>Date:</strong> June 4th 2025</div>
-                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch</div>
+                  <div><strong>Location:</strong> {{ event.location }}</div>
+                  <div v-if="event.address"><strong>Address:</strong> {{ event.address }}</div>
+                  <div><strong>Date:</strong> {{ event.date }}</div>
+                  <div><strong>Time:</strong> {{ event.time }}</div>
                 </div>
-                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplace.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Workplace Wellbeing - How to Build Confidence and Manage Stress</h3>
-                <div class="event-tags">
-                  <span class="tag october">October</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$525.44</span>
-                </div>
-                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Sydney</div>
-                  <!-- <div><strong>Group size:</strong> 15-30</div> -->
-                  <div><strong>Date:</strong> October 11st 2025</div>
-                  <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
-                <div class="event-tags">
-                  <span class="tag may">May</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$20</span>
-                </div>
-                <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Warrnambool</div>
-                  <div><strong>Address:</strong> 185 Timor Street Warrnambool, VIC 3280</div>
-                  <!-- <div><strong>Group size:</strong> 5-15</div> -->
-                  <div><strong>Date:</strong> May 28th</div>
-                  <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing" class="event-img">
-              <div class="event-info">
-                <h3>Strategies for Mental Health at Work and Keeping Psychologically Safe.</h3>
-                <div class="event-tags">
-                  <span class="tag october">October</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$108.9</span>
-                </div>
-                <p class="event-description"> HR professionals, managers, and business leaders , here's practical strategies to foster wellbeing and mental health in your workplace.</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Geelong</div>
-                  <div><strong>Address:</strong> 60 Moorabool Street Geelong, VIC 3220</div>
-                  <!-- <div><strong>Group size:</strong> 5-10</div> -->
-                  <div><strong>Date:</strong> October 9th 2025</div>
-                  <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
-                  <button class="register-btn">Register Now</button>
-                </a>
-              </div>
-            </div>
-            
-            <div class="event-card">
-              <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Outdoor Walking" class="event-img">
-              <div class="event-info">
-                <h3>MeTreat Retreats Women's Wellness Walk</h3>
-                <div class="event-tags">
-                  <span class="tag april">April</span>
-                  <span class="tag outdoor">Outdoor Walking</span>
-                  <span class="tag end">Sales Ended</span>
-                </div>
-                <p class="event-description">CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!</p>
-                <div class="event-meta">
-                  <div><strong>Location:</strong> Torquay Beach</div>
-                  <div><strong>Address:</strong> Torquay Beach Torquay, VIC 3228</div>
-                  <!-- <div><strong>Group size:</strong> 8-12</div> -->
-                  <div><strong>Date:</strong> April 25th</div>
-                  <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
-                  <div class="event-link"><strong>Link:</strong> https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch</div>
-                </div>
-                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="register-btn-link">
+                <a :href="event.link" target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -383,46 +299,281 @@
       </div>
     </div>
     
-    <div class="footer">
-      <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">隐私政策</router-link></p>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-// 模态窗口显示状态
+// Modal window display status
 const isModalVisible = ref(false);
 
-// 打开模态窗口
+// Open modal window
 const openModal = () => {
   isModalVisible.value = true;
 };
 
-// 关闭模态窗口
+// Close modal window
 const closeModal = () => {
   isModalVisible.value = false;
 };
 
-// 搜索相关
+// Reset all filters to default values
+const resetFilters = () => {
+  searchQuery.value = '';
+  selectedLocation.value = 'All locations';
+  selectedCategory.value = 'All types';
+  selectedMonth.value = 'Any time';
+  selectedPrice.value = 'Any price';
+  sortOption.value = 'dateAsc';
+};
+
+// Search and filter related
 const searchQuery = ref('');
 const selectedLocation = ref('All locations');
 const selectedCategory = ref('All types');
 const selectedMonth = ref('Any time');
+const selectedPrice = ref('Any price');
+const sortOption = ref('dateAsc');
+
+// Function to resolve image paths correctly
+const getImageUrl = (path) => {
+  try {
+    return new URL(path, import.meta.url).href;
+  } catch (error) {
+    // Fallback to original path if URL construction fails
+    return path;
+  }
+};
+
+// All event data
+const allEvents = [
+  {
+    id: 1,
+    title: "Mentally Healthy Workplaces Workshop",
+    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
+    tags: ["Sold out", "May", "Workshop", "Free Event"],
+    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
+    location: "Brisbane",
+    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
+    date: "1st May 2025",
+    time: "8:00 AM - 12:00 PM",
+    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
+    category: "Mental Health",
+    month: "May",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 4, 1)  // May 1st, 2025
+  },
+  {
+    id: 2,
+    title: "Mentally Healthy Workplaces Workshop",
+    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
+    tags: ["Nearly full", "June", "Workshop", "Free Event"],
+    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
+    location: "Brisbane",
+    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
+    date: "June 4th 2025",
+    time: "8:00 AM - 12:00 PM",
+    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
+    category: "Mental Health",
+    month: "June",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 5, 4)  // June 4th, 2025
+  },
+  {
+    id: 3,
+    title: "Workplace Wellbeing - How to Build Confidence and Manage Stress",
+    image: "../assets/icons/activitiesImages/workplace.avif",
+    tags: ["October", "Workplace Wellbeing Workshop", "$525.44"],
+    description: "You'll learn about both positive and negative factors at play in workplace.",
+    location: "Sydney",
+    date: "October 11st 2025",
+    time: "7:30 AM - 11:30 AM",
+    link: "https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "October",
+    isPaid: true,
+    priceTag: "$525.44",
+    sortDate: new Date(2025, 9, 11)  // October 11th, 2025
+  },
+  {
+    id: 4,
+    title: "Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop",
+    image: "../assets/icons/activitiesImages/workplaceWarrnambool.avif",
+    tags: ["May", "Workplace Wellbeing Workshop", "$20"],
+    description: "Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.",
+    location: "Warrnambool",
+    address: "185 Timor Street Warrnambool, VIC 3280",
+    date: "May 28th 2025",
+    time: "1:00 PM - 3:00 PM",
+    link: "https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "May",
+    isPaid: true,
+    priceTag: "$20",
+    sortDate: new Date(2025, 4, 28)  // May 28th, 2025
+  },
+  {
+    id: 5,
+    title: "Strategies for Mental Health at Work and Keeping Psychologically Safe.",
+    image: "../assets/icons/activitiesImages/workplaceGeelong.avif",
+    tags: ["October", "Workplace Wellbeing Workshop", "$108.9"],
+    description: "HR professionals, managers, and business leaders, here's practical strategies to foster wellbeing and mental health in your workplace.",
+    location: "Geelong",
+    address: "60 Moorabool Street Geelong, VIC 3220",
+    date: "October 9th 2025",
+    time: "9:30 AM - 11:30 AM",
+    link: "https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch",
+    category: "Workplace Wellbeing",
+    month: "October",
+    isPaid: true,
+    priceTag: "$108.9",
+    sortDate: new Date(2025, 9, 9)  // October 9th, 2025
+  },
+  {
+    id: 6,
+    title: "MeTreat Retreats Women's Wellness Walk",
+    image: "../assets/icons/activitiesImages/TorquayWalking.avif",
+    tags: ["April", "Outdoor Walking", "Sales Ended"],
+    description: "CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!",
+    location: "Torquay Beach",
+    address: "Torquay Beach Torquay, VIC 3228",
+    date: "April 25th 2025",
+    time: "11:00 AM - 2:00 AM",
+    link: "https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch",
+    category: "Outdoor Wellness",
+    month: "April",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 3, 25)  // April 25th, 2025
+  },
+  {
+    id: 7,
+    title: "Flinders - Cairns Bay - 7KM'S",
+    image: "../assets/icons/activitiesImages/flindersWalking.webp",
+    tags: ["April", "Outdoor Walking", "Sales Ended"],
+    description: "We haven't done this hike for at least 6 months, and we are thrilled to share it with you all. This hike offers breathtaking views across Bass Strait from the dramatic black basalt cliffs, which are impressively high! Our plan is to visit Cairns Bay and then head to Flinders Blowhole and back. The track can be steep in places, so it requires good leg strength and the ability to handle a steep incline. Although the distance is shorter than usual, I guarantee you'll get a solid workout and absolutely love this hike! It will take approximately 2.5 hours to complete. This hike is rated intermediate and is not suitable for beginners. A moderate level of fitness and stamina is required. We maintain a steady pace but do stop occasionally for photos and snacks.",
+    location: "Flinders Blowhole",
+    address: "Flinders VIC 3929, Australia",
+    date: "April 27th 2025",
+    time: "9:00 AM - 11:30 AM",
+    link: "https://events.humanitix.com/flinders-cairns-bay-7km-s?hxchl=mkt-sch&_gl=1*m8ing0*_gcl_au*NDM5ODA2NTk5LjE3NDU2NzM0OTA.*_ga*MTUwMjgyOTU5Mi4xNzQ1NjczNDkx*_ga_LHKW5FR9N6*MTc0NTY3MzQ5MC4xLjEuMTc0NTY3MzY5NC41MS4wLjA.",
+    category: "Outdoor Wellness",
+    month: "April",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 3, 27)  // April 27th, 2025
+  },
+  {
+    id: 8,
+    title: "Brisbane Wellbeing Day Festival",
+    image: "../assets/icons/activitiesImages/BrisbaneFestival.jpeg",
+    tags: ["October", "Brisbane Festival", "Sales Ended"],
+    description: "Let's Nourish, Nurture and Rejuvenate our wellbeing at the biggest non-profit community festival.",
+    location: "West End",
+    address: "Opposite 33 Hill End Terrace, West End, 4101, Queensland, Australia",
+    date: "October 17th, 2025",
+    time: "3:00 PM - 7:00 PM",
+    link: "https://www.5waystowellbeing.org.au/connect/brisbane-wellbeing-day-festival/",
+    category: "Festival",
+    month: "October",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 9, 17)  // October 17th, 2025
+  },
+  {
+    id: 9,
+    title: "Wiggle & Mingle: Dog-Friendly Hike & Yoga at You Yangs - Wet Dog Co Community Event",
+    image: "../assets/icons/activitiesImages/wiggleHike.webp",
+    tags: ["May", "Outdoor Walking", "Free Event"],
+    description: "Wiggle & Mingle: Join the Pack at You Yangs! G'day dog lovers! Ready for an adventure that'll have tails wagging? Join us for Wiggle & Mingle - a community event where you and your four-legged mate can stretch your legs, meet new friends, and reconnect with nature in the stunning You Yangs.",
+    location: "Little River",
+    address: "You Yangs Regional Park, Toynes Rd, Little River VIC 3211, Australia",
+    date: "May 3rd, 2025",
+    time: "9:00 AM - 12:30 PM",
+    link: "https://events.humanitix.com/wiggle-and-mingle-yqu8fv8l?hxchl=mkt-sch&_gl=1*a1o4ay*_gcl_au*NDM5ODA2NTk5LjE3NDU2NzM0OTA.*_ga*MTUwMjgyOTU5Mi4xNzQ1NjczNDkx*_ga_LHKW5FR9N6*MTc0NTY3MzQ5MC4xLjEuMTc0NTY3MzY0MS40MS4wLjA",
+    category: "Outdoor Wellness",
+    month: "May",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 4, 3)  // May 3rd, 2025
+  },
+  {
+    id: 10,
+    title: "Wayapa Wuurrk Mindfulness & Weaving Workshop",
+    image: "../assets/icons/activitiesImages/wayapaWorkshop.webp",
+    tags: ["June", "physical wellness practice", "Sold out"],
+    description: "Join Jodie Dowd, Noongar weaver for a morning of Wayapa Wuurrk First Nations mindfulness practices. During this free and all-inclusive workshop (ages 15+) you will: Be gently guided through the 14 elements of the internationally accredited Wayapa Wuurrk ('Connect to the earth') physical wellness practice. Learn to weave a bracelet or small basket. Share your thoughts on the Wayapa practice during a Yarning Circle. Enjoy light refreshments.",
+    location: "Narrabeen",
+    address: "1395A Pittwater Rd, Narrabeen NSW 2101, Australia",
+    date: "June 21st, 2025",
+    time: "10:30 AM - 12:30 PM",
+    link: "https://events.humanitix.com/wayapa-wuurrk-mindfulness-and-weaving-workshop?hxchl=mkt-sch&_gl=1*1dty875*_gcl_au*MTU4MDUxODg1My4xNzQxMDQzMDc4*_ga*MTE5MzU5MTc4Ni4xNzMzMjY1MDMw*_ga_LHKW5FR9N6*MTc0MzQ3NzY0Mi42NS4xLjE3NDM0NzgyMjYuNDEuMC4w",
+    category: "physical wellness practice",
+    month: "June",
+    isPaid: false,
+    priceTag: "Free",
+    sortDate: new Date(2025, 5, 21)  // June 21st, 2025
+  }
+];
+
+// Filter events based on selected and search conditions
+const filteredEvents = computed(() => {
+  return allEvents.filter(event => {
+    // Check name search
+    const matchesSearch = event.title.toLowerCase().includes(searchQuery.value.toLowerCase());
+    
+    // Check location filter
+    const matchesLocation = selectedLocation.value === 'All locations' || 
+                           event.location === selectedLocation.value;
+    
+    // Check category filter
+    const matchesCategory = selectedCategory.value === 'All types' || 
+                           event.category === selectedCategory.value;
+    
+    // Check month filter
+    const matchesMonth = selectedMonth.value === 'Any time' || 
+                        event.month === selectedMonth.value;
+    
+    // Check price filter
+    const matchesPrice = selectedPrice.value === 'Any price' || 
+                        (selectedPrice.value === 'Free' && !event.isPaid) || 
+                        (selectedPrice.value === 'Paid' && event.isPaid);
+    
+    // All conditions must match
+    return matchesSearch && matchesLocation && matchesCategory && matchesMonth && matchesPrice;
+  });
+});
+
+// Sort filtered events
+const sortedFilteredEvents = computed(() => {
+  const events = [...filteredEvents.value];
+  
+  switch(sortOption.value) {
+    case 'dateAsc':
+      return events.sort((a, b) => a.sortDate - b.sortDate);
+    case 'dateDesc':
+      return events.sort((a, b) => b.sortDate - a.sortDate);
+    case 'name':
+      return events.sort((a, b) => a.title.localeCompare(b.title));
+    case 'location':
+      return events.sort((a, b) => a.location.localeCompare(b.location));
+    default:
+      return events;
+  }
+});
 </script>
 
 <style scoped>
 .creator-wellbeing {
-  background-color: #fffcf5;
-  background-image: 
-    radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
+  background-color: rgb(254, 251, 244);
   min-height: 100vh;
-  padding-top: 0;
+  width: 100%;
+  position: relative;
 }
 
-/* Hero Section Styles */
 .hero-section {
   min-height: 40vh;
   background-color: rgb(255, 252, 244);
@@ -432,7 +583,7 @@ const selectedMonth = ref('Any time');
   position: relative;
   z-index: 1;
   padding: 6rem 0 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .hero-content {
@@ -447,7 +598,7 @@ const selectedMonth = ref('Any time');
 }
 
 .slogan {
-  max-width: 800px;
+  max-width: 900px;
   position: relative;
   z-index: 2;
   margin-left: 2rem;
@@ -460,20 +611,43 @@ const selectedMonth = ref('Any time');
 }
 
 .title-group h1 {
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #6B64F3 0%, #8BDFE7 100%);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.4;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  line-height: 1.1;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  overflow: visible;
-  padding-right: 1rem;
-  padding-bottom: 0.5rem;
+}
+
+.title-group h1:hover {
+  filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .title-group h2 {
@@ -492,9 +666,8 @@ const selectedMonth = ref('Any time');
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
-  overflow: visible;
 }
 
 .decorative-elements {
@@ -549,17 +722,67 @@ const selectedMonth = ref('Any time');
   transition: all 0.5s ease;
 }
 
+/* Hover效果增强 */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
 
-/* 添加响应式媒体查询 */
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -568,7 +791,8 @@ const selectedMonth = ref('Any time');
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -577,90 +801,120 @@ const selectedMonth = ref('Any time');
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(0);
     row-gap: 0.75rem;
-  }
-  
-  .title-group h2,
-  .subtitle {
-    white-space: normal;
+    justify-content: end;
   }
 }
 
 @media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
+    justify-content: end;
   }
   
   .title-group h1 {
+    @apply text-5xl;
+    white-space: nowrap;
+  }
+  
+  .title-group h2 {
+    @apply text-4xl;
     white-space: normal;
+  }
+  
+  .subtitle {
+    @apply text-xl;
   }
 }
 
 @media (max-width: 768px) {
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
-  }
-  
-  .hero-content {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-top: 0.75rem;
-    min-height: 22vh;
-  }
-  
   .hero-section {
     min-height: 22vh;
     padding: 7rem 0 0.5rem;
   }
   
+  .hero-content {
+    min-height: 22vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+  
   .slogan {
+    margin-left: 1rem;
     max-width: 90%;
   }
   
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+
   .title-group h1 {
-    font-size: 3.5rem;
+    @apply text-4xl;
+    white-space: nowrap;
   }
   
   .title-group h2 {
-    font-size: 2rem;
+    @apply text-3xl;
+    white-space: normal;
   }
   
   .subtitle {
-    font-size: 1.125rem;
+    @apply text-lg;
   }
 }
 
 @media (max-width: 640px) {
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+
+  .slogan {
+    padding-top: 0;
+  }
+
   .decorative-elements {
     opacity: 0;
     transform: translateX(0) scale(0.7);
   }
-  
-  .hero-content {
-    min-height: 18vh;
-    padding-top: 0.25rem;
-  }
-  
-  .hero-section {
-    min-height: 18vh;
-    padding: 7.5rem 0 0.5rem;
-    margin-bottom: 1rem;
-  }
-  
+
   .title-group h1 {
-    font-size: 2.5rem;
+    @apply text-3xl;
+    white-space: nowrap;
   }
   
   .title-group h2 {
-    font-size: 1.5rem;
+    @apply text-2xl;
+    white-space: normal;
   }
   
   .subtitle {
-    font-size: 1rem;
+    @apply text-base;
   }
 }
 
@@ -670,115 +924,22 @@ const selectedMonth = ref('Any time');
     display: none;
   }
   
-  .hero-content {
-    min-height: 16vh;
-  }
-  
   .hero-section {
     min-height: 16vh;
     padding: 8rem 0 0.5rem;
+    margin-bottom: 0;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
   }
 }
 
-/* 响应式布局支持 */
-@media (max-width: 1200px) {
-  .container {
-    max-width: 95%;
-  }
-  
-  .dashboard-content,
-  .resource-content {
-    flex-direction: column;
-  }
-  
-  .chart-container, 
-  .insights-container,
-  .map-container, 
-  .resource-details {
-    width: 100%;
-    margin-bottom: 2rem;
-  }
-  
-  .activities-grid {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 0 1rem;
-  }
-  
-  .section-title {
-    font-size: 2rem;
-  }
-  
-  .section-subtitle {
-    font-size: 1rem;
-  }
-  
-  .tabs, 
-  .resource-tabs {
-    flex-wrap: wrap;
-  }
-  
-  .tab,
-  .resource-tab {
-    margin: 0.25rem;
-  }
-  
-  .activities-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .events-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .activities-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .recent-title {
-    font-size: 1.2rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .section-title {
-    font-size: 1.75rem;
-  }
-  
-  .chart-title,
-  .insights-title,
-  .resource-name {
-    font-size: 1.25rem;
-  }
-  
-  .resource-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .action-btn {
-    width: 100%;
-  }
-  
-  .event-card {
-    flex-direction: column;
-  }
-  
-  .event-img {
-    width: 100%;
-    height: 200px;
-  }
-}
-
+/* 其他现有的样式 */
 .dashboard-section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 .container {
@@ -789,7 +950,7 @@ const selectedMonth = ref('Any time');
   z-index: 1;
 }
 
-/* 通用部分样式 / Common section styles */
+/* Common section styles */
 .section-title, .section-subtitle {
   position: relative;
   z-index: 2;
@@ -809,13 +970,14 @@ const selectedMonth = ref('Any time');
   text-align: center;
   margin-bottom: 3rem;
   line-height: 1.5;
+  white-space: normal;
 }
 
 section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
   border-bottom: none;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 section:last-child {
@@ -826,7 +988,7 @@ section:not(:last-child)::after {
   display: none;
 }
 
-/* 仪表板部分 / Dashboard section */
+/* Dashboard section */
 .dashboard-section {
   background-color: #fffcf5;
 }
@@ -933,7 +1095,7 @@ section:not(:last-child)::after {
   line-height: 1.5;
 }
 
-/* 资源查找器部分 / Resource finder section */
+/* Resource finder section */
 .resource-finder-section {
   background-color: #fffcf5;
 }
@@ -1112,7 +1274,7 @@ section:not(:last-child)::after {
   height: 18px;
 }
 
-/* 活动中心部分 / Activities hub section */
+/* Activities hub section */
 .activities-section {
   background-color: #fffcf5;
 }
@@ -1130,7 +1292,7 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-/* 统一使用此处的view-all-btn样式定义 */
+/* Use this view-all-btn style definition */
 .view-all-btn {
   background-color: #e75a97;
   color: white;
@@ -1234,7 +1396,7 @@ section:not(:last-child)::after {
   font-size: 0.9rem;
 }
 
-/* 页脚 / Footer */
+/* Footer */
 .footer {
   padding: 2rem;
   text-align: center;
@@ -1253,7 +1415,7 @@ section:not(:last-child)::after {
   text-decoration: underline;
 }
 
-/* 响应式设计 / Responsive design */
+/* Responsive design */
 @media (max-width: 1024px) {
   .dashboard-content,
   .resource-content {
@@ -1278,20 +1440,69 @@ section:not(:last-child)::after {
     font-size: 2rem;
   }
   
-  .tabs {
+  .section-subtitle {
+    font-size: 1rem;
+  }
+  
+  .tabs, 
+  .resource-tabs {
     flex-wrap: wrap;
+  }
+  
+  .tab,
+  .resource-tab {
+    margin: 0.25rem;
   }
   
   .activities-grid {
     grid-template-columns: 1fr;
   }
   
-  .resource-tabs {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .activities-header {
     flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .recent-title {
+    font-size: 1.2rem;
   }
 }
 
-/* 模态窗口样式 */
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .chart-title,
+  .insights-title,
+  .resource-name {
+    font-size: 1.25rem;
+  }
+  
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .event-card {
+    flex-direction: column;
+  }
+  
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* Modal window styles */
 .activities-modal-overlay {
   position: fixed;
   top: 0;
@@ -1353,59 +1564,137 @@ section:not(:last-child)::after {
   padding: 2rem;
 }
 
-/* 搜索栏样式 */
+/* Search bar styles */
 .search-bar {
   margin-bottom: 1.5rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 25px;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.search-input:hover {
+  border-color: #d0d0d0;
 }
 
 .search-input:focus {
   border-color: #e75a97;
+  box-shadow: 0 0 0 2px rgba(231, 90, 151, 0.1);
 }
 
-/* 筛选器样式 */
+/* Filter styles */
 .event-filters {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
+  background-color: #fafafa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .filter-group {
   flex: 1;
   min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .filter-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
+  color: #555;
   font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
 }
 
 .filter-group select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+  padding: 0.7rem 1rem;
+  border: 1px solid #eaeaea;
   border-radius: 8px;
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: white;
+  color: #333;
+  font-size: 0.95rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  cursor: pointer;
+}
+
+.filter-group select:hover {
+  border-color: #d0d0d0;
+  background-color: #fcfcfc;
 }
 
 .filter-group select:focus {
   border-color: #e75a97;
+  box-shadow: 0 0 0 2px rgba(231, 90, 151, 0.1);
 }
 
-/* 事件卡片样式 */
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.clear-filters-btn {
+  white-space: nowrap;
+  background-color: white;
+  color: #666;
+  border: 1px solid #eaeaea;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: fit-content;
+}
+
+.clear-filters-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+  transform: translateY(-1px);
+}
+
+.clear-filters-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .event-filters {
+    flex-direction: column;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+  
+  .filter-group, 
+  .filter-actions {
+    width: 100%;
+  }
+  
+  .clear-filters-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Event card styles */
 .events-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1421,9 +1710,15 @@ section:not(:last-child)::after {
   border: 1px solid #eee;
 }
 
-.event-img {
+.event-img-container {
   width: 280px;
-  height: auto;
+  height: 220px;
+  overflow: hidden;
+}
+
+.event-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -1513,7 +1808,7 @@ section:not(:last-child)::after {
   transform: translateY(-2px);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .event-card {
     flex-direction: column;
@@ -1542,22 +1837,84 @@ section:not(:last-child)::after {
   }
 }
 
-/* 隐藏链接标签 */
+/* Hide link tags */
 .event-meta div.event-link {
   display: none;
 }
 
-/* 为按钮链接添加样式 */
+/* Add styles for button links */
 .register-btn-link {
   text-decoration: none;
   display: inline-block;
 }
 
-/* 活动卡片链接样式 */
+/* Activity card link styles */
 .activity-card-link {
   text-decoration: none;
   color: inherit;
   display: block;
   cursor: pointer;
+}
+
+/* Tag styles for additional categories */
+.tag.physical-wellness-practice {
+  background-color: #9C27B0;
+}
+
+.tag.festival {
+  background-color: #3F51B5;
+}
+
+.tag.free-event {
+  background-color: #4CAF50;
+}
+
+.tag.sold-out {
+  background-color: #9E9E9E;
+}
+
+.tag.nearly-full {
+  background-color: #FF9800;
+}
+
+.tag.sales-ended {
+  background-color: #9E9E9E;
+}
+
+.tag.outdoor-walking {
+  background-color: #6c63ff;
+}
+
+.tag.brisbane-festival {
+  background-color: #673AB7;
+}
+
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.workplace-wellbeing-workshop {
+  background-color: #607D8B;
+}
+
+.wellbeing-resource-item:last-child {
+  background-color: #607D8B;
+}
+
+@media (min-width: 1280px) {
+  .subtitle {
+    white-space: nowrap;
+  }
+  
+  .section-subtitle {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1279px) {
+  .subtitle, 
+  .section-subtitle {
+    white-space: normal;
+  }
 }
 </style>
