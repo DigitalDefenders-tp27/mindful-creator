@@ -88,7 +88,7 @@
         <h2 class="section-title">🔍 Check Your Comment Section</h2>
         
         <p class="section-description">
-          Not sure if your comment section is a space for healthy
+          Not sure if your Youtube comment section is a space for healthy
           discussion or if there's negativity creeping in?
         </p>
         
@@ -97,7 +97,7 @@
             <div class="card-number">1</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/post.png" alt="Smartphone icon" class="card-icon">
-              <p class="card-text">Open your social media platform and find your post.</p>
+              <p class="card-text">Open your Youtube video.</p>
             </div>
           </div>
           
@@ -105,7 +105,7 @@
             <div class="card-number">2</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/copy.png" alt="Copy icon" class="card-icon">
-              <p class="card-text">Copy the comment you want to analyze.</p>
+              <p class="card-text">Copy the URL.</p>
             </div>
           </div>
           
@@ -120,7 +120,141 @@
       </div>
 
       <!-- Comments Response Scripts Section -->
-      <CommentInput />
+      <div class="youtube-analysis-section">
+        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white max-w-3xl mx-auto">
+          <h3 class="section-title">YouTube Comment Analysis</h3>
+          <div class="input-group">
+            <input 
+              v-model="youtubeUrl" 
+              type="text" 
+              class="youtube-input"
+              placeholder="Enter YouTube video URL (https://www.youtube.com/watch?v=...)"
+            />
+            <button 
+              @click="analyzeYoutubeComments" 
+              class="analyze-button"
+              :disabled="isLoading"
+            >
+              {{ isLoading ? 'Analysing...' : 'Analyse Comments' }}
+            </button>
+          </div>
+          <p v-if="analysisError" class="error-message">{{ analysisError }}</p>
+          <p v-if="isLoading" class="loading-message">
+            <span class="loading-spinner"></span>
+            Fetching and analysing comments. This may take a moment...
+          </p>
+        </div>
+      </div>
+      
+      <!-- Analysis Results Modal -->
+      <div v-if="showResultsModal" class="modal-overlay" @click="closeModal">
+        <div class="analysis-modal" @click.stop>
+          <div class="modal-header">
+            <h2>YouTube Comments Analysis Results</h2>
+            <button class="close-button" @click="closeModal">×</button>
+          </div>
+          
+          <div class="modal-content">
+            <!-- Video Info -->
+            <div class="video-info-section section-divider">
+              <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
+              <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
+            </div>
+            
+            <!-- Debug Information (Add after video info section) -->
+            <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
+              <p class="note-message"><strong>Note:</strong> {{ analysisResult.analysis.note }}</p>
+              <details>
+                <summary>Debug Information</summary>
+                <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
+              </details>
+            </div>
+            
+            <!-- Results Grid -->
+            <div class="results-grid section-divider">
+              <!-- Sentiment Analysis Results -->
+              <div class="result-card">
+                <h3>Sentiment Analysis</h3>
+                <div class="sentiment-stats">
+                  <div class="stat-box positive">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.positive_count || 0 }}</div>
+                    <div class="stat-label">Positive</div>
+                  </div>
+                  <div class="stat-box neutral">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.neutral_count || 0 }}</div>
+                    <div class="stat-label">Neutral</div>
+                  </div>
+                  <div class="stat-box negative">
+                    <div class="stat-number">{{ analysisResult?.analysis?.sentiment?.negative_count || 0 }}</div>
+                    <div class="stat-label">Negative</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Total Toxic Comments Card -->
+              <div class="result-card">
+                <h3>Toxic Comments Overview</h3>
+                <div class="toxic-count">
+                  <div class="stat-number">{{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }}</div>
+                  <div class="stat-label">Total Toxic Comments ({{ (analysisResult?.analysis?.toxicity?.toxic_percentage || 0).toFixed(1) }}%)</div>
+                </div>
+                <p class="toxic-explanation">These are comments that may require moderation or careful consideration when responding.</p>
+              </div>
+            </div>
+            
+            <!-- Donut Charts Section -->
+            <div class="charts-section section-divider">
+              <h3>Toxicity Breakdown</h3>
+              <p class="toxicity-subtitle">Breakdown of the {{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }} toxic comments by category</p>
+              <div class="donut-charts">
+                <div v-for="(count, type) in analysisResult?.analysis?.toxicity?.toxic_types" :key="type" class="donut-item">
+                  <HalfDonutChart 
+                    :percentage="calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count)" 
+                    :color="getToxicityColor(type)" 
+                  />
+                  <p class="donut-label">{{ formatToxicityType(type) }}</p>
+                  <p class="donut-percent">{{ count }} ({{ calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count) }}%)</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Strategies Section (修改) -->
+            <div class="strategies-section section-divider" v-if="analysisResult?.strategies">
+              <h3>Response Strategies</h3>
+              <div class="strategy-content" v-html="formatStrategies(analysisResult.strategies)"></div>
+            </div>
+            
+            <!-- Example Comments Section (修改) -->
+            <div class="examples-section section-divider" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
+              <h3>Example Responses</h3>
+              <div class="example-cards">
+                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="example-card">
+                  <div class="example-comment">
+                    <h4>Original Comment:</h4>
+                    <p>{{ example.comment }}</p>
+                  </div>
+                  <div class="example-response">
+                    <h4>Suggested Response:</h4>
+                    <p>{{ example.response }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Recommendations Section -->
+            <!-- <div class="recommendations-section">
+              <h3>Recommendations</h3>
+              <p>Based on the analysis of your YouTube comments, we recommend:</p>
+              <ul class="recommendations-list">
+                <li>Review comments with high toxicity scores to moderate as needed</li>
+                <li>Engage positively with constructive feedback</li>
+                <li>Consider addressing common concerns in your next video</li>
+                <li>Set healthy boundaries with toxic commenters</li>
+              </ul>
+            </div> -->
+          </div>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -146,6 +280,108 @@
   const router = useRouter()
   const showCheckIn = ref(false)
   const selectedEmotion = ref(null)
+
+  // YouTube analysis variables
+  const youtubeUrl = ref('')
+  const isLoading = ref(false)
+  const analysisError = ref(null)
+  const showResultsModal = ref(false)
+  const analysisResult = ref({})
+
+  // Format toxicity type names to more readable format
+  const formatToxicityType = (type) => {
+    const typeMap = {
+      'toxic': 'General Toxicity',
+      'severe_toxic': 'Severe Toxicity',
+      'obscene': 'Obscene',
+      'threat': 'Threat',
+      'insult': 'Insult',
+      'identity_hate': 'Identity Hate'
+    }
+    return typeMap[type] || type
+  }
+  
+  // Format strategies with HTML
+  const formatStrategies = (strategies) => {
+    if (!strategies) return '';
+    
+    // Replace line breaks with <br> and convert bullet points to HTML
+    return strategies
+      .replace(/\n/g, '<br>')
+      .replace(/•/g, '&bull;')
+      .replace(/- /g, '&bull; ');
+  }
+  
+  // Calculate percentage for toxicity types
+  const calculatePercentage = (count, total) => {
+    if (!total || total === 0) return 0
+    return Math.round((count / total) * 100)
+  }
+  
+  // Get color for toxicity type
+  const getToxicityColor = (type) => {
+    const colorMap = {
+      'toxic': '#EF5350',        // Red
+      'severe_toxic': '#D32F2F',  // Dark Red
+      'obscene': '#FF7043',      // Orange
+      'threat': '#AB47BC',       // Purple
+      'insult': '#FFA726',       // Amber
+      'identity_hate': '#7E57C2' // Deep Purple
+    }
+    return colorMap[type] || '#888888'
+  }
+
+  // Analyse YouTube comments
+  const analyzeYoutubeComments = async () => {
+    // Reset state
+    analysisError.value = null
+    
+    // Validate URL
+    if (!youtubeUrl.value) {
+      analysisError.value = 'Please enter a YouTube video URL'
+      return
+    }
+    
+    // Set loading state
+    isLoading.value = true
+    
+    try {
+      // Send request to backend API
+      const response = await fetch('http://localhost:8000/api/youtube/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          video_url: youtubeUrl.value
+        })
+      })
+      
+      // Parse response
+      const data = await response.json()
+      
+      // Check API response status
+      if (data.status === 'error') {
+        analysisError.value = data.message || 'Analysis failed, please try again later'
+        return
+      }
+      
+      // Save result and show modal
+      analysisResult.value = data
+      showResultsModal.value = true
+      
+    } catch (err) {
+      console.error('API request error:', err)
+      analysisError.value = 'Failed to connect to backend service, please ensure the backend is running'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Close the modal
+  const closeModal = () => {
+    showResultsModal.value = false
+  }
 
   const goToRelaxation = () => router.push('/relaxation')
   const closePopup = () => (showCheckIn.value = false)
@@ -355,20 +591,43 @@
   }
 
   .title-group h1 {
-    font-size: 5rem;
+    font-size: 4rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #E67F83 0%, #A86ADD 100%);
+    position: relative;
+    background: linear-gradient(
+      to right,
+      #FF6B6B 20%,
+      #4ECDC4 40%,
+      #4ECDC4 60%,
+      #FF6B6B 80%
+    );
+    background-size: 200% auto;
+    color: transparent;
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.4;
+    animation: liquidFlow 4s linear infinite;
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+    transition: all 0.3s ease;
+    line-height: 1.1;
     display: block;
-    margin-bottom: 0.5rem;
-    white-space: nowrap;
+    margin-bottom: 1rem;
+    white-space: normal;
     text-align: left;
-    overflow: visible;
-    padding-right: 1rem;
-    padding-bottom: 0.5rem;
+  }
+
+  .title-group h1:hover {
+    filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.5));
+    transform: scale(1.02);
+    animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+  }
+
+  @keyframes liquidFlow {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
   }
 
   .title-group h2 {
@@ -389,7 +648,54 @@
     margin-top: 1.5rem;
     white-space: nowrap;
     text-align: left;
-    overflow: visible;
+  }
+
+  @media (min-width: 640px) {
+    .title-group h1 {
+      font-size: 3rem;
+    }
+    .title-group h2 {
+      font-size: 1.875rem;
+    }
+    .subtitle {
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .title-group h1 {
+      font-size: 3.75rem;
+    }
+    .title-group h2 {
+      font-size: 2.25rem;
+    }
+    .subtitle {
+      font-size: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .title-group h1 {
+      font-size: 4.5rem;
+    }
+    .title-group h2 {
+      font-size: 3rem;
+    }
+    .subtitle {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .title-group h1 {
+      font-size: 6rem;
+    }
+    .title-group h2 {
+      font-size: 3.75rem;
+    }
+    .subtitle {
+      font-size: 1.875rem;
+    }
   }
 
   .decorative-elements {
@@ -448,17 +754,13 @@
     transform: rotate(-15deg) scale(1.1);
   }
 
-  section:not(:last-child)::after {
-    display: none;
-  }
-
-  /* 添加响应式媒体查询 */
   @media (max-width: 1800px) {
     .decorative-elements {
       width: 840px;
       grid-template-columns: repeat(6, 140px);
       opacity: 0.9;
-      transform: translateX(-1.5rem);
+      transform: translateX(0);
+      justify-content: end;
     }
   }
 
@@ -467,7 +769,8 @@
       width: 720px;
       grid-template-columns: repeat(6, 120px);
       opacity: 0.8;
-      transform: translateX(-1rem);
+      transform: translateX(0);
+      justify-content: end;
     }
   }
 
@@ -476,60 +779,83 @@
       width: 600px;
       grid-template-columns: repeat(6, 100px);
       opacity: 0.7;
-      transform: translateX(-0.5rem);
+      transform: translateX(0);
       row-gap: 0.75rem;
+      justify-content: end;
     }
     
-    .title-group h2,
     .subtitle {
       white-space: normal;
     }
   }
 
   @media (max-width: 1024px) {
+    .hero-section {
+      min-height: 40vh;
+      padding: 6rem 0 1rem;
+    }
+    
+    .hero-content {
+      min-height: 40vh;
+    }
+    
+    .slogan {
+      margin-left: 1.5rem;
+    }
+    
     .decorative-elements {
       transform: translateX(0) scale(0.9);
       opacity: 0.5;
       row-gap: 0.5rem;
+      justify-content: end;
     }
     
     .title-group h1 {
-      white-space: normal;
+      @apply text-5xl;
+    }
+    
+    .title-group h2 {
+      @apply text-4xl;
+    }
+    
+    .subtitle {
+      @apply text-xl;
     }
   }
 
   @media (max-width: 768px) {
-    .decorative-elements {
-      opacity: 0.1;
-      transform: translateX(0) scale(0.8);
-    }
-    
-    .hero-content {
-      flex-direction: column;
-      align-items: flex-start;
-      padding-top: 0.75rem;
-      min-height: 22vh;
-    }
-    
     .hero-section {
       min-height: 22vh;
       padding: 7rem 0 0.5rem;
     }
     
+    .hero-content {
+      min-height: 22vh;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 0.75rem;
+    }
+    
     .slogan {
+      margin-left: 1rem;
       max-width: 90%;
     }
     
+    .decorative-elements {
+      opacity: 0.1;
+      transform: translateX(0) scale(0.8);
+    }
+
     .title-group h1 {
-      font-size: 3.5rem;
+      @apply text-4xl;
     }
     
     .title-group h2 {
-      font-size: 2rem;
+      @apply text-3xl;
     }
     
     .subtitle {
-      font-size: 1.125rem;
+      @apply text-lg;
     }
   }
 
@@ -539,27 +865,32 @@
       transform: translateX(0) scale(0.7);
     }
     
-    .hero-content {
-      min-height: 18vh;
-      padding-top: 0.25rem;
-    }
-    
     .hero-section {
       min-height: 18vh;
       padding: 7.5rem 0 0.5rem;
       margin-bottom: 1rem;
     }
+
+    .hero-content {
+      padding: 0 1rem;
+      min-height: 18vh;
+      padding-top: 0.25rem;
+    }
+    
+    .slogan {
+      padding-top: 0;
+    }
     
     .title-group h1 {
-      font-size: 2.5rem;
+      @apply text-3xl;
     }
     
     .title-group h2 {
-      font-size: 1.5rem;
+      @apply text-2xl;
     }
     
     .subtitle {
-      font-size: 1rem;
+      @apply text-base;
     }
   }
 
@@ -569,13 +900,13 @@
       display: none;
     }
     
-    .hero-content {
-      min-height: 16vh;
-    }
-    
     .hero-section {
       min-height: 16vh;
       padding: 8rem 0 0.5rem;
+    }
+    
+    .hero-content {
+      min-height: 16vh;
     }
   }
 
@@ -1361,5 +1692,514 @@
     .arrow {
       padding: 0.2rem 0.5rem;
     }
+  }
+
+  /* YouTube Analysis Section Styles */
+  .youtube-analysis-section {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 4rem;
+  }
+
+  .analysis-container {
+    width: 100%;
+    text-align: center;
+  }
+
+  .analysis-container h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .input-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .youtube-input {
+    flex: 1;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .youtube-input:focus {
+    border-color: #7db3d9;
+    box-shadow: 0 0 0 2px rgba(125, 179, 217, 0.2);
+  }
+
+  .analyze-button {
+    padding: 0.5rem 1.5rem;
+    background-color: #7db3d9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  .analyze-button:not(:disabled):hover {
+    background-color: #6ca3c9;
+    transform: translateY(-2px);
+  }
+
+  .analyze-button:disabled {
+    background-color: #b3d1e3;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    color: #e74c3c;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .loading-message {
+    color: #3498db;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    border-radius: 50%;
+    border-top-color: #3498db;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+  }
+
+  .analysis-modal {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+  }
+
+  .modal-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #666;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  .close-button:hover {
+    color: #e74c3c;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+
+  /* Video Info Section */
+  .video-info-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .video-info-section p {
+    margin: 0.5rem 0;
+    color: #333;
+  }
+
+  /* Results Grid */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .result-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .result-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Sentiment Stats */
+  .sentiment-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-box {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-box.positive {
+    background-color: rgba(76, 175, 80, 0.15);
+  }
+
+  .stat-box.neutral {
+    background-color: rgba(158, 158, 158, 0.15);
+  }
+
+  .stat-box.negative {
+    background-color: rgba(244, 67, 54, 0.15);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* Toxicity Section */
+  .toxic-count {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .toxic-explanation {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .toxicity-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+
+  .types-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .type-item {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* Donut Charts Section */
+  .charts-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .charts-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .donut-charts {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .donut-item {
+    text-align: center;
+    width: 130px;
+  }
+
+  .donut-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.2rem;
+    color: #333;
+  }
+
+  .donut-percent {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #555;
+  }
+
+  /* Strategies Section (修改) */
+  .strategies-section {
+    margin-bottom: 2.5rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .strategies-section h3 {
+    font-size: 1.6rem; /* 略微放大标题字号 */
+    margin-bottom: 1.8rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .strategy-content {
+    color: #555;
+    line-height: 2; /* 扩大行间距 */
+    text-align: left;
+    font-size: 1.05rem; /* 略微放大字体 */
+  }
+
+  /* Example Comments Section (修改) */
+  .examples-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .examples-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .example-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .example-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #eee;
+    width: 100%;
+  }
+
+  .example-comment {
+    background-color: #f0f7fa; /* 保持原有的蓝灰色背景 */
+    padding: 1.2rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .example-comment h4 {
+    font-weight: 600;
+    color: #3b7a9e; /* 保持原有的标题颜色 */
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .example-response {
+    background-color: #f2f8f2; /* 新的浅绿色背景 */
+    padding: 1.2rem;
+  }
+
+  .example-response h4 {
+    font-weight: 600;
+    color: #3c8a56; /* 更改标题颜色匹配新背景 */
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .example-comment p,
+  .example-response p {
+    margin: 0;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* Recommendations Section */
+  .recommendations-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .recommendations-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .recommendations-section p {
+    margin-bottom: 1rem;
+    color: #555;
+  }
+
+  .recommendations-list {
+    padding-left: 1.5rem;
+  }
+
+  .recommendations-list li {
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+
+  /* Responsive Media Queries */
+  @media (max-width: 768px) {
+    .input-group {
+      flex-direction: column;
+    }
+    
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .donut-charts {
+      gap: 1.5rem;
+    }
+    
+    .donut-item {
+      width: 120px;
+    }
+    
+    .example-cards {
+      gap: 1rem;
+    }
+    
+    .example-comment,
+    .example-response {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .analysis-container h3 {
+      font-size: 1.5rem;
+    }
+    
+    .modal-header h2 {
+      font-size: 1.5rem;
+    }
+    
+    .sentiment-stats {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    
+    .types-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+      padding: 1.5rem;
+    }
+    
+    .strategies-section h3,
+    .examples-section h3 {
+      font-size: 1.3rem;
+    }
+    
+    .example-comment h4,
+    .example-response h4 {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Debug Information Styles */
+  .debug-info {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #fff8e1;
+    border: 1px solid #ffecb3;
+    border-radius: 8px;
+  }
+  
+  .note-message {
+    color: #ff6f00;
+    margin-bottom: 0.5rem;
+  }
+  
+  .debug-data {
+    background-color: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* 添加部分分隔线样式 */
+  .section-divider {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-divider:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
   }
   </style>
