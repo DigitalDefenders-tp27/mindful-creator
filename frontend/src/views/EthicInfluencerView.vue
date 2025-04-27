@@ -290,20 +290,44 @@ onMounted(() => {
 }
 
 .title-group h1 {
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #56D8C9 0%, #FF7676 100%);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #FF7B9C 20%,
+    #8A77E1 40%, 
+    #8A77E1 60%,
+    #FF7B9C 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.4;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  line-height: 1.1;
   display: block;
-  margin-bottom: 0.5rem;
-  white-space: nowrap;
+  margin-bottom: 1rem;
+  white-space: normal;
   text-align: left;
   overflow: visible;
-  padding-right: 1rem;
-  padding-bottom: 0.5rem;
+}
+
+.title-group h1:hover {
+  filter: drop-shadow(0 0 2px rgba(255, 123, 156, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .title-group h2 {
@@ -322,57 +346,167 @@ onMounted(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
   overflow: visible;
 }
 
-@media (min-width: 640px) {
+/* Enhanced responsive styles for title section */
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 25vh;
+    padding: 5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-content {
+    min-height: 25vh;
+    padding-left: 1rem;
+    align-items: flex-start;
+  }
+  
+  .slogan {
+    margin-left: 0.5rem;
+    max-width: 95%;
+  }
+  
   .title-group h1 {
-    font-size: 3rem;
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
   }
+  
   .title-group h2 {
-    font-size: 1.875rem;
+    font-size: 1.25rem;
+    white-space: normal;
   }
+  
   .subtitle {
-    font-size: 1.125rem;
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 481px) and (max-width: 640px) {
+  .hero-section {
+    min-height: 28vh;
+    padding: 5.5rem 0 0.75rem;
+  }
+  
+  .hero-content {
+    min-height: 28vh;
+    padding-left: 1.25rem;
+  }
+  
+  .slogan {
+    margin-left: 0.75rem;
+    max-width: 90%;
+  }
+  
+  .title-group h1 {
+    font-size: 2.75rem;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+    white-space: normal;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .hero-section {
+    min-height: 30vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 30vh;
+    padding-left: 1.5rem;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+  }
+  
+  .title-group h1 {
+    font-size: 3.25rem;
+  }
+  
+  .title-group h2 {
+    font-size: 1.875rem;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hero-content {
+    padding-left: 1.75rem;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
   .title-group h1 {
     font-size: 3.75rem;
   }
+  
   .title-group h2 {
     font-size: 2.25rem;
   }
+  
   .subtitle {
     font-size: 1.25rem;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1025px) and (max-width: 1280px) {
   .title-group h1 {
     font-size: 4.5rem;
   }
+  
   .title-group h2 {
-    font-size: 3rem;
+    font-size: 2.75rem;
   }
+  
+  .subtitle {
+    font-size: 1.375rem;
+  }
+}
+
+@media (min-width: 1281px) {
+  .title-group h1 {
+    font-size: 5.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 3.25rem;
+  }
+  
   .subtitle {
     font-size: 1.5rem;
   }
 }
 
+/* Remove duplicate media queries that were previously defined */
+@media (min-width: 640px) {
+  /* Styles moved to ranges above */
+}
+
+@media (min-width: 768px) {
+  /* Styles moved to ranges above */
+}
+
+@media (min-width: 1024px) {
+  /* Styles moved to ranges above */
+}
+
 @media (min-width: 1280px) {
-  .title-group h1 {
-    font-size: 6rem;
-  }
-  .title-group h2 {
-    font-size: 3.75rem;
-  }
-  .subtitle {
-    font-size: 1.875rem;
-  }
+  /* Styles moved to ranges above */
 }
 
 .decorative-elements {
@@ -478,8 +612,71 @@ onMounted(() => {
   .slogan {
     max-width: 90%;
   }
+  
+  .content-row {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  /* Place circular cards at the top on mobile */
+  .main-card {
+    width: 250px;
+    height: 250px;
+    margin: 0 auto 1rem;
+    order: 1; /* Ensure circular heading card displays first */
+  }
+  
+  /* Adjust capsule cards for better mobile presentation */
+  .long-card {
+    width: 100%;
+    height: auto;
+    min-height: 150px;
+    max-height: 200px;
+    border-radius: 30px; /* Less curved for better text display on smaller screens */
+    margin: 0 auto;
+    order: 2; /* Position content cards below the circular heading cards */
+  }
+  
+  /* Ensure proper text display in capsule cards */
+  .preview-text {
+    padding: 1rem 5.5rem 1rem 2rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 95%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 95%,
+      transparent 100%
+    );
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 1rem 5.5rem 1rem 2rem;
+  }
+  
+  /* Adjust read more button position for tablets */
+  .read-more-button {
+    transform: scale(0.9) translateY(-50%);
+    margin-right: 1.5rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 1.5rem;
+  }
+  
+  /* Remove hover transform on touch devices to prevent layout issues */
+  .long-card:hover {
+    transform: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
 }
 
+/* Tablet portrait and smaller mobile devices */
 @media (max-width: 640px) {
   .decorative-elements {
     opacity: 0;
@@ -508,8 +705,62 @@ onMounted(() => {
   .subtitle {
     font-size: 1rem;
   }
+  
+  .content-row {
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Further reduce circular card size */
+  .main-card {
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 0.5rem;
+  }
+  
+  /* Adjust capsule card shape for smaller screens */
+  .long-card {
+    min-height: 130px;
+    max-height: 180px;
+    border-radius: 25px;
+  }
+  
+  /* Optimise text padding and gradient mask for mobile */
+  .preview-text {
+    padding: 0.8rem 4rem 0.8rem 1.5rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 90%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 90%,
+      transparent 100%
+    );
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 4rem 0.8rem 1.5rem;
+  }
+  
+  /* Reduce button size for smaller screens */
+  .read-more-button {
+    transform: scale(0.8) translateY(-50%);
+    margin-right: 1.2rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 1.2rem;
+  }
+  
+  /* Adjust hover effect for button on touch devices */
+  .content-row .long-card .read-more-button:hover {
+    transform: scale(0.8) translateY(-50%);
+  }
 }
 
+/* Small mobile devices */
 @media (max-width: 480px) {
   .decorative-elements {
     opacity: 0;
@@ -523,6 +774,78 @@ onMounted(() => {
   .hero-section {
     min-height: 16vh;
     padding: 8rem 0 0.5rem;
+  }
+  
+  .content-row {
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Compact circular card for mobile */
+  .main-card {
+    width: 200px;
+    height: 200px;
+  }
+  
+  /* More compact capsule card for smaller screens */
+  .long-card {
+    min-height: 120px;
+    max-height: 160px;
+    border-radius: 20px;
+  }
+  
+  /* Reduce icon size for better proportions */
+  .card-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  /* Optimise typography for smallest screens */
+  .card-text h3 {
+    font-size: 1rem;
+  }
+  
+  .card-description {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+  
+  /* Further adjust text padding for smallest screens */
+  .preview-text {
+    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 85%,
+      transparent 100%
+    );
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
+  }
+  
+  /* Adjust read more button position for smallest screens */
+  .read-more-button {
+    transform: scale(0.75) translateY(-50%);
+    margin-right: 0.75rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 0.75rem;
+  }
+  
+  /* Clip text more aggressively to fit smaller container */
+  .preview-text :deep(h1) {
+    -webkit-line-clamp: 1;
+  }
+  
+  .preview-text :deep(p) {
+    -webkit-line-clamp: 1;
   }
 }
 
@@ -885,29 +1208,78 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
+    padding: 1rem 5.5rem 1rem 2rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 95%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 95%,
+      transparent 100%
+    );
   }
   
   .content-row .long-card .preview-text {
-    padding: 1rem 6rem 1rem 2rem;
+    padding: 1rem 5.5rem 1rem 2rem;
   }
   
+  /* Adjust read more button position for tablets */
   .read-more-button {
-    margin-right: 1.5rem;
     transform: scale(0.9) translateY(-50%);
-    position: absolute;
-    top: 50%;
-    z-index: 5;
+    margin-right: 1.5rem;
   }
   
   .content-row .long-card .read-more-button {
     margin-right: 1.5rem;
   }
+  
+  /* Remove hover transform on touch devices to prevent layout issues */
+  .long-card:hover {
+    transform: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
 }
 
 @media (max-width: 640px) {
   .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+    padding: 0.8rem 4rem 0.8rem 1.5rem;
+    -webkit-mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 90%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom,
+      black 0%,
+      black 90%,
+      transparent 100%
+    );
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 4rem 0.8rem 1.5rem;
+  }
+  
+  /* Reduce button size for smaller screens */
+  .read-more-button {
+    transform: scale(0.8) translateY(-50%);
+    margin-right: 1.2rem;
+  }
+  
+  .content-row .long-card .read-more-button {
+    margin-right: 1.2rem;
+  }
+  
+  /* Adjust hover effect for button on touch devices */
+  .content-row .long-card .read-more-button:hover {
+    transform: scale(0.8) translateY(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .preview-text {
+    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
     -webkit-mask-image: linear-gradient(to bottom,
       black 0%,
       black 85%,
@@ -921,20 +1293,26 @@ onMounted(() => {
   }
   
   .content-row .long-card .preview-text {
-    padding: 0.8rem 4.5rem 0.8rem 1.5rem;
+    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
   }
   
+  /* Adjust read more button position for smallest screens */
   .read-more-button {
-    margin-right: 1rem;
-    transform: scale(0.8) translateY(-50%);
+    transform: scale(0.75) translateY(-50%);
+    margin-right: 0.75rem;
   }
   
   .content-row .long-card .read-more-button {
-    margin-right: 1rem;
+    margin-right: 0.75rem;
   }
   
-  .content-row .long-card .read-more-button:hover {
-    transform: translateY(-50%) translateX(5px) scale(0.8);
+  /* Clip text more aggressively to fit smaller container */
+  .preview-text :deep(h1) {
+    -webkit-line-clamp: 1;
+  }
+  
+  .preview-text :deep(p) {
+    -webkit-line-clamp: 1;
   }
 }
 
