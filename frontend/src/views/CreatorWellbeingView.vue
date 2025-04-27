@@ -10,6 +10,20 @@
           </div>
           <p class="subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         </div>
+        <div class="decorative-elements">
+          <!-- 右上角第一排 / Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     
@@ -285,9 +299,6 @@
       </div>
     </div>
     
-    <div class="footer">
-      <p>© 2025 by Inflowence</p>
-    </div>
   </div>
 </template>
 
@@ -557,15 +568,12 @@ const sortedFilteredEvents = computed(() => {
 
 <style scoped>
 .creator-wellbeing {
-  background-color: #fffcf5;
-  background-image: 
-    radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
+  background-color: rgb(254, 251, 244);
   min-height: 100vh;
-  padding-top: 0;
+  width: 100%;
+  position: relative;
 }
 
-/* Hero Section Styles */
 .hero-section {
   min-height: 40vh;
   background-color: rgb(255, 252, 244);
@@ -575,7 +583,7 @@ const sortedFilteredEvents = computed(() => {
   position: relative;
   z-index: 1;
   padding: 6rem 0 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .hero-content {
@@ -590,7 +598,7 @@ const sortedFilteredEvents = computed(() => {
 }
 
 .slogan {
-  max-width: 800px;
+  max-width: 900px;
   position: relative;
   z-index: 2;
   margin-left: 2rem;
@@ -603,20 +611,43 @@ const sortedFilteredEvents = computed(() => {
 }
 
 .title-group h1 {
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #6B64F3 0%, #8BDFE7 100%);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.4;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  line-height: 1.1;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  overflow: visible;
-  padding-right: 1rem;
-  padding-bottom: 0.5rem;
+}
+
+.title-group h1:hover {
+  filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .title-group h2 {
@@ -635,9 +666,8 @@ const sortedFilteredEvents = computed(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
-  overflow: visible;
 }
 
 .decorative-elements {
@@ -692,17 +722,67 @@ const sortedFilteredEvents = computed(() => {
   transition: all 0.5s ease;
 }
 
+/* Hover效果增强 */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
 
-/* Add responsive media queries */
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -711,7 +791,8 @@ const sortedFilteredEvents = computed(() => {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -720,90 +801,120 @@ const sortedFilteredEvents = computed(() => {
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(0);
     row-gap: 0.75rem;
-  }
-  
-  .title-group h2,
-  .subtitle {
-    white-space: normal;
+    justify-content: end;
   }
 }
 
 @media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
+    justify-content: end;
   }
   
   .title-group h1 {
+    @apply text-5xl;
+    white-space: nowrap;
+  }
+  
+  .title-group h2 {
+    @apply text-4xl;
     white-space: normal;
+  }
+  
+  .subtitle {
+    @apply text-xl;
   }
 }
 
 @media (max-width: 768px) {
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
-  }
-  
-  .hero-content {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-top: 0.75rem;
-    min-height: 22vh;
-  }
-  
   .hero-section {
     min-height: 22vh;
     padding: 7rem 0 0.5rem;
   }
   
+  .hero-content {
+    min-height: 22vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+  
   .slogan {
+    margin-left: 1rem;
     max-width: 90%;
   }
   
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+
   .title-group h1 {
-    font-size: 3.5rem;
+    @apply text-4xl;
+    white-space: nowrap;
   }
   
   .title-group h2 {
-    font-size: 2rem;
+    @apply text-3xl;
+    white-space: normal;
   }
   
   .subtitle {
-    font-size: 1.125rem;
+    @apply text-lg;
   }
 }
 
 @media (max-width: 640px) {
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+
+  .slogan {
+    padding-top: 0;
+  }
+
   .decorative-elements {
     opacity: 0;
     transform: translateX(0) scale(0.7);
   }
-  
-  .hero-content {
-    min-height: 18vh;
-    padding-top: 0.25rem;
-  }
-  
-  .hero-section {
-    min-height: 18vh;
-    padding: 7.5rem 0 0.5rem;
-    margin-bottom: 1rem;
-  }
-  
+
   .title-group h1 {
-    font-size: 2.5rem;
+    @apply text-3xl;
+    white-space: nowrap;
   }
   
   .title-group h2 {
-    font-size: 1.5rem;
+    @apply text-2xl;
+    white-space: normal;
   }
   
   .subtitle {
-    font-size: 1rem;
+    @apply text-base;
   }
 }
 
@@ -813,115 +924,22 @@ const sortedFilteredEvents = computed(() => {
     display: none;
   }
   
-  .hero-content {
-    min-height: 16vh;
-  }
-  
   .hero-section {
     min-height: 16vh;
     padding: 8rem 0 0.5rem;
+    margin-bottom: 0;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
   }
 }
 
-/* Responsive layout support */
-@media (max-width: 1200px) {
-  .container {
-    max-width: 95%;
-  }
-  
-  .dashboard-content,
-  .resource-content {
-    flex-direction: column;
-  }
-  
-  .chart-container, 
-  .insights-container,
-  .map-container, 
-  .resource-details {
-    width: 100%;
-    margin-bottom: 2rem;
-  }
-  
-  .activities-grid {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 0 1rem;
-  }
-  
-  .section-title {
-    font-size: 2rem;
-  }
-  
-  .section-subtitle {
-    font-size: 1rem;
-  }
-  
-  .tabs, 
-  .resource-tabs {
-    flex-wrap: wrap;
-  }
-  
-  .tab,
-  .resource-tab {
-    margin: 0.25rem;
-  }
-  
-  .activities-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .events-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .activities-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .recent-title {
-    font-size: 1.2rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .section-title {
-    font-size: 1.75rem;
-  }
-  
-  .chart-title,
-  .insights-title,
-  .resource-name {
-    font-size: 1.25rem;
-  }
-  
-  .resource-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .action-btn {
-    width: 100%;
-  }
-  
-  .event-card {
-    flex-direction: column;
-  }
-  
-  .event-img {
-    width: 100%;
-    height: 200px;
-  }
-}
-
+/* 其他现有的样式 */
 .dashboard-section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 .container {
@@ -952,13 +970,14 @@ const sortedFilteredEvents = computed(() => {
   text-align: center;
   margin-bottom: 3rem;
   line-height: 1.5;
+  white-space: normal;
 }
 
 section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
   border-bottom: none;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 section:last-child {
@@ -1421,16 +1440,65 @@ section:not(:last-child)::after {
     font-size: 2rem;
   }
   
-  .tabs {
+  .section-subtitle {
+    font-size: 1rem;
+  }
+  
+  .tabs, 
+  .resource-tabs {
     flex-wrap: wrap;
+  }
+  
+  .tab,
+  .resource-tab {
+    margin: 0.25rem;
   }
   
   .activities-grid {
     grid-template-columns: 1fr;
   }
   
-  .resource-tabs {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .activities-header {
     flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .recent-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .chart-title,
+  .insights-title,
+  .resource-name {
+    font-size: 1.25rem;
+  }
+  
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .event-card {
+    flex-direction: column;
+  }
+  
+  .event-img {
+    width: 100%;
+    height: 200px;
   }
 }
 
@@ -1827,5 +1895,26 @@ section:not(:last-child)::after {
 
 .tag.workplace-wellbeing-workshop {
   background-color: #607D8B;
+}
+
+.wellbeing-resource-item:last-child {
+  background-color: #607D8B;
+}
+
+@media (min-width: 1280px) {
+  .subtitle {
+    white-space: nowrap;
+  }
+  
+  .section-subtitle {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1279px) {
+  .subtitle, 
+  .section-subtitle {
+    white-space: normal;
+  }
 }
 </style>

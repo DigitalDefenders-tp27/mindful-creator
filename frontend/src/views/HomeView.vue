@@ -246,15 +246,41 @@ const scrollToTop = () => {
 .title-group h1 {
   font-size: 4rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
   line-height: 1.1;
   display: block;
   margin-bottom: 1rem;
   white-space: normal;
   text-align: left;
+}
+
+.title-group h1:hover {
+  filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .title-group h2 {
