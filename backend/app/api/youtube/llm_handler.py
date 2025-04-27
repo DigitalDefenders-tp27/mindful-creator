@@ -88,12 +88,18 @@ def identify_critical_comments(comments: List[str], max_comments: int = 3) -> Li
 
 {comments_text}
 
-Return only the exact text of the {max_comments} most critical comments, one per line.
+IMPORTANT: Return ONLY the exact text of the {max_comments} most critical comments, one per line.
+DO NOT add any introductory text, summaries, or phrases like "The most critical comments are:".
+DO NOT number the comments or add any formatting.
+ONLY return the raw comment text, exactly as provided in the input.
 """
     
     system_message = """You are an expert content moderation assistant. Your task is to identify comments 
     that are negative, critical, or potentially harmful. Focus on comments that have personal attacks, 
-    offensive language, or harsh criticism rather than constructive feedback."""
+    offensive language, or harsh criticism rather than constructive feedback.
+    
+    When presenting your findings, NEVER add introductory phrases like "The most critical or negative comments are:".
+    ONLY present the exact comment text, one comment per line, with no additional text or formatting."""
     
     try:
         payload = {
@@ -109,35 +115,48 @@ Return only the exact text of the {max_comments} most critical comments, one per
         resp.raise_for_status()
         data = resp.json()
         
-        # 详细记录API返回的原始响应，帮助调试
-        logger.debug(f"OpenRouter API原始响应: {data}")
+        # Log the API original response for debugging
+        logger.debug(f"OpenRouter API original response: {data}")
         
-        # 检查响应结构
+        # Check response structure
         if 'choices' not in data:
-            logger.error(f"API响应中缺少'choices'键: {data}")
+            logger.error(f"API response missing 'choices' key: {data}")
             return comments[:min(max_comments, len(comments))]
             
         choices = data.get('choices', [])
         if not choices or len(choices) == 0:
-            logger.error("API响应的choices列表为空")
+            logger.error("API response choices list is empty")
             return comments[:min(max_comments, len(comments))]
             
         first_choice = choices[0]
         if not isinstance(first_choice, dict):
-            logger.error(f"choices[0]不是字典类型: {type(first_choice)}")
+            logger.error(f"choices[0] is not a dictionary type: {type(first_choice)}")
             return comments[:min(max_comments, len(comments))]
             
         message = first_choice.get('message', {})
         if not isinstance(message, dict):
-            logger.error(f"message不是字典类型: {type(message)}")
+            logger.error(f"message is not a dictionary type: {type(message)}")
             return comments[:min(max_comments, len(comments))]
             
         content = message.get('content', '')
         if content:
             # Extract the list of critical comments
             critical_comments = [line.strip() for line in content.strip().split('\n') if line.strip()]
-            logger.info(f"从LLM返回中提取了{len(critical_comments)}条评论")
-            return critical_comments[:max_comments]  # Ensure we don't exceed max_comments
+            
+            # Additional filter to remove potential introductory lines like "The most critical comments are:"
+            filtered_comments = []
+            for comment in critical_comments:
+                # Skip lines that appear to be introductory text rather than comments
+                if any(phrase in comment.lower() for phrase in [
+                    "the most critical", "here are", "these are", "critical comments", 
+                    "negative comments", "comments are", "identified", "response", "would require"
+                ]):
+                    logger.warning(f"Filtered out possible introductory text: {comment}")
+                    continue
+                filtered_comments.append(comment)
+            
+            logger.info(f"Extracted {len(filtered_comments)} comments from LLM response")
+            return filtered_comments[:max_comments]  # Ensure we don't exceed max_comments
             
         logger.warning("No content returned from LLM")
     except Exception as e:

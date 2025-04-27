@@ -156,13 +156,13 @@
           
           <div class="modal-content">
             <!-- Video Info -->
-            <div class="video-info-section">
+            <div class="video-info-section section-divider">
               <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
               <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
             </div>
             
             <!-- Debug Information (Add after video info section) -->
-            <div v-if="analysisResult?.analysis?.note" class="debug-info">
+            <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
               <p class="note-message"><strong>Note:</strong> {{ analysisResult.analysis.note }}</p>
               <details>
                 <summary>Debug Information</summary>
@@ -171,7 +171,7 @@
             </div>
             
             <!-- Results Grid -->
-            <div class="results-grid">
+            <div class="results-grid section-divider">
               <!-- Sentiment Analysis Results -->
               <div class="result-card">
                 <h3>Sentiment Analysis</h3>
@@ -203,7 +203,7 @@
             </div>
             
             <!-- Donut Charts Section -->
-            <div class="charts-section">
+            <div class="charts-section section-divider">
               <h3>Toxicity Breakdown</h3>
               <p class="toxicity-subtitle">Breakdown of the {{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }} toxic comments by category</p>
               <div class="donut-charts">
@@ -218,19 +218,19 @@
               </div>
             </div>
             
-            <!-- Strategies Section (Added) -->
-            <div class="strategies-section" v-if="analysisResult?.strategies">
+            <!-- Strategies Section (修改) -->
+            <div class="strategies-section section-divider" v-if="analysisResult?.strategies">
               <h3>Response Strategies</h3>
               <div class="strategy-content" v-html="formatStrategies(analysisResult.strategies)"></div>
             </div>
             
-            <!-- Example Comments Section (Added) -->
-            <div class="examples-section" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
+            <!-- Example Comments Section (修改) -->
+            <div class="examples-section section-divider" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
               <h3>Example Responses</h3>
               <div class="example-cards">
                 <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="example-card">
                   <div class="example-comment">
-                    <h4>Critical Comment:</h4>
+                    <h4>Original Comment:</h4>
                     <p>{{ example.comment }}</p>
                   </div>
                   <div class="example-response">
@@ -1711,7 +1711,7 @@
     background-color: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 950px;
+    max-width: 1200px;
     max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
@@ -1871,14 +1871,14 @@
 
   .donut-charts {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     flex-wrap: wrap;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   .donut-item {
     text-align: center;
-    width: 140px;
+    width: 130px;
   }
 
   .donut-label {
@@ -1894,7 +1894,7 @@
     color: #555;
   }
 
-  /* Strategies Section (Added) */
+  /* Strategies Section (修改) */
   .strategies-section {
     margin-bottom: 2.5rem;
     background-color: #f8f9fa;
@@ -1904,8 +1904,8 @@
   }
 
   .strategies-section h3 {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.6rem; /* 略微放大标题字号 */
+    margin-bottom: 1.8rem;
     color: #333;
     font-weight: 600;
     text-align: center;
@@ -1913,11 +1913,12 @@
 
   .strategy-content {
     color: #555;
-    line-height: 1.6;
+    line-height: 2; /* 扩大行间距 */
     text-align: left;
+    font-size: 1.05rem; /* 略微放大字体 */
   }
 
-  /* Example Comments Section (Added) */
+  /* Example Comments Section (修改) */
   .examples-section {
     margin-bottom: 2.5rem;
   }
@@ -1948,26 +1949,26 @@
   }
 
   .example-comment {
-    background-color: #fff2f2;
+    background-color: #f0f7fa; /* 保持原有的蓝灰色背景 */
     padding: 1.2rem;
     border-bottom: 1px solid #eee;
   }
 
   .example-comment h4 {
     font-weight: 600;
-    color: #d32f2f;
+    color: #3b7a9e; /* 保持原有的标题颜色 */
     margin-bottom: 0.5rem;
     font-size: 1rem;
   }
 
   .example-response {
-    background-color: #f0f8ff;
+    background-color: #f2f8f2; /* 新的浅绿色背景 */
     padding: 1.2rem;
   }
 
   .example-response h4 {
     font-weight: 600;
-    color: #1976d2;
+    color: #3c8a56; /* 更改标题颜色匹配新背景 */
     margin-bottom: 0.5rem;
     font-size: 1rem;
   }
@@ -2093,5 +2094,17 @@
     overflow-x: auto;
     max-height: 300px;
     overflow-y: auto;
+  }
+
+  /* 添加部分分隔线样式 */
+  .section-divider {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-divider:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
   }
   </style>
