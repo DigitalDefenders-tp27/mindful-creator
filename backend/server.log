@@ -381,3 +381,160 @@ TypeError: unsupported operand type(s) for /: 'PosixPath' and 'list'
 2025-04-27 03:12:12,571 - server - INFO - - SPACE_API_URL: Set
 2025-04-27 03:12:12,571 - server - INFO - - CORS_ORIGIN: Set
 2025-04-27 03:12:12,931 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 12:06:35,756 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 12:06:35,757 - server - INFO - Loading environment variables...
+2025-04-27 12:06:35,758 - server - INFO - Environment variable configuration status:
+2025-04-27 12:06:35,758 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 12:06:35,758 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 12:06:35,758 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 12:06:35,758 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 12:06:36,172 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 12:06:36,172 - server - INFO - Loading environment variables...
+2025-04-27 12:06:36,172 - server - INFO - Environment variable configuration status:
+2025-04-27 12:06:36,172 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 12:06:36,172 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 12:06:36,172 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 12:06:39,322 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: dQw4w9WgXcQ
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: dQw4w9WgXcQ
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Extracted video ID: dQw4w9WgXcQ
+2025-04-27 12:07:02,296 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 12:07:02,301 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 12:07:02,305 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 100
+2025-04-27 12:07:02,306 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 12:07:02,725 - app.api.youtube.analyzer - INFO - Retrieved 100 comments in this batch
+2025-04-27 12:07:02,725 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 12:07:02,726 - app.api.youtube.analyzer - INFO - Successfully retrieved 100 comments
+2025-04-27 12:07:02,726 - app.api.youtube.analyzer - INFO - Total comments to analyze: 100
+2025-04-27 12:07:02,726 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 12:07:04,511 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 12:07:05,525 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 12:07:05,527 - app.api.youtube.analyzer - INFO - Sending 100 comments to Space API
+2025-04-27 12:07:05,527 - app.api.youtube.analyzer - INFO - Sample comment: can confirm: he never gave us up...
+2025-04-27 12:07:06,721 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 12:07:06,721 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/35ccc617-ec89-4440-855c-66ecc03a373b "HTTP/1.1 200 OK"
+2025-04-27 12:07:07,855 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=35ccc617-ec89-4440-855c-66ecc03a373b "HTTP/1.1 200 OK"
+2025-04-27 12:07:18,297 - app.api.youtube.analyzer - INFO - Space call completed in 12.77s
+2025-04-27 12:07:18,298 - app.api.youtube.analyzer - INFO - Raw result type: <class 'dict'>
+2025-04-27 12:07:18,299 - app.api.youtube.analyzer - INFO - Raw result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:07:18,299 - app.api.youtube.analyzer - INFO - Normalized result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:07:18,299 - app.api.youtube.analyzer - INFO - Sentiment counts: {'Negative': 28, 'Neutral': 23, 'Positive': 49}
+2025-04-27 12:07:18,299 - app.api.youtube.analyzer - INFO - Toxicity counts: {'Toxic': 2, 'Severe Toxic': 0, 'Obscene': 2, 'Threat': 0, 'Insult': 2, 'Identity Hate': 0}
+2025-04-27 12:07:18,299 - app.api.youtube.analyzer - INFO - Total toxic comments: 2
+2025-04-27 12:07:20,443 - app.api.youtube.llm_handler - INFO - 从LLM返回中提取了5条评论
+2025-04-27 12:07:20,443 - app.api.youtube.llm_handler - INFO - Generating strategies - attempt 1/2
+2025-04-27 12:07:22,487 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): The three most critical comments are:...
+2025-04-27 12:07:23,719 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): Who's the really pretty blonde girl...
+2025-04-27 12:07:25,700 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): She is kind of good looking...
+2025-04-27 12:42:57,919 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=Z-qgGzdxtBw
+2025-04-27 12:42:57,920 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: Z-qgGzdxtBw
+2025-04-27 12:42:57,920 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=Z-qgGzdxtBw
+2025-04-27 12:42:57,920 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: Z-qgGzdxtBw
+2025-04-27 12:42:57,920 - app.api.youtube.analyzer - INFO - Extracted video ID: Z-qgGzdxtBw
+2025-04-27 12:42:57,920 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 12:42:57,924 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 12:42:57,934 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 100
+2025-04-27 12:42:57,934 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 12:42:58,308 - app.api.youtube.analyzer - INFO - Retrieved 2 comments in this batch
+2025-04-27 12:42:58,308 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 12:42:58,308 - app.api.youtube.analyzer - INFO - Successfully retrieved 2 comments
+2025-04-27 12:42:58,308 - app.api.youtube.analyzer - INFO - Total comments to analyze: 2
+2025-04-27 12:42:58,308 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 12:43:01,349 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 12:43:02,347 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 12:43:02,350 - app.api.youtube.analyzer - INFO - Sending 2 comments to Space API
+2025-04-27 12:43:02,350 - app.api.youtube.analyzer - INFO - Sample comment: How much data needs to be collected?  metrology, w...
+2025-04-27 12:43:03,329 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 12:43:03,329 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/5f5261a9-cb61-434b-bd26-27f26cbcb2fc "HTTP/1.1 200 OK"
+2025-04-27 12:43:04,399 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=5f5261a9-cb61-434b-bd26-27f26cbcb2fc "HTTP/1.1 200 OK"
+2025-04-27 12:43:04,530 - app.api.youtube.analyzer - INFO - Space call completed in 2.18s
+2025-04-27 12:43:04,530 - app.api.youtube.analyzer - INFO - Raw result type: <class 'dict'>
+2025-04-27 12:43:04,530 - app.api.youtube.analyzer - INFO - Raw result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:43:04,530 - app.api.youtube.analyzer - INFO - Normalized result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:43:04,531 - app.api.youtube.analyzer - INFO - Sentiment counts: {'Negative': 0, 'Neutral': 1, 'Positive': 1}
+2025-04-27 12:43:04,531 - app.api.youtube.analyzer - INFO - Toxicity counts: {'Toxic': 0, 'Severe Toxic': 0, 'Obscene': 0, 'Threat': 0, 'Insult': 0, 'Identity Hate': 0}
+2025-04-27 12:43:04,531 - app.api.youtube.analyzer - INFO - Total toxic comments: 0
+2025-04-27 12:43:06,235 - app.api.youtube.llm_handler - INFO - 从LLM返回中提取了2条评论
+2025-04-27 12:43:06,235 - app.api.youtube.llm_handler - INFO - Generating strategies - attempt 1/2
+2025-04-27 12:43:08,233 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): The most critical or negative comments in the give...
+2025-04-27 12:43:09,535 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): None of the comments provided appear to be negativ...
+2025-04-27 12:49:50,533 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 12:49:50,533 - server - INFO - Loading environment variables...
+2025-04-27 12:49:50,534 - server - INFO - Environment variable configuration status:
+2025-04-27 12:49:50,534 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 12:49:50,534 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 12:49:50,534 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 12:49:51,036 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 12:50:50,951 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 12:50:50,951 - server - INFO - Loading environment variables...
+2025-04-27 12:50:50,952 - server - INFO - Environment variable configuration status:
+2025-04-27 12:50:50,952 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 12:50:50,952 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 12:50:50,952 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 12:50:51,466 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 12:50:54,329 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=Z-qgGzdxtBw
+2025-04-27 12:50:54,330 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: Z-qgGzdxtBw
+2025-04-27 12:50:54,330 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=Z-qgGzdxtBw
+2025-04-27 12:50:54,330 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: Z-qgGzdxtBw
+2025-04-27 12:50:54,330 - app.api.youtube.analyzer - INFO - Extracted video ID: Z-qgGzdxtBw
+2025-04-27 12:50:54,330 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 12:50:54,333 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 12:50:54,339 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 100
+2025-04-27 12:50:54,341 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 12:50:54,676 - app.api.youtube.analyzer - INFO - Retrieved 2 comments in this batch
+2025-04-27 12:50:54,676 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 12:50:54,676 - app.api.youtube.analyzer - INFO - Successfully retrieved 2 comments
+2025-04-27 12:50:54,676 - app.api.youtube.analyzer - INFO - Total comments to analyze: 2
+2025-04-27 12:50:54,676 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 12:50:56,320 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 12:50:57,282 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 12:50:57,283 - app.api.youtube.analyzer - INFO - Sending 2 comments to Space API
+2025-04-27 12:50:57,283 - app.api.youtube.analyzer - INFO - Sample comment: How much data needs to be collected?  metrology, w...
+2025-04-27 12:50:58,259 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 12:50:58,259 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/564bd120-decc-4dc3-b24f-0ee998a08515 "HTTP/1.1 200 OK"
+2025-04-27 12:51:00,050 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=564bd120-decc-4dc3-b24f-0ee998a08515 "HTTP/1.1 200 OK"
+2025-04-27 12:51:00,105 - app.api.youtube.analyzer - INFO - Space call completed in 2.82s
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Raw result type: <class 'dict'>
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Raw result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Normalized result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Sentiment counts: {'Negative': 0, 'Neutral': 1, 'Positive': 1}
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Toxicity counts: {'Toxic': 0, 'Severe Toxic': 0, 'Obscene': 0, 'Threat': 0, 'Insult': 0, 'Identity Hate': 0}
+2025-04-27 12:51:00,106 - app.api.youtube.analyzer - INFO - Total toxic comments: 0
+2025-04-27 12:51:02,402 - app.api.youtube.llm_handler - INFO - Extracted 1 comments from LLM response
+2025-04-27 12:51:02,402 - app.api.youtube.llm_handler - INFO - Generating strategies - attempt 1/2
+2025-04-27 12:51:04,652 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): metrology, wat, probe, ft, system, in-system.  eas...
+2025-04-27 12:51:54,560 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=ehSWGOLqRmU
+2025-04-27 12:51:54,561 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: ehSWGOLqRmU
+2025-04-27 12:51:54,561 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=ehSWGOLqRmU
+2025-04-27 12:51:54,561 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: ehSWGOLqRmU
+2025-04-27 12:51:54,561 - app.api.youtube.analyzer - INFO - Extracted video ID: ehSWGOLqRmU
+2025-04-27 12:51:54,561 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 12:51:54,563 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 12:51:54,568 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 100
+2025-04-27 12:51:54,571 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 12:51:54,913 - app.api.youtube.analyzer - INFO - Retrieved 10 comments in this batch
+2025-04-27 12:51:54,913 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 12:51:54,913 - app.api.youtube.analyzer - INFO - Successfully retrieved 10 comments
+2025-04-27 12:51:54,913 - app.api.youtube.analyzer - INFO - Total comments to analyze: 10
+2025-04-27 12:51:54,913 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 12:51:56,860 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 12:51:57,998 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 12:51:58,000 - app.api.youtube.analyzer - INFO - Sending 10 comments to Space API
+2025-04-27 12:51:58,000 - app.api.youtube.analyzer - INFO - Sample comment: I have a 1990 corolla alltrac wagon.  Best car eve...
+2025-04-27 12:51:59,233 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/1fa8f767-19c9-471b-a53a-5be71670c745 "HTTP/1.1 200 OK"
+2025-04-27 12:51:59,235 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 12:52:00,443 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=1fa8f767-19c9-471b-a53a-5be71670c745 "HTTP/1.1 200 OK"
+2025-04-27 12:52:04,297 - app.api.youtube.analyzer - INFO - Space call completed in 6.30s
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Raw result type: <class 'dict'>
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Raw result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Normalized result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Sentiment counts: {'Negative': 2, 'Neutral': 6, 'Positive': 2}
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Toxicity counts: {'Toxic': 1, 'Severe Toxic': 0, 'Obscene': 0, 'Threat': 0, 'Insult': 0, 'Identity Hate': 0}
+2025-04-27 12:52:04,298 - app.api.youtube.analyzer - INFO - Total toxic comments: 1
+2025-04-27 12:52:08,293 - app.api.youtube.llm_handler - INFO - Extracted 3 comments from LLM response
+2025-04-27 12:52:08,294 - app.api.youtube.llm_handler - INFO - Generating strategies - attempt 1/2
+2025-04-27 12:52:10,904 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I don't think Toyota or Lexus  makes cars like the...
+2025-04-27 12:52:12,845 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): The problem is that Toyota became the #1 automaker...
+2025-04-27 12:52:14,999 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I've been a huge fan all my life however my 2014 S...
