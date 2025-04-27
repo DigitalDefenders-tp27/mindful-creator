@@ -564,7 +564,7 @@ const scrollToTop = () => {
 /* About Section */
 .about-section {
   position: relative;
-  padding: 0 2rem 4rem;
+  padding: 0 0rem 4rem;
   color: #232323;
   background-color: rgb(255, 252, 244);
 }

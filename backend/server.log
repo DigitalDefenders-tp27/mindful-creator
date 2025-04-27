@@ -538,3 +538,57 @@ TypeError: unsupported operand type(s) for /: 'PosixPath' and 'list'
 2025-04-27 12:52:10,904 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I don't think Toyota or Lexus  makes cars like the...
 2025-04-27 12:52:12,845 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): The problem is that Toyota became the #1 automaker...
 2025-04-27 12:52:14,999 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I've been a huge fan all my life however my 2014 S...
+2025-04-27 15:06:47,837 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 15:06:47,837 - server - INFO - Loading environment variables...
+2025-04-27 15:06:47,838 - server - INFO - Environment variable configuration status:
+2025-04-27 15:06:47,838 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 15:06:47,838 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 15:06:47,838 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 15:06:47,838 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 15:08:18,654 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 15:08:18,655 - server - INFO - Loading environment variables...
+2025-04-27 15:08:18,656 - server - INFO - Environment variable configuration status:
+2025-04-27 15:08:18,656 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 15:08:18,656 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 15:08:18,656 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 15:08:18,656 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-27 15:08:18,741 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-27 15:08:18,742 - server - INFO - Loading environment variables...
+2025-04-27 15:08:18,742 - server - INFO - Environment variable configuration status:
+2025-04-27 15:08:18,742 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-27 15:08:18,742 - server - INFO - - SPACE_API_URL: Set
+2025-04-27 15:08:18,742 - server - INFO - - CORS_ORIGIN: Set
+2025-04-27 15:08:19,238 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-04-27 15:10:16,714 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=ehSWGOLqRmU
+2025-04-27 15:10:16,717 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: ehSWGOLqRmU
+2025-04-27 15:10:16,717 - app.api.youtube.analyzer - INFO - Extracting video ID from URL: https://www.youtube.com/watch?v=ehSWGOLqRmU
+2025-04-27 15:10:16,718 - app.api.youtube.analyzer - INFO - Extracted video ID from standard YouTube URL: ehSWGOLqRmU
+2025-04-27 15:10:16,719 - app.api.youtube.analyzer - INFO - Extracted video ID: ehSWGOLqRmU
+2025-04-27 15:10:16,719 - app.api.youtube.analyzer - INFO - Initialising YouTube API client...
+2025-04-27 15:10:16,723 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-04-27 15:10:16,727 - app.api.youtube.analyzer - INFO - Fetching YouTube comments, limit: 100
+2025-04-27 15:10:16,728 - app.api.youtube.analyzer - INFO - Fetching comment batch, currently retrieved: 0
+2025-04-27 15:10:17,107 - app.api.youtube.analyzer - INFO - Retrieved 10 comments in this batch
+2025-04-27 15:10:17,107 - app.api.youtube.analyzer - INFO - No next page token or comment limit reached
+2025-04-27 15:10:17,107 - app.api.youtube.analyzer - INFO - Successfully retrieved 10 comments
+2025-04-27 15:10:17,107 - app.api.youtube.analyzer - INFO - Total comments to analyze: 10
+2025-04-27 15:10:17,107 - app.api.youtube.analyzer - INFO - Initialising Gradio client for Space inference...
+2025-04-27 15:10:20,383 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/config "HTTP/1.1 200 OK"
+2025-04-27 15:10:21,522 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/info?serialize=False "HTTP/1.1 200 OK"
+2025-04-27 15:10:21,524 - app.api.youtube.analyzer - INFO - Sending 10 comments to Space API
+2025-04-27 15:10:21,524 - app.api.youtube.analyzer - INFO - Sample comment: I have a 1990 corolla alltrac wagon.  Best car eve...
+2025-04-27 15:10:22,490 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/heartbeat/2dee10dc-1f24-46dc-9faf-b397a4ed3e88 "HTTP/1.1 200 OK"
+2025-04-27 15:10:22,498 - httpx - INFO - HTTP Request: POST https://jet-12138-commentresponse.hf.space/gradio_api/queue/join "HTTP/1.1 200 OK"
+2025-04-27 15:10:23,455 - httpx - INFO - HTTP Request: GET https://jet-12138-commentresponse.hf.space/gradio_api/queue/data?session_hash=2dee10dc-1f24-46dc-9faf-b397a4ed3e88 "HTTP/1.1 200 OK"
+2025-04-27 15:10:25,614 - app.api.youtube.analyzer - INFO - Space call completed in 4.09s
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Raw result type: <class 'dict'>
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Raw result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Normalized result keys: ['sentiment_counts', 'toxicity_counts', 'comments_with_any_toxicity']
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Sentiment counts: {'Negative': 2, 'Neutral': 6, 'Positive': 2}
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Toxicity counts: {'Toxic': 1, 'Severe Toxic': 0, 'Obscene': 0, 'Threat': 0, 'Insult': 0, 'Identity Hate': 0}
+2025-04-27 15:10:25,615 - app.api.youtube.analyzer - INFO - Total toxic comments: 1
+2025-04-27 15:10:29,284 - app.api.youtube.llm_handler - INFO - Extracted 3 comments from LLM response
+2025-04-27 15:10:29,284 - app.api.youtube.llm_handler - INFO - Generating strategies - attempt 1/2
+2025-04-27 15:10:32,237 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I don't think Toyota or Lexus  makes cars like the...
+2025-04-27 15:10:34,172 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): The problem is that Toyota became the #1 automaker...
+2025-04-27 15:10:35,448 - app.api.youtube.llm_handler - INFO - Generating response for comment (attempt 1/2): I've been a huge fan all my life however my 2014 S...
