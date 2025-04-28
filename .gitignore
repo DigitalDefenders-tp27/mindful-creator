@@ -10,3 +10,4 @@ venv/
 .vite/
 # secrets
 .env
+backend/server.log
