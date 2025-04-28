@@ -1,14 +1,10 @@
-from app import create_app, db
+from app import create_app
 
 # Create Flask app using factory
 app = create_app()
 
-# Create all tables within the application context
-with app.app_context():
-    # Now you are inside the app context! ✅
-    print(db.metadata.tables.keys())   # <--- Correct for SQLAlchemy 2.x
-    db.create_all()
+# No more db.create_all() needed ❌
 
 # Start the Flask server
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(host="0.0.0.0", port=8000, debug=False)

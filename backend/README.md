@@ -7,6 +7,7 @@ This is an application for analysing YouTube video comments, supporting sentimen
 - Fetches comments from YouTube videos (up to 100)
 - Analyses comment sentiment (positive, neutral, negative)
 - Detects comment toxicity (toxic, severely toxic, obscene, threatening, insulting, identity hate)
+- Stores datasets in PostgreSQL for creator wellbeing dashboard
 - Provides statistics including counts and percentages for each category
 
 ## System Architecture
@@ -16,6 +17,7 @@ The system consists of three main parts:
 1. **Backend API**: A REST API developed with FastAPI to receive frontend requests, fetch YouTube comments, and interact with the Space API.
 2. **Hugging Face Space**: A Space with deployed sentiment analysis and toxicity detection models for processing comment text analysis.
 3. **Frontend Application**: A user interface that interacts with the backend API and displays analysis results.
+4. **PostgreSQL Database**: Stores comments, sentiments, and creator wellbeing datasets.
 
 ## Installation and Setup
 
@@ -23,6 +25,7 @@ The system consists of three main parts:
 
 - Python 3.8+
 - Node.js 14+ (for frontend)
+- PostgreSQL 15+
 
 ### Installation Steps
 
@@ -104,4 +107,27 @@ python test_api.py
 
 - `YOUTUBE_API_KEY`: YouTube Data API key
 - `SPACE_API_URL`: Hugging Face Space API URL
-- `CORS_ORIGIN`: Allowed cross-origin source (default is http://localhost:3000) 
+- `CORS_ORIGIN`: Allowed cross-origin source (default is http://localhost:3000)
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: PostgreSQL Database Credentials
+
+---
+
+> Note: Make sure PostgreSQL is running locally when you start the backend.
+
+---
+
+
+
+### 1. Database Setup
+
+Setup Instructions:
+
+1. Copy `.env.example` → create a new file `.env`
+2. Fill in your DB username, password, and host.
+
+Example:
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=mindful_creator
