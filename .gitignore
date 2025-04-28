@@ -8,5 +8,6 @@ venv/
 
 # Node / Vite
 .vite/
+
 # secrets
 .env

@@ -15,33 +15,23 @@
 
     <!-- Dashboard Section -->
     <section class="dashboard-section">
-      <div class="container">
+      <div class="tabs">
+        <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+          @click="switchTab(index)">
+          {{ tab.name }}
+        </div>
+      </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-          <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
-            @click="currentTab = index">
-            {{ tab.name }}
+      <div class="visualisation-container">
+        <div class="chart-area">
+          <canvas id="mainChart"></canvas>
+        </div>
+        <div class="insight-area">
+          <h3 class="insight-heading">Key Insights</h3>
+          <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
+            {{ insight }}
           </div>
         </div>
-
-        <!-- Chart and Insights -->
-        <div class="dashboard-content">
-          <div class="chart-container">
-            <h3 class="chart-title">{{ tabs[currentTab].title }}</h3>
-            <div class="chart hover-zoom">
-              <img :src="tabs[currentTab].image" :alt="tabs[currentTab].title" class="chart-img" />
-            </div>
-          </div>
-
-          <div class="insights-container">
-            <h3 class="insights-title">KEY INSIGHTS:</h3>
-            <div class="insight-card" v-for="(insight, idx) in tabs[currentTab].insights" :key="idx">
-              <p>{{ insight }}</p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </section>
 
@@ -419,174 +409,237 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
-import * as echarts from 'echarts'
-import 'echarts-wordcloud'
-import axios from 'axios'
+import { ref, onMounted } from 'vue'
 import Chart from 'chart.js/auto'
 
-import avgLikes from '@/assets/images/avg_likes_by_sentiment.png'
-import commentLengthDist from '@/assets/images/comment_length_distribution.png'
-import sentimentDistCountplot from '@/assets/images/sentiment_dist_countplot.png'
-import sentimentDistribution from '@/assets/images/sentiment_distribution.png'
-import toxicityCommentLengthBoxplot from '@/assets/images/toxicity_comment_length_boxplot.png'
-import toxicityPieChart from '@/assets/images/toxicity_pie_chart.png'
-import viewsVsAvgSentiment from '@/assets/images/views_vs_avg_sentiment.png'
-import viewsVsLikesScatter from '@/assets/images/views_vs_likes_scatter.png'
-import wordcloudPositive from '@/assets/images/wordcloud_positive_youtube_comments.png'
-import wordcloudToxic from '@/assets/images/wordcloud_toxic_comments.png'
-
 const currentTab = ref(0)
-const wordcloudChart = ref(null)
-let wordcloudInstance = null
+let chartInstance = null
 
 const tabs = [
-  {
-    name: 'Comment Length',
-    title: 'Comment Length Distribution',
-    image: commentLengthDist,
-    insights: [
-      'Short comments are often more emotional.',
-      'Longer comments provide more detailed feedback.',
-      'Comment length varies based on video type.'
+  { name: 'Screen Time and Emotional Wellbeing', insights: [
+      'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
+      'Maintaining lower daily screen time correlates with better emotional wellbeing.',
+      'Balanced digital habits foster more positive and neutral emotional states.'
     ]
   },
-  {
-    name: 'Sentiment Spread',
-    title: 'Sentiment Distribution',
-    image: sentimentDistribution,
-    insights: [
-      'Positive comments dominate entertainment videos.',
-      'Neutral comments are common in tutorials.',
-      'Negative sentiment spikes during controversies.'
+  { name: 'Digital Habits and Sleep Health', insights: [
+      'More than 3 hours of daily social media use is linked with sleep disturbances.',
+      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
+      'Reducing evening screen time can improve sleep quality and mental health.'
     ]
   },
-  {
-    name: 'Toxicity vs Length',
-    title: 'Toxicity vs Comment Length',
-    image: toxicityCommentLengthBoxplot,
-    insights: [
-      'Highly toxic comments are usually very short.',
-      'Medium-length comments show mixed sentiment.',
-      'Longer comments tend to be constructive.'
+  { name: 'Engagement Metrics and Emotional Rewards', insights: [
+      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
+      'Creators focusing on meaningful community engagement over numbers show better mental health.',
+      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
     ]
   },
-  {
-    name: 'Toxicity Overview',
-    title: 'Toxicity Pie Chart',
-    image: toxicityPieChart,
-    insights: [
-      '80% of comments are non-toxic.',
-      'Mild toxicity is more common than severe toxicity.',
-      'Toxicity levels vary across content categories.'
-    ]
-  },
-  {
-    name: 'Views vs Sentiment',
-    title: 'Views vs Average Sentiment',
-    image: viewsVsAvgSentiment,
-    insights: [
-      'Videos with higher sentiment positivity attract more views.',
-      'Neutral sentiment correlates with moderate viewership.',
-      'Negative videos tend to have lower retention rates.'
-    ]
-  },
-  {
-    name: 'Views vs Likes',
-    title: 'Views vs Likes Scatter',
-    image: viewsVsLikesScatter,
-    insights: [
-      'Higher views generally correlate with more likes.',
-      'Viral videos show strong likes-to-views ratios.',
-      'Outliers exist where views are high but likes are low.'
-    ]
-  },
-  {
-    name: 'Positive Wordcloud',
-    title: 'Positive YouTube Comments Wordcloud',
-    image: wordcloudPositive,
-    insights: [
-      '"Amazing", "Great", and "Awesome" are most common.',
-      'Positive feedback clusters around quality content.',
-      'Engagement rises with positive audience tone.'
-    ]
-  },
-  {
-    name: 'Toxic Wordcloud',
-    title: 'Toxic YouTube Comments Wordcloud',
-    image: wordcloudToxic,
-    insights: [
-      '"Terrible", "Worst", and "Fake" dominate toxic comments.',
-      'Toxicity increases during trending or divisive topics.',
-      'Toxicity can harm creator wellbeing and audience trust.'
+  { name: 'Managing Digital Distractions and Anxiety', insights: [
+      'Higher daily screen time is associated with elevated anxiety levels.',
+      'Spending less time on digital activities correlates with lower anxiety scores.',
+      'Practising regular tech-free breaks can significantly lower digital stress levels.'
     ]
   }
 ]
 
-let chartInstance = null
-const sentimentData = ref([])
+const switchTab = (index) => {
+  currentTab.value = index
+  renderChart()
+}
 
-const fetchAndRenderChart = async () => {
-  try {
-    const response = await axios.get('http://localhost:8000/api/comments-with-sentiment')
-    sentimentData.value = response.data
+const renderChart = () => {
+  const ctx = document.getElementById('mainChart')
+  if (chartInstance) chartInstance.destroy()
 
-    const sentimentCounts = {
-      Positive: 0,
-      Neutral: 0,
-      Negative: 0,
-    }
-
-    sentimentData.value.forEach(comment => {
-      if (sentimentCounts.hasOwnProperty(comment.sentiment)) {
-        sentimentCounts[comment.sentiment]++
-      }
-    })
-
-    const ctx = document.getElementById('sentimentChart')
-    if (chartInstance) chartInstance.destroy()
-
+  if (currentTab.value === 0) {
     chartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Positive', 'Neutral', 'Negative'],
-        datasets: [{
-          label: 'Sentiment Distribution',
-          data: [
-            sentimentCounts.Positive,
-            sentimentCounts.Neutral,
-            sentimentCounts.Negative
-          ],
-          backgroundColor: ['#66d9ef', '#ffc94d', '#ff4c4c'],
-        }]
+        labels: ['Below 1h', '1-3h', '3-5h'],
+        datasets: [
+          { label: 'Positive', backgroundColor: '#4bc0c0', data: [20, 30, 10] },
+          { label: 'Negative', backgroundColor: '#ff6384', data: [10, 40, 60] },
+          { label: 'Neutral', backgroundColor: '#ffcd56', data: [70, 30, 30] },
+        ]
       },
       options: {
         responsive: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom',
-          },
-          title: {
-            display: true,
-            text: 'Sentiment Analysis from Comments'
-          }
-        }
+        plugins: { title: { display: false } },
+        scales: { x: { stacked: true }, y: { stacked: true, max: 100 } }
       }
     })
 
-  } catch (error) {
-    console.error('Error fetching sentiment data:', error)
+  } else if (currentTab.value === 1) {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
+        datasets: [{
+          label: 'Sleep Problems (1-5)',
+          data: [1.5, 2, 2.5, 3.2, 4, 4.5],
+          borderColor: '#7e57c2',
+          backgroundColor: '#7e57c2',
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
+
+  } else if (currentTab.value === 2) {
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Below 1h', '1-3h', '3-5h'],
+        datasets: [{
+          label: 'Engagement',
+          data: [20, 50, 30],
+          backgroundColor: '#42a5f5'
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
+
+  } else if (currentTab.value === 3) {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
+        datasets: [{
+          label: 'Average Anxiety',
+          data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
+          borderColor: '#66bb6a',
+          backgroundColor: '#66bb6a',
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
   }
 }
 
 onMounted(() => {
-  fetchAndRenderChart()
+  renderChart()
 })
 </script>
 
 
+
 <style scoped>
+.visualisation-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align top instead of center */
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.chart-area {
+  flex: 1;
+  min-width: 500px;
+  max-width: 700px;
+  height: 400px;
+  padding: 10px;
+}
+
+.chart-area canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.insight-area {
+  flex: 0.7;
+  min-width: 320px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center title and boxes horizontally */
+  margin-top: 20px; /* Push a little lower */
+}
+
+.insight-heading {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.insight-box {
+  background: #fff8e1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  width: 100%; /* Full width */
+  max-width: 500px; /* Limit width nicely */
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+
+.tab.active {
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+
+
+
+.chart-wrapper {
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+
+
+
+
+.creator-wellbeing {
+  padding: 2rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tab.active {
+  background: #e75a97;
+  color: white;
+}
+
+.chart-area {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.insights {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+
+
+
+
+
+
 /* Add hover zoom for charts */
 .hover-zoom img {
   transition: transform 0.3s ease;
@@ -1770,5 +1823,12 @@ section:not(:last-child)::after {
   width: 100%;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tab.active {
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 </style>
