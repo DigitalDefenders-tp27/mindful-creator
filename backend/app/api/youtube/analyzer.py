@@ -217,9 +217,10 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         
     # Ensure all comments are strings and limit to 100
     processed_comments = []
-    for comment in comments[:100]:  # Limit to 100 comments
+    for comment in comments[:100]:
         if isinstance(comment, str) and comment.strip():
-            processed_comments.append(comment)
+            # 移除任何可能的路径对象
+            processed_comments.append(str(comment).strip())
         else:
             logger.warning(f"Skipping invalid comment: {comment}")
     
@@ -274,7 +275,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             toxicity_counts = space_data.get("toxicity_counts", {})
             logger.info(f"Toxicity counts: {toxicity_counts}")
             
-            toxicity_total = space_data.get("comments_with_any_toxicity", 0)
+            toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
             logger.info(f"Total toxic comments: {toxicity_total}")
         except Exception as e:
             logger.error(f"Space API call failed: {str(e)}")
