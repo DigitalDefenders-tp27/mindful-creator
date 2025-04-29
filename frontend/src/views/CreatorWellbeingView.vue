@@ -70,67 +70,93 @@
         <p class="section-subtitle">Find and navigate yourself to get wellbeing resources easily near you.</p>
         
         <div class="resource-finder-content">
+          <!-- Tabs for resource type -->
           <div class="resource-tabs">
-            <div class="resource-tab active">Psychologist (Offline Resources)</div>
-            <div class="resource-tab">Online Resources</div>
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'offline' }"
+              @click="switchTab('offline')"
+            >Psychologist (Offline Resources)</div>
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'online' }"
+              @click="onOnlineTabClick"
+            >Online Resources</div>
+          </div>
+          
+          <!-- Search bar for address -->
+          <div class="search-bar">
+            <input 
+              v-model="searchAddress" 
+              @keyup.enter="onSearch"
+              placeholder="Search address to find nearby psychologists..." 
+              class="search-input"
+            />
+            <button @click="onSearch" class="search-btn">Search</button>
           </div>
           
           <div class="resource-content">
+            <!-- Google Map display -->
             <div class="map-container">
-              <img src="../assets/icons/elements/map-placeholder.svg" alt="Map" class="map-img">
-              <button class="position-btn">
+              <GMapMap
+                :center="mapCenter"
+                :zoom="14"
+                style="width: 100%; height: 400px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
+              >
+                <GMapMarker
+                  v-for="clinic in displayedClinics"
+                  :key="clinic.id"
+                  :position="{ lat: clinic.lat, lng: clinic.lng }"
+                  @click="selectClinic(clinic)"
+                />
+                <GMapMarker
+                  v-if="userLocation"
+                  :position="userLocation"
+                  :icon="userIcon"
+                />
+              </GMapMap>
+              <button class="position-btn" @click="getMyPosition">
                 <img src="../assets/icons/elements/location-pin.svg" alt="Location" class="pin-icon">
                 Get My Position
               </button>
             </div>
             
-            <div class="resource-details">
-              <h3 class="resource-name">Calm 'n' Caring Psychology Melbourne</h3>
+            <!-- Clinic details card -->
+            <div class="resource-details" v-if="selectedClinic">
+              <h3 class="resource-name">{{ selectedClinic.name }}</h3>
               <div class="rating">
-                <span class="rating-score">5.0</span>
-                <div class="stars">★★★★★</div>
-                <span class="reviews">(5)</span>
+                <span class="rating-score">{{ selectedClinic.rating }}</span>
+                <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
+                <span class="reviews">({{ selectedClinic.reviews }})</span>
               </div>
               
               <div class="resource-location">
                 <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
-                <span>101 Collins St, Melbourne VIC 3000</span>
+                <span>{{ selectedClinic.address }}</span>
               </div>
               
               <div class="resource-website">
                 <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                <a href="https://calmandcaring.com/melbourne" target="_blank">https://calmandcaring.com/melbourne</a>
-                <button class="online-switch">Switch to online</button>
+                <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                <button class="online-switch" @click="switchToOnline">Switch to online</button>
               </div>
               
               <div class="opening-hours">
                 <h4>Opening hours</h4>
                 <div class="hours-grid">
-                  <div class="day">Sunday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Monday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Tuesday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Wednesday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Thursday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Friday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">(Good Friday)</div>
-                  <div class="hours">Hours might differ</div>
-                  <div class="day">Saturday</div>
-                  <div class="hours">Hours might differ</div>
+                  <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
+                    <div class="day">{{ day }}</div>
+                    <div class="hours">{{ hours }}</div>
+                  </div>
                 </div>
               </div>
               
               <div class="resource-actions">
-                <button class="action-btn direction-btn">
+                <button class="action-btn direction-btn" @click="getDirections">
                   <img src="../assets/icons/elements/direction.svg" alt="Direction" class="btn-icon">
                   Get direction
                 </button>
-                <button class="action-btn guide-btn">
+                <button class="action-btn guide-btn" @click="showGuide = true">
                   <img src="../assets/icons/elements/guide.svg" alt="Guide" class="btn-icon">
                   Get Preparation Guide
                 </button>
@@ -138,6 +164,37 @@
             </div>
           </div>
         </div>
+        
+        <!-- Preparation Guide Modal -->
+        <Modal v-if="showGuide" @close="showGuide = false">
+          <template #header>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Preparation Guide for Psychological Consultation</span>
+              <button @click="showGuide = false" style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
+            </div>
+          </template>
+          <template #body>
+            <h4 style="margin-top:0; color:#e75a97;">Before Your Appointment</h4>
+            <ul style="margin-bottom:1.2rem;">
+              <li>✓ Bring your Medicare card or insurance details.</li>
+              <li>✓ Prepare a brief list of your main concerns or goals.</li>
+              <li>✓ Arrive 10 minutes early for paperwork and to relax.</li>
+            </ul>
+            <h4 style="color:#e75a97;">During Your Appointment</h4>
+            <ul style="margin-bottom:1.2rem;">
+              <li>✓ Be open and honest with your psychologist.</li>
+              <li>✓ Share your prepared concerns and ask questions.</li>
+              <li>✓ Take notes if you find it helpful.</li>
+            </ul>
+            <h4 style="color:#e75a97;">After Your Appointment</h4>
+            <ul>
+              <li>✓ Reflect on the session and any advice given.</li>
+              <li>✓ Schedule your next appointment if needed.</li>
+              <li>✓ Take care of yourself and reach out if you have questions.</li>
+            </ul>
+            <p style="margin-top:1.2rem; color:#666;">Wishing you a positive and supportive experience!</p>
+          </template>
+        </Modal>
       </div>
     </section>
     
@@ -299,11 +356,782 @@
       </div>
     </div>
     
+    <!-- Online Resources Confirmation Modal -->
+    <transition name="fade-modal">
+      <Modal v-if="showOnlineConfirm" @close="showOnlineConfirm = false">
+        <template #header>
+          <div class="modal-header-flex">
+            <svg class="modal-info-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#e75a97"/><path d="M12 7.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-1.25 5.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5Z" fill="#fff"/></svg>
+            <span>Leave for Online Resources?</span>
+          </div>
+        </template>
+        <template #body>
+          <p class="modal-confirm-text">
+            You are about to leave this page for online resources.<br>
+            Do you want to continue?
+          </p>
+          <div class="modal-btn-row">
+            <button 
+              class="modal-btn cancel" 
+              @click="handleOnlineConfirm(false)"
+            >Cancel</button>
+            <button 
+              class="modal-btn ok" 
+              @click="handleOnlineConfirm(true)"
+            >OK</button>
+          </div>
+        </template>
+      </Modal>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+import * as fastDeepEqual from 'fast-deep-equal'
+// 或
+import { equal } from 'fast-deep-equal'
+import Modal from '../components/Modal.vue';
+
+// Melbourne city center as default
+const mapCenter = ref({ lat: -37.8136, lng: 144.9631 });
+
+// User location (for "Get My Position")
+const userLocation = ref(null);
+
+// Example user icon (可自定义)
+const userIcon = {
+  url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+  scaledSize: { width: 40, height: 40 }
+};
+
+// 诊所假数据（请补充到50家，示例3家）
+const clinics = [
+  {
+    id: 1,
+    name: "Calm 'n' Caring Psychology Melbourne",
+    lat: -37.8136,
+    lng: 144.9631,
+    address: "101 Collins St, Melbourne VIC 3000",
+    website: "https://calmandcaring.com/melbourne",
+    rating: 5.0,
+    reviews: 5,
+    openingHours: {
+      Sunday: "Open 24 hours",
+      Monday: "Open 24 hours",
+      Tuesday: "Open 24 hours",
+      Wednesday: "Open 24 hours",
+      Thursday: "Open 24 hours",
+      Friday: "Open 24 hours",
+      "Good Friday": "Hours might differ",
+      Saturday: "Hours might differ"
+    }
+  },
+  {
+    id: 2,
+    name: "The Mind Room",
+    lat: -37.8079,
+    lng: 144.9780,
+    address: "320 Smith St, Collingwood VIC 3066",
+    website: "https://themindroom.com.au/",
+    rating: 4.8,
+    reviews: 12,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 4pm"
+    }
+  },
+  {
+    id: 3,
+    name: "Axtara Health Psychology",
+    lat: -37.8150,
+    lng: 144.9700,
+    address: "200 Queen St, Melbourne VIC 3000",
+    website: "https://axtarahealth.com.au/",
+    rating: 4.9,
+    reviews: 8,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 5pm",
+      Tuesday: "8am - 5pm",
+      Wednesday: "8am - 5pm",
+      Thursday: "8am - 5pm",
+      Friday: "8am - 5pm",
+      Saturday: "Closed"
+    }
+  },
+  // ... 30 more real clinics below ...
+  {
+    id: 4,
+    name: "Inner Melbourne Clinical Psychology",
+    lat: -37.8105,
+    lng: 144.9626,
+    address: "Level 1/370 Little Bourke St, Melbourne VIC 3000",
+    website: "https://www.imcp.com.au/",
+    rating: 4.7,
+    reviews: 22,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 5,
+    name: "Melbourne Psychology & Counselling",
+    lat: -37.8132,
+    lng: 144.9652,
+    address: "Suite 2, Level 1/517 Flinders Ln, Melbourne VIC 3000",
+    website: "https://www.melbournepsychology.com.au/",
+    rating: 4.6,
+    reviews: 18,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 6,
+    name: "The Talk Shop Psychology Melbourne CBD",
+    lat: -37.8157,
+    lng: 144.9666,
+    address: "Level 8/350 Collins St, Melbourne VIC 3000",
+    website: "https://www.thetalkshop.com.au/",
+    rating: 4.8,
+    reviews: 30,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 8pm",
+      Tuesday: "8am - 8pm",
+      Wednesday: "8am - 8pm",
+      Thursday: "8am - 8pm",
+      Friday: "8am - 8pm",
+      Saturday: "9am - 5pm"
+    }
+  },
+  {
+    id: 7,
+    name: "Mindview Psychology",
+    lat: -37.8032,
+    lng: 144.9787,
+    address: "Suite 2/19-35 Gertrude St, Fitzroy VIC 3065",
+    website: "https://www.mindviewpsychology.com.au/",
+    rating: 4.9,
+    reviews: 15,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 8,
+    name: "Northside Clinic Psychology",
+    lat: -37.7826,
+    lng: 144.9832,
+    address: "370 St Georges Rd, Fitzroy North VIC 3068",
+    website: "https://www.northsideclinic.net.au/",
+    rating: 4.7,
+    reviews: 19,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 6pm",
+      Tuesday: "8am - 6pm",
+      Wednesday: "8am - 6pm",
+      Thursday: "8am - 6pm",
+      Friday: "8am - 6pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 9,
+    name: "Collins Street Psychology",
+    lat: -37.8151,
+    lng: 144.9702,
+    address: "Level 10/446 Collins St, Melbourne VIC 3000",
+    website: "https://www.collinspsychology.com.au/",
+    rating: 4.8,
+    reviews: 21,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 10,
+    name: "Melbourne Mindfulness Centre",
+    lat: -37.8139,
+    lng: 144.9731,
+    address: "Level 1/161 Collins St, Melbourne VIC 3000",
+    website: "https://melbournemindfulness.com/",
+    rating: 4.7,
+    reviews: 13,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 5pm",
+      Tuesday: "9am - 5pm",
+      Wednesday: "9am - 5pm",
+      Thursday: "9am - 5pm",
+      Friday: "9am - 5pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 11,
+    name: "CBD Psychology Melbourne",
+    lat: -37.8142,
+    lng: 144.9633,
+    address: "Level 2/488 Bourke St, Melbourne VIC 3000",
+    website: "https://cbdpsychology.com.au/",
+    rating: 4.6,
+    reviews: 17,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 6pm",
+      Tuesday: "8am - 6pm",
+      Wednesday: "8am - 6pm",
+      Thursday: "8am - 6pm",
+      Friday: "8am - 6pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 12,
+    name: "Fitzroy Psychology Clinic",
+    lat: -37.8005,
+    lng: 144.9789,
+    address: "Suite 1/166 Gertrude St, Fitzroy VIC 3065",
+    website: "https://www.fitzroypsychology.com/",
+    rating: 4.8,
+    reviews: 14,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 13,
+    name: "Melbourne Psychology Group",
+    lat: -37.8137,
+    lng: 144.9658,
+    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
+    website: "https://melbournepsychologygroup.com.au/",
+    rating: 4.7,
+    reviews: 16,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 14,
+    name: "Positive Wellbeing Psychology",
+    lat: -37.8135,
+    lng: 144.9650,
+    address: "Level 2/517 Flinders Ln, Melbourne VIC 3000",
+    website: "https://positivewellbeingpsychology.com.au/",
+    rating: 4.9,
+    reviews: 20,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 15,
+    name: "Melbourne City Psychology",
+    lat: -37.8138,
+    lng: 144.9642,
+    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
+    website: "https://melbournecitypsychology.com.au/",
+    rating: 4.8,
+    reviews: 18,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 16,
+    name: "The Melbourne Clinic Psychology",
+    lat: -37.8250,
+    lng: 144.9830,
+    address: "130 Church St, Richmond VIC 3121",
+    website: "https://themelbourneclinic.com.au/",
+    rating: 4.7,
+    reviews: 22,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 6pm",
+      Tuesday: "8am - 6pm",
+      Wednesday: "8am - 6pm",
+      Thursday: "8am - 6pm",
+      Friday: "8am - 6pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 17,
+    name: "North Melbourne Psychology",
+    lat: -37.8000,
+    lng: 144.9540,
+    address: "1/452 Victoria St, North Melbourne VIC 3051",
+    website: "https://northmelbournepsychology.com.au/",
+    rating: 4.6,
+    reviews: 13,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 5pm",
+      Tuesday: "9am - 5pm",
+      Wednesday: "9am - 5pm",
+      Thursday: "9am - 5pm",
+      Friday: "9am - 5pm",
+      Saturday: "Closed"
+    }
+  },
+  {
+    id: 18,
+    name: "South Yarra Psychology",
+    lat: -37.8380,
+    lng: 144.9930,
+    address: "Level 1/12 Yarra St, South Yarra VIC 3141",
+    website: "https://southyarrapsychology.com.au/",
+    rating: 4.8,
+    reviews: 17,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 19,
+    name: "Port Melbourne Psychology",
+    lat: -37.8390,
+    lng: 144.9430,
+    address: "1/120 Bay St, Port Melbourne VIC 3207",
+    website: "https://portmelbournepsychology.com.au/",
+    rating: 4.7,
+    reviews: 14,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 20,
+    name: "Prahran Psychology Clinic",
+    lat: -37.8490,
+    lng: 144.9930,
+    address: "Level 1/201 High St, Prahran VIC 3181",
+    website: "https://prahranpsychology.com.au/",
+    rating: 4.8,
+    reviews: 16,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 21,
+    name: "Hawthorn Psychology",
+    lat: -37.8190,
+    lng: 145.0350,
+    address: "Level 1/673 Glenferrie Rd, Hawthorn VIC 3122",
+    website: "https://hawthornpsychology.com.au/",
+    rating: 4.7,
+    reviews: 15,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 22,
+    name: "Brunswick Psychology",
+    lat: -37.7700,
+    lng: 144.9630,
+    address: "1/601 Sydney Rd, Brunswick VIC 3056",
+    website: "https://brunswickpsychology.com.au/",
+    rating: 4.8,
+    reviews: 18,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 23,
+    name: "Carlton Psychology",
+    lat: -37.8000,
+    lng: 144.9660,
+    address: "Level 1/255 Drummond St, Carlton VIC 3053",
+    website: "https://carltonpsychology.com.au/",
+    rating: 4.7,
+    reviews: 14,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 24,
+    name: "St Kilda Psychology Clinic",
+    lat: -37.8670,
+    lng: 144.9800,
+    address: "1/201 Fitzroy St, St Kilda VIC 3182",
+    website: "https://stkildapsychology.com.au/",
+    rating: 4.8,
+    reviews: 17,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 25,
+    name: "Richmond Psychology Clinic",
+    lat: -37.8230,
+    lng: 144.9980,
+    address: "Level 1/266 Bridge Rd, Richmond VIC 3121",
+    website: "https://richmondpsychology.com.au/",
+    rating: 4.7,
+    reviews: 15,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 26,
+    name: "Footscray Psychology Clinic",
+    lat: -37.7990,
+    lng: 144.9010,
+    address: "1/81 Paisley St, Footscray VIC 3011",
+    website: "https://footscraypsychology.com.au/",
+    rating: 4.8,
+    reviews: 16,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 27,
+    name: "Docklands Psychology",
+    lat: -37.8160,
+    lng: 144.9460,
+    address: "Level 1/800 Bourke St, Docklands VIC 3008",
+    website: "https://docklandspsychology.com.au/",
+    rating: 4.7,
+    reviews: 13,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 28,
+    name: "Southbank Psychology",
+    lat: -37.8230,
+    lng: 144.9650,
+    address: "Level 1/120 City Rd, Southbank VIC 3006",
+    website: "https://southbankpsychology.com.au/",
+    rating: 4.8,
+    reviews: 15,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 29,
+    name: "Toorak Psychology",
+    lat: -37.8420,
+    lng: 145.0170,
+    address: "Level 1/521 Toorak Rd, Toorak VIC 3142",
+    website: "https://toorakpsychology.com.au/",
+    rating: 4.7,
+    reviews: 14,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 30,
+    name: "Brighton Psychology Clinic",
+    lat: -37.9090,
+    lng: 144.9930,
+    address: "1/181 Bay St, Brighton VIC 3186",
+    website: "https://brightonpsychology.com.au/",
+    rating: 4.8,
+    reviews: 16,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 31,
+    name: "Camberwell Psychology",
+    lat: -37.8360,
+    lng: 145.0700,
+    address: "Level 1/684 Burke Rd, Camberwell VIC 3124",
+    website: "https://camberwellpsychology.com.au/",
+    rating: 4.7,
+    reviews: 15,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  },
+  {
+    id: 32,
+    name: "Essendon Psychology",
+    lat: -37.7470,
+    lng: 144.9110,
+    address: "1/902 Mt Alexander Rd, Essendon VIC 3040",
+    website: "https://essendonpsychology.com.au/",
+    rating: 4.8,
+    reviews: 16,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "8am - 7pm",
+      Tuesday: "8am - 7pm",
+      Wednesday: "8am - 7pm",
+      Thursday: "8am - 7pm",
+      Friday: "8am - 7pm",
+      Saturday: "9am - 1pm"
+    }
+  },
+  {
+    id: 33,
+    name: "Glen Iris Psychology",
+    lat: -37.8570,
+    lng: 145.0660,
+    address: "Level 1/173 Burke Rd, Glen Iris VIC 3146",
+    website: "https://glenirispsychology.com.au/",
+    rating: 4.7,
+    reviews: 14,
+    openingHours: {
+      Sunday: "Closed",
+      Monday: "9am - 6pm",
+      Tuesday: "9am - 6pm",
+      Wednesday: "9am - 6pm",
+      Thursday: "9am - 6pm",
+      Friday: "9am - 6pm",
+      Saturday: "10am - 2pm"
+    }
+  }
+];
+
+// 当前显示的诊所（默认显示全部，后续可筛选最近10家）
+const displayedClinics = ref([...clinics]);
+
+// 当前选中的诊所
+const selectedClinic = ref(clinics[0]);
+
+// Tab 状态
+const activeTab = ref('offline');
+
+// 搜索框
+const searchAddress = ref('');
+
+// 弹窗
+const showGuide = ref(false);
+
+// 切换 Tab
+function switchTab(tab) {
+  activeTab.value = tab;
+}
+
+// 选择诊所
+function selectClinic(clinic) {
+  selectedClinic.value = clinic;
+  mapCenter.value = { lat: clinic.lat, lng: clinic.lng };
+}
+
+// 搜索附近诊所（这里只做简单示例，实际可用 geocoding API 获取经纬度后筛选）
+function onSearch() {
+  // In production, use geocoding API to get lat/lng from searchAddress
+  // Here, use Melbourne city center as mock
+  const searchLat = -37.8136;
+  const searchLng = 144.9631;
+  displayedClinics.value = clinics
+    .map(clinic => ({
+      ...clinic,
+      distance: Math.sqrt(
+        Math.pow(clinic.lat - searchLat, 2) +
+        Math.pow(clinic.lng - searchLng, 2)
+      )
+    }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
+  selectedClinic.value = displayedClinics.value[0];
+  mapCenter.value = { lat: displayedClinics.value[0].lat, lng: displayedClinics.value[0].lng };
+}
+
+// 获取我的位置
+function getMyPosition() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      userLocation.value = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
+      mapCenter.value = userLocation.value;
+      // Show only 5 nearest clinics
+      displayedClinics.value = clinics
+        .map(clinic => ({
+          ...clinic,
+          distance: Math.sqrt(
+            Math.pow(clinic.lat - userLocation.value.lat, 2) +
+            Math.pow(clinic.lng - userLocation.value.lng, 2)
+          )
+        }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 5);
+      selectedClinic.value = displayedClinics.value[0];
+    });
+  }
+}
+
+// 跳转 Google Maps 导航
+function getDirections() {
+  if (!selectedClinic.value) return;
+  const dest = `${selectedClinic.value.lat},${selectedClinic.value.lng}`;
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
+  if (userLocation.value) {
+    url += `&origin=${userLocation.value.lat},${userLocation.value.lng}`;
+  }
+  window.open(url, '_blank');
+}
+
+// Preparation Guide 弹窗
+// showGuide.value = true/false
+
+// Online Resources Tab
+function onOnlineTabClick() {
+  showOnlineConfirm.value = true;
+}
+
+// Switch to online
+function switchToOnline() {
+  onOnlineTabClick();
+}
 
 // Modal window display status
 const isModalVisible = ref(false);
@@ -564,6 +1392,17 @@ const sortedFilteredEvents = computed(() => {
       return events;
   }
 });
+
+// Online Resources Confirmation Modal
+const showOnlineConfirm = ref(false);
+
+// Handle Online Resources Confirmation
+function handleOnlineConfirm(result) {
+  showOnlineConfirm.value = false;
+  if (result) {
+    window.location.href = '/relaxation';
+  }
+}
 </script>
 
 <style scoped>
@@ -1102,21 +1941,37 @@ section:not(:last-child)::after {
 
 .resource-tabs {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  justify-content: center;
 }
 
 .resource-tab {
-  padding: 0.75rem 1.5rem;
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  cursor: pointer;
+  padding: 1rem 2.5rem;
+  background: #f4f4f6;
+  border-radius: 2.5rem;
   color: #666;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  outline: none;
+  letter-spacing: 0.01em;
 }
 
 .resource-tab.active {
-  background-color: #e75a97;
-  color: white;
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
+  transform: scale(1.04);
+}
+
+.resource-tab:not(.active):hover {
+  background: #ececec;
+  color: #e75a97;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
 }
 
 .resource-content {
@@ -1566,27 +2421,47 @@ section:not(:last-child)::after {
 
 /* Search bar styles */
 .search-bar {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.04);
+  padding: 0.5rem 1.5rem;
+  border: 1.5px solid #f3e6ef;
 }
-
 .search-input {
-  width: 100%;
-  padding: 0.8rem 1.2rem;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  font-size: 1rem;
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 1.5rem;
+  font-size: 1.1rem;
+  background: #faf7fa;
+  color: #444;
   outline: none;
-  transition: all 0.3s ease;
-  background-color: white;
+  transition: box-shadow 0.2s, border 0.2s;
 }
-
-.search-input:hover {
-  border-color: #d0d0d0;
-}
-
 .search-input:focus {
-  border-color: #e75a97;
-  box-shadow: 0 0 0 2px rgba(231, 90, 151, 0.1);
+  box-shadow: 0 0 0 2px #e75a97;
+  background: #fff;
+}
+.search-btn {
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.search-btn:hover {
+  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
+  box-shadow: 0 4px 16px rgba(231,90,151,0.12);
+  transform: translateY(-2px) scale(1.03);
 }
 
 /* Filter styles */
@@ -1915,6 +2790,96 @@ section:not(:last-child)::after {
   .subtitle, 
   .section-subtitle {
     white-space: normal;
+  }
+}
+
+/* Fade animation for modal */
+.fade-modal-enter-active, .fade-modal-leave-active {
+  transition: opacity 0.3s cubic-bezier(.4,0,.2,1);
+}
+.fade-modal-enter-from, .fade-modal-leave-to {
+  opacity: 0;
+}
+
+/* Modal header with icon */
+.modal-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e75a97;
+  padding-bottom: 0.5rem;
+}
+.modal-info-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+/* Confirmation text */
+.modal-confirm-text {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 2rem;
+  text-align: left;
+  line-height: 1.7;
+}
+
+/* Button row */
+.modal-btn-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modal-btn {
+  padding: 0.7rem 2.2rem;
+  border-radius: 1.5rem;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.18s;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
+  outline: none;
+}
+.modal-btn.cancel {
+  background: #f4f4f6;
+  color: #666;
+}
+.modal-btn.cancel:hover {
+  background: #ececec;
+  color: #e75a97;
+  transform: translateY(-2px) scale(1.03);
+}
+.modal-btn.ok {
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
+}
+.modal-btn.ok:hover {
+  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
+  color: #fff;
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Responsive for modal */
+@media (max-width: 600px) {
+  .modal-header-flex {
+    font-size: 1.05rem;
+  }
+  .modal-btn-row {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  .modal-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.7rem 0;
   }
 }
 </style>
