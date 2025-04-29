@@ -101,7 +101,7 @@
               <GMapMap
                 :center="mapCenter"
                 :zoom="14"
-                style="width: 100%; height: 400px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
+                style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
               >
                 <GMapMarker
                   v-for="clinic in displayedClinics"
@@ -116,7 +116,9 @@
                 />
               </GMapMap>
               <button class="position-btn" @click="getMyPosition">
-                <img src="../assets/icons/elements/location-pin.svg" alt="Location" class="pin-icon">
+                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
+                </svg>
                 Get My Position
               </button>
             </div>
@@ -153,11 +155,15 @@
               
               <div class="resource-actions">
                 <button class="action-btn direction-btn" @click="getDirections">
-                  <img src="../assets/icons/elements/direction.svg" alt="Direction" class="btn-icon">
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
+                  </svg>
                   Get direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
-                  <img src="../assets/icons/elements/guide.svg" alt="Guide" class="btn-icon">
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z" fill="white"/>
+                  </svg>
                   Get Preparation Guide
                 </button>
               </div>
@@ -1990,7 +1996,7 @@ section:not(:last-child)::after {
 .map-container {
   position: relative;
   height: 100%;
-  min-height: 400px;
+  min-height: 630px;
 }
 
 .map-img {
@@ -2001,13 +2007,13 @@ section:not(:last-child)::after {
 
 .position-btn {
   position: absolute;
-  bottom: 20px;
+  bottom: 44px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #e75a97;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 2.4rem;
   border-radius: 25px;
   display: flex;
   align-items: center;
@@ -2881,5 +2887,22 @@ section:not(:last-child)::after {
     font-size: 1rem;
     padding: 0.7rem 0;
   }
+}
+
+.btn-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.action-btn, .position-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* ... 其他按钮样式 ... */
+}
+
+.action-btn svg, .position-btn svg {
+  fill: white;
 }
 </style>
