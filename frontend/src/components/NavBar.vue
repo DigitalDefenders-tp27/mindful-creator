@@ -22,16 +22,11 @@
           <span>RESPONSE</span>
         </router-link>
         <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu"><span>RELAXATION</span></router-link>
-        <router-link to="/comment-response-scripts" class="nav-link two-words" active-class="active" @click="closeMenu">
-          <span>COMMENT</span>
-          <span>RESPONSE</span>
-        </router-link>
         <router-link to="/creator-wellbeing" class="nav-link two-words" active-class="active" @click="closeMenu">
           <span>CREATOR</span>
           <span>WELLBEING</span>
         </router-link>
         <router-link to="/privacy" class="nav-link" active-class="active" @click="closeMenu"><span>PRIVACY</span></router-link>
-        <router-link to="/test" class="nav-link" active-class="active" @click="closeMenu"><span>TEST</span></router-link>
       </div>
 
       <!-- Hamburger Menu Button -->
