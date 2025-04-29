@@ -1,0 +1,26 @@
+2025-04-29 12:51:00,131 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-29 12:51:00,131 - server - INFO - Loading environment variables...
+2025-04-29 12:51:00,132 - server - INFO - Environment variable configuration status:
+2025-04-29 12:51:00,132 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-29 12:51:00,132 - server - INFO - - SPACE_API_URL: Set
+2025-04-29 12:51:00,132 - server - INFO - - CORS_ORIGIN: Set
+2025-04-29 12:51:00,132 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-29 12:51:00,224 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-29 12:51:00,224 - server - INFO - Loading environment variables...
+2025-04-29 12:51:00,224 - server - INFO - Environment variable configuration status:
+2025-04-29 12:51:00,224 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-29 12:51:00,224 - server - INFO - - SPACE_API_URL: Set
+2025-04-29 12:51:00,224 - server - INFO - - CORS_ORIGIN: Set
+2025-04-29 13:02:35,410 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-29 13:02:35,411 - server - INFO - Loading environment variables...
+2025-04-29 13:02:35,412 - server - INFO - Environment variable configuration status:
+2025-04-29 13:02:35,412 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-29 13:02:35,412 - server - INFO - - SPACE_API_URL: Set
+2025-04-29 13:02:35,412 - server - INFO - - CORS_ORIGIN: Set
+2025-04-29 13:02:35,412 - server - INFO - Starting FastAPI server, listening on 0.0.0.0:8000...
+2025-04-29 13:02:35,883 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-04-29 13:02:35,883 - server - INFO - Loading environment variables...
+2025-04-29 13:02:35,883 - server - INFO - Environment variable configuration status:
+2025-04-29 13:02:35,883 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-04-29 13:02:35,883 - server - INFO - - SPACE_API_URL: Set
+2025-04-29 13:02:35,883 - server - INFO - - CORS_ORIGIN: Set
