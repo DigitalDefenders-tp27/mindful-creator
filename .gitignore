@@ -8,6 +8,7 @@ venv/
 
 # Node / Vite
 .vite/
+
 # secrets
 .env
 backend/server.log
