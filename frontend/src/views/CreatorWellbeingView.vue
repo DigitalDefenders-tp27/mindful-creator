@@ -26,49 +26,35 @@
         </div>
       </div>
     </section>
-    
-    <!-- Digital Impact Analysis Dashboard -->
+
+    <!-- Dashboard Section -->
     <section class="dashboard-section">
-      <div class="container">
-        <h1 class="section-title">Average working time</h1>
-        
-        <div class="tabs">
-          <div class="tab active">Average working time</div>
-          <div class="tab">Anxiety correlation</div>
-          <div class="tab">...</div>
-          <div class="tab">...</div>
+      <div class="tabs">
+        <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+          @click="switchTab(index)">
+          {{ tab.name }}
         </div>
-        
-        <div class="dashboard-content">
-          <div class="chart-container">
-            <h3 class="chart-title">AVERAGE WORKING TIME FOR CONTENT CREATOR</h3>
-            <div class="chart">
-              <img src="../assets/icons/elements/chart-placeholder.svg" alt="Chart" class="chart-img">
-            </div>
-          </div>
-          
-          <div class="insights-container">
-            <h3 class="insights-title">KEY INSIGHT:</h3>
-            <div class="insight-card">
-              <p>Content creators tend to work 20% longer hours during seasonal campaigns.</p>
-            </div>
-            <div class="insight-card">
-              <p>Weekend work hours have increased by 15% in the last quarter.</p>
-            </div>
-            <div class="insight-card">
-              <p>Taking regular breaks can reduce stress levels by up to 30%.</p>
-            </div>
+      </div>
+
+      <div class="visualisation-container">
+        <div class="chart-area">
+          <canvas id="mainChart"></canvas>
+        </div>
+        <div class="insight-area">
+          <h3 class="insight-heading">Key Insights</h3>
+          <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
+            {{ insight }}
           </div>
         </div>
       </div>
     </section>
-    
-    <!-- Wellbeing Resource Finder -->
+
+    <!-- 健康资源查找器 / Wellbeing Resource Finder -->
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
         <p class="section-subtitle">Find and navigate yourself to get wellbeing resources easily near you.</p>
-        
+
         <div class="resource-finder-content">
           <!-- Tabs for resource type -->
           <div class="resource-tabs">
@@ -94,7 +80,7 @@
             />
             <button @click="onSearch" class="search-btn">Search</button>
           </div>
-          
+
           <div class="resource-content">
             <!-- Google Map display -->
             <div class="map-container">
@@ -122,27 +108,26 @@
                 Get My Position
               </button>
             </div>
-            
-            <!-- Clinic details card -->
-            <div class="resource-details" v-if="selectedClinic">
-              <h3 class="resource-name">{{ selectedClinic.name }}</h3>
+
+            <div class="resource-details">
+              <h3 class="resource-name">Calm 'n' Caring Psychology Melbourne</h3>
               <div class="rating">
                 <span class="rating-score">{{ selectedClinic.rating }}</span>
                 <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
                 <span class="reviews">({{ selectedClinic.reviews }})</span>
               </div>
-              
+
               <div class="resource-location">
                 <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
                 <span>{{ selectedClinic.address }}</span>
               </div>
-              
+
               <div class="resource-website">
                 <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
                 <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
                 <button class="online-switch" @click="switchToOnline">Switch to online</button>
               </div>
-              
+
               <div class="opening-hours">
                 <h4>Opening hours</h4>
                 <div class="hours-grid">
@@ -152,7 +137,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="resource-actions">
                 <button class="action-btn direction-btn" @click="getDirections">
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -203,20 +188,21 @@
         </Modal>
       </div>
     </section>
-    
-    <!-- Wellbeing Activities Hub -->
+
+    <!-- 健康活动中心 / Wellbeing Activities Hub -->
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
         <p class="section-subtitle">Release your stress by joining fun activities and making like-minded friends.</p>
-        
+
         <div class="activities-header">
           <h3 class="recent-title">RECENT CAMPAIGNS...</h3>
           <button @click="openModal" class="view-all-btn">VIEW ALL EVENTS</button>
         </div>
-        
+
         <div class="activities-grid">
-          <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+          <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
               <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Wellness Walk" class="activity-img">
               <h3 class="activity-title">MeTreat Retreats Women's Wellness Walk</h3>
@@ -230,8 +216,9 @@
               </div>
             </div>
           </a>
-          
-          <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+
+          <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
               <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Workshop" class="activity-img">
               <h3 class="activity-title">Mentally Healthy Workplaces Workshop</h3>
@@ -245,10 +232,12 @@
               </div>
             </div>
           </a>
-          
-          <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch" target="_blank" class="activity-card-link">
+
+          <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch"
+            target="_blank" class="activity-card-link">
             <div class="activity-card">
-              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Business Workshop" class="activity-img">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Business Workshop"
+                class="activity-img">
               <h3 class="activity-title">Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
               <div class="activity-tags">
                 <span class="tag may">May</span>
@@ -263,7 +252,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Activities Details Modal -->
     <div v-if="isModalVisible" class="activities-modal-overlay" @click="closeModal">
       <div class="activities-modal" @click.stop>
@@ -313,46 +302,174 @@
                 <option>October</option>
               </select>
             </div>
-            <div class="filter-group">
-              <label>Price:</label>
-              <select v-model="selectedPrice">
-                <option>Any price</option>
-                <option>Free</option>
-                <option>Paid</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label>Sort by:</label>
-              <select v-model="sortOption">
-                <option value="dateAsc">Date (Earliest first)</option>
-                <option value="dateDesc">Date (Latest first)</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="location">Location (A-Z)</option>
-              </select>
-            </div>
-            <div class="filter-actions">
-              <button @click="resetFilters" class="clear-filters-btn">Clear All Filters</button>
-            </div>
           </div>
-          
+
           <div class="events-grid">
-            <div v-for="event in sortedFilteredEvents" :key="event.id" class="event-card">
-              <div class="event-img-container">
-                <img :src="getImageUrl(event.image)" :alt="event.title" class="event-img">
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops"
+                class="event-img">
+              <div class="event-info">
+                <h3>Mentally Healthy Workplaces Workshop</h3>
+                <div class="event-tags">
+                  <span class="tag ticket">Sold out</span>
+                  <span class="tag may">May</span>
+                  <span class="tag workshop">Workshop</span>
+                  <span class="tag free">Free Event</span>
+                </div>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and
+                  sustain a mentally healthy and safe workplace.</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Brisbane</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000
+                  </div>
+                  <div><strong>Date:</strong> 1st May 2025</div>
+                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch
+                  </div>
+                </div>
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
               </div>
+            </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/mentalHealthWorkshop.avif" alt="Mental health workshops"
+                class="event-img">
+              <div class="event-info">
+                <h3>Mentally Healthy Workplaces Workshop</h3>
+                <div class="event-tags">
+                  <span class="tag ticket">Nearly full</span>
+                  <span class="tag june">June</span>
+                  <span class="tag workshop">Workshop</span>
+                  <span class="tag free">Free Event</span>
+                </div>
+                <p class="event-description">This workshop is designed to assist managers and supervisors create and
+                  sustain a mentally healthy and safe workplace.</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Brisbane</div>
+                  <div><strong>Address:</strong> Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000
+                  </div>
+                  <div><strong>Date:</strong> June 4th 2025</div>
+                  <div><strong>Time:</strong> 8:00 AM - 12:00 PM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch
+                  </div>
+                </div>
+                <a href="https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
+              </div>
+            </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/workplace.avif" alt="Workplace Wellbeing" class="event-img">
               <div class="event-info">
                 <h3>{{ event.title }}</h3>
                 <div class="event-tags">
                   <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
                 </div>
-                <p class="event-description">{{ event.description }}</p>
+                <p class="event-description">You'll learn about both positive and negative factors at play in workplace.
+                </p>
                 <div class="event-meta">
-                  <div><strong>Location:</strong> {{ event.location }}</div>
-                  <div v-if="event.address"><strong>Address:</strong> {{ event.address }}</div>
-                  <div><strong>Date:</strong> {{ event.date }}</div>
-                  <div><strong>Time:</strong> {{ event.time }}</div>
+                  <div><strong>Location:</strong> Sydney</div>
+                  <!-- <div><strong>Group size:</strong> 15-30</div> -->
+                  <div><strong>Date:</strong> October 11st 2025</div>
+                  <div><strong>Time:</strong> 7:30 AM - 11:30 AM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch
+                  </div>
                 </div>
-                <a :href="event.link" target="_blank" class="register-btn-link">
+                <a href="https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
+              </div>
+            </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/workplaceWarrnambool.avif" alt="Workplace Wellbeing"
+                class="event-img">
+              <div class="event-info">
+                <h3>Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop</h3>
+                <div class="event-tags">
+                  <span class="tag may">May</span>
+                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
+                  <span class="tag charged">$20</span>
+                </div>
+                <p class="event-description">Explore Victoria's beautiful national parks with our guided bushwalking
+                  groups. Connect with nature and like-minded creators.</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Warrnambool</div>
+                  <div><strong>Address:</strong> 185 Timor Street Warrnambool, VIC 3280</div>
+                  <!-- <div><strong>Group size:</strong> 5-15</div> -->
+                  <div><strong>Date:</strong> May 28th</div>
+                  <div><strong>Time:</strong> 1:00 PM - 3:00 PM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch
+                  </div>
+                </div>
+                <a href="https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
+              </div>
+            </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/workplaceGeelong.avif" alt="Workplace Wellbeing"
+                class="event-img">
+              <div class="event-info">
+                <h3>Strategies for Mental Health at Work and Keeping Psychologically Safe.</h3>
+                <div class="event-tags">
+                  <span class="tag october">October</span>
+                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
+                  <span class="tag charged">$108.9</span>
+                </div>
+                <p class="event-description"> HR professionals, managers, and business leaders , here's practical
+                  strategies to foster wellbeing and mental health in your workplace.</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Geelong</div>
+                  <div><strong>Address:</strong> 60 Moorabool Street Geelong, VIC 3220</div>
+                  <!-- <div><strong>Group size:</strong> 5-10</div> -->
+                  <div><strong>Date:</strong> October 9th 2025</div>
+                  <div><strong>Time:</strong> 9:30 AM - 11:30 AM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch
+                  </div>
+                </div>
+                <a href="https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
+              </div>
+            </div>
+
+            <div class="event-card">
+              <img src="../assets/icons/activitiesImages/TorquayWalking.avif" alt="Outdoor Walking" class="event-img">
+              <div class="event-info">
+                <h3>MeTreat Retreats Women's Wellness Walk</h3>
+                <div class="event-tags">
+                  <span class="tag april">April</span>
+                  <span class="tag outdoor">Outdoor Walking</span>
+                  <span class="tag end">Sales Ended</span>
+                </div>
+                <p class="event-description">CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> Torquay Beach</div>
+                  <div><strong>Address:</strong> Torquay Beach Torquay, VIC 3228</div>
+                  <!-- <div><strong>Group size:</strong> 8-12</div> -->
+                  <div><strong>Date:</strong> April 25th</div>
+                  <div><strong>Time:</strong> 11:00 AM - 2:00 AM</div>
+                  <div class="event-link"><strong>Link:</strong>
+                    https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch
+                  </div>
+                </div>
+                <a href="https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch"
+                  target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -361,1059 +478,260 @@
         </div>
       </div>
     </div>
-    
-    <!-- Online Resources Confirmation Modal -->
-    <transition name="fade-modal">
-      <Modal v-if="showOnlineConfirm" @close="showOnlineConfirm = false">
-        <template #header>
-          <div class="modal-header-flex">
-            <svg class="modal-info-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#e75a97"/><path d="M12 7.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-1.25 5.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5Z" fill="#fff"/></svg>
-            <span>Leave for Online Resources?</span>
-          </div>
-        </template>
-        <template #body>
-          <p class="modal-confirm-text">
-            You are about to leave this page for online resources.<br>
-            Do you want to continue?
-          </p>
-          <div class="modal-btn-row">
-            <button 
-              class="modal-btn cancel" 
-              @click="handleOnlineConfirm(false)"
-            >Cancel</button>
-            <button 
-              class="modal-btn ok" 
-              @click="handleOnlineConfirm(true)"
-            >OK</button>
-          </div>
-        </template>
-      </Modal>
-    </transition>
+
+    <div class="footer">
+      <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">隐私政策</router-link></p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import * as fastDeepEqual from 'fast-deep-equal'
-// 或
-import { equal } from 'fast-deep-equal'
-import Modal from '../components/Modal.vue';
+import { ref, onMounted } from 'vue'
+import Chart from 'chart.js/auto'
 
-// Melbourne city center as default
-const mapCenter = ref({ lat: -37.8136, lng: 144.9631 });
+const currentTab = ref(0)
+let chartInstance = null
 
-// User location (for "Get My Position")
-const userLocation = ref(null);
-
-// Example user icon (可自定义)
-const userIcon = {
-  url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-  scaledSize: { width: 40, height: 40 }
-};
-
-// 诊所假数据（请补充到50家，示例3家）
-const clinics = [
-  {
-    id: 1,
-    name: "Calm 'n' Caring Psychology Melbourne",
-    lat: -37.8136,
-    lng: 144.9631,
-    address: "101 Collins St, Melbourne VIC 3000",
-    website: "https://calmandcaring.com/melbourne",
-    rating: 5.0,
-    reviews: 5,
-    openingHours: {
-      Sunday: "Open 24 hours",
-      Monday: "Open 24 hours",
-      Tuesday: "Open 24 hours",
-      Wednesday: "Open 24 hours",
-      Thursday: "Open 24 hours",
-      Friday: "Open 24 hours",
-      "Good Friday": "Hours might differ",
-      Saturday: "Hours might differ"
-    }
+const tabs = [
+  { name: 'Screen Time and Emotional Wellbeing', insights: [
+      'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
+      'Maintaining lower daily screen time correlates with better emotional wellbeing.',
+      'Balanced digital habits foster more positive and neutral emotional states.'
+    ]
   },
-  {
-    id: 2,
-    name: "The Mind Room",
-    lat: -37.8079,
-    lng: 144.9780,
-    address: "320 Smith St, Collingwood VIC 3066",
-    website: "https://themindroom.com.au/",
-    rating: 4.8,
-    reviews: 12,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 4pm"
-    }
+  { name: 'Digital Habits and Sleep Health', insights: [
+      'More than 3 hours of daily social media use is linked with sleep disturbances.',
+      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
+      'Reducing evening screen time can improve sleep quality and mental health.'
+    ]
   },
-  {
-    id: 3,
-    name: "Axtara Health Psychology",
-    lat: -37.8150,
-    lng: 144.9700,
-    address: "200 Queen St, Melbourne VIC 3000",
-    website: "https://axtarahealth.com.au/",
-    rating: 4.9,
-    reviews: 8,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 5pm",
-      Tuesday: "8am - 5pm",
-      Wednesday: "8am - 5pm",
-      Thursday: "8am - 5pm",
-      Friday: "8am - 5pm",
-      Saturday: "Closed"
-    }
+  { name: 'Engagement Metrics and Emotional Rewards', insights: [
+      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
+      'Creators focusing on meaningful community engagement over numbers show better mental health.',
+      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
+    ]
   },
-  // ... 30 more real clinics below ...
-  {
-    id: 4,
-    name: "Inner Melbourne Clinical Psychology",
-    lat: -37.8105,
-    lng: 144.9626,
-    address: "Level 1/370 Little Bourke St, Melbourne VIC 3000",
-    website: "https://www.imcp.com.au/",
-    rating: 4.7,
-    reviews: 22,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 5,
-    name: "Melbourne Psychology & Counselling",
-    lat: -37.8132,
-    lng: 144.9652,
-    address: "Suite 2, Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://www.melbournepsychology.com.au/",
-    rating: 4.6,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 6,
-    name: "The Talk Shop Psychology Melbourne CBD",
-    lat: -37.8157,
-    lng: 144.9666,
-    address: "Level 8/350 Collins St, Melbourne VIC 3000",
-    website: "https://www.thetalkshop.com.au/",
-    rating: 4.8,
-    reviews: 30,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 8pm",
-      Tuesday: "8am - 8pm",
-      Wednesday: "8am - 8pm",
-      Thursday: "8am - 8pm",
-      Friday: "8am - 8pm",
-      Saturday: "9am - 5pm"
-    }
-  },
-  {
-    id: 7,
-    name: "Mindview Psychology",
-    lat: -37.8032,
-    lng: 144.9787,
-    address: "Suite 2/19-35 Gertrude St, Fitzroy VIC 3065",
-    website: "https://www.mindviewpsychology.com.au/",
-    rating: 4.9,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 8,
-    name: "Northside Clinic Psychology",
-    lat: -37.7826,
-    lng: 144.9832,
-    address: "370 St Georges Rd, Fitzroy North VIC 3068",
-    website: "https://www.northsideclinic.net.au/",
-    rating: 4.7,
-    reviews: 19,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 9,
-    name: "Collins Street Psychology",
-    lat: -37.8151,
-    lng: 144.9702,
-    address: "Level 10/446 Collins St, Melbourne VIC 3000",
-    website: "https://www.collinspsychology.com.au/",
-    rating: 4.8,
-    reviews: 21,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 10,
-    name: "Melbourne Mindfulness Centre",
-    lat: -37.8139,
-    lng: 144.9731,
-    address: "Level 1/161 Collins St, Melbourne VIC 3000",
-    website: "https://melbournemindfulness.com/",
-    rating: 4.7,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 5pm",
-      Tuesday: "9am - 5pm",
-      Wednesday: "9am - 5pm",
-      Thursday: "9am - 5pm",
-      Friday: "9am - 5pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 11,
-    name: "CBD Psychology Melbourne",
-    lat: -37.8142,
-    lng: 144.9633,
-    address: "Level 2/488 Bourke St, Melbourne VIC 3000",
-    website: "https://cbdpsychology.com.au/",
-    rating: 4.6,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 12,
-    name: "Fitzroy Psychology Clinic",
-    lat: -37.8005,
-    lng: 144.9789,
-    address: "Suite 1/166 Gertrude St, Fitzroy VIC 3065",
-    website: "https://www.fitzroypsychology.com/",
-    rating: 4.8,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 13,
-    name: "Melbourne Psychology Group",
-    lat: -37.8137,
-    lng: 144.9658,
-    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://melbournepsychologygroup.com.au/",
-    rating: 4.7,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 14,
-    name: "Positive Wellbeing Psychology",
-    lat: -37.8135,
-    lng: 144.9650,
-    address: "Level 2/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://positivewellbeingpsychology.com.au/",
-    rating: 4.9,
-    reviews: 20,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 15,
-    name: "Melbourne City Psychology",
-    lat: -37.8138,
-    lng: 144.9642,
-    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://melbournecitypsychology.com.au/",
-    rating: 4.8,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 16,
-    name: "The Melbourne Clinic Psychology",
-    lat: -37.8250,
-    lng: 144.9830,
-    address: "130 Church St, Richmond VIC 3121",
-    website: "https://themelbourneclinic.com.au/",
-    rating: 4.7,
-    reviews: 22,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 17,
-    name: "North Melbourne Psychology",
-    lat: -37.8000,
-    lng: 144.9540,
-    address: "1/452 Victoria St, North Melbourne VIC 3051",
-    website: "https://northmelbournepsychology.com.au/",
-    rating: 4.6,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 5pm",
-      Tuesday: "9am - 5pm",
-      Wednesday: "9am - 5pm",
-      Thursday: "9am - 5pm",
-      Friday: "9am - 5pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 18,
-    name: "South Yarra Psychology",
-    lat: -37.8380,
-    lng: 144.9930,
-    address: "Level 1/12 Yarra St, South Yarra VIC 3141",
-    website: "https://southyarrapsychology.com.au/",
-    rating: 4.8,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 19,
-    name: "Port Melbourne Psychology",
-    lat: -37.8390,
-    lng: 144.9430,
-    address: "1/120 Bay St, Port Melbourne VIC 3207",
-    website: "https://portmelbournepsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 20,
-    name: "Prahran Psychology Clinic",
-    lat: -37.8490,
-    lng: 144.9930,
-    address: "Level 1/201 High St, Prahran VIC 3181",
-    website: "https://prahranpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 21,
-    name: "Hawthorn Psychology",
-    lat: -37.8190,
-    lng: 145.0350,
-    address: "Level 1/673 Glenferrie Rd, Hawthorn VIC 3122",
-    website: "https://hawthornpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 22,
-    name: "Brunswick Psychology",
-    lat: -37.7700,
-    lng: 144.9630,
-    address: "1/601 Sydney Rd, Brunswick VIC 3056",
-    website: "https://brunswickpsychology.com.au/",
-    rating: 4.8,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 23,
-    name: "Carlton Psychology",
-    lat: -37.8000,
-    lng: 144.9660,
-    address: "Level 1/255 Drummond St, Carlton VIC 3053",
-    website: "https://carltonpsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 24,
-    name: "St Kilda Psychology Clinic",
-    lat: -37.8670,
-    lng: 144.9800,
-    address: "1/201 Fitzroy St, St Kilda VIC 3182",
-    website: "https://stkildapsychology.com.au/",
-    rating: 4.8,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 25,
-    name: "Richmond Psychology Clinic",
-    lat: -37.8230,
-    lng: 144.9980,
-    address: "Level 1/266 Bridge Rd, Richmond VIC 3121",
-    website: "https://richmondpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 26,
-    name: "Footscray Psychology Clinic",
-    lat: -37.7990,
-    lng: 144.9010,
-    address: "1/81 Paisley St, Footscray VIC 3011",
-    website: "https://footscraypsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 27,
-    name: "Docklands Psychology",
-    lat: -37.8160,
-    lng: 144.9460,
-    address: "Level 1/800 Bourke St, Docklands VIC 3008",
-    website: "https://docklandspsychology.com.au/",
-    rating: 4.7,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 28,
-    name: "Southbank Psychology",
-    lat: -37.8230,
-    lng: 144.9650,
-    address: "Level 1/120 City Rd, Southbank VIC 3006",
-    website: "https://southbankpsychology.com.au/",
-    rating: 4.8,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 29,
-    name: "Toorak Psychology",
-    lat: -37.8420,
-    lng: 145.0170,
-    address: "Level 1/521 Toorak Rd, Toorak VIC 3142",
-    website: "https://toorakpsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 30,
-    name: "Brighton Psychology Clinic",
-    lat: -37.9090,
-    lng: 144.9930,
-    address: "1/181 Bay St, Brighton VIC 3186",
-    website: "https://brightonpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 31,
-    name: "Camberwell Psychology",
-    lat: -37.8360,
-    lng: 145.0700,
-    address: "Level 1/684 Burke Rd, Camberwell VIC 3124",
-    website: "https://camberwellpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 32,
-    name: "Essendon Psychology",
-    lat: -37.7470,
-    lng: 144.9110,
-    address: "1/902 Mt Alexander Rd, Essendon VIC 3040",
-    website: "https://essendonpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 33,
-    name: "Glen Iris Psychology",
-    lat: -37.8570,
-    lng: 145.0660,
-    address: "Level 1/173 Burke Rd, Glen Iris VIC 3146",
-    website: "https://glenirispsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
+  { name: 'Managing Digital Distractions and Anxiety', insights: [
+      'Higher daily screen time is associated with elevated anxiety levels.',
+      'Spending less time on digital activities correlates with lower anxiety scores.',
+      'Practising regular tech-free breaks can significantly lower digital stress levels.'
+    ]
   }
-];
+]
 
-// 当前显示的诊所（默认显示全部，后续可筛选最近10家）
-const displayedClinics = ref([...clinics]);
-
-// 当前选中的诊所
-const selectedClinic = ref(clinics[0]);
-
-// Tab 状态
-const activeTab = ref('offline');
-
-// 搜索框
-const searchAddress = ref('');
-
-// 弹窗
-const showGuide = ref(false);
-
-// 切换 Tab
-function switchTab(tab) {
-  activeTab.value = tab;
+const switchTab = (index) => {
+  currentTab.value = index
+  renderChart()
 }
 
-// 选择诊所
-function selectClinic(clinic) {
-  selectedClinic.value = clinic;
-  mapCenter.value = { lat: clinic.lat, lng: clinic.lng };
-}
+const renderChart = () => {
+  const ctx = document.getElementById('mainChart')
+  if (chartInstance) chartInstance.destroy()
 
-// 搜索附近诊所（这里只做简单示例，实际可用 geocoding API 获取经纬度后筛选）
-function onSearch() {
-  // In production, use geocoding API to get lat/lng from searchAddress
-  // Here, use Melbourne city center as mock
-  const searchLat = -37.8136;
-  const searchLng = 144.9631;
-  displayedClinics.value = clinics
-    .map(clinic => ({
-      ...clinic,
-      distance: Math.sqrt(
-        Math.pow(clinic.lat - searchLat, 2) +
-        Math.pow(clinic.lng - searchLng, 2)
-      )
-    }))
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 5);
-  selectedClinic.value = displayedClinics.value[0];
-  mapCenter.value = { lat: displayedClinics.value[0].lat, lng: displayedClinics.value[0].lng };
-}
+  if (currentTab.value === 0) {
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Below 1h', '1-3h', '3-5h'],
+        datasets: [
+          { label: 'Positive', backgroundColor: '#4bc0c0', data: [20, 30, 10] },
+          { label: 'Negative', backgroundColor: '#ff6384', data: [10, 40, 60] },
+          { label: 'Neutral', backgroundColor: '#ffcd56', data: [70, 30, 30] },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { title: { display: false } },
+        scales: { x: { stacked: true }, y: { stacked: true, max: 100 } }
+      }
+    })
 
-// 获取我的位置
-function getMyPosition() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      userLocation.value = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      };
-      mapCenter.value = userLocation.value;
-      // Show only 5 nearest clinics
-      displayedClinics.value = clinics
-        .map(clinic => ({
-          ...clinic,
-          distance: Math.sqrt(
-            Math.pow(clinic.lat - userLocation.value.lat, 2) +
-            Math.pow(clinic.lng - userLocation.value.lng, 2)
-          )
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 5);
-      selectedClinic.value = displayedClinics.value[0];
-    });
+  } else if (currentTab.value === 1) {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
+        datasets: [{
+          label: 'Sleep Problems (1-5)',
+          data: [1.5, 2, 2.5, 3.2, 4, 4.5],
+          borderColor: '#7e57c2',
+          backgroundColor: '#7e57c2',
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
+
+  } else if (currentTab.value === 2) {
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Below 1h', '1-3h', '3-5h'],
+        datasets: [{
+          label: 'Engagement',
+          data: [20, 50, 30],
+          backgroundColor: '#42a5f5'
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
+
+  } else if (currentTab.value === 3) {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
+        datasets: [{
+          label: 'Average Anxiety',
+          data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
+          borderColor: '#66bb6a',
+          backgroundColor: '#66bb6a',
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
   }
 }
 
-// 跳转 Google Maps 导航
-function getDirections() {
-  if (!selectedClinic.value) return;
-  const dest = `${selectedClinic.value.lat},${selectedClinic.value.lng}`;
-  let url = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
-  if (userLocation.value) {
-    url += `&origin=${userLocation.value.lat},${userLocation.value.lng}`;
-  }
-  window.open(url, '_blank');
-}
-
-// Preparation Guide 弹窗
-// showGuide.value = true/false
-
-// Online Resources Tab
-function onOnlineTabClick() {
-  showOnlineConfirm.value = true;
-}
-
-// Switch to online
-function switchToOnline() {
-  onOnlineTabClick();
-}
-
-// Modal window display status
-const isModalVisible = ref(false);
-
-// Open modal window
-const openModal = () => {
-  isModalVisible.value = true;
-};
-
-// Close modal window
-const closeModal = () => {
-  isModalVisible.value = false;
-};
-
-// Reset all filters to default values
-const resetFilters = () => {
-  searchQuery.value = '';
-  selectedLocation.value = 'All locations';
-  selectedCategory.value = 'All types';
-  selectedMonth.value = 'Any time';
-  selectedPrice.value = 'Any price';
-  sortOption.value = 'dateAsc';
-};
-
-// Search and filter related
-const searchQuery = ref('');
-const selectedLocation = ref('All locations');
-const selectedCategory = ref('All types');
-const selectedMonth = ref('Any time');
-const selectedPrice = ref('Any price');
-const sortOption = ref('dateAsc');
-
-// Function to resolve image paths correctly
-const getImageUrl = (path) => {
-  try {
-    return new URL(path, import.meta.url).href;
-  } catch (error) {
-    // Fallback to original path if URL construction fails
-    return path;
-  }
-};
-
-// All event data
-const allEvents = [
-  {
-    id: 1,
-    title: "Mentally Healthy Workplaces Workshop",
-    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
-    tags: ["Sold out", "May", "Workshop", "Free Event"],
-    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
-    location: "Brisbane",
-    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
-    date: "1st May 2025",
-    time: "8:00 AM - 12:00 PM",
-    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
-    category: "Mental Health",
-    month: "May",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 4, 1)  // May 1st, 2025
-  },
-  {
-    id: 2,
-    title: "Mentally Healthy Workplaces Workshop",
-    image: "../assets/icons/activitiesImages/mentalHealthWorkshop.avif",
-    tags: ["Nearly full", "June", "Workshop", "Free Event"],
-    description: "This workshop is designed to assist managers and supervisors create and sustain a mentally healthy and safe workplace.",
-    location: "Brisbane",
-    address: "Auditorium, Plaza Level, 111 George Street Brisbane City, QLD 4000",
-    date: "June 4th 2025",
-    time: "8:00 AM - 12:00 PM",
-    link: "https://www.eventbrite.com.au/e/mentally-healthy-workplaces-workshop-tickets-1269860861019?aff=ebdssbdestsearch",
-    category: "Mental Health",
-    month: "June",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 5, 4)  // June 4th, 2025
-  },
-  {
-    id: 3,
-    title: "Workplace Wellbeing - How to Build Confidence and Manage Stress",
-    image: "../assets/icons/activitiesImages/workplace.avif",
-    tags: ["October", "Workplace Wellbeing Workshop", "$525.44"],
-    description: "You'll learn about both positive and negative factors at play in workplace.",
-    location: "Sydney",
-    date: "October 11st 2025",
-    time: "7:30 AM - 11:30 AM",
-    link: "https://www.eventbrite.com.au/e/workplace-wellbeing-how-to-build-confidence-and-manage-stress-tickets-886375582227?aff=ebdssbdestsearch",
-    category: "Workplace Wellbeing",
-    month: "October",
-    isPaid: true,
-    priceTag: "$525.44",
-    sortDate: new Date(2025, 9, 11)  // October 11th, 2025
-  },
-  {
-    id: 4,
-    title: "Resilience, Self-Leadership & Wellbeing - Warrnambool Business Workshop",
-    image: "../assets/icons/activitiesImages/workplaceWarrnambool.avif",
-    tags: ["May", "Workplace Wellbeing Workshop", "$20"],
-    description: "Explore Victoria's beautiful national parks with our guided bushwalking groups. Connect with nature and like-minded creators.",
-    location: "Warrnambool",
-    address: "185 Timor Street Warrnambool, VIC 3280",
-    date: "May 28th 2025",
-    time: "1:00 PM - 3:00 PM",
-    link: "https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch",
-    category: "Workplace Wellbeing",
-    month: "May",
-    isPaid: true,
-    priceTag: "$20",
-    sortDate: new Date(2025, 4, 28)  // May 28th, 2025
-  },
-  {
-    id: 5,
-    title: "Strategies for Mental Health at Work and Keeping Psychologically Safe.",
-    image: "../assets/icons/activitiesImages/workplaceGeelong.avif",
-    tags: ["October", "Workplace Wellbeing Workshop", "$108.9"],
-    description: "HR professionals, managers, and business leaders, here's practical strategies to foster wellbeing and mental health in your workplace.",
-    location: "Geelong",
-    address: "60 Moorabool Street Geelong, VIC 3220",
-    date: "October 9th 2025",
-    time: "9:30 AM - 11:30 AM",
-    link: "https://www.eventbrite.com.au/e/strategies-for-mental-health-at-work-and-keeping-psychologically-safe-tickets-1235190400739?aff=ebdssbdestsearch",
-    category: "Workplace Wellbeing",
-    month: "October",
-    isPaid: true,
-    priceTag: "$108.9",
-    sortDate: new Date(2025, 9, 9)  // October 9th, 2025
-  },
-  {
-    id: 6,
-    title: "MeTreat Retreats Women's Wellness Walk",
-    image: "../assets/icons/activitiesImages/TorquayWalking.avif",
-    tags: ["April", "Outdoor Walking", "Sales Ended"],
-    description: "CONNECT, REVIVE & THRIVE AT OUR METREAT WELLNESS WALK!",
-    location: "Torquay Beach",
-    address: "Torquay Beach Torquay, VIC 3228",
-    date: "April 25th 2025",
-    time: "11:00 AM - 2:00 AM",
-    link: "https://www.eventbrite.com.au/e/metreat-retreats-womens-wellness-walk-tickets-1309257667929?aff=ebdssbdestsearch",
-    category: "Outdoor Wellness",
-    month: "April",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 3, 25)  // April 25th, 2025
-  },
-  {
-    id: 7,
-    title: "Flinders - Cairns Bay - 7KM'S",
-    image: "../assets/icons/activitiesImages/flindersWalking.webp",
-    tags: ["April", "Outdoor Walking", "Sales Ended"],
-    description: "We haven't done this hike for at least 6 months, and we are thrilled to share it with you all. This hike offers breathtaking views across Bass Strait from the dramatic black basalt cliffs, which are impressively high! Our plan is to visit Cairns Bay and then head to Flinders Blowhole and back. The track can be steep in places, so it requires good leg strength and the ability to handle a steep incline. Although the distance is shorter than usual, I guarantee you'll get a solid workout and absolutely love this hike! It will take approximately 2.5 hours to complete. This hike is rated intermediate and is not suitable for beginners. A moderate level of fitness and stamina is required. We maintain a steady pace but do stop occasionally for photos and snacks.",
-    location: "Flinders Blowhole",
-    address: "Flinders VIC 3929, Australia",
-    date: "April 27th 2025",
-    time: "9:00 AM - 11:30 AM",
-    link: "https://events.humanitix.com/flinders-cairns-bay-7km-s?hxchl=mkt-sch&_gl=1*m8ing0*_gcl_au*NDM5ODA2NTk5LjE3NDU2NzM0OTA.*_ga*MTUwMjgyOTU5Mi4xNzQ1NjczNDkx*_ga_LHKW5FR9N6*MTc0NTY3MzQ5MC4xLjEuMTc0NTY3MzY5NC41MS4wLjA.",
-    category: "Outdoor Wellness",
-    month: "April",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 3, 27)  // April 27th, 2025
-  },
-  {
-    id: 8,
-    title: "Brisbane Wellbeing Day Festival",
-    image: "../assets/icons/activitiesImages/BrisbaneFestival.jpeg",
-    tags: ["October", "Brisbane Festival", "Sales Ended"],
-    description: "Let's Nourish, Nurture and Rejuvenate our wellbeing at the biggest non-profit community festival.",
-    location: "West End",
-    address: "Opposite 33 Hill End Terrace, West End, 4101, Queensland, Australia",
-    date: "October 17th, 2025",
-    time: "3:00 PM - 7:00 PM",
-    link: "https://www.5waystowellbeing.org.au/connect/brisbane-wellbeing-day-festival/",
-    category: "Festival",
-    month: "October",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 9, 17)  // October 17th, 2025
-  },
-  {
-    id: 9,
-    title: "Wiggle & Mingle: Dog-Friendly Hike & Yoga at You Yangs - Wet Dog Co Community Event",
-    image: "../assets/icons/activitiesImages/wiggleHike.webp",
-    tags: ["May", "Outdoor Walking", "Free Event"],
-    description: "Wiggle & Mingle: Join the Pack at You Yangs! G'day dog lovers! Ready for an adventure that'll have tails wagging? Join us for Wiggle & Mingle - a community event where you and your four-legged mate can stretch your legs, meet new friends, and reconnect with nature in the stunning You Yangs.",
-    location: "Little River",
-    address: "You Yangs Regional Park, Toynes Rd, Little River VIC 3211, Australia",
-    date: "May 3rd, 2025",
-    time: "9:00 AM - 12:30 PM",
-    link: "https://events.humanitix.com/wiggle-and-mingle-yqu8fv8l?hxchl=mkt-sch&_gl=1*a1o4ay*_gcl_au*NDM5ODA2NTk5LjE3NDU2NzM0OTA.*_ga*MTUwMjgyOTU5Mi4xNzQ1NjczNDkx*_ga_LHKW5FR9N6*MTc0NTY3MzQ5MC4xLjEuMTc0NTY3MzY0MS40MS4wLjA",
-    category: "Outdoor Wellness",
-    month: "May",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 4, 3)  // May 3rd, 2025
-  },
-  {
-    id: 10,
-    title: "Wayapa Wuurrk Mindfulness & Weaving Workshop",
-    image: "../assets/icons/activitiesImages/wayapaWorkshop.webp",
-    tags: ["June", "physical wellness practice", "Sold out"],
-    description: "Join Jodie Dowd, Noongar weaver for a morning of Wayapa Wuurrk First Nations mindfulness practices. During this free and all-inclusive workshop (ages 15+) you will: Be gently guided through the 14 elements of the internationally accredited Wayapa Wuurrk ('Connect to the earth') physical wellness practice. Learn to weave a bracelet or small basket. Share your thoughts on the Wayapa practice during a Yarning Circle. Enjoy light refreshments.",
-    location: "Narrabeen",
-    address: "1395A Pittwater Rd, Narrabeen NSW 2101, Australia",
-    date: "June 21st, 2025",
-    time: "10:30 AM - 12:30 PM",
-    link: "https://events.humanitix.com/wayapa-wuurrk-mindfulness-and-weaving-workshop?hxchl=mkt-sch&_gl=1*1dty875*_gcl_au*MTU4MDUxODg1My4xNzQxMDQzMDc4*_ga*MTE5MzU5MTc4Ni4xNzMzMjY1MDMw*_ga_LHKW5FR9N6*MTc0MzQ3NzY0Mi42NS4xLjE3NDM0NzgyMjYuNDEuMC4w",
-    category: "physical wellness practice",
-    month: "June",
-    isPaid: false,
-    priceTag: "Free",
-    sortDate: new Date(2025, 5, 21)  // June 21st, 2025
-  }
-];
-
-// Filter events based on selected and search conditions
-const filteredEvents = computed(() => {
-  return allEvents.filter(event => {
-    // Check name search
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-    
-    // Check location filter
-    const matchesLocation = selectedLocation.value === 'All locations' || 
-                           event.location === selectedLocation.value;
-    
-    // Check category filter
-    const matchesCategory = selectedCategory.value === 'All types' || 
-                           event.category === selectedCategory.value;
-    
-    // Check month filter
-    const matchesMonth = selectedMonth.value === 'Any time' || 
-                        event.month === selectedMonth.value;
-    
-    // Check price filter
-    const matchesPrice = selectedPrice.value === 'Any price' || 
-                        (selectedPrice.value === 'Free' && !event.isPaid) || 
-                        (selectedPrice.value === 'Paid' && event.isPaid);
-    
-    // All conditions must match
-    return matchesSearch && matchesLocation && matchesCategory && matchesMonth && matchesPrice;
-  });
-});
-
-// Sort filtered events
-const sortedFilteredEvents = computed(() => {
-  const events = [...filteredEvents.value];
-  
-  switch(sortOption.value) {
-    case 'dateAsc':
-      return events.sort((a, b) => a.sortDate - b.sortDate);
-    case 'dateDesc':
-      return events.sort((a, b) => b.sortDate - a.sortDate);
-    case 'name':
-      return events.sort((a, b) => a.title.localeCompare(b.title));
-    case 'location':
-      return events.sort((a, b) => a.location.localeCompare(b.location));
-    default:
-      return events;
-  }
-});
-
-// Online Resources Confirmation Modal
-const showOnlineConfirm = ref(false);
-
-// Handle Online Resources Confirmation
-function handleOnlineConfirm(result) {
-  showOnlineConfirm.value = false;
-  if (result) {
-    window.location.href = '/relaxation';
-  }
-}
+onMounted(() => {
+  renderChart()
+})
 </script>
 
+
+
 <style scoped>
+.visualisation-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align top instead of center */
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.chart-area {
+  flex: 1;
+  min-width: 500px;
+  max-width: 700px;
+  height: 400px;
+  padding: 10px;
+}
+
+.chart-area canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.insight-area {
+  flex: 0.7;
+  min-width: 320px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center title and boxes horizontally */
+  margin-top: 20px; /* Push a little lower */
+}
+
+.insight-heading {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.insight-box {
+  background: #fff8e1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  width: 100%; /* Full width */
+  max-width: 500px; /* Limit width nicely */
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+
+.tab.active {
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+
+
+
+.chart-wrapper {
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+
+
+
+
 .creator-wellbeing {
-  background-color: rgb(254, 251, 244);
+  padding: 2rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tab.active {
+  background: #e75a97;
+  color: white;
+}
+
+.chart-area {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.insights {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+
+
+
+
+
+
+/* Add hover zoom for charts */
+.hover-zoom img {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.hover-zoom img:hover {
+  transform: scale(1.05);
+}
+
+.creator-wellbeing {
+  background-color: #fffcf5;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
   min-height: 100vh;
   width: 100%;
   position: relative;
@@ -1648,7 +966,11 @@ function handleOnlineConfirm(result) {
     opacity: 0.7;
     transform: translateX(0);
     row-gap: 0.75rem;
-    justify-content: end;
+  }
+
+  .title-group h2,
+  .subtitle {
+    white-space: normal;
   }
 }
 
@@ -1672,7 +994,7 @@ function handleOnlineConfirm(result) {
     row-gap: 0.5rem;
     justify-content: end;
   }
-  
+
   .title-group h1 {
     @apply text-5xl;
     white-space: nowrap;
@@ -1693,34 +1015,35 @@ function handleOnlineConfirm(result) {
     min-height: 22vh;
     padding: 7rem 0 0.5rem;
   }
-  
+
   .hero-content {
     min-height: 22vh;
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.75rem;
+    min-height: 22vh;
   }
-  
+
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+
   .slogan {
     margin-left: 1rem;
     max-width: 90%;
-  }
-  
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
   }
 
   .title-group h1 {
     @apply text-4xl;
     white-space: nowrap;
   }
-  
+
   .title-group h2 {
     @apply text-3xl;
     white-space: normal;
   }
-  
+
   .subtitle {
     @apply text-lg;
   }
@@ -1733,31 +1056,30 @@ function handleOnlineConfirm(result) {
     margin-bottom: 0;
   }
 
+
   .hero-content {
     padding: 0 1rem;
     min-height: 18vh;
     padding-top: 0.25rem;
   }
 
-  .slogan {
-    padding-top: 0;
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
   }
 
-  .decorative-elements {
-    opacity: 0;
-    transform: translateX(0) scale(0.7);
-  }
 
   .title-group h1 {
     @apply text-3xl;
     white-space: nowrap;
   }
-  
+
   .title-group h2 {
     @apply text-2xl;
     white-space: normal;
   }
-  
+
   .subtitle {
     @apply text-base;
   }
@@ -1768,19 +1090,112 @@ function handleOnlineConfirm(result) {
     opacity: 0;
     display: none;
   }
-  
-  .hero-section {
-    min-height: 16vh;
-    padding: 8rem 0 0.5rem;
-    margin-bottom: 0;
-  }
-  
+
   .hero-content {
     min-height: 16vh;
   }
+
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
 }
 
-/* 其他现有的样式 */
+/* 响应式布局支持 */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 95%;
+  }
+
+  .dashboard-content,
+  .resource-content {
+    flex-direction: column;
+  }
+
+  .chart-container,
+  .insights-container,
+  .map-container,
+  .resource-details {
+    width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  .activities-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  .tabs,
+  .resource-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab,
+  .resource-tab {
+    margin: 0.25rem;
+  }
+
+  .activities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activities-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .recent-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .chart-title,
+  .insights-title,
+  .resource-name {
+    font-size: 1.25rem;
+  }
+
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+
+  .event-card {
+    flex-direction: column;
+  }
+
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+}
+
 .dashboard-section {
   padding: 3rem 0 5rem;
   position: relative;
@@ -1795,8 +1210,9 @@ function handleOnlineConfirm(result) {
   z-index: 1;
 }
 
-/* Common section styles */
-.section-title, .section-subtitle {
+/* 通用部分样式 / Common section styles */
+.section-title,
+.section-subtitle {
   position: relative;
   z-index: 2;
 }
@@ -1838,7 +1254,10 @@ section:not(:last-child)::after {
   background-color: #fffcf5;
 }
 
-.tabs, .resource-tabs, .activities-header, .activities-grid {
+.tabs,
+.resource-tabs,
+.activities-header,
+.activities-grid {
   position: relative;
   z-index: 2;
 }
@@ -1878,7 +1297,9 @@ section:not(:last-child)::after {
   gap: 2rem;
 }
 
-.chart-container, .resource-content, .activity-card {
+.chart-container,
+.resource-content,
+.activity-card {
   position: relative;
   z-index: 2;
   background-color: #fff;
@@ -2059,7 +1480,8 @@ section:not(:last-child)::after {
   color: #666;
 }
 
-.resource-location, .resource-website {
+.resource-location,
+.resource-website {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2067,7 +1489,8 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-.location-icon, .website-icon {
+.location-icon,
+.website-icon {
   width: 18px;
   height: 18px;
 }
@@ -2278,15 +1701,16 @@ section:not(:last-child)::after {
 
 /* Responsive design */
 @media (max-width: 1024px) {
+
   .dashboard-content,
   .resource-content {
     grid-template-columns: 1fr;
   }
-  
+
   .map-container {
     min-height: 300px;
   }
-  
+
   .activities-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2296,34 +1720,20 @@ section:not(:last-child)::after {
   .container {
     padding: 0 1rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
-  .section-subtitle {
-    font-size: 1rem;
-  }
-  
-  .tabs, 
-  .resource-tabs {
+
+  .tabs {
     flex-wrap: wrap;
   }
-  
-  .tab,
-  .resource-tab {
-    margin: 0.25rem;
-  }
-  
+
   .activities-grid {
     grid-template-columns: 1fr;
   }
-  
-  .events-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .activities-header {
+
+  .resource-tabs {
     flex-direction: column;
     gap: 1rem;
   }
@@ -2694,25 +2104,25 @@ section:not(:last-child)::after {
   .event-card {
     flex-direction: column;
   }
-  
+
   .event-img {
     width: 100%;
     height: 200px;
   }
-  
+
   .event-filters {
     flex-direction: column;
   }
-  
+
   .filter-group {
     width: 100%;
   }
-  
+
   .activities-modal {
     width: 95%;
     max-height: 90vh;
   }
-  
+
   .modal-content {
     padding: 1.5rem;
   }
@@ -2737,172 +2147,28 @@ section:not(:last-child)::after {
   cursor: pointer;
 }
 
-/* Tag styles for additional categories */
-.tag.physical-wellness-practice {
-  background-color: #9C27B0;
+.insights-gallery {
+  padding: 4rem 2rem;
+  text-align: center;
 }
 
-.tag.festival {
-  background-color: #3F51B5;
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
 }
 
-.tag.free-event {
-  background-color: #4CAF50;
+.image-grid img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.tag.sold-out {
-  background-color: #9E9E9E;
-}
-
-.tag.nearly-full {
-  background-color: #FF9800;
-}
-
-.tag.sales-ended {
-  background-color: #9E9E9E;
-}
-
-.tag.outdoor-walking {
-  background-color: #6c63ff;
-}
-
-.tag.brisbane-festival {
-  background-color: #673AB7;
-}
-
-.tag.workshop {
-  background-color: #795548;
-}
-
-.tag.workplace-wellbeing-workshop {
-  background-color: #607D8B;
-}
-
-.wellbeing-resource-item:last-child {
-  background-color: #607D8B;
-}
-
-@media (min-width: 1280px) {
-  .subtitle {
-    white-space: nowrap;
-  }
-  
-  .section-subtitle {
-    white-space: nowrap;
-  }
-}
-
-@media (max-width: 1279px) {
-  .subtitle, 
-  .section-subtitle {
-    white-space: normal;
-  }
-}
-
-/* Fade animation for modal */
-.fade-modal-enter-active, .fade-modal-leave-active {
-  transition: opacity 0.3s cubic-bezier(.4,0,.2,1);
-}
-.fade-modal-enter-from, .fade-modal-leave-to {
-  opacity: 0;
-}
-
-/* Modal header with icon */
-.modal-header-flex {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #e75a97;
-  padding-bottom: 0.5rem;
-}
-.modal-info-icon {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: inline-block;
-}
-
-/* Confirmation text */
-.modal-confirm-text {
-  font-size: 1.1rem;
-  color: #444;
-  margin-bottom: 2rem;
-  text-align: left;
-  line-height: 1.7;
-}
-
-/* Button row */
-.modal-btn-row {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.modal-btn {
-  padding: 0.7rem 2.2rem;
-  border-radius: 1.5rem;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.18s;
-  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
-  outline: none;
-}
-.modal-btn.cancel {
-  background: #f4f4f6;
-  color: #666;
-}
-.modal-btn.cancel:hover {
-  background: #ececec;
-  color: #e75a97;
-  transform: translateY(-2px) scale(1.03);
-}
-.modal-btn.ok {
-  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
-}
-.modal-btn.ok:hover {
-  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
-  color: #fff;
-  transform: translateY(-2px) scale(1.03);
-}
-
-/* Responsive for modal */
-@media (max-width: 600px) {
-  .modal-header-flex {
-    font-size: 1.05rem;
-  }
-  .modal-btn-row {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-  }
-  .modal-btn {
-    width: 100%;
-    font-size: 1rem;
-    padding: 0.7rem 0;
-  }
-}
-
-.btn-icon {
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.action-btn, .position-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  /* ... 其他按钮样式 ... */
-}
-
-.action-btn svg, .position-btn svg {
-  fill: white;
+.tab.active {
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 </style>
