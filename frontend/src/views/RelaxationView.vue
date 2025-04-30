@@ -334,11 +334,13 @@ const submitFeedback = async () => {
   animation: liquidFlow 4s linear infinite;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
   transition: all 0.3s ease;
-  line-height: 1.1;
-  display: block;
+  line-height: 1.3;
+  display: inline-block;
   margin-bottom: 1rem;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  padding: 0 0 0.15em;
+  transform: translateY(-0.05em);
   overflow: visible;
 }
 
@@ -373,9 +375,9 @@ const submitFeedback = async () => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
-  overflow: visible;
+  max-width: 100%;
 }
 
 .decorative-elements {
@@ -799,6 +801,7 @@ section:not(:last-child)::after {
   }
   .subtitle {
     font-size: 1.5rem;
+    white-space: nowrap;
   }
 }
 
@@ -811,6 +814,7 @@ section:not(:last-child)::after {
   }
   .subtitle {
     font-size: 1.875rem;
+    white-space: nowrap;
   }
 }
 
