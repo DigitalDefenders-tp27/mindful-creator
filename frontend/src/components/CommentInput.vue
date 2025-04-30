@@ -38,7 +38,7 @@ const router = useRouter();
 // const analysisStore = useAnalysisStore(); // Example store instance
 
 // Define the backend API URL - Use environment variables for production
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/analyze_comment';
+const API_URL = import.meta.env.VITE_API_URL || 'https://mindful-creator-production.up.railway.app/api/analyze_comment';
 
 const submitComment = async () => {
   if (!commentText.value.trim()) {

@@ -133,7 +133,7 @@ const analyzeComments = async () => {
   
   try {
     // Send request to backend API
-    const response = await fetch('http://localhost:8000/api/youtube/analyze', {
+    const response = await fetch('https://mindful-creator-production.up.railway.app/api/youtube/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
