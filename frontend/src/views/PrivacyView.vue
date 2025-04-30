@@ -1361,10 +1361,6 @@
         </div>
       </div>
     </section>
-    
-    <div class="footer">
-      <p>© 2025 by Inflowence | <router-link to="/privacy" class="footer-link">Privacy Policy</router-link></p>
-    </div>
 
     <!-- Image Modal -->
     <div v-if="enlargedImageSrc" class="image-modal-overlay">
@@ -1955,12 +1951,13 @@ onUnmounted(() => {
   animation: liquidFlow 4s linear infinite;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
   transition: all 0.3s ease;
-  line-height: 1.1;
-  display: block;
+  line-height: 1.3;
+  display: inline-block;
   margin-bottom: 1rem;
   white-space: normal;
   text-align: left;
   overflow: visible;
+  padding-bottom: 0.1em;
 }
 
 .title-group h1:hover {
@@ -1994,9 +1991,15 @@ onUnmounted(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
   overflow: visible;
+}
+
+@media (min-width: 768px) {
+  .subtitle {
+    white-space: nowrap;
+  }
 }
 
 /* Container styles */

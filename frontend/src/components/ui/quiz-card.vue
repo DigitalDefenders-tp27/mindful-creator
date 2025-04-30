@@ -12,7 +12,6 @@
         <h3>Check Your Understanding</h3>
         <p>Test your knowledge about ethical content creation</p>
       </div>
-      <div class="bottom-space"></div>
     </div>
   </RainbowButton>
 
@@ -426,7 +425,7 @@ const getCorrectAnswerText = (questionIndex) => {
   z-index: 2;
   flex-direction: row;
   padding-top: 0;
-  padding-bottom: 20px;
+  padding-bottom: 0; /* 移除底部padding，使内容居中 */
   gap: 1.5rem;
 }
 
@@ -455,6 +454,7 @@ const getCorrectAnswerText = (questionIndex) => {
   align-items: center;
   justify-content: center;
   text-align: center;
+  height: 100%; /* 添加高度100%确保占满空间 */
 }
 
 /* 标题样式 / Title Styles */
@@ -478,7 +478,7 @@ const getCorrectAnswerText = (questionIndex) => {
 
 /* 底部空白 / Bottom spacing */
 .bottom-space {
-  height: 20px;
+  height: 0; /* 修改为0，移除底部额外空间 */
   width: 100%;
   position: absolute;
   bottom: 0;
@@ -493,7 +493,7 @@ const getCorrectAnswerText = (questionIndex) => {
   }
   
   .quiz-content {
-    padding-bottom: 15px;
+    padding-bottom: 0; /* 移除底部padding */
     gap: 1.25rem;
   }
 }
@@ -505,7 +505,7 @@ const getCorrectAnswerText = (questionIndex) => {
   }
 
   .quiz-content {
-    padding: 0 2rem 12px;
+    padding: 0 2rem;
     gap: 1rem;
   }
 
@@ -531,7 +531,7 @@ const getCorrectAnswerText = (questionIndex) => {
   }
   
   .quiz-content {
-    padding: 0 1.5rem 10px;
+    padding: 0 1.5rem;
     gap: 0.75rem;
   }
   
@@ -549,9 +549,42 @@ const getCorrectAnswerText = (questionIndex) => {
   }
 }
 
+@media (max-width: 480px) {
+  .quiz-card {
+    width: 100%;
+    height: 70px;
+  }
+  
+  .quiz-content {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+  
+  .quiz-text {
+    width: 70%;
+  }
+  
+  .quiz-icon {
+    @apply w-10 h-10;
+  }
+  
+  .quiz-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .quiz-card p {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+}
+
 /* 确保卡片内文字可读 */
 .quiz-card :deep(.rainbow-button) {
   background-color: white !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 图标悬停效果 / Icon Hover Effect */

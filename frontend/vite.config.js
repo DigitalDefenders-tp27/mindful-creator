@@ -10,9 +10,19 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  optimizeDeps: {
+    include: ['@googlemaps/markerclusterer', 'fast-deep-equal'],
+  },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'fast-deep-equal': fileURLToPath(new URL('./node_modules/fast-deep-equal/index.js', import.meta.url))
     },
   },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
+  }
 })
+
