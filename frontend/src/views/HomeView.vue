@@ -32,7 +32,17 @@
       <div class="about-content">
         <h2>About Our Website</h2>
         <div class="video-container">
-          <div class="play-button">▶</div>
+          <video 
+            controls
+            autoplay
+            muted
+            loop
+            width="100%"
+            height="auto"
+          >
+            <source src="/media/Homepage_Video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
         </div>
         <div class="features-grid">
           <div class="feature">
@@ -261,17 +271,20 @@ const scrollToTop = () => {
   animation: liquidFlow 4s linear infinite;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
   transition: all 0.3s ease;
-  line-height: 1.1;
-  display: block;
+  line-height: 1.3;
+  display: inline-block;
   margin-bottom: 1rem;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  padding: 0 0 0.2em;
+  transform: translateY(-0.05em);
+  overflow: visible;
 }
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
   transform: scale(1.02);
-  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+  animation: liquidFlow 2s linear infinite;
 }
 
 @keyframes liquidFlow {
@@ -301,6 +314,7 @@ const scrollToTop = () => {
   margin-top: 1.5rem;
   white-space: normal;
   text-align: left;
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -336,6 +350,7 @@ const scrollToTop = () => {
   }
   .subtitle {
     font-size: 1.5rem;
+    white-space: nowrap;
   }
 }
 
@@ -348,6 +363,7 @@ const scrollToTop = () => {
   }
   .subtitle {
     font-size: 1.875rem;
+    white-space: nowrap;
   }
 }
 
@@ -636,7 +652,36 @@ const scrollToTop = () => {
 }
 
 /* 移除不需要的视频容器相关样式 / Remove unnecessary video container styles */
-.video-container, .play-button {
+.video-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  position: relative;
+  padding-bottom: calc(56.25% * (800px / 100%)); /* 16:9 Aspect Ratio that scales with container width */
+  max-height: 450px; /* 800px width * 0.5625 = 450px for 16:9 */
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 800px) {
+  .video-container {
+    padding-bottom: 450px; /* Fixed height for screens wider than 800px */
+  }
+}
+
+.video-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.play-button {
   display: none;
 }
 

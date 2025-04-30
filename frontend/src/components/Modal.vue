@@ -21,7 +21,7 @@
 <style scoped>
 .modal-overlay {
   position: fixed;
-  z-index: 2000;
+  z-index: 10001;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.25);
   display: flex;
@@ -42,6 +42,7 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   padding: 2rem 2rem 1.5rem 2rem;
   position: relative;
+  z-index: 10002;
   animation: popIn 0.25s;
 }
 @keyframes popIn {
