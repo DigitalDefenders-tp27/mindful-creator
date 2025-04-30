@@ -295,10 +295,10 @@ onMounted(() => {
   position: relative;
   background: linear-gradient(
     to right,
-    #FF7B9C 20%,
-    #8A77E1 40%, 
-    #8A77E1 60%,
-    #FF7B9C 80%
+    #ff0000 20%,
+    #2a2a2a 40%,
+    #2a2a2a 60%,
+    #ff0000 80%
   );
   background-size: 200% auto;
   color: transparent;
@@ -307,16 +307,18 @@ onMounted(() => {
   animation: liquidFlow 4s linear infinite;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
   transition: all 0.3s ease;
-  line-height: 1.1;
-  display: block;
+  line-height: 1.3;
+  display: inline-block;
   margin-bottom: 1rem;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
+  padding: 0 0 0.2em;
+  transform: translateY(-0.05em);
   overflow: visible;
 }
 
 .title-group h1:hover {
-  filter: drop-shadow(0 0 2px rgba(255, 123, 156, 0.5));
+  filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
   transform: scale(1.02);
   animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
@@ -348,7 +350,7 @@ onMounted(() => {
   margin-top: 1.5rem;
   white-space: normal;
   text-align: left;
-  overflow: visible;
+  max-width: 100%;
 }
 
 /* Enhanced responsive styles for title section */
@@ -475,6 +477,7 @@ onMounted(() => {
   
   .subtitle {
     font-size: 1.375rem;
+    white-space: nowrap;
   }
 }
 
@@ -489,24 +492,59 @@ onMounted(() => {
   
   .subtitle {
     font-size: 1.5rem;
+    white-space: nowrap;
   }
 }
 
 /* Remove duplicate media queries that were previously defined */
 @media (min-width: 640px) {
-  /* Styles moved to ranges above */
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
 }
 
 @media (min-width: 768px) {
-  /* Styles moved to ranges above */
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
 }
 
 @media (min-width: 1024px) {
-  /* Styles moved to ranges above */
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+    white-space: nowrap;
+  }
 }
 
 @media (min-width: 1280px) {
-  /* Styles moved to ranges above */
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+    white-space: nowrap;
+  }
 }
 
 .decorative-elements {
@@ -623,56 +661,28 @@ onMounted(() => {
   
   /* Place circular cards at the top on mobile */
   .main-card {
-    width: 250px;
-    height: 250px;
+    width: 100%;
+    height: auto;
+    min-height: 180px;
     margin: 0 auto 1rem;
-    order: 1; /* Ensure circular heading card displays first */
+    order: 1;
+    border-radius: 16px;
   }
   
   /* Adjust capsule cards for better mobile presentation */
   .long-card {
     width: 100%;
     height: auto;
-    min-height: 150px;
-    max-height: 200px;
-    border-radius: 30px; /* Less curved for better text display on smaller screens */
+    min-height: 180px;
+    border-radius: 16px;
     margin: 0 auto;
-    order: 2; /* Position content cards below the circular heading cards */
-  }
-  
-  /* Ensure proper text display in capsule cards */
-  .preview-text {
-    padding: 1rem 5.5rem 1rem 2rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 95%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 95%,
-      transparent 100%
-    );
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 1rem 5.5rem 1rem 2rem;
+    order: 2;
   }
   
   /* Adjust read more button position for tablets */
   .read-more-button {
     transform: scale(0.9) translateY(-50%);
     margin-right: 1.5rem;
-  }
-  
-  .content-row .long-card .read-more-button {
-    margin-right: 1.5rem;
-  }
-  
-  /* Remove hover transform on touch devices to prevent layout issues */
-  .long-card:hover {
-    transform: none;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -713,35 +723,28 @@ onMounted(() => {
   
   /* Further reduce circular card size */
   .main-card {
-    width: 220px;
-    height: 220px;
-    margin: 0 auto 0.5rem;
+    width: 100%;
+    height: auto;
+    min-height: 150px;
+    border-radius: 16px;
+    padding: 1.2rem;
   }
   
   /* Adjust capsule card shape for smaller screens */
   .long-card {
     min-height: 130px;
     max-height: 180px;
-    border-radius: 25px;
+    border-radius: 16px;
+    padding: 1.2rem;
   }
   
   /* Optimise text padding and gradient mask for mobile */
   .preview-text {
-    padding: 0.8rem 4rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 90%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 90%,
-      transparent 100%
-    );
+    padding: 0.8rem 4rem 0.8rem 1rem;
   }
   
   .content-row .long-card .preview-text {
-    padding: 0.8rem 4rem 0.8rem 1.5rem;
+    padding: 0.8rem 4rem 0.8rem 1rem;
   }
   
   /* Reduce button size for smaller screens */
@@ -783,15 +786,19 @@ onMounted(() => {
   
   /* Compact circular card for mobile */
   .main-card {
-    width: 200px;
-    height: 200px;
+    width: 100%;
+    height: auto;
+    min-height: 150px;
+    border-radius: 16px;
+    padding: 1.2rem;
   }
   
   /* More compact capsule card for smaller screens */
   .long-card {
     min-height: 120px;
     max-height: 160px;
-    border-radius: 20px;
+    border-radius: 16px;
+    padding: 1.2rem;
   }
   
   /* Reduce icon size for better proportions */
@@ -813,16 +820,6 @@ onMounted(() => {
   /* Further adjust text padding for smallest screens */
   .preview-text {
     padding: 0.8rem 3.5rem 0.8rem 1.2rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
   }
   
   .content-row .long-card .preview-text {
@@ -892,10 +889,11 @@ onMounted(() => {
 .content-section {
   @apply relative;
   position: relative;
-  margin-top: 5rem;
-  padding: 1rem 1.5rem;
+  margin-top: 3rem;
+  padding: 2rem;
   position: relative;
   z-index: 2;
+  background-color: rgba(250, 250, 250, 0.5);
 }
 
 .content-section::before {
@@ -906,16 +904,15 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.4) 0%,
-    rgba(218, 237, 148, 0.25) 20%,
-    rgba(225, 241, 158, 0.15) 40%,
-    rgba(228, 245, 138, 0) 60%
+    rgba(209, 231, 125, 0.15) 0%,
+    rgba(218, 237, 148, 0.1) 40%,
+    rgba(228, 245, 138, 0) 80%
   );
   z-index: -1;
   pointer-events: none;
 }
 
-/* Add an additional decorative element to ensure the gradient effect is visible in the card area but does not intrude on the title area */
+/* 美化渐变背景，使其更加轻微 */
 .ethic-container::after {
   content: '';
   position: absolute;
@@ -924,9 +921,8 @@ onMounted(() => {
   width: 100%;
   height: 55%;
   background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.35) 0%,
-    rgba(218, 237, 148, 0.2) 15%,
-    rgba(225, 241, 158, 0.1) 50%,
+    rgba(209, 231, 125, 0.15) 0%,
+    rgba(218, 237, 148, 0.08) 40%,
     rgba(228, 245, 138, 0) 100%
   );
   z-index: 0;
@@ -945,13 +941,49 @@ onMounted(() => {
 }
 
 .content-row {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  @apply grid gap-6;
   margin-bottom: 3rem;
+  grid-template-columns: 300px minmax(300px, 1fr);
 }
 
-/* Default layout for all rows */
-.content-row {
-  grid-template-columns: minmax(auto, 300px) 1fr;
+/* 响应式布局调整 */
+@media (max-width: 1024px) {
+  .content-row {
+    grid-template-columns: 250px minmax(250px, 1fr);
+    gap: 2rem;
+  }
+  
+  .content-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-row {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .content-section {
+    padding: 1.25rem;
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .content-row {
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .content-section {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
 }
 
 .quiz-row {
@@ -964,18 +996,19 @@ onMounted(() => {
 
 .main-card, .long-card {
   @apply h-full p-6;
-  min-height: 200px;
+  min-height: 280px;
+  height: 280px;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgb(0, 0, 0);
+  border: none;
   background-color: rgb(255, 255, 255);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .main-card {
-  border-radius: 50%;
-  aspect-ratio: 1;
+  border-radius: 16px;
   width: 300px;
-  height: 300px;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -984,21 +1017,34 @@ onMounted(() => {
 }
 
 .long-card {
-  border-radius: 9999px;
+  border-radius: 16px;
   width: 100%;
-  height: 300px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   padding: 1.5rem 2.5rem;
-  transition: all 0.3s ease;
   position: relative;
   overflow: hidden !important;
   display: flex;
+  cursor: pointer;
 }
 
 .long-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.main-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+.main-card:hover .card-text h3 {
+  color: #1E6A42;
+}
+
+.long-card:hover .preview-text :deep(h1) {
+  color: #1E6A42;
 }
 
 .preview-content {
@@ -1010,6 +1056,7 @@ onMounted(() => {
   padding: 0;
   max-height: 100%;
   width: 100%;
+  justify-content: center;
 }
 
 /* Special styles for the second row left card */
@@ -1053,46 +1100,51 @@ onMounted(() => {
   flex-grow: 1;
   overflow: hidden;
   position: relative;
-  padding: 1.5rem 12rem 1.5rem 4rem;
+  padding: 1.5rem 5rem 1.5rem 1.5rem;
   max-height: 100%;
   text-overflow: ellipsis;
   mask-image: linear-gradient(to bottom,
     black 0%,
-    black 88%,
+    black 90%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(to bottom,
     black 0%,
-    black 88%,
+    black 90%,
     transparent 100%
   );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* 统一所有长卡片的文本内边距 */
 .content-row .long-card .preview-text {
-  padding: 1.5rem 12rem 1.5rem 4rem;
+  padding: 1.5rem 5rem 1.5rem 1.5rem;
 }
 
 .preview-text :deep(h1) {
-  @apply text-2xl sm:text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white;
-  margin-bottom: 1.2rem;
+  @apply text-2xl sm:text-2xl md:text-3xl font-bold;
+  margin-bottom: 1rem;
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+  color: #222;
 }
 
 .preview-text :deep(p) {
-  @apply text-base sm:text-base md:text-lg text-neutral-700 dark:text-neutral-300;
+  @apply text-base sm:text-base md:text-lg;
   line-height: 1.5;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  color: #555;
 }
 
 .preview-text :deep(ul) {
@@ -1130,189 +1182,88 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  margin-right: 3rem;
+  margin-right: 1.5rem;
   --tw-border-opacity: 0.3;
   background-color: transparent !important;
-  color: #1E6A42;
+  transition: transform 0.3s ease;
+}
+
+.read-more-button:hover {
+  transform: translateY(-50%) translateX(5px);
 }
 
 .read-more-button :deep(.bg-primary) {
-  background-color: #1E6A42 !important;
+  background-color: #e75a97 !important;
 }
 
 .read-more-button :deep(.text-primary-foreground) {
   color: white !important;
 }
 
-/* 统一所有长卡片的按钮位置和悬停效果 */
+.read-more-button :deep(span) {
+  color: #e75a97;
+}
+
+.read-more-button:hover :deep(.group-hover\:opacity-100 span) {
+  color: white !important;
+}
+
 .content-row .long-card .read-more-button {
   right: 0;
   left: auto;
-  margin-right: 3rem;
+  margin-right: 1.5rem;
 }
 
-/* Ensure the button has enough space to display when hovered */
-.long-card {
-  position: relative;
-  overflow: visible !important;
+/* 增加卡片内容的间距和样式 */
+.preview-text :deep(h1) {
+  @apply text-2xl sm:text-2xl md:text-3xl font-bold;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  color: #222;
 }
 
-/* 统一按钮悬停效果 */
-.content-row .long-card .read-more-button:hover {
-  transform: translateY(-50%) translateX(5px);
+.preview-text :deep(p) {
+  @apply text-base sm:text-base md:text-lg;
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: #555;
 }
 
-@media (max-width: 1280px) {
-  .preview-text {
-    padding: 1.5rem 10rem 1.5rem 3.5rem;
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 1.5rem 10rem 1.5rem 3.5rem;
-  }
-  
-  .content-row .long-card .preview-content {
-    padding: 0;
-  }
-  
-  .read-more-button {
-    margin-right: 2.5rem;
-  }
-  
-  .content-row .long-card .read-more-button {
-    margin-right: 2.5rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .preview-text {
-    padding: 1.5rem 8rem 1.5rem 3rem;
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 1.5rem 8rem 1.5rem 3rem;
-  }
-  
-  .content-row .long-card .preview-content {
-    padding: 0;
-  }
-  
-  .read-more-button {
-    margin-right: 2rem;
-  }
-  
-  .content-row .long-card .read-more-button {
-    margin-right: 2rem;
-  }
-}
-
+/* 响应式调整按钮 */
 @media (max-width: 768px) {
-  .preview-text {
-    padding: 1rem 5.5rem 1rem 2rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 95%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 95%,
-      transparent 100%
-    );
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 1rem 5.5rem 1rem 2rem;
-  }
-  
-  /* Adjust read more button position for tablets */
   .read-more-button {
     transform: scale(0.9) translateY(-50%);
     margin-right: 1.5rem;
   }
   
-  .content-row .long-card .read-more-button {
-    margin-right: 1.5rem;
-  }
-  
-  /* Remove hover transform on touch devices to prevent layout issues */
-  .long-card:hover {
-    transform: none;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  .read-more-button:hover {
+    transform: scale(0.9) translateY(-50%) translateX(5px);
   }
 }
 
 @media (max-width: 640px) {
-  .preview-text {
-    padding: 0.8rem 4rem 0.8rem 1.5rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 90%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 90%,
-      transparent 100%
-    );
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 0.8rem 4rem 0.8rem 1.5rem;
-  }
-  
-  /* Reduce button size for smaller screens */
   .read-more-button {
     transform: scale(0.8) translateY(-50%);
     margin-right: 1.2rem;
   }
   
-  .content-row .long-card .read-more-button {
-    margin-right: 1.2rem;
+  .read-more-button:hover {
+    transform: scale(0.8) translateY(-50%) translateX(5px);
   }
   
-  /* Adjust hover effect for button on touch devices */
-  .content-row .long-card .read-more-button:hover {
-    transform: scale(0.8) translateY(-50%);
-  }
-}
-
-@media (max-width: 480px) {
-  .preview-text {
-    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
-    -webkit-mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(to bottom,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-  }
-  
-  .content-row .long-card .preview-text {
-    padding: 0.8rem 3.5rem 0.8rem 1.2rem;
-  }
-  
-  /* Adjust read more button position for smallest screens */
-  .read-more-button {
-    transform: scale(0.75) translateY(-50%);
-    margin-right: 0.75rem;
-  }
-  
-  .content-row .long-card .read-more-button {
-    margin-right: 0.75rem;
-  }
-  
-  /* Clip text more aggressively to fit smaller container */
-  .preview-text :deep(h1) {
-    -webkit-line-clamp: 1;
-  }
-  
-  .preview-text :deep(p) {
-    -webkit-line-clamp: 1;
+  .card-icon {
+    width: 50px;
+    height: 50px;
   }
 }
 
@@ -1339,17 +1290,22 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.2rem;
   min-height: 60px;
 }
 
 .card-icon {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.main-card:hover .card-icon {
+  transform: translateY(-5px);
 }
 
 .card-text h3 {
@@ -1360,6 +1316,7 @@ onMounted(() => {
   margin: 0;
   text-align: center;
   line-height: 1.3;
+  color: #333;
 }
 
 .card-description {
@@ -1367,6 +1324,7 @@ onMounted(() => {
   @apply text-base text-neutral-600 dark:text-neutral-400;
   line-height: 1.5;
   text-align: center;
+  color: #666;
 }
 
 /* Dark mode adjustments */
@@ -1480,17 +1438,24 @@ onMounted(() => {
 
 /* Responsive design for circular and capsule cards */
 @media (max-width: 1280px) {
+  .main-card, .long-card {
+    height: 250px;
+    min-height: 250px;
+  }
+  
   .main-card {
     width: 280px;
-    height: 280px;
     padding: 1.8rem;
   }
 
   .long-card {
-    height: 280px;
-    border-radius: 9999px;
+    padding: 1.5rem 2rem;
   }
-
+  
+  .preview-text, .content-row .long-card .preview-text {
+    padding: 1.5rem 4.5rem 1.5rem 1.5rem;
+  }
+  
   .card-icon {
     width: 70px;
     height: 70px;
@@ -1507,17 +1472,24 @@ onMounted(() => {
 }
 
 @media (max-width: 1024px) {
+  .main-card, .long-card {
+    height: 220px;
+    min-height: 220px;
+  }
+  
   .main-card {
     width: 250px;
-    height: 250px;
     padding: 1.5rem;
   }
 
   .long-card {
-    height: 250px;
-    border-radius: 9999px;
+    padding: 1.2rem 1.8rem;
   }
-
+  
+  .preview-text, .content-row .long-card .preview-text {
+    padding: 1.2rem 4rem 1.2rem 1.2rem;
+  }
+  
   .card-icon {
     width: 60px;
     height: 60px;
@@ -1550,7 +1522,40 @@ onMounted(() => {
   }
 }
 
+@media (max-width: 768px) {
+  .main-card, .long-card {
+    width: 100%;
+    height: auto;
+    min-height: 180px;
+    justify-content: center;
+  }
+  
+  .preview-text, .content-row .long-card .preview-text {
+    padding: 1rem 4rem 1rem 1.2rem;
+    justify-content: center;
+  }
+  
+  .preview-content {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 640px) {
+  .main-card, .long-card {
+    min-height: 150px;
+    padding: 1rem;
+    justify-content: center;
+  }
+  
+  .preview-text, .content-row .long-card .preview-text {
+    padding: 0.8rem 3.5rem 0.8rem 1rem;
+    justify-content: center;
+  }
+  
+  .preview-content {
+    justify-content: center;
+  }
+  
   .preview-text :deep(h1) {
     font-size: 1rem;
     margin-bottom: 0.4rem;
@@ -1571,7 +1576,68 @@ onMounted(() => {
   }
 }
 
+@media (max-width: 480px) {
+  .main-card, .long-card {
+    min-height: 130px;
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 3.5rem 0.8rem 0.8rem;
+  }
+}
+
 section:not(:last-child)::after {
   display: none;
 }
+
+/* 确保在所有响应尺寸下都保持一致的圆角矩形设计 */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .long-card {
+    border-radius: 16px !important;
+    height: 280px;
+  }
+  
+  .main-card {
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-card, .long-card {
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-card, .long-card {
+    border-radius: 16px;
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-card, .long-card {
+    border-radius: 16px;
+    min-height: 130px;
+  }
+  
+  .content-row .long-card .preview-text {
+    padding: 0.8rem 4rem 0.8rem 1rem;
+  }
+}
+
+/* 悬停状态的按钮文本颜色 */
+.read-more-button:hover :deep(.group-hover\:opacity-100 span) {
+  color: white !important;
+}
+
+/* 当卡片被悬停时，按钮中的文字也变为白色 */
+.long-card:hover .read-more-button :deep(span) {
+  color: white !important;
+}
+
+.long-card:hover .read-more-button :deep(.group-hover\:opacity-100 span) {
+  color: white !important;
+}
 </style>
+

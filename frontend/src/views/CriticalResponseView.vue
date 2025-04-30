@@ -608,11 +608,13 @@
     animation: liquidFlow 4s linear infinite;
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
     transition: all 0.3s ease;
-    line-height: 1.1;
-    display: block;
+    line-height: 1.3;
+    display: inline-block;
     margin-bottom: 1rem;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
+    padding: 0 0 0.15em;
+    transform: translateY(-0.05em);
   }
 
   .title-group h1:hover {
@@ -646,8 +648,9 @@
     color: #666;
     line-height: 1.4;
     margin-top: 1.5rem;
-    white-space: nowrap;
+    white-space: normal;
     text-align: left;
+    max-width: 100%;
   }
 
   @media (min-width: 640px) {
@@ -683,6 +686,7 @@
     }
     .subtitle {
       font-size: 1.5rem;
+      white-space: nowrap;
     }
   }
 
@@ -695,6 +699,7 @@
     }
     .subtitle {
       font-size: 1.875rem;
+      white-space: nowrap;
     }
   }
 
@@ -916,7 +921,7 @@
     border-radius: 24px;
     width: 90%;
     max-width: 1200px;
-    margin: -30px auto 4rem;
+    margin: 30px auto 4rem;
     position: relative;
     background: white;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
