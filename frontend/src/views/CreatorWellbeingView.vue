@@ -87,7 +87,7 @@
               <GMapMap
                 :center="mapCenter"
                 :zoom="14"
-                style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
+                style="width: 100%; height: 560px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
               >
                 <GMapMarker
                   v-for="clinic in displayedClinics"
@@ -160,30 +160,32 @@
             </div>
 
             <div class="resource-details" v-if="selectedClinic && activeTab === 'offline'">
-              <h3 class="resource-name">{{ selectedClinic.name }}</h3>
-              <div class="rating">
-                <span class="rating-score">{{ selectedClinic.rating }}</span>
-                <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
-                <span class="reviews">({{ selectedClinic.reviews }})</span>
-              </div>
+              <div class="resource-info-content">
+                <h3 class="resource-name">{{ selectedClinic.name }}</h3>
+                <div class="rating">
+                  <span class="rating-score">{{ selectedClinic.rating }}</span>
+                  <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
+                  <span class="reviews">({{ selectedClinic.reviews }})</span>
+                </div>
 
-              <div class="resource-location">
-                <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
-                <span>{{ selectedClinic.address }}</span>
-              </div>
+                <div class="resource-location">
+                  <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
+                  <span>{{ selectedClinic.address }}</span>
+                </div>
 
-              <div class="resource-website">
-                <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
-                <button class="online-switch" @click="switchToOnline">Switch to online</button>
-              </div>
+                <div class="resource-website">
+                  <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
+                  <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                  <button class="online-switch" @click="switchToOnline">Switch to online</button>
+                </div>
 
-              <div class="opening-hours">
-                <h4>Opening hours</h4>
-                <div class="hours-grid">
-                  <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
-                    <div class="day">{{ day }}</div>
-                    <div class="hours">{{ hours }}</div>
+                <div class="opening-hours">
+                  <h4>Opening hours</h4>
+                  <div class="hours-grid">
+                    <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
+                      <div class="day">{{ day }}</div>
+                      <div class="hours">{{ hours }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1364,95 +1366,394 @@ const featuredActivities = computed(() => {
   }
 }
 
-/* 响应式布局支持 */
-@media (max-width: 1200px) {
-  .container {
-    max-width: 95%;
-  }
-
-  .dashboard-content,
-  .resource-content {
-    flex-direction: column;
-  }
-
-  .chart-container,
-  .insights-container,
-  .map-container,
-  .resource-details {
-    width: 100%;
-    margin-bottom: 2rem;
-  }
-
-  .activities-grid {
-    gap: 1.5rem;
-  }
+/* 通用部分样式 / Common section styles */
+.section-title,
+.section-subtitle {
+  position: relative;
+  z-index: 2;
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 0 1rem;
-  }
-
-  .section-title {
-    font-size: 2rem;
-  }
-
-  .section-subtitle {
-    font-size: 1rem;
-  }
-
-  .tabs,
-  .resource-tabs {
-    flex-wrap: wrap;
-  }
-
-  .tab,
-  .resource-tab {
-    margin: 0.25rem;
-  }
-
-  .activities-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .resource-tabs {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .recent-title {
-    font-size: 1.2rem;
-  }
+.section-title {
+  font-size: 2.5rem;
+  color: #000;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
-@media (max-width: 640px) {
-  .section-title {
-    font-size: 1.75rem;
-  }
-  
-  .chart-title,
-  .insights-title,
-  .resource-name {
-    font-size: 1.25rem;
-  }
-  
-  .resource-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .action-btn {
-    width: 100%;
-  }
-  
-  .event-card {
-    flex-direction: column;
-  }
-  
-  .event-img {
-    width: 100%;
-    height: 200px;
-  }
+.section-subtitle {
+  font-size: 1.2rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 3rem;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+section {
+  padding: 3rem 0 5rem;
+  position: relative;
+  border-bottom: none;
+  margin-bottom: 5rem;
+}
+
+section:last-child {
+  margin-bottom: 3rem;
+}
+
+section:not(:last-child)::after {
+  display: none;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Dashboard section */
+.dashboard-section {
+  padding: 3rem 0 5rem;
+  position: relative;
+  margin-bottom: 5rem;
+  background-color: #fffcf5;
+}
+
+.tabs,
+.resource-tabs,
+.activities-header,
+.activities-grid {
+  position: relative;
+  z-index: 2;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #666;
+  position: relative;
+}
+
+.tab.active {
+  color: #e75a97;
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e75a97;
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 2rem;
+}
+
+.chart-container,
+.resource-content,
+.activity-card {
+  position: relative;
+  z-index: 2;
+  background-color: #fff;
+  background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.95));
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(230, 239, 182, 0.4);
+}
+
+.chart-container {
+  padding: 2rem;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+.chart {
+  height: 250px;
+  position: relative;
+}
+
+.chart-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.insights-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insights-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.insight-card {
+  position: relative;
+  z-index: 2;
+  background-color: #fffaee;
+  background-image: linear-gradient(to bottom, #fffaee, rgba(255, 250, 238, 0.95));
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(230, 239, 182, 0.4);
+}
+
+.insight-card p {
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Resource finder section */
+.resource-finder-section {
+  background-color: #fffcf5;
+}
+
+.resource-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  justify-content: center;
+}
+
+.resource-tab {
+  padding: 1rem 2.5rem;
+  background: #f4f4f6;
+  border-radius: 2.5rem;
+  color: #666;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  outline: none;
+  letter-spacing: 0.01em;
+}
+
+.resource-tab.active {
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
+  transform: scale(1.04);
+}
+
+.resource-tab:not(.active):hover {
+  background: #ececec;
+  color: #e75a97;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
+}
+
+.resource-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  background-color: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(230, 239, 182, 0.4);
+  position: relative;
+  z-index: 2;
+  min-height: 560px;
+}
+
+.map-container {
+  position: relative;
+  height: 100%;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-details {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.resource-info-content {
+  flex: 1;
+}
+
+.position-btn {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  height: 42px;
+  line-height: 42px;
+}
+
+.action-btn {
+  flex: 1;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  height: 42px;
+  line-height: 42px;
+}
+
+.resource-name {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.resource-location,
+.resource-website {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.online-switch {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 15px;
+  margin-left: 0.5rem;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.resource-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Activities hub section */
+.activities-section {
+  background-color: #fffcf5;
+}
+
+.activities-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.recent-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.view-all-btn {
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.view-all-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.activity-card {
+  background-color: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(230, 239, 182, 0.4);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.activity-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  border-color: rgba(231, 90, 151, 0.2);
+}
+
+.activity-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.activity-card:hover .activity-img {
+  transform: scale(1.05);
+}
+
+.activity-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 1rem;
+  padding-bottom: 0.5rem;
+  color: #333;
+}
+
+.activity-card:hover .activity-title {
+  color: #e75a97;
 }
 
 /* Modal window styles */
@@ -1955,5 +2256,147 @@ const featuredActivities = computed(() => {
     margin-right: 0;
     margin-bottom: 1rem;
   }
+}
+
+.opening-hours {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.opening-hours h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.hours-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.hours-grid > div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 0.3rem;
+}
+
+.day {
+  color: #333;
+  font-weight: 500;
+}
+
+.hours {
+  color: #666;
+  text-align: right;
+}
+
+/* 添加通用的标签样式 */
+.tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #222222; /* 改为深色文字 */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+/* 移除深色标签样式 */
+.tag.may, 
+.tag.june, 
+.tag.workshop, 
+.tag.mental-health, 
+.tag.physical-wellness-practice, 
+.tag.workplace-wellbeing, 
+.tag.workplace-wellbeing-workshop {
+  color: #222222;
+}
+
+/* 移除浅色标签样式 */
+.tag.april, 
+.tag.free-event, 
+.tag.october, 
+.tag.sales-ended, 
+.tag.nearly-full {
+  color: #222222;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* 修改不同标签的颜色 */
+.tag.sold-out {
+  background-color: #ff5252;
+}
+
+.tag.nearly-full {
+  background-color: #ff9800;
+}
+
+.tag.april {
+  background-color: #8bc34a;
+}
+
+.tag.may {
+  background-color: #2196F3;
+}
+
+.tag.june {
+  background-color: #9C27B0;
+}
+
+.tag.october {
+  background-color: #FF9800;
+}
+
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.free-event {
+  background-color: #4CAF50;
+}
+
+.tag.paid {
+  background-color: #F44336;
+}
+
+.tag.festival {
+  background-color: #e91e63;
+}
+
+.tag.mental-health {
+  background-color: #673ab7;
+}
+
+.tag.outdoor-wellness {
+  background-color: #009688;
+}
+
+.tag.physical-wellness-practice {
+  background-color: #3f51b5;
+}
+
+.tag.workplace-wellbeing, .tag.workplace-wellbeing-workshop {
+  background-color: #607D8B;
+}
+
+.tag.sales-ended {
+  background-color: #9E9E9E;
+}
+
+/* 修改活动标签容器样式 */
+.activity-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 </style>
