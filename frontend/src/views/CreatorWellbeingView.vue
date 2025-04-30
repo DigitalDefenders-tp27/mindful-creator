@@ -61,7 +61,7 @@
             <div 
               class="resource-tab" 
               :class="{ active: activeTab === 'offline' }"
-              @click="switchTab('offline')"
+              @click="switchResourceTab('offline')"
             >Psychologist (Offline Resources)</div>
             <div 
               class="resource-tab" 
@@ -83,7 +83,7 @@
 
           <div class="resource-content">
             <!-- Google Map display -->
-            <div class="map-container">
+            <div class="map-container" v-if="activeTab === 'offline'">
               <GMapMap
                 :center="mapCenter"
                 :zoom="14"
@@ -108,8 +108,58 @@
                 Get My Position
               </button>
             </div>
+            
+            <!-- Online Resources -->
+            <div class="online-resources-container" v-if="activeTab === 'online'">
+              <div class="online-resources-list">
+                <div class="online-resource-card">
+                  <div class="resource-logo">
+                    <img src="../assets/icons/elements/online-therapy.svg" alt="Online Therapy" class="resource-icon">
+                  </div>
+                  <div class="resource-info">
+                    <h3>BetterHelp</h3>
+                    <p>Online counselling and therapy with professional counsellors.</p>
+                    <div class="resource-tags">
+                      <span class="tag">Online Therapy</span>
+                      <span class="tag">Subscription</span>
+                    </div>
+                    <a href="https://www.betterhelp.com" target="_blank" class="resource-link-btn">Visit Website</a>
+                  </div>
+                </div>
+                
+                <div class="online-resource-card">
+                  <div class="resource-logo">
+                    <img src="../assets/icons/elements/meditation-app.svg" alt="Meditation App" class="resource-icon">
+                  </div>
+                  <div class="resource-info">
+                    <h3>Headspace</h3>
+                    <p>Guided meditation and mindfulness exercises for stress reduction.</p>
+                    <div class="resource-tags">
+                      <span class="tag">Meditation</span>
+                      <span class="tag">Freemium</span>
+                    </div>
+                    <a href="https://www.headspace.com" target="_blank" class="resource-link-btn">Visit Website</a>
+                  </div>
+                </div>
+                
+                <div class="online-resource-card">
+                  <div class="resource-logo">
+                    <img src="../assets/icons/elements/support-group.svg" alt="Support Group" class="resource-icon">
+                  </div>
+                  <div class="resource-info">
+                    <h3>7 Cups</h3>
+                    <p>Free emotional support through online chat with trained listeners.</p>
+                    <div class="resource-tags">
+                      <span class="tag">Peer Support</span>
+                      <span class="tag">Free</span>
+                    </div>
+                    <a href="https://www.7cups.com" target="_blank" class="resource-link-btn">Visit Website</a>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <div class="resource-details" v-if="selectedClinic">
+            <div class="resource-details" v-if="selectedClinic && activeTab === 'offline'">
               <h3 class="resource-name">{{ selectedClinic.name }}</h3>
               <div class="rating">
                 <span class="rating-score">{{ selectedClinic.rating }}</span>
@@ -155,37 +205,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- Preparation Guide Modal -->
-        <Modal v-if="showGuide" @close="showGuide = false">
-          <template #header>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span>Preparation Guide for Psychological Consultation</span>
-              <button @click="showGuide = false" style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
-            </div>
-          </template>
-          <template #body>
-            <h4 style="margin-top:0; color:#e75a97;">Before Your Appointment</h4>
-            <ul style="margin-bottom:1.2rem;">
-              <li>✓ Bring your Medicare card or insurance details.</li>
-              <li>✓ Prepare a brief list of your main concerns or goals.</li>
-              <li>✓ Arrive 10 minutes early for paperwork and to relax.</li>
-            </ul>
-            <h4 style="color:#e75a97;">During Your Appointment</h4>
-            <ul style="margin-bottom:1.2rem;">
-              <li>✓ Be open and honest with your psychologist.</li>
-              <li>✓ Share your prepared concerns and ask questions.</li>
-              <li>✓ Take notes if you find it helpful.</li>
-            </ul>
-            <h4 style="color:#e75a97;">After Your Appointment</h4>
-            <ul>
-              <li>✓ Reflect on the session and any advice given.</li>
-              <li>✓ Schedule your next appointment if needed.</li>
-              <li>✓ Take care of yourself and reach out if you have questions.</li>
-            </ul>
-            <p style="margin-top:1.2rem; color:#666;">Wishing you a positive and supportive experience!</p>
-          </template>
-        </Modal>
       </div>
     </section>
 
@@ -325,17 +344,58 @@
     </div>
 
   </div>
+  
+  <!-- Preparation Guide Modal - Moved outside main container to prevent stacking context issues -->
+  <div v-if="showGuide" class="preparation-guide-wrapper">
+    <Modal @close="showGuide = false">
+      <template #header>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Preparation Guide for Psychological Consultation</span>
+          <button @click="showGuide = false" style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
+        </div>
+      </template>
+      <template #body>
+        <h4 style="margin-top:0; color:#e75a97;">Before Your Appointment</h4>
+        <ul style="margin-bottom:1.2rem;">
+          <li>✓ Bring your Medicare card or insurance details.</li>
+          <li>✓ Prepare a brief list of your main concerns or goals.</li>
+          <li>✓ Arrive 10 minutes early for paperwork and to relax.</li>
+        </ul>
+        <h4 style="color:#e75a97;">During Your Appointment</h4>
+        <ul style="margin-bottom:1.2rem;">
+          <li>✓ Be open and honest with your psychologist.</li>
+          <li>✓ Share your prepared concerns and ask questions.</li>
+          <li>✓ Take notes if you find it helpful.</li>
+        </ul>
+        <h4 style="color:#e75a97;">After Your Appointment</h4>
+        <ul>
+          <li>✓ Reflect on the session and any advice given.</li>
+          <li>✓ Schedule your next appointment if needed.</li>
+          <li>✓ Take care of yourself and reach out if you have questions.</li>
+        </ul>
+        <p style="margin-top:1.2rem; color:#666;">Wishing you a positive and supportive experience!</p>
+      </template>
+    </Modal>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import Chart from 'chart.js/auto'
+import Modal from '../components/Modal.vue'
 
 const currentTab = ref(0)
 let chartInstance = null
 const selectedClinic = ref(null)
+const showGuide = ref(false)
+const mapCenter = ref({ lat: -37.8136, lng: 144.9631 }) // Default Melbourne centre coordinates
+const userLocation = ref(null) 
+const displayedClinics = ref([])
+const activeTab = ref('offline')
+const searchAddress = ref('')
+const userIcon = { url: '../assets/icons/elements/user-location.svg', scaledSize: { width: 32, height: 32 } }
 
-// 添加事件相关状态
+// Event related states
 const isModalVisible = ref(false)
 const searchQuery = ref('')
 const selectedLocation = ref('All locations')
@@ -450,9 +510,73 @@ const renderChart = () => {
 
 onMounted(() => {
   renderChart()
+  
+  // Initialise example clinic data
+  displayedClinics.value = [
+    {
+      id: 1,
+      name: 'Melbourne Psychology Centre',
+      rating: 4.8,
+      reviews: 128,
+      address: '123 Collins Street, Melbourne VIC 3000',
+      website: 'https://example.com/melbourne-psychology',
+      lat: -37.8136,
+      lng: 144.9631,
+      openingHours: {
+        'Monday': '9:00 AM - 5:00 PM',
+        'Tuesday': '9:00 AM - 5:00 PM',
+        'Wednesday': '9:00 AM - 5:00 PM',
+        'Thursday': '9:00 AM - 7:00 PM',
+        'Friday': '9:00 AM - 5:00 PM',
+        'Saturday': '10:00 AM - 2:00 PM',
+        'Sunday': 'Closed'
+      }
+    },
+    {
+      id: 2,
+      name: 'Sydney Wellness Clinic',
+      rating: 4.6,
+      reviews: 95,
+      address: '456 George Street, Sydney NSW 2000',
+      website: 'https://example.com/sydney-wellness',
+      lat: -33.8688,
+      lng: 151.2093,
+      openingHours: {
+        'Monday': '8:30 AM - 6:00 PM',
+        'Tuesday': '8:30 AM - 6:00 PM',
+        'Wednesday': '8:30 AM - 6:00 PM',
+        'Thursday': '8:30 AM - 8:00 PM',
+        'Friday': '8:30 AM - 6:00 PM',
+        'Saturday': '9:00 AM - 3:00 PM',
+        'Sunday': 'Closed'
+      }
+    },
+    {
+      id: 3,
+      name: 'Brisbane Mind Health',
+      rating: 4.9,
+      reviews: 76,
+      address: '789 Queen Street, Brisbane QLD 4000',
+      website: 'https://example.com/brisbane-mind',
+      lat: -27.4698,
+      lng: 153.0251,
+      openingHours: {
+        'Monday': '9:00 AM - 5:30 PM',
+        'Tuesday': '9:00 AM - 5:30 PM',
+        'Wednesday': '9:00 AM - 5:30 PM',
+        'Thursday': '9:00 AM - 7:30 PM',
+        'Friday': '9:00 AM - 5:30 PM',
+        'Saturday': '10:00 AM - 1:00 PM',
+        'Sunday': 'Closed'
+      }
+    }
+  ]
+  
+  // Set default selected clinic so the details panel is visible initially
+  selectedClinic.value = displayedClinics.value[0]
 })
 
-// 打开和关闭模态窗口的函数
+// Event modal functions
 const openModal = () => {
   isModalVisible.value = true
 }
@@ -461,7 +585,7 @@ const closeModal = () => {
   isModalVisible.value = false
 }
 
-// 重置筛选器
+// Reset filters
 const resetFilters = () => {
   searchQuery.value = ''
   selectedLocation.value = 'All locations'
@@ -471,7 +595,73 @@ const resetFilters = () => {
   sortOption.value = 'dateAsc'
 }
 
-// 示例事件数据
+
+const getMyPosition = () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        userLocation.value = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+        mapCenter.value = userLocation.value
+      },
+      error => {
+        console.error('Error getting location:', error)
+        alert('Unable to obtain your location. Please check your location permissions settings.')
+      }
+    )
+  } else {
+    alert('Your browser does not support geolocation.')
+  }
+}
+
+const switchResourceTab = (tabName) => {
+  activeTab.value = tabName
+  // When switching to offline tab, set default clinic if none is selected
+  if (tabName === 'offline') {
+    // Set first clinic as default if selectedClinic is null
+    if (!selectedClinic.value && displayedClinics.value.length > 0) {
+      selectedClinic.value = displayedClinics.value[0]
+    }
+  } else {
+    // For other tabs like online, clear the selection
+    selectedClinic.value = null
+  }
+}
+
+const onSearch = () => {
+  // This should call the location search API
+  console.log('Searching address:', searchAddress.value)
+  // Simulate search results
+  if (searchAddress.value) {
+    // Normally this would call Google Places API for address search
+    mapCenter.value = { lat: -37.8136, lng: 144.9631 } // Example Melbourne location
+  }
+}
+
+const selectClinic = (clinic) => {
+  selectedClinic.value = clinic
+}
+
+const getDirections = () => {
+  if (selectedClinic.value) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedClinic.value.lat},${selectedClinic.value.lng}`
+    window.open(url, '_blank')
+  }
+}
+
+const switchToOnline = () => {
+  activeTab.value = 'online'
+  selectedClinic.value = null
+}
+
+const onOnlineTabClick = () => {
+  activeTab.value = 'online'
+  selectedClinic.value = null
+}
+
+
 const events = [
   {
     id: 1,
@@ -665,7 +855,6 @@ const sortedFilteredEvents = computed(() => {
   })
 })
 
-// 首页特色活动
 const featuredActivities = computed(() => {
   // Display a mix of activities (one from each month for variety)
   const april = events.find(event => event.tags.some(tag => tag === 'April'))
@@ -680,6 +869,16 @@ const featuredActivities = computed(() => {
 
 
 <style scoped>
+/* Modal z-index overrides to fix layering issues */
+:deep(.modal-overlay) {
+  z-index: 9999 !important;
+}
+
+.preparation-guide-wrapper {
+  position: relative;
+  z-index: 10000; /* Ensure this is the highest z-index in the application */
+}
+
 .visualisation-container {
   display: flex;
   justify-content: center;
@@ -1518,6 +1717,13 @@ section:not(:last-child)::after {
   cursor: pointer;
   font-weight: 500;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+}
+
+.position-btn:hover {
+  background-color: #d4407f;
+  transform: translateX(-50%) translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .pin-icon {
@@ -1580,6 +1786,13 @@ section:not(:last-child)::after {
   color: #666;
   cursor: pointer;
   font-size: 0.85rem;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.online-switch:hover {
+  background-color: #f4f4f6;
+  border-color: #e75a97;
+  color: #e75a97;
 }
 
 .opening-hours {
@@ -1627,6 +1840,13 @@ section:not(:last-child)::after {
   gap: 0.5rem;
   cursor: pointer;
   font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.action-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 90, 151, 0.2);
 }
 
 .btn-icon {
@@ -1906,7 +2126,7 @@ section:not(:last-child)::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1000; /* Keep this lower than modal-overlay's z-index */
   overflow-y: auto;
   padding: 2rem 0;
 }
@@ -1978,12 +2198,18 @@ section:not(:last-child)::after {
   background: #faf7fa;
   color: #444;
   outline: none;
-  transition: box-shadow 0.2s, border 0.2s;
+  transition: box-shadow 0.2s, border 0.2s, background-color 0.2s;
 }
+
+.search-input:hover {
+  background: #f7f4f7;
+}
+
 .search-input:focus {
   box-shadow: 0 0 0 2px #e75a97;
   background: #fff;
 }
+
 .search-btn {
   background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
   color: #fff;
@@ -1994,13 +2220,15 @@ section:not(:last-child)::after {
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(231,90,151,0.08);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
 }
+
 .search-btn:hover {
-  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
-  box-shadow: 0 4px 16px rgba(231,90,151,0.12);
-  transform: translateY(-2px) scale(1.03);
+  background: linear-gradient(90deg, #d4407f 0%, #c13872 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231,90,151,0.15);
 }
+
 
 /* Filter styles */
 .event-filters {
@@ -2052,6 +2280,7 @@ section:not(:last-child)::after {
 .filter-group select:hover {
   border-color: #d0d0d0;
   background-color: #fcfcfc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .filter-group select:focus {
@@ -2292,5 +2521,109 @@ section:not(:last-child)::after {
   color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+}
+
+.resource-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+/* Online resources styles */
+.online-resources-container {
+  padding: 2rem;
+  width: 100%;
+}
+
+.online-resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 100%;
+}
+
+.online-resource-card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(230, 239, 182, 0.3);
+}
+
+.online-resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: rgba(231, 90, 151, 0.2);
+}
+
+.resource-logo {
+  width: 80px;
+  height: 80px;
+  background-color: #f9f4f7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+.resource-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-info h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.resource-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.resource-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.resource-link-btn {
+  display: inline-block;
+  background-color: #e75a97;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.resource-link-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 90, 151, 0.2);
+}
+
+@media (max-width: 768px) {
+  .online-resource-card {
+    flex-direction: column;
+  }
+  
+  .resource-logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
 }
 </style>
