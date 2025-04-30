@@ -22,16 +22,11 @@
           <span>RESPONSE</span>
         </router-link>
         <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu"><span>RELAXATION</span></router-link>
-        <router-link to="/comment-response-scripts" class="nav-link two-words" active-class="active" @click="closeMenu">
-          <span>COMMENT</span>
-          <span>RESPONSE</span>
-        </router-link>
         <router-link to="/creator-wellbeing" class="nav-link two-words" active-class="active" @click="closeMenu">
           <span>CREATOR</span>
           <span>WELLBEING</span>
         </router-link>
         <router-link to="/privacy" class="nav-link" active-class="active" @click="closeMenu"><span>PRIVACY</span></router-link>
-        <router-link to="/test" class="nav-link" active-class="active" @click="closeMenu"><span>TEST</span></router-link>
       </div>
 
       <!-- Hamburger Menu Button -->
@@ -371,7 +366,7 @@ const closeMenu = () => {
 
   .navbar-left {
     padding-left: 0.5rem;
-    max-width: 75%; /* Limit logo area max width to prevent overlap with hamburger menu */
+    max-width: 80%; /* Increase logo area width to allow text to display fully */
   }
 
   .logo {
@@ -380,15 +375,14 @@ const closeMenu = () => {
 
   .logo-text {
     font-size: 1rem; /* Reduce font size on smaller screens */
-    max-width: calc(100% - 40px); /* Ensure text doesn't overflow container */
-    text-overflow: ellipsis;
-    overflow: hidden;
+    white-space: nowrap; /* Prevent text wrapping */
+    min-width: fit-content; /* Ensure text has its natural width */
   }
 
   .logo-img-container {
-    height: 28px; /* Reduce logo size on smaller screens */
-    width: 28px;
-    min-width: 28px; /* Ensure logo doesn't become too small due to flex scaling */
+    height: 24px; /* Reduce logo size further on smaller screens */
+    width: 24px;
+    min-width: 24px; /* Ensure logo doesn't become too small due to flex scaling */
   }
 
   .navbar-center {
@@ -428,21 +422,24 @@ const closeMenu = () => {
 /* Extra small screen adjustments (e.g. iPhone SE) */
 @media (max-width: 360px) {
   .navbar-left {
-    max-width: 70%; /* Further limit logo area width */
+    max-width: 75%; /* Keep enough width for logo area */
   }
 
   .logo-text {
-    font-size: 0.9rem; /* Smaller font */
+    font-size: 0.9rem; /* Slightly smaller font but still visible */
+    white-space: nowrap; /* Ensure text stays on one line */
   }
 
   .logo-img-container {
-    height: 24px; /* Smaller logo */
-    width: 24px;
-    min-width: 24px;
+    height: 22px; /* Even smaller logo */
+    width: 22px;
+    min-width: 22px;
+    margin-right: -2px; /* Reduce space between logo and text */
   }
 
   .hamburger {
     right: 0.5rem; /* Further reduce right distance */
+    transform: scale(0.9) translateY(-50%); /* Slightly reduce hamburger size */
   }
 
   .logo-text.liquid-text {

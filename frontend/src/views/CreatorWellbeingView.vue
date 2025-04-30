@@ -10,6 +10,20 @@
           </div>
           <p class="subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         </div>
+        <div class="decorative-elements">
+          <!-- 右上角第一排 / Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -42,16 +56,55 @@
         <p class="section-subtitle">Find and navigate yourself to get wellbeing resources easily near you.</p>
 
         <div class="resource-finder-content">
+          <!-- Tabs for resource type -->
           <div class="resource-tabs">
-            <div class="resource-tab active">Psychologist (Offline Resources)</div>
-            <div class="resource-tab">Online Resources</div>
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'offline' }"
+              @click="switchTab('offline')"
+            >Psychologist (Offline Resources)</div>
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'online' }"
+              @click="onOnlineTabClick"
+            >Online Resources</div>
+          </div>
+          
+          <!-- Search bar for address -->
+          <div class="search-bar">
+            <input 
+              v-model="searchAddress" 
+              @keyup.enter="onSearch"
+              placeholder="Search address to find nearby psychologists..." 
+              class="search-input"
+            />
+            <button @click="onSearch" class="search-btn">Search</button>
           </div>
 
           <div class="resource-content">
+            <!-- Google Map display -->
             <div class="map-container">
-              <img src="../assets/icons/elements/map-placeholder.svg" alt="Map" class="map-img">
-              <button class="position-btn">
-                <img src="../assets/icons/elements/location-pin.svg" alt="Location" class="pin-icon">
+              <GMapMap
+                :center="mapCenter"
+                :zoom="14"
+                style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"
+              >
+                <GMapMarker
+                  v-for="clinic in displayedClinics"
+                  :key="clinic.id"
+                  :position="{ lat: clinic.lat, lng: clinic.lng }"
+                  @click="selectClinic(clinic)"
+                />
+                <GMapMarker
+                  v-if="userLocation"
+                  :position="userLocation"
+                  :icon="userIcon"
+                />
+              </GMapMap>
+              <button class="position-btn" @click="getMyPosition">
+                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
+                </svg>
                 Get My Position
               </button>
             </div>
@@ -59,57 +112,80 @@
             <div class="resource-details">
               <h3 class="resource-name">Calm 'n' Caring Psychology Melbourne</h3>
               <div class="rating">
-                <span class="rating-score">5.0</span>
-                <div class="stars">★★★★★</div>
-                <span class="reviews">(5)</span>
+                <span class="rating-score">{{ selectedClinic.rating }}</span>
+                <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
+                <span class="reviews">({{ selectedClinic.reviews }})</span>
               </div>
 
               <div class="resource-location">
                 <img src="../assets/icons/elements/location.svg" alt="Location" class="location-icon">
-                <span>101 Collins St, Melbourne VIC 3000</span>
+                <span>{{ selectedClinic.address }}</span>
               </div>
 
               <div class="resource-website">
                 <img src="../assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                <a href="https://calmandcaring.com/melbourne" target="_blank">https://calmandcaring.com/melbourne</a>
-                <button class="online-switch">Switch to online</button>
+                <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                <button class="online-switch" @click="switchToOnline">Switch to online</button>
               </div>
 
               <div class="opening-hours">
                 <h4>Opening hours</h4>
                 <div class="hours-grid">
-                  <div class="day">Sunday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Monday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Tuesday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Wednesday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Thursday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">Friday</div>
-                  <div class="hours">Open 24 hours</div>
-                  <div class="day">(Good Friday)</div>
-                  <div class="hours">Hours might differ</div>
-                  <div class="day">Saturday</div>
-                  <div class="hours">Hours might differ</div>
+                  <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
+                    <div class="day">{{ day }}</div>
+                    <div class="hours">{{ hours }}</div>
+                  </div>
                 </div>
               </div>
 
               <div class="resource-actions">
-                <button class="action-btn direction-btn">
-                  <img src="../assets/icons/elements/direction.svg" alt="Direction" class="btn-icon">
+                <button class="action-btn direction-btn" @click="getDirections">
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
+                  </svg>
                   Get direction
                 </button>
-                <button class="action-btn guide-btn">
-                  <img src="../assets/icons/elements/guide.svg" alt="Guide" class="btn-icon">
+                <button class="action-btn guide-btn" @click="showGuide = true">
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z" fill="white"/>
+                  </svg>
                   Get Preparation Guide
                 </button>
               </div>
             </div>
           </div>
         </div>
+        
+        <!-- Preparation Guide Modal -->
+        <Modal v-if="showGuide" @close="showGuide = false">
+          <template #header>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Preparation Guide for Psychological Consultation</span>
+              <button @click="showGuide = false" style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
+            </div>
+          </template>
+          <template #body>
+            <h4 style="margin-top:0; color:#e75a97;">Before Your Appointment</h4>
+            <ul style="margin-bottom:1.2rem;">
+              <li>✓ Bring your Medicare card or insurance details.</li>
+              <li>✓ Prepare a brief list of your main concerns or goals.</li>
+              <li>✓ Arrive 10 minutes early for paperwork and to relax.</li>
+            </ul>
+            <h4 style="color:#e75a97;">During Your Appointment</h4>
+            <ul style="margin-bottom:1.2rem;">
+              <li>✓ Be open and honest with your psychologist.</li>
+              <li>✓ Share your prepared concerns and ask questions.</li>
+              <li>✓ Take notes if you find it helpful.</li>
+            </ul>
+            <h4 style="color:#e75a97;">After Your Appointment</h4>
+            <ul>
+              <li>✓ Reflect on the session and any advice given.</li>
+              <li>✓ Schedule your next appointment if needed.</li>
+              <li>✓ Take care of yourself and reach out if you have questions.</li>
+            </ul>
+            <p style="margin-top:1.2rem; color:#666;">Wishing you a positive and supportive experience!</p>
+          </template>
+        </Modal>
       </div>
     </section>
 
@@ -193,22 +269,26 @@
               <label>Location:</label>
               <select v-model="selectedLocation">
                 <option>All locations</option>
-                <option>Melbourne</option>
-                <option>Sydney</option>
                 <option>Brisbane</option>
-                <option>Warrnambool</option>
+                <option>Flinders Blowhole</option>
                 <option>Geelong</option>
-                <option>Torquay</option>
+                <option>Little River</option>
+                <option>Melbourne</option>
+                <option>Narrabeen</option>
+                <option>Sydney</option>
+                <option>Torquay Beach</option>
+                <option>Warrnambool</option>
+                <option>West End</option>
               </select>
             </div>
             <div class="filter-group">
               <label>Category:</label>
               <select v-model="selectedCategory">
                 <option>All types</option>
-                <option>Outdoor Wellness</option>
+                <option>Festival</option>
                 <option>Mental Health</option>
-                <option>Physical Fitness</option>
-                <option>Healthy Eating</option>
+                <option>Outdoor Wellness</option>
+                <option>physical wellness practice</option>
                 <option>Workplace Wellbeing</option>
               </select>
             </div>
@@ -216,7 +296,6 @@
               <label>Month:</label>
               <select v-model="selectedMonth">
                 <option>Any time</option>
-                <option>March</option>
                 <option>April</option>
                 <option>May</option>
                 <option>June</option>
@@ -289,11 +368,9 @@
             <div class="event-card">
               <img src="../assets/icons/activitiesImages/workplace.avif" alt="Workplace Wellbeing" class="event-img">
               <div class="event-info">
-                <h3>Workplace Wellbeing - How to Build Confidence and Manage Stress</h3>
+                <h3>{{ event.title }}</h3>
                 <div class="event-tags">
-                  <span class="tag october">October</span>
-                  <span class="tag workplace">Workplace Wellbeing Workshop</span>
-                  <span class="tag charged">$525.44</span>
+                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
                 </div>
                 <p class="event-description">You'll learn about both positive and negative factors at play in workplace.
                 </p>
@@ -656,10 +733,10 @@ onMounted(() => {
     radial-gradient(circle at 25% 25%, rgba(230, 239, 182, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(230, 239, 182, 0.03) 0%, transparent 50%);
   min-height: 100vh;
-  padding-top: 0;
+  width: 100%;
+  position: relative;
 }
 
-/* Hero Section Styles */
 .hero-section {
   min-height: 40vh;
   background-color: rgb(255, 252, 244);
@@ -669,7 +746,7 @@ onMounted(() => {
   position: relative;
   z-index: 1;
   padding: 6rem 0 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .hero-content {
@@ -684,7 +761,7 @@ onMounted(() => {
 }
 
 .slogan {
-  max-width: 800px;
+  max-width: 900px;
   position: relative;
   z-index: 2;
   margin-left: 2rem;
@@ -697,20 +774,43 @@ onMounted(() => {
 }
 
 .title-group h1 {
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: bold;
-  background: linear-gradient(135deg, #6B64F3 0%, #8BDFE7 100%);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.4;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  line-height: 1.1;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  overflow: visible;
-  padding-right: 1rem;
-  padding-bottom: 0.5rem;
+}
+
+.title-group h1:hover {
+  filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .title-group h2 {
@@ -729,9 +829,8 @@ onMounted(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
-  overflow: visible;
 }
 
 .decorative-elements {
@@ -786,17 +885,67 @@ onMounted(() => {
   transition: all 0.5s ease;
 }
 
+/* Hover效果增强 */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
 
-/* 添加响应式媒体查询 */
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -805,7 +954,8 @@ onMounted(() => {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(0);
+    justify-content: end;
   }
 }
 
@@ -814,7 +964,7 @@ onMounted(() => {
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(0);
     row-gap: 0.75rem;
   }
 
@@ -825,24 +975,49 @@ onMounted(() => {
 }
 
 @media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
+    justify-content: end;
   }
 
   .title-group h1 {
+    @apply text-5xl;
+    white-space: nowrap;
+  }
+  
+  .title-group h2 {
+    @apply text-4xl;
     white-space: normal;
+  }
+  
+  .subtitle {
+    @apply text-xl;
   }
 }
 
 @media (max-width: 768px) {
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
   }
 
   .hero-content {
+    min-height: 22vh;
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.75rem;
@@ -855,29 +1030,35 @@ onMounted(() => {
   }
 
   .slogan {
+    margin-left: 1rem;
     max-width: 90%;
   }
 
   .title-group h1 {
-    font-size: 3.5rem;
+    @apply text-4xl;
+    white-space: nowrap;
   }
 
   .title-group h2 {
-    font-size: 2rem;
+    @apply text-3xl;
+    white-space: normal;
   }
 
   .subtitle {
-    font-size: 1.125rem;
+    @apply text-lg;
   }
 }
 
 @media (max-width: 640px) {
-  .decorative-elements {
-    opacity: 0;
-    transform: translateX(0) scale(0.7);
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 0;
   }
 
+
   .hero-content {
+    padding: 0 1rem;
     min-height: 18vh;
     padding-top: 0.25rem;
   }
@@ -888,16 +1069,19 @@ onMounted(() => {
     margin-bottom: 1rem;
   }
 
+
   .title-group h1 {
-    font-size: 2.5rem;
+    @apply text-3xl;
+    white-space: nowrap;
   }
 
   .title-group h2 {
-    font-size: 1.5rem;
+    @apply text-2xl;
+    white-space: normal;
   }
 
   .subtitle {
-    font-size: 1rem;
+    @apply text-base;
   }
 }
 
@@ -1013,9 +1197,9 @@ onMounted(() => {
 }
 
 .dashboard-section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 .container {
@@ -1047,13 +1231,14 @@ onMounted(() => {
   text-align: center;
   margin-bottom: 3rem;
   line-height: 1.5;
+  white-space: normal;
 }
 
 section {
-  padding: 5rem 0;
+  padding: 3rem 0 5rem;
   position: relative;
   border-bottom: none;
-  margin-bottom: 7rem;
+  margin-bottom: 5rem;
 }
 
 section:last-child {
@@ -1064,7 +1249,7 @@ section:not(:last-child)::after {
   display: none;
 }
 
-/* 仪表板部分 / Dashboard section */
+/* Dashboard section */
 .dashboard-section {
   background-color: #fffcf5;
 }
@@ -1176,28 +1361,44 @@ section:not(:last-child)::after {
   line-height: 1.5;
 }
 
-/* 资源查找器部分 / Resource finder section */
+/* Resource finder section */
 .resource-finder-section {
   background-color: #fffcf5;
 }
 
 .resource-tabs {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  justify-content: center;
 }
 
 .resource-tab {
-  padding: 0.75rem 1.5rem;
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  cursor: pointer;
+  padding: 1rem 2.5rem;
+  background: #f4f4f6;
+  border-radius: 2.5rem;
   color: #666;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  outline: none;
+  letter-spacing: 0.01em;
 }
 
 .resource-tab.active {
-  background-color: #e75a97;
-  color: white;
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
+  transform: scale(1.04);
+}
+
+.resource-tab:not(.active):hover {
+  background: #ececec;
+  color: #e75a97;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
 }
 
 .resource-content {
@@ -1216,7 +1417,7 @@ section:not(:last-child)::after {
 .map-container {
   position: relative;
   height: 100%;
-  min-height: 400px;
+  min-height: 630px;
 }
 
 .map-img {
@@ -1227,13 +1428,13 @@ section:not(:last-child)::after {
 
 .position-btn {
   position: absolute;
-  bottom: 20px;
+  bottom: 44px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #e75a97;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 2.4rem;
   border-radius: 25px;
   display: flex;
   align-items: center;
@@ -1357,7 +1558,7 @@ section:not(:last-child)::after {
   height: 18px;
 }
 
-/* 活动中心部分 / Activities hub section */
+/* Activities hub section */
 .activities-section {
   background-color: #fffcf5;
 }
@@ -1375,7 +1576,7 @@ section:not(:last-child)::after {
   color: #333;
 }
 
-/* 统一使用此处的view-all-btn样式定义 */
+/* Use this view-all-btn style definition */
 .view-all-btn {
   background-color: #e75a97;
   color: white;
@@ -1479,7 +1680,7 @@ section:not(:last-child)::after {
   font-size: 0.9rem;
 }
 
-/* 页脚 / Footer */
+/* Footer */
 .footer {
   padding: 2rem;
   text-align: center;
@@ -1498,7 +1699,7 @@ section:not(:last-child)::after {
   text-decoration: underline;
 }
 
-/* 响应式设计 / Responsive design */
+/* Responsive design */
 @media (max-width: 1024px) {
 
   .dashboard-content,
@@ -1534,10 +1735,45 @@ section:not(:last-child)::after {
 
   .resource-tabs {
     flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .recent-title {
+    font-size: 1.2rem;
   }
 }
 
-/* 模态窗口样式 */
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .chart-title,
+  .insights-title,
+  .resource-name {
+    font-size: 1.25rem;
+  }
+  
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .event-card {
+    flex-direction: column;
+  }
+  
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* Modal window styles */
 .activities-modal-overlay {
   position: fixed;
   top: 0;
@@ -1599,59 +1835,157 @@ section:not(:last-child)::after {
   padding: 2rem;
 }
 
-/* 搜索栏样式 */
+/* Search bar styles */
 .search-bar {
-  margin-bottom: 1.5rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 25px;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.3s;
-}
-
-.search-input:focus {
-  border-color: #e75a97;
-}
-
-/* 筛选器样式 */
-.event-filters {
   display: flex;
+  align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.04);
+  padding: 0.5rem 1.5rem;
+  border: 1.5px solid #f3e6ef;
+}
+.search-input {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 1.5rem;
+  font-size: 1.1rem;
+  background: #faf7fa;
+  color: #444;
+  outline: none;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+.search-input:focus {
+  box-shadow: 0 0 0 2px #e75a97;
+  background: #fff;
+}
+.search-btn {
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231,90,151,0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.search-btn:hover {
+  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
+  box-shadow: 0 4px 16px rgba(231,90,151,0.12);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Filter styles */
+.event-filters {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
+  background-color: #fafafa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .filter-group {
   flex: 1;
   min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .filter-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
+  color: #555;
   font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
 }
 
 .filter-group select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+  padding: 0.7rem 1rem;
+  border: 1px solid #eaeaea;
   border-radius: 8px;
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: white;
+  color: #333;
+  font-size: 0.95rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  cursor: pointer;
+}
+
+.filter-group select:hover {
+  border-color: #d0d0d0;
+  background-color: #fcfcfc;
 }
 
 .filter-group select:focus {
   border-color: #e75a97;
+  box-shadow: 0 0 0 2px rgba(231, 90, 151, 0.1);
 }
 
-/* 事件卡片样式 */
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.clear-filters-btn {
+  white-space: nowrap;
+  background-color: white;
+  color: #666;
+  border: 1px solid #eaeaea;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: fit-content;
+}
+
+.clear-filters-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+  transform: translateY(-1px);
+}
+
+.clear-filters-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .event-filters {
+    flex-direction: column;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+  
+  .filter-group, 
+  .filter-actions {
+    width: 100%;
+  }
+  
+  .clear-filters-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Event card styles */
 .events-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1667,9 +2001,15 @@ section:not(:last-child)::after {
   border: 1px solid #eee;
 }
 
-.event-img {
+.event-img-container {
   width: 280px;
-  height: auto;
+  height: 220px;
+  overflow: hidden;
+}
+
+.event-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -1759,7 +2099,7 @@ section:not(:last-child)::after {
   transform: translateY(-2px);
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .event-card {
     flex-direction: column;
@@ -1788,18 +2128,18 @@ section:not(:last-child)::after {
   }
 }
 
-/* 隐藏链接标签 */
+/* Hide link tags */
 .event-meta div.event-link {
   display: none;
 }
 
-/* 为按钮链接添加样式 */
+/* Add styles for button links */
 .register-btn-link {
   text-decoration: none;
   display: inline-block;
 }
 
-/* 活动卡片链接样式 */
+/* Activity card link styles */
 .activity-card-link {
   text-decoration: none;
   color: inherit;
