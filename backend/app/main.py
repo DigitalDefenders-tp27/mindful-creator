@@ -46,8 +46,8 @@ app.add_middleware(
 )
 
 # Register routes
-app.include_router(data_router, prefix="/api", tags=["data"])
-app.include_router(data_router,   prefix="/api/data",    tags=["data"])
+# app.include_router(data_router, prefix="/api", tags=["data"])
+# app.include_router(data_router,   prefix="/api/data",    tags=["data"])
 app.include_router(api_router, prefix="/api")
 app.include_router(relaxation_router, prefix="/api/relaxation")
 app.include_router(notes_router, prefix="/api/notes")
