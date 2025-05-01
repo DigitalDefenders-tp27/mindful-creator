@@ -674,59 +674,21 @@ onMounted(async () => {
 // Get user position
 const getMyPosition = () => {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      userLocation.value = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      }
-      
-      if (map.value) {
-        map.value.setCenter(userLocation.value)
-        map.value.setZoom(14)  // Zoom in when showing user location
-        
-        // Update or create user location marker
-        if (userMarker.value) {
-          userMarker.value.setPosition(userLocation.value)
-        } else {
-          userMarker.value = new googleInstance.maps.Marker({
-            position: userLocation.value,
-            map: map.value,
-            icon: {
-              path: googleInstance.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor: "#4CAF50",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 2,
-            }
-          })
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        userLocation.value = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
         }
-        
-        // Sort clinics by distance to user location
-        displayedClinics.value = clinics
-          .map(clinic => ({
-            ...clinic,
-            distance: getDistance(
-              userLocation.value.lat,
-              userLocation.value.lng,
-              clinic.lat,
-              clinic.lng
-            )
-          }))
-          .sort((a, b) => a.distance - b.distance)
-
-        // Update markers and select nearest clinic
-        updateMarkers()
-        if (displayedClinics.value.length > 0) {
-          selectedClinic.value = displayedClinics.value[0]
-        }
+        mapCenter.value = userLocation.value
+      },
+      error => {
+        console.error('Error getting location:', error)
+        alert('Unable to obtain your location. Please check your location permissions settings.')
       }
-    }, error => {
-      console.error('Error getting user location:', error)
-      alert('Could not get your location. Please check your browser settings and try again.')
-    })
+    )
   } else {
-    alert('Geolocation is not supported by your browser')
+    alert('Your browser does not support geolocation.')
   }
 }
 
@@ -1511,43 +1473,23 @@ const renderChart = () => {
 }
 
 // Event modal functions
-// const openModal = () => {
-//   isModalVisible.value = true
-// }
+const openModal = () => {
+  isModalVisible.value = true
+}
 
-// const closeModal = () => {
-//   isModalVisible.value = false
-// }
+const closeModal = () => {
+  isModalVisible.value = false
+}
 
 // Reset filters
-// const resetFilters = () => {
-//   searchQuery.value = ''
-//   selectedLocation.value = 'All locations'
-//   selectedCategory.value = 'All types'
-//   selectedMonth.value = 'Any time'
-//   selectedPrice.value = 'Any price'
-//   sortOption.value = 'dateAsc'
-// }
-
-// const getMyPosition = () => {
-//   if (navigator.geolocation) {
-//     navigator.geolocation.getCurrentPosition(
-//       position => {
-//         userLocation.value = {
-//           lat: position.coords.latitude,
-//           lng: position.coords.longitude
-//         }
-//         mapCenter.value = userLocation.value
-//       },
-//       error => {
-//         console.error('Error getting location:', error)
-//         alert('Unable to obtain your location. Please check your location permissions settings.')
-//       }
-//     )
-//   } else {
-//     alert('Your browser does not support geolocation.')
-//   }
-// }
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedLocation.value = 'All locations'
+  selectedCategory.value = 'All types'
+  selectedMonth.value = 'Any time'
+  selectedPrice.value = 'Any price'
+  sortOption.value = 'dateAsc'
+}
 
 // Function to switch resource tab
 const switchResourceTab = async (tabName) => {
@@ -2934,6 +2876,7 @@ section:not(:last-child)::after {
   width: 100%;
   aspect-ratio: 16/9;
   object-fit: cover;
+}
 
 .activity-card:hover .activity-img {
   transform: scale(1.02);
