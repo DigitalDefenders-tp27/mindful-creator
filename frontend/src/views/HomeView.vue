@@ -64,113 +64,116 @@
       </div>
     </section>
 
-    <!-- Button Section -->
-    <div class="button-section">
-      <router-link to="/ethic-influencer" class="explore-link" @click="scrollToTop">
-        <button class="explore-button">EXPLORE MORE OF US</button>
-      </router-link>
-    </div>
-
     <!-- 3. Journey Section / 旅程部分 -->
     <section class="journey-section">
       <div class="journey-content">
         <h2>Discover your digital citizenship journey</h2>
         <div class="journey-grid">
           <div class="top-row">
-            <FlipCard class="journey-card purple">
-              <div class="card-content">
-                <img src="/src/assets/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
-                <div class="card-text">
-                  <h3>Ethical</h3>
-                  <h3>Influencer</h3>
-                </div>
-              </div>
-              <template #back>
+            <router-link to="/ethic-influencer" class="journey-link">
+              <FlipCard class="journey-card purple">
                 <div class="card-content">
-                  <ul class="feature-list">
-                    <li>Promote truth and accountability in your content.</li>
-                    <li>Engage respectfully, encouraging constructive discussions.</li>
-                    <li>Influence responsibly, considering the ethical implications of your message.</li>
-                  </ul>
+                  <img src="/src/assets/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
+                  <div class="card-text">
+                    <h3>Ethical</h3>
+                    <h3>Influencer</h3>
+                  </div>
                 </div>
-              </template>
-            </FlipCard>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Promote truth and accountability in your content.</li>
+                      <li>Engage respectfully, encouraging constructive discussions.</li>
+                      <li>Influence responsibly, considering the ethical implications of your message.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
 
-            <FlipCard class="journey-card beige">
-              <div class="card-content">
-                <img src="/src/assets/icons/elements/Medication.svg" alt="Medication" class="card-icon">
-                <div class="card-text">
-                  <h3>Creator</h3>
-                  <h3>Wellbing</h3>
-                </div>
-              </div>
-              <template #back>
+            <router-link to="/creator-wellbeing" class="journey-link">
+              <FlipCard class="journey-card beige">
                 <div class="card-content">
-                  <ul class="feature-list">
-                    <li>Balance online presence with offline activities.</li>
-                    <li>Recognize signs of digital fatigue and burnout.</li>
-                    <li>Foster healthy habits, such as setting content creation boundaries and managing screen time.</li>
-                  </ul>
+                  <img src="/src/assets/icons/elements/Medication.svg" alt="Medication" class="card-icon">
+                  <div class="card-text">
+                    <h3>Creator</h3>
+                    <h3>Wellbing</h3>
+                  </div>
                 </div>
-              </template>
-            </FlipCard>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Balance online presence with offline activities.</li>
+                      <li>Recognize signs of digital fatigue and burnout.</li>
+                      <li>Foster healthy habits, such as setting content creation boundaries and managing screen time.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
 
-            <FlipCard class="journey-card orange">
-              <div class="card-content">
-                <img src="/src/assets/icons/elements/Circle_blue.svg" alt="Circle Blue" class="card-icon">
-                <div class="card-text">
-                  <h3>Critical</h3>
-                  <h3>Response</h3>
-                </div>
-              </div>
-              <template #back>
+            <router-link to="/critical-response" class="journey-link">
+              <FlipCard class="journey-card orange">
                 <div class="card-content">
-                  <ul class="feature-list">
-                    <li>Address feedback professionally and objectively.</li>
-                    <li>Manage criticism constructively without compromising integrity.</li>
-                    <li>Turn challenging conversations into opportunities for growth and learning.</li>
-                  </ul>
+                  <img src="/src/assets/icons/elements/Circle_blue.svg" alt="Circle Blue" class="card-icon">
+                  <div class="card-text">
+                    <h3>Critical</h3>
+                    <h3>Response</h3>
+                  </div>
                 </div>
-              </template>
-            </FlipCard>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Address feedback professionally and objectively.</li>
+                      <li>Manage criticism constructively without compromising integrity.</li>
+                      <li>Turn challenging conversations into opportunities for growth and learning.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
           </div>
 
           <div class="bottom-row">
-            <FlipCard class="journey-card orange-light">
-              <div class="card-content">
-                <img src="/src/assets/icons/elements/Leaves_Blue.svg" alt="Leaves Blue" class="card-icon">
-                <div class="card-text">
-                  <h3>Privacy</h3>
-                </div>
-              </div>
-              <template #back>
+            <router-link to="/privacy" class="journey-link">
+              <FlipCard class="journey-card orange-light">
                 <div class="card-content">
-                  <ul class="feature-list">
-                    <li>Understand and manage personal data sharing practices.</li>
-                    <li>Utilize privacy settings effectively across platforms.</li>
-                    <li>Encourage your audience to value and protect their online privacy.</li>
-                  </ul>
+                  <img src="/src/assets/icons/elements/Leaves_Blue.svg" alt="Leaves Blue" class="card-icon">
+                  <div class="card-text">
+                    <h3>Privacy</h3>
+                  </div>
                 </div>
-              </template>
-            </FlipCard>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Understand and manage personal data sharing practices.</li>
+                      <li>Utilize privacy settings effectively across platforms.</li>
+                      <li>Encourage your audience to value and protect their online privacy.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
 
-            <FlipCard class="journey-card blue-light">
-              <div class="card-content">
-                <img src="/src/assets/icons/elements/Leaves_Purple.svg" alt="Leaves Purple" class="card-icon">
-                <div class="card-text">
-                  <h3>Copyright</h3>
-                </div>
-              </div>
-              <template #back>
+            <router-link to="/copyright" class="journey-link">
+              <FlipCard class="journey-card blue-light">
                 <div class="card-content">
-                  <ul class="feature-list">
-                    <li>Create original content or appropriately credit sources.</li>
-                    <li>Learn about fair use guidelines to navigate content sharing responsibly.</li>
-                    <li>Protect your own content and respect the intellectual property of others.</li>
-                  </ul>
+                  <img src="/src/assets/icons/elements/Leaves_Purple.svg" alt="Leaves Purple" class="card-icon">
+                  <div class="card-text">
+                    <h3>Copyright</h3>
+                  </div>
                 </div>
-              </template>
-            </FlipCard>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Create original content or appropriately credit sources.</li>
+                      <li>Learn about fair use guidelines to navigate content sharing responsibly.</li>
+                      <li>Protect your own content and respect the intellectual property of others.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
           </div>
         </div>
       </div>
@@ -621,6 +624,7 @@ const scrollToTop = () => {
   align-items: center;
   gap: 1.5rem;
   cursor: pointer;
+  padding: 1rem;
 }
 
 .feature-icon {
@@ -631,7 +635,7 @@ const scrollToTop = () => {
 }
 
 .feature:hover .feature-icon {
-  transform: scale(1.2);
+  transform: scale(1.05);
 }
 
 .feature h3 {
@@ -738,18 +742,10 @@ const scrollToTop = () => {
   gap: 2rem;
 }
 
-.top-row .journey-card {
-  width: calc((100% - 4rem) / 3);
-}
-
 .bottom-row {
   display: flex;
   justify-content: center;
   gap: 2rem;
-}
-
-.bottom-row .journey-card {
-  width: calc((100% - 4rem) / 3);
 }
 
 .journey-card {
@@ -761,10 +757,12 @@ const scrollToTop = () => {
   position: relative;
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  transform: scale(1);
 }
 
 .journey-card:hover {
-  transform: scale(1.02);
+  transform: scale(1);
 }
 
 /* 翻转卡片动画 / Flip card animation */
@@ -1212,6 +1210,44 @@ p {
 
 .explore-button:hover {
   transform: translateY(-2px);
+}
+
+.journey-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: calc((100% - 4rem) / 3);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  padding: 5px;
+}
+
+.journey-link:hover {
+  transform: translateY(-5px);
+}
+
+/* Update journey card styles */
+.journey-card {
+  width: 100%;
+  min-height: 360px;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.journey-card:hover {
+  transform: scale(1);
+}
+
+/* Remove the width calculation from .top-row .journey-card and .bottom-row .journey-card */
+.top-row .journey-card,
+.bottom-row .journey-card {
+  width: 100%;
 }
 </style>
 

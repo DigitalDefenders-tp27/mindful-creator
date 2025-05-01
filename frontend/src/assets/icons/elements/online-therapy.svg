@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="98" fill="#2A9D8F"/>
+  
+  <!-- Heart Shape -->
+  <path d="M100 75C95.5 64 84.5 56 72.5 56C55.5 56 42 69.5 42 86.5C42 116.5 100 155 100 155C100 155 158 116.5 158 86.5C158 69.5 144.5 56 127.5 56C115.5 56 104.5 64 100 75Z" fill="white"/>
+  
+  <!-- Chat Bubble -->
+  <path d="M100 85C88.9543 85 80 93.9543 80 105C80 111.5 83.5 117.2 88.7 120.4L85 135L100 125C100.8 125.1 101.7 125 102.5 125C113.5 125 122.5 116 122.5 105C122.5 93.9543 113.546 85 100 85Z" fill="#2A9D8F"/>
+  
+  <!-- Decorative Circles -->
+  <circle cx="93" cy="105" r="3" fill="white"/>
+  <circle cx="100" cy="105" r="3" fill="white"/>
+  <circle cx="107" cy="105" r="3" fill="white"/>
+</svg> 

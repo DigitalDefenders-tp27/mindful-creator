@@ -49,55 +49,77 @@
       </BentoGrid>
     </div>
 
-    <!-- Dynamic Activity Components in Modal -->
-    <div v-if="showActivityModal" class="activity-modal-overlay" @click="closeModal">
-      <div class="activity-modal" @click.stop>
-        <button class="close-modal-btn" @click="closeModal">&times;</button>
-        <div class="activity-modal-content">
-          <component :is="currentActivityComponent" v-if="currentActivityComponent" />
-          
-          <!-- Feedback inside modal -->
-          <div v-if="showRating" class="feedback">
-            <h2>How effective was this relaxation activity?</h2>
-            <div class="stars">
-              <span v-for="n in 5" :key="n" @click="rating = n">
-                <img :src="n <= rating ? filledStar : emptyStar" alt="star" class="star" />
-              </span>
-            </div>
-
-            <textarea
-              v-model="comment"
-              placeholder="Share your thoughts about this experience..."
-              class="comment-box"
-              rows="4"
-            ></textarea>
-
-            <button class="submit-btn" @click="submitFeedback">Submit Feedback</button>
-
-            <p v-if="submitted" class="thank-you">Thank you for your feedback!</p>
+    <!-- Activity Modal -->
+    <div v-if="showActivityModal" class="modal">
+      <div class="modal-content activity-modal">
+        <span class="close" @click="closeModal">&times;</span>
+        
+        <!-- Activity Content -->
+        <div class="activity-content">
+          <component 
+            :is="currentActivityComponent" 
+            v-if="currentActivityComponent"
+            @journal-submitted="onJournalSubmitted"
+          />
+        </div>
+        
+        <!-- Journal Feedback -->
+        <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
+          <div class="encouragement">
+            <h3>{{ currentEncouragement }}</h3>
+            <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. 💫</p>
           </div>
+        </div>
+        
+        <!-- Rating Section -->
+        <div class="feedback">
+          <h2>How effective was this relaxation activity?</h2>
+          <p class="total-ratings">{{ totalRatings }} people have rated this activity</p>
+          <div class="stars">
+            <span v-for="n in 5" :key="n" @click="rating = n" class="star-wrapper">
+              <img :src="n <= rating ? starFilledIcon : starEmptyIcon" 
+                   alt="star" 
+                   class="star"
+                   @mouseover="hoverRating = n"
+                   @mouseleave="hoverRating = 0" />
+            </span>
+          </div>
+          <button @click="submitFeedback" 
+                  :disabled="rating === 0" 
+                  class="submit-button"
+                  :class="{ 'button-disabled': rating === 0 }">
+            Submit Feedback
+          </button>
+        </div>
+
+        <!-- Thank You Message -->
+        <div v-if="submitted" class="thank-you">
+          <h3>Thank you for your feedback!</h3>
         </div>
       </div>
     </div>
 
-    <!-- Continue Button -->
+    <!-- Continue Buttons -->
     <div class="continue-section">
       <router-link to="/critical-response">
         <button class="continue-btn">Jump to Critical Response</button>
+      </router-link>
+      <router-link to="/creator-wellbeing">
+        <button class="continue-btn">Jump to Creator Wellbeing</button>
       </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
 import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
 
 // Star Icons
-import filledStar from '../assets/icons/elements/star-filled.png'
-import emptyStar from '../assets/icons/elements/star-empty.png'
+import starFilledIcon from '../assets/star-filled.svg'
+import starEmptyIcon from '../assets/star-empty.svg'
 import GroundingGuide from '../components/Activities/GroundingGuide.vue'
 import NatureSounds from '../components/Activities/NatureSounds.vue'
 import StretchingRoutine from '../components/Activities/StretchingRoutine.vue'
@@ -204,14 +226,37 @@ const activitiesWithLayout = computed(() => [
   }
 ]);
 
+// Encouraging messages
+const encouragingMessages = [
+  "You're brave for expressing your feelings. Remember, tomorrow is a new day! 🌅",
+  "By acknowledging your emotions, you've already begun healing. Keep going! 🌱",
+  "Every feeling is valid, and every moment is a chance to begin again. 🦋",
+  "You've taken a moment for yourself - that's an act of self-care! ✨",
+  "Writing it down and letting go - that's the first step to feeling lighter. 🕊️",
+  "Your honesty with yourself is admirable. Keep taking care of you! 🌸",
+  "Remember: this moment will pass, and you're growing stronger. 🌈",
+  "You're doing great by taking time to reflect. Keep moving forward! ⭐",
+  "Thank you for sharing with yourself. Each word written is a step toward peace. 🍃",
+  "Your feelings matter, and so does your journey to better days. 🌟"
+]
+
 // States
-const showRating = ref(false)
 const showActivityModal = ref(false)
 const rating = ref(0)
-const comment = ref('')
+const hoverRating = ref(0)
 const submitted = ref(false)
 const currentActivity = ref(null)
 const currentActivityComponent = ref(null)
+const totalRatings = ref(0)
+const journalSubmitted = ref(false)
+const currentEncouragement = ref('')
+
+const activityRatings = ref({
+  'breathing': 0,
+  'meditation': 0,
+  'journal': 0,
+  'grounding': 0
+})
 
 const activityComponents = {
   breathing: BreathingVideo,
@@ -225,49 +270,48 @@ const activityComponents = {
 }
 
 // Actions
-const startActivity = (type) => {
+const onJournalSubmitted = () => {
+  journalSubmitted.value = true
+  // Randomly select an encouraging message
+  const randomIndex = Math.floor(Math.random() * encouragingMessages.length)
+  currentEncouragement.value = encouragingMessages[randomIndex]
+}
+
+const startActivity = async (type) => {
   currentActivity.value = type
   currentActivityComponent.value = activityComponents[type]
-  showRating.value = true
   showActivityModal.value = true
   submitted.value = false
   rating.value = 0
-  comment.value = ''
-  
-  // Prevent body scrolling when modal is open
+  journalSubmitted.value = false // Reset journal submission state
+  totalRatings.value = activityRatings.value[type] || 0
   document.body.style.overflow = 'hidden'
+}
+
+const onActivityCompleted = () => {
+  showActivityModal.value = true
 }
 
 const closeModal = () => {
   showActivityModal.value = false
-  
-  // Re-enable body scrolling when modal is closed
   document.body.style.overflow = 'auto'
+  currentActivityComponent.value = null
 }
 
 const submitFeedback = async () => {
-  if (rating.value === 0 || comment.value.trim() === '') {
-    alert('Please provide both a rating and comment before submitting.')
+  if (rating.value === 0) {
+    alert('Please provide a rating before submitting.')
     return
   }
 
-  submitted.value = true
-
   try {
-    await axios.post('https://your-api-endpoint.com/submit-rating', {
-      activity: currentActivity.value,
-      rating: rating.value,
-      comment: comment.value,
-      timestamp: new Date().toISOString()
-    })
-    console.log('Feedback submitted')
-    
-    // Close modal after a short delay to show the thank you message
-    setTimeout(() => {
-      closeModal()
-    }, 1500)
-  } catch (err) {
-    console.error('Failed to submit feedback:', err)
+    // Update local rating count
+    activityRatings.value[currentActivity.value] = (activityRatings.value[currentActivity.value] || 0) + 1
+    totalRatings.value = activityRatings.value[currentActivity.value]
+    submitted.value = true
+  } catch (error) {
+    console.error('Error submitting rating:', error)
+    alert('Failed to submit rating. Please try again.')
   }
 }
 </script>
@@ -495,61 +539,144 @@ section:not(:last-child)::after {
   margin: 0;
 }
 
-.feedback {
-  margin-top: 2rem;
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
-  align-items: center; 
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.activity-modal {
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
+.activity-content {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 2rem;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+  position: absolute;
+  right: 1rem;
+  top: 0.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.feedback {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f5f6ff 100%);
+  border-radius: 16px;
+  margin-top: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.feedback h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.total-ratings {
+  color: #666;
+  font-size: 1rem;
+  margin: 0.5rem 0 1.5rem;
+  font-style: italic;
 }
 
 .stars {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 1rem 0;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.star-wrapper {
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.3s ease;
+}
+
+.star-wrapper:hover {
+  transform: scale(1.15);
 }
 
 .star {
-  width: 34px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .star:hover {
-  transform: scale(1.2);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
-.comment-box {
-  margin-top: 1rem;
-  width: 80%;
-  max-width: 500px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 12px;
-  font-size: 14px;
-  resize: none;
-  font-family: inherit;
-}
-
-.submit-btn {
-  margin-top: 1rem;
-  background: #4f83ff;
+.submit-button {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
-  padding: 10px 20px;
+  padding: 0.8rem 2.5rem;
   border: none;
-  font-weight: bold;
-  border-radius: 8px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
 }
-.submit-btn:hover {
-  background: #375ecf;
+
+.submit-button:hover:not(.button-disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+  background: linear-gradient(135deg, #357abd 0%, #4a90e2 100%);
+}
+
+.button-disabled {
+  background: linear-gradient(135deg, #cccccc 0%, #bbbbbb 100%);
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .thank-you {
-  color: #28a745;
-  font-weight: bold;
-  margin-top: 0.5rem;
+  text-align: center;
+  padding: 1.5rem;
+  color: #4a90e2;
+  font-size: 1.2rem;
+  font-weight: 500;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .continue-section {
@@ -818,148 +945,32 @@ section:not(:last-child)::after {
   }
 }
 
-.activity-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.3s ease;
-}
-
-.activity-modal {
-  background-color: white;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.4s ease;
-}
-
-.activity-modal-content {
+.journal-feedback {
+  text-align: center;
   padding: 2rem;
-}
-
-/* Make sure all activity components fill the modal width */
-.activity-modal-content > div {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-}
-
-.activity-modal-content > div h2,
-.breathing-video h2,
-.meditation-audio h2,
-.color-breathing h2,
-.grounding-guide h2,
-.nature-sounds h2,
-.stretching-routine h2,
-.affirmation-reflection h2,
-.journal-prompt h2 {
-  font-size: 36px !important;
-  font-weight: bold !important;
-  margin-bottom: 20px !important;
-  color: #333 !important;
-  text-align: center !important;
-  line-height: 1.3 !important;
-  background: linear-gradient(135deg, #4ECDC4 0%, #6c63ff 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  display: block !important;
-  padding: 0.5rem 0 !important;
-  animation: fadeInDown 0.6s ease forwards !important;
-}
-
-.activity-modal-content > div p:first-of-type,
-.breathing-video p:first-of-type,
-.meditation-audio p:first-of-type,
-.color-breathing p:first-of-type,
-.grounding-guide p:first-of-type,
-.nature-sounds p:first-of-type,
-.stretching-routine p:first-of-type,
-.affirmation-reflection p:first-of-type,
-.journal-prompt p:first-of-type {
-  font-size: 18px !important;
-  margin-bottom: 25px !important;
-  line-height: 1.6 !important;
-  color: #666 !important;
-  text-align: center !important;
-  max-width: 600px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-.close-modal-btn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 30px;
-  line-height: 30px;
-  color: #666;
-  cursor: pointer;
-  z-index: 10;
-  transition: color 0.2s ease;
-}
-
-.close-modal-btn:hover {
-  color: #000;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(30px); 
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0); 
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Adjust feedback style inside modal */
-.activity-modal .feedback {
-  padding-top: 2rem;
-  border-top: 1px solid #eee;
+  background: linear-gradient(135deg, #f6f9ff 0%, #f9f6ff 100%);
+  border-radius: 12px;
   margin-top: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Override any padding from individual components */
-.activity-modal-content .breathing-video,
-.activity-modal-content .meditation-audio,
-.activity-modal-content .color-breathing,
-.activity-modal-content .grounding-guide,
-.activity-modal-content .nature-sounds,
-.activity-modal-content .stretching-routine,
-.activity-modal-content .affirmation-reflection,
-.activity-modal-content .journal-prompt {
-  padding: 0 !important;
+.encouragement {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.encouragement h3 {
+  font-size: 1.5rem;
+  color: #6c63ff;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.privacy-notice {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+  font-style: italic;
+  line-height: 1.5;
 }
 </style>

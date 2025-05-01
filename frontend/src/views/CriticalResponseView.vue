@@ -383,7 +383,6 @@
     showResultsModal.value = false
   }
 
-  const goToRelaxation = () => router.push('/relaxation')
   const closePopup = () => (showCheckIn.value = false)
   const handleDotClick = (emotion) => {
     selectedEmotion.value = emotion
@@ -545,6 +544,9 @@
       a: "Love that suggestion! I'm adding more citations in the next update – stay tuned and feel free to share any links!"
     }
   ]
+
+  // Restore the goToRelaxation function
+  const goToRelaxation = () => router.push('/relaxation')
   </script>
 
   <style scoped>

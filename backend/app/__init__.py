@@ -3,3 +3,7 @@ import os
 
 # Load environment variables from .env file
 load_dotenv()
+
+"""
+Mindful Creator Backend Application
+"""
