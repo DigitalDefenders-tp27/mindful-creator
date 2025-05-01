@@ -4,6 +4,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import datetime
 
+# 修改导入语句引用现有的模块
 from app.api.router import router as api_router
 from app.api.relaxation.routes import router as relaxation_router
 from app.api.notes.routes import router as notes_router
@@ -20,7 +21,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Configure CORS
+# Setup CORS
 origins = [
     "http://localhost:3000", 
     "http://localhost:5173",
@@ -30,7 +31,8 @@ origins = [
     "http://127.0.0.1:5174",
     "https://mindful-creator-git-main-tiezhu.vercel.app",
     "https://mindful-creator.vercel.app",
-    "https://mindful-creator-tiezhu.vercel.app"
+    "https://mindful-creator-tiezhu.vercel.app",
+    "*"  # Allow all origins as fallback - make sure this is at the end
 ]
 
 app.add_middleware(
@@ -40,9 +42,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=86400,  # Cache preflight requests for 24 hours
+    expose_headers=["Content-Type", "X-API-Version"]
 )
 
-# Register routes
+# 注册所有路由
 app.include_router(api_router, prefix="/api")
 app.include_router(relaxation_router, prefix="/api/relaxation")
 app.include_router(notes_router, prefix="/api/notes")
