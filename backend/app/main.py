@@ -23,6 +23,7 @@ origins = [
     "https://mindful-creator-mymc.vercel.app",
     "https://mindful-creator-gwnq.vercel.app",
     "https://mindful-creator-murex.vercel.app",
+    "https://mindful-creator-tp27.vercel.app",
 ]
 
 app.add_middleware(
