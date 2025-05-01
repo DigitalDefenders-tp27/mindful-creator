@@ -25,18 +25,36 @@ a {
   padding: 0;
 }
 
+/* Remove green highlight from links */
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
+  color: inherit;
   transition: 0.4s;
   padding: 3px;
 }
 
+/* Remove green background hover effect */
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+    background-color: transparent;
   }
+}
+
+/* Global fix for green text on hover */
+h3:hover, 
+.journey-card:hover h3,
+.journey-card:hover .card-text h3,
+.journey-link:hover .card-text h3,
+.journey-section h3:hover,
+.card-text h3:hover,
+*:hover h3 {
+  color: inherit !important;
+}
+
+/* Remove specific green hover effect */
+*:hover *[style*="color: #1E6A42"] {
+  color: inherit !important;
 }
 
 @media (min-width: 1024px) {

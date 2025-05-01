@@ -169,7 +169,7 @@ import { CardSpotlight } from '../components/ui/card-spotlight'
 import QuizCard from '@/components/ui/quiz-card.vue'
 import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
 
-// 引入 Markdown 文件
+// Import Markdown files
 import impactMD from '../content/understanding-impact.md?raw'
 import relationshipsMD from '../content/authentic-relationships.md?raw'
 import principlesMD from '../content/ethical-principles.md?raw'
@@ -183,7 +183,7 @@ const keyPrinciplesMarkdown = ref('')
 const selectedCard = ref(null)
 const isCardExpanded = ref(false)
 
-// Preview Content / 预览内容
+// Preview Content
 const previewContent = computed(() => contentGuidelinesMarkdown.value)
 const bestPracticesPreview = computed(() => bestPracticesMarkdown.value)
 const keyPrinciplesPreview = computed(() => keyPrinciplesMarkdown.value)
@@ -1269,7 +1269,7 @@ onMounted(() => {
   height: 100%;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .card-text {
@@ -1287,6 +1287,8 @@ onMounted(() => {
   align-items: center;
   gap: 1.2rem;
   min-height: 60px;
+  padding-top: 5px;
+  overflow: visible;
 }
 
 .card-icon {
@@ -1300,7 +1302,7 @@ onMounted(() => {
 }
 
 .main-card:hover .card-icon {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
 }
 
 .card-text h3 {

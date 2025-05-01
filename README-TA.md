@@ -42,31 +42,46 @@
 
 ```
 mindful-creator/
-├── frontend/             # முன்நிலை குறியீடு
-│   ├── public/           # நிலையான சொத்துக்கள்
-│   ├── src/              # மூல கோப்புகள்
-│   │   ├── assets/       # படங்கள், ஐகான்கள், முதலியன
-│   │   │   ├── icons/    # UI ஐகான்கள்
-│   │   │   ├── images/   # உள்ளடக்க படங்கள்
-│   │   │   └── emojis/   # உணர்ச்சி எமோஜிகள்
-│   │   ├── components/   # Vue கூறுகள்
-│   │   │   ├── ui/       # UI கூறுகள்
-│   │   │   └── Activities/ # செயல்பாட்டு கூறுகள்
-│   │   ├── content/      # உள்ளடக்க கோப்புகள்
-│   │   ├── lib/          # பயன்பாட்டு நூலகங்கள்
-│   │   ├── router/       # Vue ரூட்டர் கட்டமைப்பு
-│   │   ├── styles/       # உலகளாவிய பாணிகள்
-│   │   ├── views/        # பக்க கூறுகள்
-│   │   ├── App.vue       # ரூட் கூறு
-│   │   └── main.js       # நுழைவு புள்ளி
-│   ├── .gitignore        # Git புறக்கணிப்பு கோப்பு
-│   ├── index.html        # HTML டெம்ப்ளேட்
-│   ├── package.json      # சார்புகள் மற்றும் ஸ்கிரிப்ட்கள்
-│   ├── postcss.config.js # PostCSS கட்டமைப்பு
-│   ├── tailwind.config.js # Tailwind CSS கட்டமைப்பு
-│   └── vite.config.js    # Vite கட்டமைப்பு
-└── backend/              # பின்புற குறியீடு
-    └── [backend structure] # பின்புற அமைப்பு சேர்க்கப்படும்
+├── frontend/                # முன்நிலை குறியீடு
+│   ├── public/              # நிலையான சொத்துக்கள்
+│   ├── src/                 # மூல கோப்புகள்
+│   │   ├── assets/          # படங்கள், ஐகான்கள், முதலியன
+│   │   │   ├── icons/       # UI ஐகான்கள்
+│   │   │   ├── images/      # உள்ளடக்க படங்கள்
+│   │   │   └── emojis/      # உணர்ச்சி எமோஜிகள்
+│   │   ├── components/      # Vue கூறுகள்
+│   │   │   ├── ui/          # UI கூறுகள்
+│   │   │   └── Activities/  # செயல்பாட்டு கூறுகள்
+│   │   ├── content/         # உள்ளடக்க கோப்புகள்
+│   │   ├── lib/             # பயன்பாட்டு நூலகங்கள்
+│   │   ├── router/          # Vue ரூட்டர் கட்டமைப்பு
+│   │   ├── stores/          # Pinia ஸ்டோர்கள்
+│   │   ├── styles/          # உலகளாவிய பாணிகள்
+│   │   ├── utils/           # பயன்பாட்டு செயல்பாடுகள்
+│   │   ├── views/           # பக்க கூறுகள்
+│   │   ├── App.vue          # ரூட் கூறு
+│   │   └── main.js          # நுழைவு புள்ளி
+│   ├── .gitignore           # Git புறக்கணிப்பு கோப்பு
+│   ├── index.html           # HTML டெம்ப்ளேட்
+│   ├── package.json         # சார்புகள் மற்றும் ஸ்கிரிப்ட்கள்
+│   ├── postcss.config.js    # PostCSS கட்டமைப்பு
+│   ├── tailwind.config.js   # Tailwind CSS கட்டமைப்பு
+│   └── vite.config.js       # Vite கட்டமைப்பு
+├── backend/                 # பின்புற குறியீடு
+│   ├── app/                 # முக்கிய பயன்பாடு
+│   │   ├── api/             # API முனைப்புகள்
+│   │   ├── routes/          # வழி கையாளுபவர்கள்
+│   │   ├── __init__.py      # தொகுப்பு துவக்கம்
+│   │   └── main.py          # முக்கிய பயன்பாட்டு கோப்பு
+│   ├── datasets/            # தரவு கோப்புகள்
+│   ├── tests/               # சோதனை கோப்புகள்
+│   ├── .env                 # சூழல் மாறிகள்
+│   ├── .env.example         # சூழல் மாறிகள் உதாரணம்
+│   ├── database.py          # தரவுத்தள கட்டமைப்பு
+│   ├── Dockerfile           # டாக்கர் கட்டமைப்பு
+│   ├── requirements.txt     # பைதான் சார்புகள்
+│   └── run.py               # சேவையக இயக்கி
+└── data/                    # திட்ட தரவு கோப்புகள்
 ```
 
 ## முக்கிய பிரிவுகள்
@@ -88,6 +103,12 @@ mindful-creator/
   - Tailwind CSS
   - Marked (மார்க்டவுன் ரெண்டரிங்க்கு)
   - Vite (உருவாக்கம் மற்றும் மேம்பாட்டிற்கு)
+  - Pinia (நிலை மேலாண்மைக்கு)
+
+- **பின்பக்கம்**:
+  - FastAPI (பைதான் வலை கட்டமைப்பு)
+  - SQLite (தரவுத்தளம்)
+  - Python 3.9+
 
 - **வடிவமைப்பு அம்சங்கள்**:
   - ரெஸ்பான்சிவ் டிசைன்
@@ -117,6 +138,7 @@ mindful-creator/
 - Lucide Vue Next (^0.487.0)
 - Tailwind Merge (^2.6.0)
 - Tailwind CSS Animate (^1.0.7)
+- Pinia (^2.1.7)
 
 ### முன்பக்க மேம்பாட்டு சார்புகள்
 - @vitejs/plugin-vue (^5.2.3)
@@ -129,4 +151,13 @@ mindful-creator/
 - npm-run-all2 (^7.0.2)
 - Oxlint (^0.16.0)
 - Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2) 
+- Vite Plugin Vue DevTools (^7.7.2)
+
+### பின்பக்க சார்புகள்
+- fastapi
+- uvicorn
+- sqlalchemy
+- python-dotenv
+- pydantic
+- pytest
+- httpx 

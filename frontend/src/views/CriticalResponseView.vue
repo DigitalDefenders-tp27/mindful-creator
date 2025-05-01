@@ -96,7 +96,7 @@
           <div class="process-card">
             <div class="card-number">1</div>
             <div class="card-content">
-              <img src="/src/assets/icons/elements/post.png" alt="Smartphone icon" class="card-icon">
+              <img src="/src/assets/icons/elements/video.png" alt="Smartphone icon" class="card-icon">
               <p class="card-text">Open your Youtube video.</p>
             </div>
           </div>
@@ -121,7 +121,7 @@
 
       <!-- Comments Response Scripts Section -->
       <div class="youtube-analysis-section">
-        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white max-w-3xl mx-auto">
+        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white mx-auto">
           <h3 class="section-title">YouTube Comment Analysis</h3>
           <div class="input-group">
             <input 
@@ -135,13 +135,17 @@
               class="analyze-button"
               :disabled="isLoading"
             >
+              <span v-if="isLoading" class="loading-spinner"></span>
               {{ isLoading ? 'Analysing...' : 'Analyse Comments' }}
             </button>
           </div>
-          <p v-if="analysisError" class="error-message">{{ analysisError }}</p>
+          <p v-if="analysisError" class="error-message">
+            <strong>Strewth!</strong> {{ analysisError }}
+            <button @click="retryAnalysis" class="retry-button">Give it another go</button>
+          </p>
           <p v-if="isLoading" class="loading-message">
             <span class="loading-spinner"></span>
-            Fetching and analysing comments. This may take a moment...
+            Grabbing and checking those comments. Hang in there, mate...
           </p>
         </div>
       </div>
@@ -161,14 +165,24 @@
               <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
             </div>
             
+            <!-- WebSocket Error Warning -->
+            <div v-if="analysisResult.wsError" class="websocket-warning section-divider">
+              <div class="warning-icon">⚠️</div>
+              <div class="warning-content">
+                <h4>Fair Dinkum Results (Not Perfect)</h4>
+                <p>The sentiment and toxicity analysis service is having a bit of a wobbly, but we've still managed to work out some helpful response strategies and examples based on your video comments.</p>
+                <p class="warning-note">Note: The sentiment and toxicity scores are our best guess.</p>
+              </div>
+            </div>
+            
             <!-- Debug Information (Add after video info section) -->
-            <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
-              <p class="note-message"><strong>Note:</strong> {{ analysisResult.analysis.note }}</p>
+            <!-- <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
+              <p class="note-message"><strong>Heads up:</strong> {{ analysisResult.analysis.note }}</p>
               <details>
-                <summary>Debug Information</summary>
+                <summary>Technical Details</summary>
                 <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
               </details>
-            </div>
+            </div> -->
             
             <!-- Results Grid -->
             <div class="results-grid section-divider">
@@ -338,42 +352,139 @@
     
     // Validate URL
     if (!youtubeUrl.value) {
-      analysisError.value = 'Please enter a YouTube video URL'
+      analysisError.value = 'Please enter a YouTube video URL, mate'
+      return
+    }
+    
+    // Validate URL format
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
+    if (!youtubeRegex.test(youtubeUrl.value)) {
+      analysisError.value = 'Please enter a valid YouTube URL, that one\'s not right'
       return
     }
     
     // Set loading state
     isLoading.value = true
     
+    // API URL with fallback options
+    const primaryApiUrl = 'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze'
+    
     try {
-      // Send request to backend API
-      const response = await fetch('https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          video_url: youtubeUrl.value
+      console.log('Starting YouTube analysis process...')
+      
+      // Create AbortController for the request with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
+      
+      // First make a simple GET request to check if the server is responding at all
+      let serverAvailable = false
+      try {
+        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app/', {
+          method: 'GET',
+          mode: 'no-cors', // Use no-cors to avoid CORS failures during check
+          signal: AbortSignal.timeout(5000)
         })
-      })
+        
+        console.log('Basic connectivity check completed')
+        serverAvailable = true
+      } catch (healthError) {
+        console.warn('Server may be down or unreachable:', healthError)
+        // Continue anyway - will try the actual request
+      }
+      
+      console.log('Sending API request to:', primaryApiUrl)
+      
+      let response
+      try {
+        // Send request to backend API with improved error handling
+        response = await fetch(primaryApiUrl, {
+          method: 'POST',
+          // Use 'no-cors' mode when having CORS issues
+          mode: 'cors',
+          credentials: 'omit', // Don't send credentials
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            video_url: youtubeUrl.value,
+            max_comments: 100 // Limit number of comments to process
+          }),
+          signal: controller.signal
+        })
+      } catch (fetchError) {
+        console.error('Fetch operation failed:', fetchError)
+        
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out. The server might be too busy right now.')
+        }
+        
+        if (fetchError.message.includes('Failed to fetch') || 
+            fetchError.message.includes('NetworkError') ||
+            fetchError.message.includes('Load failed')) {
+          throw new Error('The server appears to be down. Please try again later.')
+        }
+        
+        throw fetchError
+      } finally {
+        clearTimeout(timeoutId)
+      }
+      
+      // Check for HTTP errors
+      if (!response.ok) {
+        console.error('API error status:', response.status, response.statusText)
+        
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+          // These are gateway/availability errors - server is likely down
+          throw new Error('The server is currently unavailable. The backend might be restarting or down for maintenance.')
+        }
+        
+        throw new Error(`Server returned error ${response.status}: ${response.statusText}`)
+      }
       
       // Parse response
       const data = await response.json()
+      console.log('API response received')
       
       // Check API response status
       if (data.status === 'error') {
+        console.error('API returned error:', data.message)
         analysisError.value = data.message || 'Analysis failed, please try again later'
+        isLoading.value = false
         return
       }
       
-      // Save result and show modal
+      // Check for WebSocket error cases
+      if (data.analysis && data.analysis.note && data.analysis.note.includes('API Error: server rejected WebSocket connection')) {
+        console.warn('Detected WebSocket connection issue, but we still received analysis data')
+        
+        // Add a note to the displayed result about the partial analysis
+        data.wsError = true
+      }
+      
+      // Update analysis result and display modal
       analysisResult.value = data
       showResultsModal.value = true
+      isLoading.value = false
       
-    } catch (err) {
-      console.error('API request error:', err)
-      analysisError.value = 'Failed to connect to backend service, please ensure the backend is running'
-    } finally {
+    } catch (error) {
+      console.error('API request error:', error)
+      
+      // Handle specific errors with user-friendly messages
+      if (error.message.includes('NetworkError') || 
+          error.message.includes('Failed to fetch') || 
+          error.message.includes('Load failed') ||
+          error.message.includes('server is down') ||
+          error.message.includes('server is currently unavailable')) {
+        analysisError.value = "Crikey! The server's having a bit of a lie-down right now. Try again in a few minutes."
+      } else if (error.name === 'AbortError' || error.message.includes('timed out')) {
+        analysisError.value = "Fair dinkum, that's taking ages! The request timed out. Give it another go when the server's less busy."
+      } else if (error.message.includes('CORS') || error.message.includes('access control checks')) {
+        analysisError.value = "Strewth! There's a browser security issue connecting to the server. Try refreshing the page or using a different browser."
+      } else {
+        analysisError.value = `Looks like we hit a snag: ${error.message}`
+      }
+      
       isLoading.value = false
     }
   }
@@ -547,6 +658,13 @@
 
   // Restore the goToRelaxation function
   const goToRelaxation = () => router.push('/relaxation')
+
+  // Retry analysis function
+  const retryAnalysis = () => {
+    if (youtubeUrl.value) {
+      analyzeYoutubeComments()
+    }
+  }
   </script>
 
   <style scoped>
@@ -1703,8 +1821,8 @@
   /* YouTube Analysis Section Styles */
   .youtube-analysis-section {
     width: 100%;
-    max-width: 900px;
-    margin: 0 auto 4rem;
+    max-width: 970px;
+    margin: 0 auto 12rem;
   }
 
   .analysis-container {
@@ -1742,7 +1860,7 @@
 
   .analyze-button {
     padding: 0.5rem 1.5rem;
-    background-color: #7db3d9;
+    background-color: #e75a97; /* Changed from blue to pink */
     color: white;
     border: none;
     border-radius: 8px;
@@ -1753,12 +1871,12 @@
   }
 
   .analyze-button:not(:disabled):hover {
-    background-color: #6ca3c9;
+    background-color: #d4407f; /* Changed from darker blue to darker pink */
     transform: translateY(-2px);
   }
 
   .analyze-button:disabled {
-    background-color: #b3d1e3;
+    background-color: #f5a5c4; /* Changed from light blue to light pink */
     cursor: not-allowed;
   }
 
@@ -1766,6 +1884,9 @@
     color: #e74c3c;
     margin-top: 0.5rem;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
   }
   
   .loading-message {
@@ -1782,12 +1903,18 @@
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(52, 152, 219, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    border-top-color: #3498db;
+    border-top-color: white;
+    margin-right: 8px;
     animation: spin 1s linear infinite;
   }
   
+  .loading-message .loading-spinner {
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    border-top-color: #3498db;
+  }
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -2207,5 +2334,57 @@
   .section-divider:last-child {
     border-bottom: none;
     margin-bottom: 0;
+  }
+
+  .retry-button {
+    background-color: #6ca3c9;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .retry-button:hover {
+    background-color: #5a94ba;
+  }
+
+  /* Add these styles to the <style> section */
+  .websocket-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .warning-icon {
+    font-size: 2rem;
+    margin-top: 0.25rem;
+  }
+
+  .warning-content h4 {
+    font-size: 1.1rem;
+    color: #856404;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .warning-content p {
+    color: #856404;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .warning-content .warning-note {
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 0.5rem;
   }
   </style>

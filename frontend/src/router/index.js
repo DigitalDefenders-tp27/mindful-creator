@@ -6,6 +6,7 @@ import RelaxationView from '../views/RelaxationView.vue'
 import PasswordPage from '../components/PasswordPage.vue'
 import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
 import PrivacyView from '../views/PrivacyView.vue'
+import TestWebSocketView from '../views/TestWebSocketView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +51,12 @@ const router = createRouter({
       path: '/password',
       name: 'password',
       component: PasswordPage  // Password page route
+    },
+    {
+      path: '/websocket-test',
+      name: 'websocket-test',
+      component: TestWebSocketView,
+      meta: { requiresAuth: false }  // 不需要密码认证，方便测试
     }
   ],
   scrollBehavior() {
