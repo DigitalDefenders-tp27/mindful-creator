@@ -1,10 +1,15 @@
 import os
-from fastapi import FastAPI
+import logging
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.youtube.routes import router as youtube_router
 from app.api.data.routes import router as data_router
 from .routes import relaxation
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("websocket")
 
 # Create FastAPI application
 app = FastAPI(
@@ -23,11 +28,11 @@ origins = [
     "https://mindful-creator-mymc.vercel.app",
     "https://mindful-creator-99fvqeosu-tp27.vercel.app",
     "https://mindful-creator.vercel.app",
-    "*",
     "https://mindful-creator-gwnq.vercel.app",
     "https://mindful-creator-murex.vercel.app",
     "https://mindful-creator-tp27.vercel.app",
-
+    # Allow all origins as fallback
+    "*"
 ]
 
 app.add_middleware(
@@ -42,6 +47,39 @@ app.add_middleware(
 app.include_router(youtube_router, prefix="/api/youtube", tags=["youtube"])
 app.include_router(data_router, prefix="/api", tags=["data"])
 app.include_router(relaxation.router, prefix="/api", tags=["relaxation"])
+
+# Add WebSocket endpoint
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    client_id = id(websocket)
+    logger.info(f"WebSocket connection attempt from client {client_id}")
+    
+    # Accept the connection without any validation
+    await websocket.accept()
+    logger.info(f"WebSocket connection accepted for client {client_id}")
+    
+    try:
+        while True:
+            # Wait for text messages from the client
+            data = await websocket.receive_text()
+            logger.info(f"Received message from client {client_id}: {data}")
+            
+            # Echo the message back to the client
+            response = f"Echo: {data}"
+            await websocket.send_text(response)
+            logger.info(f"Sent response to client {client_id}: {response}")
+    
+    except WebSocketDisconnect:
+        logger.info(f"Client {client_id} disconnected normally")
+    except Exception as e:
+        logger.error(f"Error in WebSocket connection with client {client_id}: {str(e)}")
+    finally:
+        logger.info(f"WebSocket connection with client {client_id} closed")
+
+# Add a test endpoint to check WebSocket availability
+@app.get("/ws-test")
+async def websocket_test():
+    return {"status": "WebSocket endpoint is available"}
 
 @app.get("/")
 async def root():
