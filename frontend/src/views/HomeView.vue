@@ -1017,34 +1017,10 @@ const scrollToTop = () => {
   }
 }
 
-@media (max-width: 1024px) {
-  .feature-list {
-    font-size: 1rem;
-    padding: 0 0.5rem;
-  }
-  
-  .feature-list li {
-    line-height: 1.3;
-  }
-  
-  .card-content {
-    padding: 0.75rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .feature-list {
-    font-size: 0.9rem;
-    padding: 0 0.25rem;
-  }
-  
-  .feature-list li {
-    line-height: 1.25;
-    padding-left: 0.8rem;
-  }
-  
-  .card-content {
-    padding: 0.5rem;
+/* 添加950px到850px之间的媒体查询 */
+@media (max-width: 950px) {
+  .journey-card {
+    min-height: 340px;
   }
   
   .card-icon {
@@ -1052,22 +1028,31 @@ const scrollToTop = () => {
     height: 100px;
     margin-bottom: 1.5rem;
   }
-}
-
-@media (max-width: 640px) {
-  .journey-card {
-    min-height: 320px;
+  
+  .card-text h3 {
+    font-size: 1.6rem;
   }
   
   .feature-list {
-    font-size: 0.85rem;
-    padding: 0 0.25rem;
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
   }
   
   .feature-list li {
-    line-height: 1.2;
-    padding-left: 0.8rem;
-    margin-bottom: 0.4rem;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+    padding-right: 0.3rem;
+  }
+}
+
+/* 专门针对850px的媒体查询 */
+@media (max-width: 850px) {
+  .journey-card {
+    min-height: 300px;
+  }
+  
+  .card-content {
+    padding: 0.3rem;
   }
   
   .card-icon {
@@ -1077,7 +1062,161 @@ const scrollToTop = () => {
   }
   
   .card-text h3 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    line-height: 1.1;
+  }
+  
+  .feature-list {
+    font-size: 0.85rem;
+    padding: 0 0.25rem;
+    line-height: 1.2;
+    margin-top: 0.5rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+    padding-left: 0.7rem;
+    padding-right: 0.2rem;
+  }
+  
+  .journey-link {
+    padding: 3px;
+  }
+  
+  /* 调整翻转卡片布局 */
+  :deep(.flip-card-back) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  :deep(.flip-card-back .card-content) {
+    padding: 0.4rem 0.3rem;
+  }
+}
+
+/* Add media query for 768px */
+@media (max-width: 768px) {
+  .journey-card {
+    min-height: 290px;
+  }
+  
+  .feature-list {
+    font-size: 0.82rem;
+    padding: 0 0.2rem;
+    margin-top: 0.3rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.15;
+    padding-left: 0.65rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .card-content {
+    padding: 0.4rem 0.2rem;
+  }
+  
+  .card-icon {
+    width: 75px;
+    height: 75px;
+    margin-bottom: 1rem;
+  }
+  
+  .card-text h3 {
+    font-size: 1.25rem;
+    line-height: 1.05;
+  }
+  
+  .journey-link {
+    width: calc((100% - 2rem) / 3);
+  }
+  
+  .top-row, .bottom-row {
+    gap: 1rem;
+  }
+}
+
+/* Add media query for 640px */
+@media (max-width: 640px) {
+  .journey-card {
+    min-height: 270px;
+  }
+  
+  .feature-list {
+    font-size: 0.75rem;
+    padding: 0 0.15rem;
+    margin-top: 0.2rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.1;
+    padding-left: 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .card-content {
+    padding: 0.3rem 0.15rem;
+  }
+  
+  .card-icon {
+    width: 65px;
+    height: 65px;
+    margin-bottom: 0.75rem;
+  }
+  
+  .card-text h3 {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  
+  .journey-link {
+    width: calc((100% - 1rem) / 3);
+  }
+  
+  .top-row, .bottom-row {
+    gap: 0.5rem;
+  }
+}
+
+/* 添加480px的媒体查询，针对特别小的屏幕 */
+@media (max-width: 480px) {
+  .journey-card {
+    min-height: 250px;
+  }
+  
+  .feature-list {
+    font-size: 0.7rem;
+    padding: 0 0.1rem;
+  }
+  
+  .feature-list li {
+    line-height: 1.05;
+    padding-left: 0.55rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .card-content {
+    padding: 0.25rem 0.1rem;
+  }
+  
+  .card-icon {
+    width: 55px;
+    height: 55px;
+    margin-bottom: 0.6rem;
+  }
+  
+  .card-text h3 {
+    font-size: 1rem;
+  }
+  
+  .journey-link {
+    padding: 2px;
+  }
+  
+  .top-row, .bottom-row {
+    gap: 0.4rem;
   }
 }
 
