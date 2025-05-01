@@ -251,10 +251,11 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             # Fair dinkum attempt to call the Space predict endpoint
             logger.info(f"Sending {len(processed_comments)} comments to Space using gradio_client")
             
-            # 使用测试脚本发现的正确函数索引 (fn_index=2)
+            # 使用经测试可行的"/predict" API端点（带前导斜杠）
+            logger.info("Calling predict with api_name='/predict'...")
             result = client.predict(
                 comments_text,  # Input: string with line-separated comments
-                fn_index=2      # 使用fn_index=2调用正确的端点
+                api_name="/predict"  # 使用前导斜杠的API名称
             )
             
             # Normalise the Space result format for consistency
