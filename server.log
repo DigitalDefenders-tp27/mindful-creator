@@ -26,3 +26,10 @@
 2025-05-01 10:05:14,824 - server - INFO - - SPACE_API_URL: Set
 2025-05-01 10:05:14,824 - server - INFO - - CORS_ORIGIN: Set
 2025-05-01 10:05:15,166 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
+2025-05-01 10:15:00,959 - server - INFO - === Starting Mindful Creator Backend Service ===
+2025-05-01 10:15:00,959 - server - INFO - Loading environment variables...
+2025-05-01 10:15:00,959 - server - INFO - Environment variable configuration status:
+2025-05-01 10:15:00,959 - server - INFO - - YOUTUBE_API_KEY: Set
+2025-05-01 10:15:00,959 - server - INFO - - SPACE_API_URL: Set
+2025-05-01 10:15:00,959 - server - INFO - - CORS_ORIGIN: Set
+2025-05-01 10:15:01,417 - app.api.youtube.analyzer - INFO - YOUTUBE_API_KEY set: True
