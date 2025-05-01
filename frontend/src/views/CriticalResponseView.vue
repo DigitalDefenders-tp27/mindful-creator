@@ -121,7 +121,7 @@
 
       <!-- Comments Response Scripts Section -->
       <div class="youtube-analysis-section">
-        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white max-w-3xl mx-auto">
+        <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white mx-auto">
           <h3 class="section-title">YouTube Comment Analysis</h3>
           <div class="input-group">
             <input 
@@ -1821,8 +1821,8 @@
   /* YouTube Analysis Section Styles */
   .youtube-analysis-section {
     width: 100%;
-    max-width: 900px;
-    margin: 0 auto 4rem;
+    max-width: 970px;
+    margin: 0 auto 12rem;
   }
 
   .analysis-container {
@@ -1860,7 +1860,7 @@
 
   .analyze-button {
     padding: 0.5rem 1.5rem;
-    background-color: #7db3d9;
+    background-color: #e75a97; /* Changed from blue to pink */
     color: white;
     border: none;
     border-radius: 8px;
@@ -1871,12 +1871,12 @@
   }
 
   .analyze-button:not(:disabled):hover {
-    background-color: #6ca3c9;
+    background-color: #d4407f; /* Changed from darker blue to darker pink */
     transform: translateY(-2px);
   }
 
   .analyze-button:disabled {
-    background-color: #b3d1e3;
+    background-color: #f5a5c4; /* Changed from light blue to light pink */
     cursor: not-allowed;
   }
 
