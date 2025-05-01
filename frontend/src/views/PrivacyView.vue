@@ -2281,13 +2281,13 @@ onUnmounted(() => {
 
 /* Platform section styles */
 .platform-section {
-  margin-bottom: 4rem; /* 增加底部间距 */
-  background-color: #ffecf2; /* 浅粉色背景 */
-  border-radius: 20px; /* 增加圆角 */
-  padding: 3rem; /* 增加内边距 */
+  margin-bottom: 4rem; 
+  background-color: #ffecf2; 
+  border-radius: 20px; 
+  padding: 3rem; 
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 添加阴影增强视觉效果 */
-  max-width: 95%; /* 限制最大宽度 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+  max-width: 95%; 
   margin-left: auto;
   margin-right: auto;
 }
@@ -2295,21 +2295,21 @@ onUnmounted(() => {
 .platform-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* 增加间距 */
+  gap: 1.5rem; 
   cursor: pointer;
   position: relative;
-  padding: 1rem; /* 增加内边距 */
-  border-radius: 12px; /* 增加圆角 */
+  padding: 1rem;
+  border-radius: 12px; 
   transition: background-color 0.3s;
-  margin-bottom: 0.5rem; /* 添加底部间距 */
+  margin-bottom: 0.5rem; 
 }
 
 .platform-header:hover {
-  background-color: #ffd9e6; /* 鼠标悬停时的中等粉色 */
+  background-color: #ffd9e6;
 }
 
 .platform-header.active {
-  background-color: #ffb6d3; /* 选中时的深粉色 */
+  background-color: #ffb6d3; 
 }
 
 .expand-icon {
@@ -2336,7 +2336,7 @@ onUnmounted(() => {
 }
 
 .platform-logo {
-  width: 60px; /* 增大logo尺寸 */
+  width: 60px; 
   height: 60px;
   object-fit: contain;
 }
@@ -2358,17 +2358,17 @@ onUnmounted(() => {
 
 /* YouTube section special styles */
 .youtube-section {
-  background-color: #ffecf2; /* 浅粉色背景 */
+  background-color: #ffecf2;
 }
 
 /* TikTok section special styles */
 .tiktok-section {
-  background-color: #ffecf2; /* 浅粉色背景 */
+  background-color: #ffecf2; 
 }
 
 /* Instagram section special styles */
 .instagram-section {
-  background-color: #ffecf2; /* 浅粉色背景 */
+  background-color: #ffecf2; 
 }
 
 /* Privacy settings section */
@@ -2885,16 +2885,15 @@ onUnmounted(() => {
   position: relative;
   max-width: 90%;
   max-height: 90%;
-  background-color: #fdfcfe; /* 背景色移到这里 */
+  background-color: #fdfcfe;
   border-radius: 12px;
-  overflow-y: auto; /* 允许内容滚动 */
-  max-height: 80vh; /* 限制高度以允许滚动 */
-  padding: 2rem; /* 内边距 */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* 添加阴影 */
-  transition: transform 0.3s ease; /* 添加过渡效果 */
+  overflow-y: auto;
+  max-height: 80vh; 
+  padding: 2rem; 
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease; 
 }
 
-/* 鼠标悬停时微微上移效果 */
 .quick-view-content:hover {
   transform: translateY(-5px);
 }

@@ -75,7 +75,7 @@
                 <div class="card-content">
                   <img src="/src/assets/icons/elements/Leaves_Light_Purple.svg" alt="Leaves Light Purple" class="card-icon">
                   <div class="card-text">
-                    <h3>Ethical</h3>
+                    <h3>Ethic</h3>
                     <h3>Influencer</h3>
                   </div>
                 </div>
