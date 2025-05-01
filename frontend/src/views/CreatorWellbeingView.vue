@@ -1,5 +1,20 @@
 <template>
   <div class="creator-wellbeing">
+    <!-- Scroll Island -->
+    <ScrollIsland title="Creator Wellbeing" ref="scrollIslandRef">
+      <div class="island-sections">
+        <div class="island-section" @click="scrollToSection('dashboard-section')">
+          <h4>Digital Impact Analysis Dashboard</h4>
+        </div>
+        <div class="island-section" @click="scrollToSection('resource-finder-section')">
+          <h4>Wellbeing Resource Finder</h4>
+        </div>
+        <div class="island-section" @click="scrollToSection('activities-section')">
+          <h4>Wellbeing Activities Hub</h4>
+        </div>
+      </div>
+    </ScrollIsland>
+    
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-content">
@@ -62,7 +77,7 @@
               class="resource-tab" 
               :class="{ active: activeTab === 'offline' }"
               @click="switchResourceTab('offline')"
-            >Psychologist (Offline Resources)</div>
+            >Medical Clinic</div>
             <div 
               class="resource-tab" 
               :class="{ active: activeTab === 'online' }"
@@ -97,7 +112,7 @@
                 <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
                 </svg>
-                Get My Position
+                Get My Location
               </button>
             </div>
             
@@ -169,7 +184,7 @@
                 <div class="resource-website">
                   <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
                   <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
-                  <button class="online-switch" @click="switchToOnline">Switch to online</button>
+                  <button class="online-switch" @click="switchToOnline">Switch to Online</button>
                 </div>
 
                 <div class="opening-hours">
@@ -188,7 +203,7 @@
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
                   </svg>
-                  Get direction
+                  Get Direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -204,7 +219,7 @@
     </section>
 
     <!-- Wellbeing Activities Hub -->
-    <section class="activities-section">
+    <section class="activities-section" id="wellbeing-activities">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
         <p class="section-subtitle">Release your stress by joining fun activities and making like-minded friends.</p>
@@ -404,12 +419,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
 import Chart from 'chart.js/auto'
 import Modal from '../components/Modal.vue'
 import axios from 'axios'
+import ScrollIsland from '@/components/ScrollIsland.vue'
 
 // State variables
 const currentTab = ref(0)
@@ -1801,6 +1817,38 @@ const submitFeedback = async () => {
     alert('Failed to submit rating. Please try again.')
   }
 }
+
+// Function to scroll to a specific section on the page
+const scrollToSection = (sectionId) => {
+  // For Wellbeing Activities Hub, use the ID instead of class
+  let selector = `.${sectionId}`;
+  if (sectionId === 'activities-section') {
+    selector = '#wellbeing-activities';
+  }
+  
+  const section = document.querySelector(selector);
+  if (section) {
+    // Get the navbar height to use as an offset
+    const navbarHeight = 100; // Increased to give more space below the navbar
+    
+    // Calculate the position to scroll to
+    const offsetPosition = section.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+    
+    // Scroll to the section with the offset
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+    
+    // Close the island after navigation
+    if (scrollIslandRef.value) {
+      scrollIslandRef.value.closeIsland();
+    }
+  }
+};
+
+// Reference to the ScrollIsland component
+const scrollIslandRef = ref(null);
 </script>
 
 <style scoped>
@@ -3785,6 +3833,17 @@ section:not(:last-child)::after {
   white-space: nowrap;
   font-size: 0.95rem;
   line-height: 44px;
+  transition: all 0.3s ease;
+}
+
+.position-btn:hover {
+  background-color: #d4407f;
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.position-btn:active {
+  transform: translateX(-50%) translateY(0);
 }
 
 .search-input:disabled {
@@ -3920,5 +3979,68 @@ section:not(:last-child)::after {
   .hours-grid {
     font-size: 0.9rem;
   }
+}
+
+/* Island Sections Styling */
+.island-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  padding-bottom: 0;
+}
+
+.island-section {
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.island-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+.island-section:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.island-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.island-section:hover {
+  transform: translateX(3px);
+}
+
+.island-section:active {
+  transform: translateX(5px);
+}
+
+.island-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.island-section p {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.9;
 }
 </style>

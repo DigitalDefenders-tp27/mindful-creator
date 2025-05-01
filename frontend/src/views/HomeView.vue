@@ -698,12 +698,7 @@ const scrollToTop = () => {
 .journey-section {
   position: relative;
   padding: 0 0 8rem;
-  background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.4) 0%,
-    rgba(218, 237, 148, 0.25) 20%,
-    rgba(225, 241, 158, 0.15) 40%,
-    rgba(228, 245, 138, 0) 60%
-  );
+  background-color: rgb(255, 252, 244);
   width: 100%;
   margin-top: 0;
 }
@@ -748,6 +743,7 @@ const scrollToTop = () => {
   gap: 2rem;
 }
 
+/* Card styles - ensuring no green shadows or flashes */
 .journey-card {
   @apply rounded-xl;
   min-height: 360px;
@@ -757,24 +753,74 @@ const scrollToTop = () => {
   position: relative;
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   transform: scale(1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .journey-card:hover {
-  transform: scale(1);
+  transform: scale(1.05);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+  z-index: 2;
 }
 
-/* 翻转卡片动画 / Flip card animation */
+/* Reset any green hover color for card headings */
+.journey-section .journey-card:hover .card-text h3,
+.journey-section .journey-card:hover h3,
+.journey-section .journey-link:hover .card-text h3,
+.journey-section .journey-link:hover h3,
+.journey-section .journey-link:hover .journey-card .card-text h3 {
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+/* Explicitly override the known green color */
+.journey-section *:hover h3[style*="#1E6A42"],
+.journey-section *:hover *[style*="#1E6A42"],
+.journey-section h3:hover,
+.journey-section .card-text h3:hover,
+.journey-section .journey-card:hover .card-text h3,
+.journey-section .journey-link:hover .journey-card h3 {
+  color: inherit !important;
+}
+
+/* Specifically target the FlipCard component's text */
+.journey-section .journey-card:hover :deep(h3),
+.journey-section .journey-card:hover :deep(.card-text h3) {
+  color: inherit !important;
+}
+
+/* Card links with clean transitions */
+.journey-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: calc((100% - 4rem) / 3);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  padding: 5px;
+}
+
+.journey-link:hover {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+}
+
+/* 翻转卡片动画 - updated for cleaner effects */
 :deep(.flip-card) {
   transition: transform 0.6s;
   transform-style: preserve-3d;
   border: none;
   box-shadow: none;
+  background: transparent;
+  height: 100%;
+  width: 100%;
 }
 
 :deep(.flip-card:hover) {
   transform: rotateY(180deg);
+  box-shadow: none;
 }
 
 :deep(.flip-card-front),
@@ -791,7 +837,6 @@ const scrollToTop = () => {
 
 :deep(.flip-card-back) {
   transform: rotateY(180deg);
-  background: inherit;
   border: none;
   box-shadow: none;
   outline: none;
@@ -803,9 +848,27 @@ const scrollToTop = () => {
   outline: none;
 }
 
-/* 卡片颜色 / Card colors */
+/* Update all journey cards to use consistent background-color property */
+.journey-card.beige { 
+  background-color: rgb(239, 225, 185);
+  border-color: rgba(239, 225, 185, 0.8);
+}
+.journey-card.beige .card-icon {
+  opacity: 1;
+}
+.journey-card.beige h3 {
+  color: rgb(85, 85, 85);
+}
+.journey-card.beige :deep(.flip-card-back) {
+  background-color: rgb(239, 225, 185);
+}
+.journey-card.beige :deep(.feature-list) {
+  color: rgb(85, 85, 85);
+  font-weight: 700;
+}
+
 .journey-card.purple { 
-  background: rgb(199, 170, 204);
+  background-color: rgb(199, 170, 204);
   border-color: rgba(199, 170, 204, 0.8);
 }
 .journey-card.purple .card-icon {
@@ -816,33 +879,15 @@ const scrollToTop = () => {
   font-weight: 700;
 }
 .journey-card.purple :deep(.flip-card-back) {
-  background: rgb(199, 170, 204);
+  background-color: rgb(199, 170, 204);
 }
 .journey-card.purple :deep(.feature-list) {
   color: rgb(252, 244, 223);
   font-weight: 700;
 }
 
-.journey-card.beige { 
-  background: rgb(239, 225, 185);
-  border-color: rgba(239, 225, 185, 0.8);
-}
-.journey-card.beige .card-icon {
-  opacity: 1;
-}
-.journey-card.beige h3 {
-  color: rgb(126, 184, 121);
-}
-.journey-card.beige :deep(.flip-card-back) {
-  background: rgb(239, 225, 185);
-}
-.journey-card.beige :deep(.feature-list) {
-  color: rgb(126, 184, 121);
-  font-weight: 700;
-}
-
 .journey-card.orange { 
-  background: rgb(227, 107, 46);
+  background-color: rgb(227, 107, 46);
   border-color: rgba(227, 107, 46, 0.8);
 }
 .journey-card.orange .card-icon {
@@ -852,7 +897,7 @@ const scrollToTop = () => {
   color: rgb(255, 255, 255);
 }
 .journey-card.orange :deep(.flip-card-back) {
-  background: rgb(227, 107, 46);
+  background-color: rgb(227, 107, 46);
 }
 .journey-card.orange :deep(.feature-list) {
   color: rgb(255, 255, 255);
@@ -860,7 +905,7 @@ const scrollToTop = () => {
 }
 
 .journey-card.orange-light { 
-  background: rgb(227, 107, 46);
+  background-color: rgb(227, 107, 46);
   border-color: rgba(227, 107, 46, 0.8);
 }
 .journey-card.orange-light .card-icon {
@@ -870,7 +915,7 @@ const scrollToTop = () => {
   color: rgb(255, 255, 255);
 }
 .journey-card.orange-light :deep(.flip-card-back) {
-  background: rgb(227, 107, 46);
+  background-color: rgb(227, 107, 46);
 }
 .journey-card.orange-light :deep(.feature-list) {
   color: rgb(255, 255, 255);
@@ -878,7 +923,7 @@ const scrollToTop = () => {
 }
 
 .journey-card.blue-light { 
-  background: rgb(217, 231, 246);
+  background-color: rgb(217, 231, 246);
   border-color: rgba(217, 231, 246, 0.8);
 }
 .journey-card.blue-light .card-icon {
@@ -888,7 +933,7 @@ const scrollToTop = () => {
   color: rgb(171, 146, 191);
 }
 .journey-card.blue-light :deep(.flip-card-back) {
-  background: rgb(217, 231, 246);
+  background-color: rgb(217, 231, 246);
 }
 .journey-card.blue-light :deep(.feature-list) {
   color: rgb(171, 146, 191);
@@ -1212,42 +1257,32 @@ p {
   transform: translateY(-2px);
 }
 
-.journey-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  width: calc((100% - 4rem) / 3);
-  transform: translateY(0);
-  transition: transform 0.3s ease;
-  padding: 5px;
-}
-
-.journey-link:hover {
-  transform: translateY(-5px);
-}
-
-/* Update journey card styles */
-.journey-card {
-  width: 100%;
-  min-height: 360px;
-  aspect-ratio: 1;
-  border-radius: 1rem;
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  transform: scale(1);
-}
-
-.journey-card:hover {
-  transform: scale(1);
-}
-
 /* Remove the width calculation from .top-row .journey-card and .bottom-row .journey-card */
 .top-row .journey-card,
 .bottom-row .journey-card {
   width: 100%;
+}
+</style>
+
+<!-- Add a separate style block with highest specificity to override green headings -->
+<style>
+/* Force override any green text on hover */
+.journey-section .journey-card:hover h3,
+.journey-section .journey-card:hover .card-text h3,
+.journey-section .journey-link:hover .card-text h3,
+.journey-section .journey-link:hover .journey-card h3,
+.journey-section .journey-card:hover .card-text *,
+.journey-section .flip-card:hover h3,
+.journey-section .flip-card:hover .card-text h3 {
+  color: inherit !important;
+}
+
+/* Target the specific green color */
+.journey-section *[style*="#1E6A42"],
+.journey-section *[style*="color: #1E6A42"],
+.journey-section *:hover[style*="#1E6A42"],
+.journey-section *:hover[style*="color: #1E6A42"] {
+  color: inherit !important;
 }
 </style>
 

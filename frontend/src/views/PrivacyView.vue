@@ -8,7 +8,7 @@
             <h1>Privacy Controls</h1>
             <h2>Cross-Platform Privacy Control Guide</h2>
           </div>
-          <p class="subtitle">Try to prevent your privacy follow these privacy setting steps across differenct platforms</p>
+          <p class="subtitle" style="background: none; border: none;">Try to prevent your privacy follow these privacy setting steps across differenct platforms</p>
         </div>
       </div>
     </section>
@@ -16,9 +16,9 @@
     <!-- Cross-Platform Privacy Control Guide -->
     <section class="privacy-section">
       <div class="container">
-        <h1 class="section-title">Cross-Platform Privacy Control Guide</h1>
-        <div class="guide-description">
-          <p>Try to prevent your privacy follow these privacy setting steps across differenct platforms</p>
+        <h1 class="section-title" style="background: none; border: none;">Platform-Specific Privacy Settings</h1>
+        <div class="guide-description" style="background: none; border: none;">
+          <p style="background: none !important; border: none !important; margin: 0; padding: 0; box-shadow: none; color: #666;">Detailed step-by-step instructions for managing your digital footprint across major content platforms</p>
         </div>
         
         <!-- Youtube section -->
@@ -660,14 +660,14 @@
                              <h4>Step 1:</h4>
                              <p>Go to your iPhone's Settings app (not the TikTok app).</p>
                              <div class="step-image">
-                                <img src="../assets/screenshots/tiktok_mobile_ios_1.svg" alt="TikTok iOS Settings Step 1" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_1.svg')">
+                                <img src="../assets/screenshots/tiktok_mobile_ios_1.svg" alt="iOS Settings Step 1" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_1.svg')">
                              </div>
                            </div>
                             <div class="step">
                              <h4>Step 2:</h4>
                              <p>Scroll down and click "Apps" and head to TikTok.</p>
                               <div class="step-image">
-                                <img src="../assets/screenshots/tiktok_mobile_ios_2.svg" alt="TikTok iOS Settings Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_2.svg')">
+                                <img src="../assets/screenshots/tiktok_mobile_ios_2.svg" alt="iOS Settings Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_2.svg')">
                              </div>
                            </div>
                             <div class="step">
@@ -681,7 +681,7 @@
                                <li>Siri & Search - Manage how Siri interacts with TikTok</li>
                              </ul>
                               <div class="step-image">
-                                <img src="../assets/screenshots/tiktok_mobile_ios_3.svg" alt="TikTok iOS Settings Step 3" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_3.svg')">
+                                <img src="../assets/screenshots/tiktok_mobile_ios_3.svg" alt="iOS Settings Step 3" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/tiktok_mobile_ios_3.svg')">
                              </div>
                            </div>
                            <p><strong>Recommendation for content creators:</strong> Limit TikTok's access to only what's necessary. For example, only allow TikTok to access your camera, microphone, and photos while using the app, not always.</p>
@@ -1371,9 +1371,8 @@
     </div>
 
     <!-- Quick View Modal -->
-    <div v-if="isQuickViewVisible" class="quick-view-modal">
-      <div class="quick-view-content">
-        <button class="close-button" @click="closeQuickView">X</button>
+    <div v-if="isQuickViewVisible" class="quick-view-modal" @click="closeQuickView">
+      <div class="quick-view-content" @click.stop>
         <div v-html="quickViewContent"></div>
       </div>
     </div>
@@ -1419,27 +1418,51 @@ const showBackToTop = ref(false);
 
 // Function to toggle platform visibility
 const togglePlatform = (platform) => {
-  const currentlyActive = activePlatform.value;
-  if (currentlyActive === platform) {
-    activePlatform.value = null; // Collapse if clicking the same platform
+  // Store the previous active platform for comparison
+  const previousPlatform = activePlatform.value;
+  
+  // Toggle platform visibility
+  if (activePlatform.value === platform) {
+    activePlatform.value = null; // Close if already open
   } else {
-    activePlatform.value = platform;
-    // Reset states when switching TO a platform
-    activeGuide.value = 'settings';
-    activeVersion.value = 'browser'; 
-    // Reset all specific section states
-    activeYoutubeSection.value = 'default';
-    activeYoutubeMobileSection.value = 'iosSettings';
-    activeTiktokSection.value = 'account'; 
-    activeTiktokMobileSection.value = 'iosSettings';
-    activeInstaSection.value = 'general';
-    activeInstaMobileSection.value = 'iosSettings'; // Reset Instagram mobile too
+    activePlatform.value = platform; // Open the new platform
+    
+    // Reset to the default guide/view when switching platforms
+    activeGuide.value = 'settings'; // Default to the settings guide
+    activeVersion.value = 'browser'; // Default to browser version
+    
+    // Reset relevant section states based on the newly selected platform
+    if (platform === 'youtube') {
+      activeYoutubeSection.value = 'default';
+      activeYoutubeMobileSection.value = 'iosSettings';
+    } else if (platform === 'tiktok') {
+      activeTiktokSection.value = 'account';
+      activeTiktokMobileSection.value = 'iosSettings';
+    } else if (platform === 'instagram') {
+      activeInstaSection.value = 'general';
+      activeInstaMobileSection.value = 'iosSettings';
+    }
+    // Add logic for other platforms here
+  }
+  
+  // Only scroll if opening a new platform
+  if (activePlatform.value && previousPlatform !== activePlatform.value) {
+    setTimeout(() => {
+      // Find the platform section
+      const platformSection = document.querySelector(`.${activePlatform.value}-section`);
+      if (platformSection) {
+        // Scroll to the top of the platform section
+        platformSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 };
 
 // Function to switch guide type (settings, tips, etc.)
 const switchGuide = (guide) => {
+  const previousGuide = activeGuide.value;
   activeGuide.value = guide;
+  
   // Reset version/sections if switching away from settings guide for the current platform
   if (guide !== 'settings') {
       activeVersion.value = 'browser'; // Default back to browser
@@ -1472,11 +1495,37 @@ const switchGuide = (guide) => {
       }
        // Add resets for other platforms here
   }
+  
+  // Only scroll when switching to a different tab
+  if (previousGuide !== guide && activePlatform.value) {
+    setTimeout(() => {
+      // Find the active tab button and scroll to its position
+      const tabButtons = document.querySelectorAll(`.${activePlatform.value}-section .tab-navigation button`);
+      for (const button of tabButtons) {
+        if (button.classList.contains('active')) {
+          // Get the platform section element
+          const platformSection = document.querySelector(`.${activePlatform.value}-section`);
+          if (platformSection) {
+            // Scroll to the top of the platform section with an offset to ensure the tab is visible
+            const platformRect = platformSection.getBoundingClientRect();
+            const offset = 100; // Offset to ensure the tab is visible in the viewport
+            window.scrollTo({
+              top: window.scrollY + platformRect.top - offset,
+              behavior: 'smooth'
+            });
+            break;
+          }
+        }
+      }
+    }, 100);
+  }
 };
 
 // Function to switch between Browser and Mobile versions
 const switchVersion = (version) => {
+  const previousVersion = activeVersion.value;
   activeVersion.value = version;
+  
   // Reset active section when switching versions for the current platform
    if (activePlatform.value === 'youtube') {
       if (version === 'browser') {
@@ -1497,36 +1546,220 @@ const switchVersion = (version) => {
       // Add mobile section reset for instagram when implemented
      // else if (version === 'mobile') { ... }
    }
+   
+   // Only scroll when switching to a different version
+   if (previousVersion !== version && activePlatform.value) {
+     setTimeout(() => {
+       // Find the sub-tab navigation area
+       const subTabNav = document.querySelector(`.${activePlatform.value}-section .sub-tab-navigation`);
+       if (subTabNav) {
+         // Scroll to the sub-tab navigation position
+         const offset = 100; // Offset to ensure the tabs are visible at the top of the viewport
+         window.scrollTo({
+           top: window.scrollY + subTabNav.getBoundingClientRect().top - offset,
+           behavior: 'smooth'
+         });
+       }
+     }, 100);
+   }
 };
 
 // Function to toggle YouTube BROWSER subsections
 const toggleYoutubeSection = (section) => {
+  const wasInactive = activeYoutubeSection.value !== section;
   activeYoutubeSection.value = activeYoutubeSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeYoutubeSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.youtube-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.youtube-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to toggle YouTube MOBILE subsections
 const toggleYoutubeMobileSection = (section) => {
+  const wasInactive = activeYoutubeMobileSection.value !== section;
   activeYoutubeMobileSection.value = activeYoutubeMobileSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeYoutubeMobileSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.youtube-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.youtube-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to toggle TikTok BROWSER subsections
 const toggleTiktokSection = (section) => {
+  const wasInactive = activeTiktokSection.value !== section;
   activeTiktokSection.value = activeTiktokSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeTiktokSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.tiktok-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.tiktok-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to toggle TikTok MOBILE subsections
 const toggleTiktokMobileSection = (section) => {
+  const wasInactive = activeTiktokMobileSection.value !== section;
   activeTiktokMobileSection.value = activeTiktokMobileSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeTiktokMobileSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.tiktok-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.tiktok-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to toggle Instagram BROWSER subsections
 const toggleInstaSection = (section) => {
+  const wasInactive = activeInstaSection.value !== section;
   activeInstaSection.value = activeInstaSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeInstaSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.instagram-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.instagram-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to toggle Instagram MOBILE subsections
 const toggleInstaMobileSection = (section) => {
+  const wasInactive = activeInstaMobileSection.value !== section;
   activeInstaMobileSection.value = activeInstaMobileSection.value === section ? null : section;
+  
+  // Only scroll if changing from collapsed to expanded state
+  if (wasInactive && activeInstaMobileSection.value === section) {
+    setTimeout(() => {
+      // First scroll to the platform card
+      const platformSection = document.querySelector('.instagram-section');
+      if (platformSection) {
+        // Scroll to platform section with offset
+        const offset = 80;
+        window.scrollTo({
+          top: window.pageYOffset + platformSection.getBoundingClientRect().top - offset,
+          behavior: 'smooth'
+        });
+        
+        // Then after a short delay, scroll to the specific section header
+        setTimeout(() => {
+          const sectionHeaders = document.querySelectorAll('.instagram-section .section-header');
+          for (const header of sectionHeaders) {
+            if (header.textContent.includes(section)) {
+              header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  }
 };
 
 // Function to show image in modal
@@ -1993,7 +2226,8 @@ onUnmounted(() => {
   margin-top: 1.5rem;
   white-space: normal;
   text-align: left;
-  overflow: visible;
+  max-width: 100%;
+  /* Remove any background or border styles */
 }
 
 @media (min-width: 768px) {
@@ -2038,37 +2272,44 @@ onUnmounted(() => {
 }
 
 .guide-description p {
-  font-size: 1.1rem;
-  color: #333;
-  line-height: 1.6;
+  font-size: 1.25rem;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 2rem;
+  /* Remove any background or border styles */
 }
 
 /* Platform section styles */
 .platform-section {
-  margin-bottom: 3rem;
-  background-color: rgba(235, 250, 180, 0.3);
-  border-radius: 16px;
-  padding: 2rem;
+  margin-bottom: 4rem; /* 增加底部间距 */
+  background-color: #ffecf2; /* 浅粉色背景 */
+  border-radius: 20px; /* 增加圆角 */
+  padding: 3rem; /* 增加内边距 */
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 添加阴影增强视觉效果 */
+  max-width: 95%; /* 限制最大宽度 */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .platform-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem; /* 增加间距 */
   cursor: pointer;
   position: relative;
-  padding: 0.5rem;
-  border-radius: 8px;
+  padding: 1rem; /* 增加内边距 */
+  border-radius: 12px; /* 增加圆角 */
   transition: background-color 0.3s;
+  margin-bottom: 0.5rem; /* 添加底部间距 */
 }
 
 .platform-header:hover {
-  background-color: rgba(235, 250, 180, 0.8);
+  background-color: #ffd9e6; /* 鼠标悬停时的中等粉色 */
 }
 
 .platform-header.active {
-  background-color: rgba(231, 90, 151, 0.1);
+  background-color: #ffb6d3; /* 选中时的深粉色 */
 }
 
 .expand-icon {
@@ -2095,8 +2336,8 @@ onUnmounted(() => {
 }
 
 .platform-logo {
-  width: 48px;
-  height: 48px;
+  width: 60px; /* 增大logo尺寸 */
+  height: 60px;
   object-fit: contain;
 }
 
@@ -2117,17 +2358,17 @@ onUnmounted(() => {
 
 /* YouTube section special styles */
 .youtube-section {
-  background-color: rgba(235, 250, 180, 0.3);
+  background-color: #ffecf2; /* 浅粉色背景 */
 }
 
 /* TikTok section special styles */
 .tiktok-section {
-  background-color: rgba(235, 250, 180, 0.3);
+  background-color: #ffecf2; /* 浅粉色背景 */
 }
 
 /* Instagram section special styles */
 .instagram-section {
-  background-color: rgba(235, 250, 180, 0.3);
+  background-color: #ffecf2; /* 浅粉色背景 */
 }
 
 /* Privacy settings section */
@@ -2644,11 +2885,24 @@ onUnmounted(() => {
   position: relative;
   max-width: 90%;
   max-height: 90%;
+  background-color: #fdfcfe; /* 背景色移到这里 */
+  border-radius: 12px;
+  overflow-y: auto; /* 允许内容滚动 */
+  max-height: 80vh; /* 限制高度以允许滚动 */
+  padding: 2rem; /* 内边距 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+  transition: transform 0.3s ease; /* 添加过渡效果 */
 }
 
-.quick-view-content button {
+/* 鼠标悬停时微微上移效果 */
+.quick-view-content:hover {
+  transform: translateY(-5px);
+}
+
+/* 删除按钮样式，不再需要 */
+/* .quick-view-content button {
   position: absolute;
-  top: -30px; /* Position above the content */
+  top: -30px;
   right: -10px;
   font-size: 2rem;
   font-weight: bold;
@@ -2662,17 +2916,12 @@ onUnmounted(() => {
 
 .quick-view-content button:hover {
   color: #ccc;
-}
+} */
 
 .quick-view-content div {
-  padding: 2rem; /* Increase padding */
-  background-color: #fdfcfe; /* Slightly off-white background */
-  border-radius: 8px;
-  overflow-y: auto;
-  max-height: 70vh; /* Limit height to allow scrolling */
-  color: #444; /* Darker text color */
-  font-size: 1.1rem; /* Base font size increase */
-  line-height: 1.6; /* Improve line spacing */
+  color: #444; /* 深色文本 */
+  font-size: 1.1rem; /* 基础字体大小 */
+  line-height: 1.6; /* 行高 */
 }
 
 /* Style the subsection titles (h5) */
