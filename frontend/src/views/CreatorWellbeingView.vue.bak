@@ -62,7 +62,7 @@
               class="resource-tab" 
               :class="{ active: activeTab === 'offline' }"
               @click="switchResourceTab('offline')"
-            >Medical Resources</div>
+            >Psychologist (Offline Resources)</div>
             <div 
               class="resource-tab" 
               :class="{ active: activeTab === 'online' }"
@@ -192,7 +192,7 @@
                 <div class="rating">
                   <span class="rating-score">{{ selectedClinic.rating }}</span>
                   <div class="stars">{{ '★'.repeat(Math.round(selectedClinic.rating)) }}</div>
-                  <span class="reviews">({{ selectedClinic.reviews }} reviews)</span>
+                  <span class="reviews">({{ selectedClinic.reviews }})</span>
                 </div>
 
                 <div class="resource-location">
@@ -209,8 +209,8 @@
                 <div class="opening-hours">
                   <h4>Opening hours</h4>
                   <div class="hours-grid">
-                    <div v-for="(hours, day) in selectedClinic.openingHours" :key="day" class="hours-row">
-                      <div class="day">{{ day }}:</div>
+                    <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
+                      <div class="day">{{ day }}</div>
                       <div class="hours">{{ hours }}</div>
                     </div>
                   </div>
@@ -222,13 +222,13 @@
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
                   </svg>
-                  Get directions
+                  Get direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z" fill="white"/>
                   </svg>
-                  Get preparation guide
+                  Get Preparation Guide
                 </button>
               </div>
             </div>
@@ -258,12 +258,9 @@
               <img :src="getImageUrl(activity.image)" :alt="activity.title" class="activity-img">
               <h3 class="activity-title">{{ activity.title }}</h3>
               <div class="activity-tags">
-                <span v-for="(tag, tagIndex) in activity.tags.filter(tag => 
-                  ['April', 'May', 'June', 'October', 'Workshop', 'Outdoor Walking', 
-                  'Sold out', 'Nearly full', 'Free Event', 'Brisbane Festival', 'Paid'].includes(tag)
-                ).slice(0, 2)" 
+                <span v-for="(tag, tagIndex) in activity.tags.slice(0, 2)" 
                       :key="tagIndex" 
-                      :class="['tag', tag.toLowerCase().replace(/ /g, '-')]">{{ tag }}</span>
+                      :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
               </div>
               <div class="activity-details">
                 <span class="group-size">{{ activity.location }}</span>
@@ -347,39 +344,29 @@
           </div>
 
           <div class="events-grid">
-            <a v-for="event in sortedFilteredEvents" 
-               :key="event.id" 
-               :href="event.link"
-               target="_blank" 
-               class="event-card-link">
-              <div class="event-card">
-                <div class="event-img-container">
-                  <img :src="getImageUrl(event.image)" :alt="event.title" class="event-img">
-                </div>
-                <div class="event-info">
-                  <h3>{{ event.title }}</h3>
-                  <div class="event-tags">
-                    <span v-for="(tag, index) in event.tags.filter(tag => 
-                      ['April', 'May', 'June', 'October', 'Workshop', 'Outdoor Walking', 
-                      'Sold out', 'Nearly full', 'Free Event', 'Brisbane Festival', 'Paid', 
-                      'physical wellness practice', 'Workplace Wellbeing', 'Workplace Wellbeing Workshop', 
-                      'Sales Ended'].includes(tag)
-                    )" :key="index" :class="['tag', tag.toLowerCase().replace(/ /g, '-')]">{{ tag }}</span>
-                  </div>
-                  <p class="event-description">{{ event.description }}</p>
-                  <div class="event-meta">
-                    <div><strong>Location:</strong> {{ event.location }}</div>
-                    <div v-if="event.address"><strong>Address:</strong> {{ event.address }}</div>
-                    <div><strong>Date:</strong> {{ event.date }}</div>
-                    <div><strong>Time:</strong> {{ event.time }}</div>
-                    <div class="event-link"><strong>Link:</strong> {{ event.link }}</div>
-                  </div>
-                  <div class="register-btn-container">
-                    <span class="register-btn">Register Now</span>
-                  </div>
-                </div>
+            <div v-for="event in sortedFilteredEvents" :key="event.id" class="event-card">
+              <div class="event-img-container">
+                <img :src="getImageUrl(event.image)" :alt="event.title" class="event-img">
               </div>
-            </a>
+              <div class="event-info">
+                <h3>{{ event.title }}</h3>
+                <div class="event-tags">
+                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
+                </div>
+                <p class="event-description">{{ event.description }}</p>
+                <div class="event-meta">
+                  <div><strong>Location:</strong> {{ event.location }}</div>
+                  <div v-if="event.address"><strong>Address:</strong> {{ event.address }}</div>
+                  <div><strong>Date:</strong> {{ event.date }}</div>
+                  <div><strong>Time:</strong> {{ event.time }}</div>
+                  <div class="event-link"><strong>Link:</strong> {{ event.link }}</div>
+                </div>
+                <a :href="event.link"
+                  target="_blank" class="register-btn-link">
+                  <button class="register-btn">Register Now</button>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -565,12 +552,12 @@ onMounted(() => {
       lat: -37.8136,
       lng: 144.9631,
       openingHours: {
-        'Monday': '9:00 am - 5:00 pm',
-        'Tuesday': '9:00 am - 5:00 pm',
-        'Wednesday': '9:00 am - 5:00 pm',
-        'Thursday': '9:00 am - 7:00 pm',
-        'Friday': '9:00 am - 5:00 pm',
-        'Saturday': '10:00 am - 2:00 pm',
+        'Monday': '9:00 AM - 5:00 PM',
+        'Tuesday': '9:00 AM - 5:00 PM',
+        'Wednesday': '9:00 AM - 5:00 PM',
+        'Thursday': '9:00 AM - 7:00 PM',
+        'Friday': '9:00 AM - 5:00 PM',
+        'Saturday': '10:00 AM - 2:00 PM',
         'Sunday': 'Closed'
       }
     },
@@ -584,12 +571,12 @@ onMounted(() => {
       lat: -33.8688,
       lng: 151.2093,
       openingHours: {
-        'Monday': '8:30 am - 6:00 pm',
-        'Tuesday': '8:30 am - 6:00 pm',
-        'Wednesday': '8:30 am - 6:00 pm',
-        'Thursday': '8:30 am - 8:00 pm',
-        'Friday': '8:30 am - 6:00 pm',
-        'Saturday': '9:00 am - 3:00 pm',
+        'Monday': '8:30 AM - 6:00 PM',
+        'Tuesday': '8:30 AM - 6:00 PM',
+        'Wednesday': '8:30 AM - 6:00 PM',
+        'Thursday': '8:30 AM - 8:00 PM',
+        'Friday': '8:30 AM - 6:00 PM',
+        'Saturday': '9:00 AM - 3:00 PM',
         'Sunday': 'Closed'
       }
     },
@@ -603,12 +590,12 @@ onMounted(() => {
       lat: -27.4698,
       lng: 153.0251,
       openingHours: {
-        'Monday': '9:00 am - 5:30 pm',
-        'Tuesday': '9:00 am - 5:30 pm',
-        'Wednesday': '9:00 am - 5:30 pm',
-        'Thursday': '9:00 am - 7:30 pm',
-        'Friday': '9:00 am - 5:30 pm',
-        'Saturday': '10:00 am - 1:00 pm',
+        'Monday': '9:00 AM - 5:30 PM',
+        'Tuesday': '9:00 AM - 5:30 PM',
+        'Wednesday': '9:00 AM - 5:30 PM',
+        'Thursday': '9:00 AM - 7:30 PM',
+        'Friday': '9:00 AM - 5:30 PM',
+        'Saturday': '10:00 AM - 1:00 PM',
         'Sunday': 'Closed'
       }
     }
@@ -897,22 +884,13 @@ const sortedFilteredEvents = computed(() => {
 })
 
 const featuredActivities = computed(() => {
-  // 选择更具代表性的活动，确保包含不同类型
-  const walkingEvent = events.find(event => event.tags.some(tag => 
-    tag.toLowerCase().includes('walking') || tag.toLowerCase().includes('wellness walk')));
+  // Display a mix of activities (one from each month for variety)
+  const april = events.find(event => event.tags.some(tag => tag === 'April'))
+  const may = events.find(event => event.tags.some(tag => tag === 'May'))
+  const june = events.find(event => event.tags.some(tag => tag === 'June' || tag === 'October'))
   
-  const workshopEvent = events.find(event => event.tags.some(tag => 
-    tag.toLowerCase().includes('workshop') || tag.toLowerCase().includes('workplace')));
-  
-  const festivalEvent = events.find(event => event.tags.some(tag => 
-    tag.toLowerCase().includes('festival')));
-  
-  // 如果没有找到特定类型的活动，则回退到月份选择
-  return [
-    walkingEvent || events.find(event => event.tags.some(tag => tag === 'April')),
-    workshopEvent || events.find(event => event.tags.some(tag => tag === 'May')), 
-    festivalEvent || events.find(event => event.tags.some(tag => tag === 'June' || tag === 'October'))
-  ].filter(Boolean).slice(0, 3);
+  // Return three featured events (ensure we have 3 even if fewer months are available)
+  return [april, may, june].filter(Boolean).slice(0, 3)
 })
 </script>
 
@@ -1145,7 +1123,7 @@ const featuredActivities = computed(() => {
   margin-top: 1.5rem;
   white-space: normal; /* Default allow wrapping */
   text-align: left;
-  max-width: 100%; padding: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -1455,8 +1433,7 @@ section:not(:last-child)::after {
 }
 
 .container {
-  width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
   position: relative;
@@ -1581,11 +1558,6 @@ section:not(:last-child)::after {
 /* Resource finder section */
 .resource-finder-section {
   background-color: #fffcf5;
-  width: 100%;
-}
-
-.resource-finder-content {
-  width: 100%;
 }
 
 .resource-tabs {
@@ -1625,7 +1597,7 @@ section:not(:last-child)::after {
 
 .resource-content {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 2rem;
   background-color: #fff;
   border-radius: 16px;
@@ -1635,13 +1607,6 @@ section:not(:last-child)::after {
   position: relative;
   z-index: 2;
   min-height: 560px;
-  width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .resource-content {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 .map-container {
@@ -1683,13 +1648,6 @@ section:not(:last-child)::after {
   z-index: 5;
   height: 42px;
   line-height: 42px;
-  transition: all 0.3s ease;
-}
-
-.position-btn:hover {
-  background-color: #d4407f;
-  transform: translateX(-50%) scale(1.05);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .action-btn {
@@ -1707,13 +1665,6 @@ section:not(:last-child)::after {
   font-weight: 500;
   height: 42px;
   line-height: 42px;
-  transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-  background-color: #d4407f;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(231,90,151,0.2);
 }
 
 .resource-name {
@@ -1931,13 +1882,12 @@ section:not(:last-child)::after {
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(231,90,151,0.08);
-  transition: all 0.3s ease;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
-
 .search-btn:hover {
-  background: linear-gradient(90deg, #d4407f 0%, #c22e6c 100%);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(231,90,151,0.15);
+  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
+  box-shadow: 0 4px 16px rgba(231,90,151,0.12);
+  transform: translateY(-2px) scale(1.03);
 }
 
 /* Filter styles */
@@ -2059,14 +2009,6 @@ section:not(:last-child)::after {
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid #eee;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.event-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: rgba(231, 90, 151, 0.2);
 }
 
 .event-img-container {
@@ -2112,18 +2054,945 @@ section:not(:last-child)::after {
   background-color: #9C27B0;
 }
 
-/* Online resources container */
-.online-resources-container {
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.free {
+  background-color: #4CAF50;
+}
+
+.tag.october {
+  background-color: #FF9800;
+}
+
+.tag.workplace {
+  background-color: #607D8B;
+}
+
+.tag.charged {
+  background-color: #F44336;
+}
+
+.tag.end {
+  background-color: #9E9E9E;
+}
+
+.event-description {
+  margin-bottom: 1.5rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.event-meta {
+  margin-bottom: 1.5rem;
+}
+
+.event-meta div {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.register-btn {
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.register-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .event-card {
+    flex-direction: column;
+  }
+
+  .event-img {
+    width: 100%;
+    height: 200px;
+  }
+
+  .event-filters {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .activities-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Hide link tags */
+.event-meta div.event-link {
+  display: none;
+}
+
+/* Add styles for button links */
+.register-btn-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Activity card link styles */
+.activity-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+}
+
+.insights-gallery {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.image-grid img {
   width: 100%;
-  max-width: 100%;
-  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tab.active {
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.resource-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+/* Online resources styles */
+.online-resources-container {
+  padding: 2rem;
+  width: 100%;
+  max-width: 100%; /* 使用100%宽度填充父容器 */
   margin: 0 auto;
 }
 
-.resources-wrapper {
-  width: 100%; 
-  padding: 0;
-  margin: 0;
+.online-resources-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; 
+  justify-content: space-between; /* 修改为space-between以便在宽屏上左右对齐 */
+  margin-top: 2rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .online-resources-container {
+    padding: 1rem;
+  }
+  
+  .online-resources-list {
+    justify-content: center;
+  }
+}
+
+.online-resource-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  flex: 1 1 100%; /* 小屏幕下填充整行 */
+  max-width: 100%;
+  display: flex;
+  flex-direction: row; /* 让图标和内容水平排列 */
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+  min-height: 200px; /* 设置最小高度确保卡片不会太扁 */
+}
+
+.online-resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: rgba(231, 90, 151, 0.2);
+}
+
+@media (min-width: 768px) {
+  .online-resource-card {
+    flex: 0 0 calc(50% - 20px); /* 宽屏下固定为50%宽度减去间距 */
+    max-width: calc(50% - 20px);
+  }
+  
+  .online-resource-card-link {
+    flex: 0 0 calc(50% - 20px);
+    max-width: calc(50% - 20px);
+  }
+  
+  /* 确保卡片内部的文字内容有足够宽度 */
+  .resource-info {
+    width: calc(100% - 100px);
+  }
+}
+
+/* 修复Relaxation卡片样式 */
+.online-resource-card-link .online-resource-card {
+  width: 100%;
+  height: 100%;
+}
+
+.resource-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+  width: 100%;
+}
+
+.resource-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.resource-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.resource-link-btn {
+  background: #4f83ff;
+  color: white;
+  padding: 10px 20px; /* 增加按钮内边距 */
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.3s ease;
+  text-align: center;
+  font-size: 1rem; /* 增大按钮字体 */
+}
+
+.resource-link-btn:hover {
+  background: #375ecf;
+}
+
+@media (max-width: 768px) {
+  .online-resource-card {
+    flex-direction: column;
+  }
+  
+  .resource-logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}
+
+.opening-hours {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.opening-hours h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.hours-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.hours-grid > div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 0.3rem;
+}
+
+.day {
+  color: #333;
+  font-weight: 500;
+}
+
+.hours {
+  color: #666;
+  text-align: right;
+}
+
+/* Add general tag styles */
+.tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #222222; /* Changed to darker text */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+/* Remove dark tag styles */
+.tag.may, 
+.tag.june, 
+.tag.workshop, 
+.tag.mental-health, 
+.tag.physical-wellness-practice, 
+.tag.workplace-wellbeing, 
+.tag.workplace-wellbeing-workshop {
+  color: #222222;
+}
+
+/* Remove light tag styles */
+.tag.april, 
+.tag.free-event, 
+.tag.october, 
+.tag.sales-ended, 
+.tag.nearly-full {
+  color: #222222;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* Modify different tag colours */
+.tag.sold-out {
+  background-color: #ff5252;
+}
+
+.tag.nearly-full {
+  background-color: #ff9800;
+}
+
+.tag.april {
+  background-color: #8bc34a;
+}
+
+.tag.may {
+  background-color: #2196F3;
+}
+
+.tag.june {
+  background-color: #9C27B0;
+}
+
+.tag.october {
+  background-color: #FF9800;
+}
+
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.free-event {
+  background-color: #4CAF50;
+}
+
+.tag.paid {
+  background-color: #F44336;
+}
+
+.tag.festival {
+  background-color: #e91e63;
+}
+
+.tag.mental-health {
+  background-color: #673ab7;
+}
+
+.tag.outdoor-wellness {
+  background-color: #009688;
+}
+
+.tag.physical-wellness-practice {
+  background-color: #3f51b5;
+}
+
+.tag.workplace-wellbeing, .tag.workplace-wellbeing-workshop {
+  background-color: #607D8B;
+}
+
+.tag.sales-ended {
+  background-color: #9E9E9E;
+}
+
+/* Modify activity tag container styles */
+.activity-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.relaxation-card {
+  background: linear-gradient(135deg, rgba(108, 189, 181, 0.1) 0%, rgba(155, 204, 166, 0.1) 100%);
+  border: 1px solid rgba(108, 189, 181, 0.2);
+}
+
+.resource-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.resource-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.resource-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.resource-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.resource-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  background: #f0f0f0;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.resource-link-btn {
+  background: #4f83ff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.3s ease;
+  text-align: center;
+}
+
+.resource-link-btn:hover {
+  background: #375ecf;
+}
+
+.resources-gradient-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #6CBDB5 20%,
+    #9BCCA6 40%,
+    #9BCCA6 60%,
+    #6CBDB5 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+}
+
+.resources-gradient-title:hover {
+  filter: drop-shadow(0 0 2px rgba(108, 189, 181, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.resource-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-tags {
+  margin-top: auto;
+  margin-bottom: 1rem;
+}
+
+.relaxation-title {
+  background: linear-gradient(
+    to right,
+    #6CBDB5 20%,
+    #9BCCA6 40%,
+    #9BCCA6 60%,
+    #6CBDB5 80%
+  );
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 4s linear infinite;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.relaxation-title:hover {
+  filter: drop-shadow(0 0 2px rgba(108, 189, 181, 0.5));
+  transform: scale(1.05);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+.relaxation-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.relaxation-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(108, 189, 181, 0.15);
+  border: 1px solid rgba(108, 189, 181, 0.4);
+}
+
+@media (min-width: 768px) {
+  .online-resource-card {
+    max-width: calc(50% - 20px);
+  }
+}
+
+.online-resource-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  flex: 1 1 280px;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .online-resource-card-link {
+    max-width: calc(50% - 20px);
+  }
+}
+
+.online-resource-card-link .relaxation-card:hover .resource-link-btn {
+  .resource-logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .resource-info {
+    align-items: center;
+  }
+}
+
+.resource-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+  width: 100%;
+}
+
+.resource-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.resource-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.resource-link-btn {
+  background: #4f83ff;
+  color: white;
+  padding: 10px 20px; /* 增加按钮内边距 */
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.3s ease;
+  text-align: center;
+  font-size: 1rem; /* 增大按钮字体 */
+}
+
+.resource-link-btn:hover {
+  background: #375ecf;
+}
+
+@media (max-width: 768px) {
+  .online-resource-card {
+    flex-direction: column;
+  }
+  
+  .resource-logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}
+
+.opening-hours {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.opening-hours h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.hours-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.hours-grid > div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 0.3rem;
+}
+
+.day {
+  color: #333;
+  font-weight: 500;
+}
+
+.hours {
+  color: #666;
+  text-align: right;
+}
+
+/* Add general tag styles */
+.tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #222222; /* Changed to darker text */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+/* Remove dark tag styles */
+.tag.may, 
+.tag.june, 
+.tag.workshop, 
+.tag.mental-health, 
+.tag.physical-wellness-practice, 
+.tag.workplace-wellbeing, 
+.tag.workplace-wellbeing-workshop {
+  color: #222222;
+}
+
+/* Remove light tag styles */
+.tag.april, 
+.tag.free-event, 
+.tag.october, 
+.tag.sales-ended, 
+.tag.nearly-full {
+  color: #222222;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* Modify different tag colours */
+.tag.sold-out {
+  background-color: #ff5252;
+}
+
+.tag.nearly-full {
+  background-color: #ff9800;
+}
+
+.tag.april {
+  background-color: #8bc34a;
+}
+
+.tag.may {
+  background-color: #2196F3;
+}
+
+.tag.june {
+  background-color: #9C27B0;
+}
+
+.tag.october {
+  background-color: #FF9800;
+}
+
+.tag.workshop {
+  background-color: #795548;
+}
+
+.tag.free-event {
+  background-color: #4CAF50;
+}
+
+.tag.paid {
+  background-color: #F44336;
+}
+
+.tag.festival {
+  background-color: #e91e63;
+}
+
+.tag.mental-health {
+  background-color: #673ab7;
+}
+
+.tag.outdoor-wellness {
+  background-color: #009688;
+}
+
+.tag.physical-wellness-practice {
+  background-color: #3f51b5;
+}
+
+.tag.workplace-wellbeing, .tag.workplace-wellbeing-workshop {
+  background-color: #607D8B;
+}
+
+.tag.sales-ended {
+  background-color: #9E9E9E;
+}
+
+/* Modify activity tag container styles */
+.activity-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.relaxation-card {
+  background: linear-gradient(135deg, rgba(108, 189, 181, 0.1) 0%, rgba(155, 204, 166, 0.1) 100%);
+  border: 1px solid rgba(108, 189, 181, 0.2);
+}
+
+.resource-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.resource-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.resource-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.resource-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.resource-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  background: #f0f0f0;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.resource-link-btn {
+  background: #4f83ff;
+  color: white;
+  padding: 10px 20px; /* 增加按钮内边距 */
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.3s ease;
+  text-align: center;
+  font-size: 1rem; /* 增大按钮字体 */
+}
+
+.resource-link-btn:hover {
+  background: #375ecf;
+}
+
+.resources-gradient-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #6CBDB5 20%,
+    #9BCCA6 40%,
+    #9BCCA6 60%,
+    #6CBDB5 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 4s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+}
+
+.resources-gradient-title:hover {
+  filter: drop-shadow(0 0 2px rgba(108, 189, 181, 0.5));
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.resource-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-tags {
+  margin-top: auto;
+  margin-bottom: 1rem;
+}
+
+.relaxation-title {
+  background: linear-gradient(
+    to right,
+    #6CBDB5 20%,
+    #9BCCA6 40%,
+    #9BCCA6 60%,
+    #6CBDB5 80%
+  );
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 4s linear infinite;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.relaxation-title:hover {
+  filter: drop-shadow(0 0 2px rgba(108, 189, 181, 0.5));
+  transform: scale(1.05);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+}
+
+.relaxation-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.relaxation-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(108, 189, 181, 0.15);
+  border: 1px solid rgba(108, 189, 181, 0.4);
+}
+
+@media (min-width: 768px) {
+  .online-resource-card {
+    max-width: calc(50% - 20px);
+  }
+}
+
+.online-resource-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  flex: 1 1 280px;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .online-resource-card-link {
+    max-width: calc(50% - 20px);
+  }
+}
+
+.online-resource-card-link .relaxation-card:hover .resource-link-btn {
+  background: #3a6ac9;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(79, 131, 255, 0.2);
+}
+
+/* Online resources container */
+.online-resources-container {
+  padding: 2rem;
+  width: 100%;
+  max-width: 100%; /* 使用100%宽度填充父容器 */
+  margin: 0 auto;
 }
 
 /* Grid layout for resource cards */
@@ -2132,19 +3001,19 @@ section:not(:last-child)::after {
   grid-template-columns: 1fr;
   gap: 25px;
   width: 100%;
+  margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .resources-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 35px;
+    gap: 30px; /* 增加间距 */
   }
 }
 
 /* Resource grid item */
 .resource-grid-item {
   width: 100%;
-  display: flex;
 }
 
 /* Resource card */
@@ -2152,7 +3021,7 @@ section:not(:last-child)::after {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 2.5rem 2rem;
+  padding: 2rem;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -2160,41 +3029,7 @@ section:not(:last-child)::after {
   text-align: center;
   border: 1px solid rgba(0, 0, 0, 0.05);
   height: 100%;
-  width: 100%;
-  flex: 1;
-}
-
-/* 每个卡片的特定背景色 */
-.resource-grid-item:nth-child(1) .resource-card {
-  background: rgb(55, 82, 68);
-  color: white;
-}
-
-.resource-grid-item:nth-child(2) .resource-card {
-  background: rgb(248, 244, 242);
-}
-
-.resource-grid-item:nth-child(3) .resource-card {
-  background: rgb(225, 236, 253);
-}
-
-.resource-grid-item:nth-child(4) .resource-card.relaxation-card {
-  background: white !important;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* 加大加粗标题文字 */
-.resource-card h3 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  line-height: 1.3;
-}
-
-/* 调整第一个卡片（BetterHelp）的文字颜色为白色 */
-.resource-grid-item:nth-child(1) .resource-card h3,
-.resource-grid-item:nth-child(1) .resource-card p {
-  color: white;
+  width: 100%; /* 确保卡片使用全宽 */
 }
 
 .resource-card:hover {
@@ -2202,26 +3037,53 @@ section:not(:last-child)::after {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* 隐藏标签 */
-.resource-tags {
-  display: none;
+.resource-card h3 {
+  font-size: 1.5rem; /* 增大标题字体 */
+  margin-bottom: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.resource-card p {
+  color: #666;
+  margin-bottom: 2rem; /* 增加段落下方间距 */
+  line-height: 1.5;
+  font-size: 1rem; /* 增大描述文字字体 */
+  max-width: 90%; /* 限制文本宽度以便阅读 */
+}
+
+/* Relaxation card specific styles */
+.relaxation-card {
+  background-color: #f5fffa;
+  border: 1px solid rgba(108, 189, 181, 0.2);
+}
+
+.resource-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
 }
 
 /* Resource logo container */
 .resource-logo {
-  width: 100px;
+  width: 100px; /* 增大logo容器尺寸 */
   height: 100px;
-  background-color: transparent;
+  background-color: #f9f4f7;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem; /* 增加logo下方间距 */
+}
+
+.relaxation-card .resource-logo {
+  background-color: rgba(108, 189, 181, 0.2);
 }
 
 .resource-icon {
-  width: 60px;
-  height: 60px;
+  width: 50px; /* 增大图标尺寸 */
+  height: 50px;
   object-fit: contain;
 }
 
@@ -2229,69 +3091,64 @@ section:not(:last-child)::after {
 .card-footer {
   margin-top: auto;
   width: 100%;
-  padding-top: 0.5rem;
 }
 
-/* 按钮样式 - 胶囊形状 */
-.resource-link-btn {
-  border-radius: 50px;
-  padding: 14px 30px;
-  font-size: 1.1rem;
+/* Resource tags */
+.resource-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px; /* 增加标签间距 */
+  margin-bottom: 1.5rem; /* 增加标签区域下方间距 */
+}
+
+.tag {
+  background: #f0f0f0;
+  border-radius: 4px;
+  padding: 5px 10px; /* 增加标签内边距 */
+  font-size: 0.75rem; /* 增大标签字体 */
+  color: #555;
   font-weight: 600;
+}
+
+/* Resource link button */
+.resource-link-btn {
+  background: #4f83ff;
+  color: white;
+  padding: 10px 20px; /* 增加按钮内边距 */
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  font-weight: 500;
   display: inline-block;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
   text-align: center;
-  border: none;
+  font-size: 1rem; /* 增大按钮字体 */
 }
 
-/* 调整BetterHelp卡片中的按钮 - 使用深绿色 */
-.resource-grid-item:nth-child(1) .resource-link-btn {
-  background: white;
-  color: rgb(55, 82, 68);
+.resource-link-btn:hover {
+  background: #375ecf;
 }
 
-.resource-grid-item:nth-child(1) .resource-link-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 调整Headspace卡片中的按钮 - 使用橙色 */
-.resource-grid-item:nth-child(2) .resource-link-btn {
-  background: #FF8C00;
-  color: white;
-}
-
-.resource-grid-item:nth-child(2) .resource-link-btn:hover {
-  background: #E67E00;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 调整7Cups卡片中的按钮 - 使用蓝色 */
-.resource-grid-item:nth-child(3) .resource-link-btn {
-  background: #4169E1;
-  color: white;
-}
-
-.resource-grid-item:nth-child(3) .resource-link-btn:hover {
-  background: #3050C0;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 调整Relaxation卡片中的按钮 - 使用绿色 */
-.resource-grid-item:nth-child(4) .resource-link-btn {
-  background: #6CBDB5;
-  color: white;
-}
-
-.resource-grid-item:nth-child(4) .resource-link-btn:hover {
-  background: #5AA99F;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .resource-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .resource-logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .resource-info {
+    align-items: center;
+  }
+  
+  .online-resources-container {
+    padding: 1rem;
+  }
 }
 
 /* Relaxation zone title with gradient effect */
@@ -2313,15 +3170,9 @@ section:not(:last-child)::after {
 }
 
 .relaxation-title:hover {
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
-  transform: scale(1.02);
-}
-
-/* 统一所有卡片的hover效果 */
-.relaxation-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  filter: drop-shadow(0 0 2px rgba(108, 189, 181, 0.5));
+  transform: scale(1.05);
+  animation: liquidFlow 2s linear infinite;
 }
 
 @keyframes liquidFlow {
@@ -2331,381 +3182,5 @@ section:not(:last-child)::after {
   100% {
     background-position: 200% center;
   }
-}
-
-/* 调整BetterHelp卡片中的标签和按钮 */
-.resource-grid-item:nth-child(1) .tag {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.resource-grid-item:nth-child(1) .resource-link-btn {
-  background: white;
-  color: rgb(55, 82, 68);
-}
-
-.resource-grid-item:nth-child(1) .resource-link-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-/* 调整Headspace卡片中的按钮 */
-.resource-grid-item:nth-child(2) .resource-link-btn {
-  background: #e75a97;
-}
-
-.resource-grid-item:nth-child(2) .resource-link-btn:hover {
-  background: #d4407f;
-}
-
-/* 调整7Cups卡片中的按钮 */
-.resource-grid-item:nth-child(3) .resource-link-btn {
-  background: #4169E1;
-}
-
-.resource-grid-item:nth-child(3) .resource-link-btn:hover {
-  background: #3050C0;
-}
-
-/* 调整Relaxation卡片中的按钮 */
-.resource-grid-item:nth-child(4) .resource-link-btn {
-  background: #6CBDB5;
-}
-
-.resource-grid-item:nth-child(4) .resource-link-btn:hover {
-  background: #5AA99F;
-}
-
-.relaxation-card {
-  background: white !important;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.relaxation-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.resource-card p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
-  color: inherit;
-  opacity: 0.9;
-  max-width: 90%;
-}
-
-/* 调整第一个卡片描述文字 */
-.resource-grid-item:nth-child(1) .resource-card p {
-  opacity: 0.95;
-}
-
-/* Activity Tags Styles - 恢复胶囊样式 */
-.activity-tags {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-  padding-left: 1rem;
-}
-
-.activity-tags .tag {
-  border-radius: 20px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.75rem;
-  color: #fff;
-  font-weight: 600;
-  display: inline-block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* 修改活动卡片样式，使整个卡片可点击 */
-.events-grid .event-card {
-  display: flex;
-  background-color: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.events-grid .event-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: rgba(231, 90, 151, 0.2);
-}
-
-/* 隐藏Link部分 */
-.event-meta div.event-link {
-  display: none;
-}
-
-/* 事件卡片链接样式 */
-.event-card-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
-/* 注册按钮样式 */
-.register-btn-container {
-  margin-top: 1.5rem;
-}
-
-.register-btn {
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  display: inline-block;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.event-card:hover .register-btn {
-  background-color: #d4407f;
-  transform: translateY(-2px);
-}
-
-/* 活动标签通用样式 */
-.tag {
-  border-radius: 20px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.75rem;
-  color: #fff !important;
-  font-weight: 600;
-  display: inline-block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tag:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* 确保弹出窗口中的标签样式与主页一致 */
-.event-tags .tag, .activity-tags .tag {
-  margin-right: 5px;
-  margin-bottom: 5px;
-}
-
-/* 月份标签颜色 */
-.tag.april {
-  background-color: #4CAF50;
-}
-
-.tag.may {
-  background-color: #2196F3;
-}
-
-.tag.june {
-  background-color: #9C27B0;
-}
-
-.tag.october {
-  background-color: #FF9800;
-}
-
-/* 活动类型标签颜色 */
-.tag.workshop {
-  background-color: #FF9800;
-}
-
-.tag.free-event {
-  background-color: #8BC34A;
-}
-
-.tag.free {
-  background-color: #8BC34A;
-}
-
-.tag.paid {
-  background-color: #F44336;
-}
-
-.tag.festival {
-  background-color: #E91E63;
-}
-
-/* 主题标签颜色 */
-.tag.mental-health {
-  background-color: #673AB7;
-}
-
-.tag.outdoor-wellness {
-  background-color: #009688;
-}
-
-.tag.outdoor-walking {
-  background-color: #3F51B5;
-}
-
-.tag.physical-wellness-practice {
-  background-color: #00BCD4;
-}
-
-.tag.workplace-wellbeing, .tag.workplace-wellbeing-workshop {
-  background-color: #607D8B;
-}
-
-/* 状态标签颜色 */
-.tag.sold-out {
-  background-color: #757575;
-}
-
-.tag.nearly-full {
-  background-color: #FF5722;
-}
-
-.tag.sales-ended {
-  background-color: #455A64;
-}
-
-/* 价格标签颜色 */
-.tag.\$20 {
-  background-color: #FF5722;
-}
-
-.tag.\$108\.9 {
-  background-color: #E91E63;
-}
-
-/* 状态标签颜色 - 确保首字母大写的也能匹配 */
-.tag.sold-out, .tag.Sold-out {
-  background-color: #757575;
-}
-
-.tag.nearly-full, .tag.Nearly-full {
-  background-color: #FF5722;
-}
-
-.tag.sales-ended, .tag.Sales-ended {
-  background-color: #455A64;
-}
-
-/* 特殊标签 */
-.tag.brisbane-festival {
-  background-color: #FF9800;
-}
-
-/* 首字母大写标签颜色 */
-.tag.Paid {
-  background-color: #F44336;
-}
-
-.tag.Workshop {
-  background-color: #FF9800;
-}
-
-.tag.April {
-  background-color: #4CAF50;
-}
-
-.tag.May {
-  background-color: #2196F3;
-}
-
-.tag.June {
-  background-color: #9C27B0;
-}
-
-.tag.October {
-  background-color: #FF9800;
-}
-
-.tag.Free-Event {
-  background-color: #8BC34A;
-}
-
-.tag.Outdoor-Walking {
-  background-color: #3F51B5;
-}
-
-.tag.physical-wellness-practice, .tag.Physical-wellness-practice {
-  background-color: #00BCD4;
-}
-
-.tag.Workplace-Wellbeing, .tag.Workplace-Wellbeing-Workshop {
-  background-color: #607D8B;
-}
-
-/* 确保售罄/即将售罄等状态标签样式一致 */
-.tag.Sold-out {
-  background-color: #757575;
-}
-
-.tag.Nearly-full {
-  background-color: #FF5722;
-}
-
-.tag.Sales-Ended {
-  background-color: #455A64;
-}
-
-.rating {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.25rem;
-  gap: 0.5rem;
-}
-
-.rating-score {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.stars {
-  color: #FFD700;
-  font-size: 1.2rem;
-  line-height: 1;
-  margin: 0 0.25rem;
-}
-
-.reviews {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.opening-hours {
-  margin-top: 1.5rem;
-}
-
-.opening-hours h4 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: #333;
-  font-weight: 600;
-}
-
-.hours-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.hours-row {
-  display: flex;
-  align-items: center;
-}
-
-.day {
-  min-width: 100px;
-  font-weight: 500;
-  color: #555;
-}
-
-.hours {
-  color: #333;
 }
 </style>
