@@ -4,7 +4,6 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import datetime
 
-# 修改导入语句引用现有的模块
 from app.api.router import router as api_router
 from app.api.relaxation.routes import router as relaxation_router
 from app.api.notes.routes import router as notes_router
@@ -46,7 +45,9 @@ app.add_middleware(
     expose_headers=["Content-Type", "X-API-Version"]
 )
 
-# 注册所有路由
+# Register routes
+app.include_router(data_router, prefix="/api", tags=["data"])
+app.include_router(data_router,   prefix="/api/data",    tags=["data"])
 app.include_router(api_router, prefix="/api")
 app.include_router(relaxation_router, prefix="/api/relaxation")
 app.include_router(notes_router, prefix="/api/notes")

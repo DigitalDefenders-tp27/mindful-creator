@@ -23,6 +23,11 @@ export default defineConfig({
     commonjsOptions: {
       include: [/node_modules/],
     },
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000'
+    }
   }
 })
 

@@ -1,4 +1,4 @@
-# /backend/database.py
+# backend/database.py
 import os
 import psycopg2
 from dotenv import load_dotenv
@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 load_dotenv()
+
 
 # Get database URL from environment variable or use default SQLite database
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./relaxation.db')
@@ -52,15 +53,8 @@ def create_activity_rating(db, activity: str, rating: int):
     return db_rating
 
 def get_connection():
-    try:
-        conn = psycopg2.connect(
-            dbname=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            host=os.getenv('DB_HOST'),
-            port=os.getenv('DB_PORT')
-        )
-        return conn
-    except Exception as e:
-        print("Error connecting to database:", e)
-        return None
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+    return psycopg2.connect(dsn=DATABASE_URL, sslmode="require")
+
