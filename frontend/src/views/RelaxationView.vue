@@ -42,7 +42,7 @@
           <template v-if="activity.image" #background>
             <div
               class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
-              :style="`background-image: url('/src/assets/images/bento/${activity.image}')`"
+              :style="`background-image: url('/bentoImages/${activity.image}')`"
             ></div>
           </template>
         </BentoGridCard>
