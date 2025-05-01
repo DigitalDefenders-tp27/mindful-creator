@@ -29,6 +29,9 @@
           <!-- Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
@@ -2006,10 +2009,6 @@ const scrollIslandRef = ref(null);
   border-radius: 20px;
   font-weight: 500;
   margin: 0 0.5rem;
-  background-color: white;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
   transition: all 0.3s ease;
 }
 
@@ -2267,12 +2266,12 @@ const scrollIslandRef = ref(null);
 
 .top-row {
   display: grid;
-  grid-template-columns: repeat(2, 160px);
+  grid-template-columns: repeat(3, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 5 / 7;
+  grid-column: 4 / 7;
   grid-row: 1;
   justify-self: end;
 }
@@ -2538,16 +2537,12 @@ section:not(:last-child)::after {
 .tab {
   padding: 0.5rem 1rem;
   cursor: pointer;
-  color: white;
+  color: #e75a97;
   position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
 }
 
 .tab.active {
-  color: white;
+  color: #e75a97;
   font-weight: 600;
 }
 
@@ -4164,8 +4159,8 @@ section:not(:last-child)::after {
   opacity: 0.9;
 }
 
-
-
+/* 添加到文件末尾的style标签中，强制修改tab样式 */
+<style>
 .dashboard-section .tab {
   padding: 0.5rem 1.5rem;
   cursor: pointer;
@@ -4194,4 +4189,4 @@ section:not(:last-child)::after {
   background-color: #e75a97;
 }
 </style>
-
+</style>

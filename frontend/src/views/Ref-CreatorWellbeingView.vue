@@ -29,6 +29,9 @@
           <!-- Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
@@ -41,41 +44,21 @@
 
     <!-- Dashboard Section -->
     <section class="dashboard-section">
-      <div class="container">
-        <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
-        <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
-        
-        <div class="tabs">
-          <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
-            @click="switchTab(index)">
-            <span v-if="index === 0">
-              <span>Screen Time</span>
-              <span>& Emotions</span>
-            </span>
-            <span v-else-if="index === 1">
-              <span>Digital Habits</span>
-              <span>& Sleep</span>
-            </span>
-            <span v-else-if="index === 2">
-              <span>Engagement</span>
-              <span>& Rewards</span>
-            </span>
-            <span v-else-if="index === 3">
-              <span>Distractions</span>
-              <span>& Anxiety</span>
-            </span>
-          </div>
+      <div class="tabs">
+        <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+          @click="switchTab(index)">
+          {{ tab.name }}
         </div>
+      </div>
 
-        <div class="visualisation-container">
-          <div class="chart-area">
-            <canvas id="mainChart" style="max-height: 400px; width: 100%;"></canvas>
-          </div>
-          <div class="insight-area">
-            <h3 class="insight-heading">Key Insights</h3>
-            <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
-              {{ insight }}
-            </div>
+      <div class="visualisation-container">
+        <div class="chart-area">
+          <canvas id="mainChart"></canvas>
+        </div>
+        <div class="insight-area">
+          <h3 class="insight-heading">Key Insights</h3>
+          <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
+            {{ insight }}
           </div>
         </div>
       </div>
@@ -124,7 +107,7 @@
           <div class="resource-content" :class="{ 'online-only': activeTab === 'online' }">
             <!-- Google Map display -->
             <div class="map-container" v-if="activeTab === 'offline'">
-              <div id="google-map" style="width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
+              <div id="google-map" style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
               <button class="position-btn" @click="getMyPosition">
                 <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
@@ -220,7 +203,7 @@
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
                   </svg>
-                  Get Directions
+                  Get Direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -512,7 +495,7 @@ const initMap = async () => {
 
     // Set map container dimensions
     mapElement.style.width = '100%';
-    mapElement.style.height = '100%';
+    mapElement.style.height = '630px';
 
     const loader = new Loader({
       apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -1448,21 +1431,10 @@ const renderChart = () => {
       options: {
         responsive: true,
         plugins: { title: { display: false } },
-        scales: {
-          x: {
-            stacked: true,
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            stacked: true,
-            max: 100,
-            title: { display: true, text: 'Percentage of Emotional States (%)' }
-          }
-        }
+        scales: { x: { stacked: true }, y: { stacked: true, max: 100 } }
       }
     })
-  }
-  else if (currentTab.value === 1) {
+  } else if (currentTab.value === 1) {
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -1476,21 +1448,8 @@ const renderChart = () => {
           tension: 0.3
         }]
       },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Sleep Problem Score (1 = Best, 5 = Worst)' },
-            suggestedMin: 1,
-            suggestedMax: 5
-          }
-        }
-      }
-    });
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
   } else if (currentTab.value === 2) {
     chartInstance = new Chart(ctx, {
       type: 'bar',
@@ -1502,19 +1461,8 @@ const renderChart = () => {
           backgroundColor: '#42a5f5'
         }]
       },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Engagement Score' }
-          }
-        }
-      }
-    });
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
   } else if (currentTab.value === 3) {
     chartInstance = new Chart(ctx, {
       type: 'line',
@@ -1529,19 +1477,8 @@ const renderChart = () => {
           tension: 0.3
         }]
       },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Average Anxiety Level (1-5)' }
-          }
-        }
-      }
-    });
+      options: { responsive: true, plugins: { title: { display: false } } }
+    })
   }
 }
 
@@ -1818,36 +1755,10 @@ const handleConfirm = () => {
 }
 
 const tabs = [
-  { 
-    name: 'Screen Time and Emotional Wellbeing', 
-    insights: [
+  { name: 'Screen Time and Emotional Wellbeing', insights: [
       'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
       'Maintaining lower daily screen time correlates with better emotional wellbeing.',
       'Balanced digital habits foster more positive and neutral emotional states.'
-    ]
-  },
-  {
-    name: 'Digital Habits and Sleep Health', 
-    insights: [
-      'More than 3 hours of daily social media use is linked with sleep disturbances.',
-      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
-      'Reducing evening screen time can improve sleep quality and mental health.'
-    ]
-  },
-  {
-    name: 'Engagement Metrics and Emotional Rewards', 
-    insights: [
-      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
-      'Creators focusing on meaningful community engagement over numbers show better mental health.',
-      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
-    ]
-  },
-  {
-    name: 'Managing Digital Distractions and Anxiety', 
-    insights: [
-      'Higher daily screen time is associated with elevated anxiety levels.',
-      'Spending less time on digital activities correlates with lower anxiety scores.',
-      'Practising regular tech-free breaks can significantly lower digital stress levels.'
     ]
   }
 ]
@@ -1997,36 +1908,11 @@ const scrollIslandRef = ref(null);
 }
 
 
-.tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  background-color: white;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-}
-
 .tab.active {
-  color: #e75a97;
-  font-weight: 600;
-  background-color: transparent;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
+  background: #e75a97;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 
 .chart-wrapper {
@@ -2049,24 +1935,15 @@ const scrollIslandRef = ref(null);
 
 .tab {
   padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: #e0e0e0;
   cursor: pointer;
-  color: #e75a97;
-  position: relative;
-}
-
-.tab.active {
-  color: #e75a97;
   font-weight: 600;
 }
 
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
+.tab.active {
+  background: #e75a97;
+  color: white;
 }
 
 .chart-area {
@@ -2267,12 +2144,12 @@ const scrollIslandRef = ref(null);
 
 .top-row {
   display: grid;
-  grid-template-columns: repeat(2, 160px);
+  grid-template-columns: repeat(3, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 5 / 7;
+  grid-column: 4 / 7;
   grid-row: 1;
   justify-self: end;
 }
@@ -2538,16 +2415,12 @@ section:not(:last-child)::after {
 .tab {
   padding: 0.5rem 1rem;
   cursor: pointer;
-  color: white;
+  color: #666;
   position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
 }
 
 .tab.active {
-  color: white;
+  color: #e75a97;
   font-weight: 600;
 }
 
@@ -4163,35 +4036,4 @@ section:not(:last-child)::after {
   margin: 0;
   opacity: 0.9;
 }
-
-
-
-.dashboard-section .tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.dashboard-section .tab.active {
-  color: #e75a97;
-  font-weight: 600;
-  background-color: transparent;
-}
-
-.dashboard-section .tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
-}
 </style>
-
