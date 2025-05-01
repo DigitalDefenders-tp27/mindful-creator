@@ -2728,7 +2728,6 @@ section:not(:last-child)::after {
   padding: 1.5rem;
   border-radius: 12px;
 }
-
 .opening-hours h4 {
   font-size: 1.1rem;
   margin-bottom: 1rem;
@@ -2767,6 +2766,58 @@ section:not(:last-child)::after {
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 140px;
+  max-width: 200px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 44px;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  opacity: 0.9;
+}
+
+/* 添加响应式布局 */
+@media (max-width: 480px) {
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+
+  .action-btn {
+    width: 100%;
+    max-width: none;
+    height: 44px;
+  }
+
+  .position-btn {
+    width: auto;
+    min-width: 160px;
+    height: 44px;
+  }
 }
 
 .action-btn {
@@ -2883,11 +2934,17 @@ section:not(:last-child)::after {
   width: 100%;
   aspect-ratio: 16/9;
   object-fit: cover;
+
+.activity-card:hover .activity-img {
+  transform: scale(1.02);
 }
 
 .activity-title {
   font-size: 1.5rem;
   font-weight: 600;
+  padding: 1rem;
+  padding-bottom: 0.5rem;
+  padding-right: 1.5rem;
   color: #333;
   margin: 1rem;
   line-height: 1.3;
