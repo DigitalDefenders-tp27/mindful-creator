@@ -196,7 +196,7 @@ def _normalise_space_result(result: Any) -> Dict:
 
 def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     """
-    Analyse comments using Space CLI for sentiment and toxicity
+    Analyse comments using Gradio Space API for sentiment and toxicity
     
     Args:
         comments: List of comments (should be a list of strings)
@@ -232,46 +232,48 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     total_comments = len(processed_comments)
     logger.info(f"Total comments to analyse: {total_comments}")
     
+    # Space URLs - both the public URL and API URL
+    SPACE_PUBLIC_URL = "https://huggingface.co/spaces/Jet-12138/CommentResponse"
+    SPACE_API_URL = "https://jet-12138-commentresponse.hf.space"  # The API endpoint format
+    
     try:
-        # Use Space CLI (gradio_client) to communicate with HF Spaces
-        # This is the proper and only reliable way to connect to Spaces
-        logger.info("Using Space CLI to connect to HF Spaces...")
+        # Use gradio_client to connect to Space API
+        # Note: This Space only supports connection via gradio_client
+        # Direct HTTP requests don't work with this Space
+        logger.info("Connecting to Space API using gradio_client...")
         
         try:
-            # Import the gradio_client library - the official Space CLI
+            # Import the gradio_client library
             from gradio_client import Client
             
-            # Give it a burl with the Space client
-            logger.info("Creating Space client connection...")
-            client = Client("https://jet-12138-commentresponse.hf.space/")
+            # Create the client connection
+            logger.info(f"Creating Space client connection to {SPACE_API_URL}...")
+            client = Client(SPACE_API_URL)
             
-            # Prep the comments as a single multiline string (the expected format)
+            # Prepare comments as a single string
             comments_text = "\n".join(processed_comments)
             
-            # Fair dinkum attempt to call the Space predict endpoint
-            logger.info(f"Sending {len(processed_comments)} comments to Space using gradio_client")
+            # Call the predict endpoint - MUST use /predict with leading slash
+            logger.info(f"Sending {len(processed_comments)} comments to Space API...")
             
-            # 使用经测试可行的"/predict" API端点（带前导斜杠）
-            logger.info("Calling predict with api_name='/predict'...")
+            # The correct API name is /predict (with leading slash)
+            # This was determined through testing - other endpoint names return errors
             result = client.predict(
                 comments_text,  # Input: string with line-separated comments
-                api_name="/predict"  # 使用前导斜杠的API名称
+                api_name="/predict"  # API name must have leading slash
             )
             
-            # Normalise the Space result format for consistency
-            space_data = _normalise_space_result(result)
-            
-            # Extract the good oil from the response
-            sentiment_counts = space_data.get("sentiment_counts", {})
+            # Extract data from response
+            sentiment_counts = result.get("sentiment_counts", {})
             logger.info(f"Sentiment counts: {sentiment_counts}")
             
-            toxicity_counts = space_data.get("toxicity_counts", {})
+            toxicity_counts = result.get("toxicity_counts", {})
             logger.info(f"Toxicity counts: {toxicity_counts}")
             
-            toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
+            toxicity_total = int(result.get("comments_with_any_toxicity", 0))
             logger.info(f"Total toxic comments: {toxicity_total}")
             
-            # Beauty! Return the analysis results in our standard format
+            # Return analysis in our standard format
             return {
                 "sentiment": {
                     "positive_count": sentiment_counts.get("Positive", 0),
@@ -290,134 +292,135 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
                         "identity_hate": toxicity_counts.get("Identity Hate", 0)
                     }
                 },
-                "note": "Analysis performed using Space CLI"
+                "note": "Analysis performed using gradio_client"
             }
             
         except ImportError as ie:
-            # Strewth! Couldn't import the Space CLI library
-            logger.error(f"Failed to import gradio_client: {str(ie)}")
-            raise Exception("Space CLI (gradio_client) not available. Please install with 'pip install gradio_client'")
+            # gradio_client not available
+            logger.error(f"gradio_client not available: {str(ie)}")
+            logger.error("This Space only supports connections via gradio_client")
+            logger.info("Falling back to simulated data...")
             
-        except Exception as space_error:
-            # Something's gone walkabout with the Space call
-            logger.error(f"Space CLI communication error: {str(space_error)}")
-            raise Exception(f"Space CLI error: {str(space_error)}")
+        except Exception as client_err:
+            # Error with gradio_client approach
+            logger.error(f"Error using gradio_client: {str(client_err)}")
+            logger.info("Falling back to simulated data...")
 
     except Exception as e:
-        logger.error(f"Unexpected error in Space API analysis: {str(e)}")
-        
-        # Try fallback to local model or simulated data
+        logger.error(f"All Space API connection methods failed: {str(e)}")
+    
+    # Fallback: Use local model or simulated data
+    try:
+        logger.info("Attempting to use local model or generate simulated data...")
+        # Check if we can import the local model
         try:
-            logger.info("Attempting to use local model or generate simulated data...")
-            # Check if we can import the local model
-            try:
-                from nlp_model.common.model_loader import get_model
-                from nlp_model.common.utils import predict_batch
+            from nlp_model.common.model_loader import get_model
+            from nlp_model.common.utils import predict_batch
+            
+            # Local model is available
+            logger.info("Local model found, using it for analysis")
+            
+            # Process with local model
+            predictions = predict_batch(processed_comments, get_model())
+            sentiment_counts = {
+                "Positive": sum(1 for p in predictions if p["sentiment"] == "positive"),
+                "Neutral": sum(1 for p in predictions if p["sentiment"] == "neutral"),
+                "Negative": sum(1 for p in predictions if p["sentiment"] == "negative")
+            }
+            
+            toxicity_counts = {
+                "Toxic": sum(1 for p in predictions if p["toxic"]),
+                "Severe Toxic": sum(1 for p in predictions if p["severe_toxic"]),
+                "Obscene": sum(1 for p in predictions if p["obscene"]),
+                "Threat": sum(1 for p in predictions if p["threat"]),
+                "Insult": sum(1 for p in predictions if p["insult"]),
+                "Identity Hate": sum(1 for p in predictions if p["identity_hate"])
+            }
+            
+            toxic_comments = sum(1 for p in predictions if any(p[t] for t in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]))
+            
+            # Create result structure similar to Space API
+            return {
+                "sentiment": {
+                    "positive_count": sentiment_counts["Positive"],
+                    "neutral_count": sentiment_counts["Neutral"],
+                    "negative_count": sentiment_counts["Negative"]
+                },
+                "toxicity": {
+                    "toxic_count": toxic_comments,
+                    "toxic_percentage": (toxic_comments / total_comments * 100) if total_comments else 0,
+                    "toxic_types": {
+                        "toxic": toxicity_counts["Toxic"],
+                        "severe_toxic": toxicity_counts["Severe Toxic"],
+                        "obscene": toxicity_counts["Obscene"],
+                        "threat": toxicity_counts["Threat"],
+                        "insult": toxicity_counts["Insult"],
+                        "identity_hate": toxicity_counts["Identity Hate"]
+                    }
+                },
+                "note": "Analysis performed using local model (Space API unavailable)"
+            }
+        except ImportError:
+            logger.warning("Local model not found, generating simulated data")
+            
+            # No worries, we'll just make some fair dinkum guesses
+            total = len(processed_comments)
+            positive = max(1, round(total * 0.4))  # About 40% positive
+            negative = max(1, round(total * 0.3))  # About 30% negative
+            neutral = total - positive - negative   # Remainder neutral
+            
+            # To avoid zero data, ensure we have at least some data
+            if total > 0 and (positive + neutral + negative == 0):
+                positive = 1
                 
-                # Local model is available
-                logger.info("Local model found, using it for analysis")
-                
-                # Process with local model
-                predictions = predict_batch(processed_comments, get_model())
-                sentiment_counts = {
-                    "Positive": sum(1 for p in predictions if p["sentiment"] == "positive"),
-                    "Neutral": sum(1 for p in predictions if p["sentiment"] == "neutral"),
-                    "Negative": sum(1 for p in predictions if p["sentiment"] == "negative")
-                }
-                
-                toxicity_counts = {
-                    "Toxic": sum(1 for p in predictions if p["toxic"]),
-                    "Severe Toxic": sum(1 for p in predictions if p["severe_toxic"]),
-                    "Obscene": sum(1 for p in predictions if p["obscene"]),
-                    "Threat": sum(1 for p in predictions if p["threat"]),
-                    "Insult": sum(1 for p in predictions if p["insult"]),
-                    "Identity Hate": sum(1 for p in predictions if p["identity_hate"])
-                }
-                
-                toxic_comments = sum(1 for p in predictions if any(p[t] for t in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]))
-                
-                # Create result structure similar to Space API
-                return {
-                    "sentiment": {
-                        "positive_count": sentiment_counts["Positive"],
-                        "neutral_count": sentiment_counts["Neutral"],
-                        "negative_count": sentiment_counts["Negative"]
-                    },
-                    "toxicity": {
-                        "toxic_count": toxic_comments,
-                        "toxic_percentage": (toxic_comments / total_comments * 100) if total_comments else 0,
-                        "toxic_types": {
-                            "toxic": toxicity_counts["Toxic"],
-                            "severe_toxic": toxicity_counts["Severe Toxic"],
-                            "obscene": toxicity_counts["Obscene"],
-                            "threat": toxicity_counts["Threat"],
-                            "insult": toxicity_counts["Insult"],
-                            "identity_hate": toxicity_counts["Identity Hate"]
-                        }
-                    },
-                    "note": "Analysis performed using local model (Space API unavailable)"
-                }
-            except ImportError:
-                logger.warning("Local model not found, generating simulated data")
-                
-                # No worries, we'll just make some fair dinkum guesses
-                total = len(processed_comments)
-                positive = max(1, round(total * 0.4))  # About 40% positive
-                negative = max(1, round(total * 0.3))  # About 30% negative
-                neutral = total - positive - negative   # Remainder neutral
-                
-                # To avoid zero data, ensure we have at least some data
-                if total > 0 and (positive + neutral + negative == 0):
-                    positive = 1
-                    
-                # Generate simulated toxicity data
-                toxic_count = max(1, round(total * 0.15))  # About 15% toxic
-                
-                return {
-                    "sentiment": {
-                        "positive_count": positive,
-                        "neutral_count": neutral,
-                        "negative_count": negative
-                    },
-                    "toxicity": {
-                        "toxic_count": toxic_count,
-                        "toxic_percentage": (toxic_count / total * 100) if total else 0,
-                        "toxic_types": {
-                            "toxic": max(1, round(toxic_count * 0.7)),
-                            "severe_toxic": round(toxic_count * 0.1),
-                            "obscene": round(toxic_count * 0.4),
-                            "threat": round(toxic_count * 0.05),
-                            "insult": round(toxic_count * 0.3),
-                            "identity_hate": round(toxic_count * 0.1)
-                        }
-                    },
-                    "note": "Using simulated values (Space API unavailable)"
-                }
-        except Exception as fallback_error:
-            logger.error(f"Fallback mechanism also failed: {str(fallback_error)}")
-        
-        # Always return a consistent structure even on error
-        return {
-            "sentiment": {
-                "positive_count": 0,
-                "neutral_count": 0,
-                "negative_count": 0
-            },
-            "toxicity": {
-                "toxic_count": 0,
-                "toxic_percentage": 0,
-                "toxic_types": {
-                    "toxic": 0,
-                    "severe_toxic": 0,
-                    "obscene": 0,
-                    "threat": 0,
-                    "insult": 0,
-                    "identity_hate": 0
-                }
-            },
-            "error": str(e),
-            "note": "Analysis failed, please try again or with different comments."
-        }
+            # Generate simulated toxicity data
+            toxic_count = max(1, round(total * 0.15))  # About 15% toxic
+            
+            return {
+                "sentiment": {
+                    "positive_count": positive,
+                    "neutral_count": neutral,
+                    "negative_count": negative
+                },
+                "toxicity": {
+                    "toxic_count": toxic_count,
+                    "toxic_percentage": (toxic_count / total * 100) if total else 0,
+                    "toxic_types": {
+                        "toxic": max(1, round(toxic_count * 0.7)),
+                        "severe_toxic": round(toxic_count * 0.1),
+                        "obscene": round(toxic_count * 0.4),
+                        "threat": round(toxic_count * 0.05),
+                        "insult": round(toxic_count * 0.3),
+                        "identity_hate": round(toxic_count * 0.1)
+                    }
+                },
+                "note": "Using simulated values (Space API unavailable)"
+            }
+    except Exception as fallback_error:
+        logger.error(f"Fallback mechanism also failed: {str(fallback_error)}")
+    
+    # Always return a consistent structure even on error
+    return {
+        "sentiment": {
+            "positive_count": 0,
+            "neutral_count": 0,
+            "negative_count": 0
+        },
+        "toxicity": {
+            "toxic_count": 0,
+            "toxic_percentage": 0,
+            "toxic_types": {
+                "toxic": 0,
+                "severe_toxic": 0,
+                "obscene": 0,
+                "threat": 0,
+                "insult": 0,
+                "identity_hate": 0
+            }
+        },
+        "error": "All analysis methods failed",
+        "note": "Analysis failed, please try again or with different comments."
+    }
 
 async def analyze_youtube_video(video_url: str) -> Dict:
     """
