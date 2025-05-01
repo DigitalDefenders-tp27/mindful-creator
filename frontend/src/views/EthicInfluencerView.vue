@@ -897,35 +897,11 @@ onMounted(() => {
 }
 
 .content-section::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.15) 0%,
-    rgba(218, 237, 148, 0.1) 40%,
-    rgba(228, 245, 138, 0) 80%
-  );
-  z-index: -1;
-  pointer-events: none;
+  display: none;
 }
 
 .ethic-container::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 55%;
-  background: linear-gradient(to top,
-    rgba(209, 231, 125, 0.15) 0%,
-    rgba(218, 237, 148, 0.08) 40%,
-    rgba(228, 245, 138, 0) 100%
-  );
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .gradient-overlay {
