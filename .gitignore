@@ -12,3 +12,4 @@ venv/
 # secrets
 .env
 backend/server.log
+server.log
