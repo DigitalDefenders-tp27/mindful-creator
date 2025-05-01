@@ -21,9 +21,13 @@ origins = [
     "http://localhost:5175",
     "https://mindful-creator-awoc.vercel.app",
     "https://mindful-creator-mymc.vercel.app",
+    "https://mindful-creator-99fvqeosu-tp27.vercel.app",
+    "https://mindful-creator.vercel.app",
+    "*"
     "https://mindful-creator-gwnq.vercel.app",
     "https://mindful-creator-murex.vercel.app",
     "https://mindful-creator-tp27.vercel.app",
+
 ]
 
 app.add_middleware(
