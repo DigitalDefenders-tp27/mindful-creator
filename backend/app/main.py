@@ -38,6 +38,8 @@ app.add_middleware(
 app.include_router(youtube_router, prefix="/api/youtube", tags=["youtube"])
 app.include_router(data_router, prefix="/api", tags=["data"])
 app.include_router(relaxation.router, prefix="/api", tags=["relaxation"])
+app.include_router(data_router,   prefix="/api/data",    tags=["data"])
+
 
 @app.get("/")
 async def root():

@@ -38,7 +38,7 @@
 
       <div class="visualisation-container">
         <div class="chart-area">
-          <canvas id="mainChart"></canvas>
+          <canvas id="mainChart" style="max-height: 400px; width: 100%;"></canvas>
         </div>
         <div class="insight-area">
           <h3 class="insight-heading">Key Insights</h3>
@@ -58,51 +58,54 @@
         <div class="resource-finder-content">
           <!-- Tabs for resource type -->
           <div class="resource-tabs">
-            <div 
-              class="resource-tab" 
-              :class="{ active: activeTab === 'offline' }"
-              @click="switchResourceTab('offline')"
-            >Psychologist (Offline Resources)</div>
-            <div 
-              class="resource-tab" 
-              :class="{ active: activeTab === 'online' }"
-              @click="onOnlineTabClick"
-            >Online Resources</div>
+            <div class="resource-tab" :class="{ active: activeTab === 'offline' }"
+              @click="switchResourceTab('offline')">Psychologist (Offline Resources)</div>
+            <div class="resource-tab" :class="{ active: activeTab === 'online' }" @click="onOnlineTabClick">Online
+              Resources</div>
           </div>
-          
+
           <!-- Search bar for address -->
           <div class="search-bar">
-            <input 
-              id="address-search"
-              v-model="searchAddress" 
-              @keyup.enter="onSearch"
-              placeholder="Enter your location..." 
-              class="search-input"
-              :disabled="isSearching"
-            />
-            <button 
-              @click="onSearch" 
-              class="search-btn"
-              :class="{ 'is-loading': isSearching }"
-              :disabled="isSearching"
-              v-html="searchBtnContent"
-            ></button>
+
+            <input id="address-search" v-model="searchAddress" @keyup.enter="onSearch"
+              placeholder="Enter your location..." class="search-input" :disabled="isSearching" />
+            <button @click="onSearch" class="search-btn" :class="{ 'is-loading': isSearching }" :disabled="isSearching"
+              v-html="searchBtnContent"></button>
+
+            <input v-model="searchAddress" @keyup.enter="onSearch"
+              placeholder="Search address to find nearby psychologists..." class="search-input" />
+            <button @click="onSearch" class="search-btn">Search</button>
+
           </div>
 
           <div class="resource-content" :class="{ 'online-only': activeTab === 'online' }">
             <!-- Google Map display -->
             <div class="map-container" v-if="activeTab === 'offline'">
-              <div id="google-map" style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
+
+              <div id="google-map"
+                style="width: 100%; height: 630px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
+
+              <GMapMap :center="mapCenter" :zoom="14"
+                style="width: 100%; height: 560px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <GMapMarker v-for="clinic in displayedClinics" :key="clinic.id"
+                  :position="{ lat: clinic.lat, lng: clinic.lng }" @click="selectClinic(clinic)" />
+                <GMapMarker v-if="userLocation" :position="userLocation" :icon="userIcon" />
+              </GMapMap>
+
               <button class="position-btn" @click="getMyPosition">
-                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
+                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"
+                    fill="white" />
                 </svg>
                 Get My Position
               </button>
             </div>
-            
+
             <!-- Online Resources -->
-            <div class="online-resources-container" :class="{ 'full-width': activeTab === 'online' }" v-if="activeTab === 'online'">
+            <div class="online-resources-container" :class="{ 'full-width': activeTab === 'online' }"
+              v-if="activeTab === 'online'">
               <div class="online-resources-list">
                 <div class="online-resource-card">
                   <div class="resource-logo">
@@ -118,7 +121,7 @@
                     <a href="https://www.betterhelp.com" target="_blank" class="resource-link-btn">Visit Website</a>
                   </div>
                 </div>
-                
+
                 <div class="online-resource-card">
                   <div class="resource-logo">
                     <img src="@/assets/icons/elements/meditation-app.svg" alt="Headspace" class="resource-icon">
@@ -133,7 +136,7 @@
                     <a href="https://www.headspace.com" target="_blank" class="resource-link-btn">Visit Website</a>
                   </div>
                 </div>
-                
+
                 <div class="online-resource-card">
                   <div class="resource-logo">
                     <img src="@/assets/icons/elements/support-group.svg" alt="Support Group" class="resource-icon">
@@ -185,14 +188,18 @@
 
               <div class="resource-actions">
                 <button class="action-btn direction-btn" @click="getDirections">
-                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white"/>
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white" />
                   </svg>
                   Get direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
-                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z" fill="white"/>
+                  <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z"
+                      fill="white" />
                   </svg>
                   Get Preparation Guide
                 </button>
@@ -215,18 +222,14 @@
         </div>
 
         <div class="activities-grid">
-          <a v-for="(activity, index) in featuredActivities" 
-             :key="index"
-             :href="activity.link"
-             target="_blank" 
-             class="activity-card-link">
+          <a v-for="(activity, index) in featuredActivities" :key="index" :href="activity.link" target="_blank"
+            class="activity-card-link">
             <div class="activity-card">
               <img :src="getImageUrl(activity.image)" :alt="activity.title" class="activity-img">
               <h3 class="activity-title">{{ activity.title }}</h3>
               <div class="activity-tags">
-                <span v-for="(tag, tagIndex) in activity.tags.slice(0, 2)" 
-                      :key="tagIndex" 
-                      :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
+                <span v-for="(tag, tagIndex) in activity.tags.slice(0, 2)" :key="tagIndex"
+                  :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
               </div>
               <div class="activity-details">
                 <span class="group-size">{{ activity.location }}</span>
@@ -317,7 +320,8 @@
               <div class="event-info">
                 <h3>{{ event.title }}</h3>
                 <div class="event-tags">
-                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
+                  <span v-for="(tag, index) in event.tags" :key="index"
+                    :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
                 </div>
                 <p class="event-description">{{ event.description }}</p>
                 <div class="event-meta">
@@ -327,8 +331,7 @@
                   <div><strong>Time:</strong> {{ event.time }}</div>
                   <div class="event-link"><strong>Link:</strong> {{ event.link }}</div>
                 </div>
-                <a :href="event.link"
-                  target="_blank" class="register-btn-link">
+                <a :href="event.link" target="_blank" class="register-btn-link">
                   <button class="register-btn">Register Now</button>
                 </a>
               </div>
@@ -339,14 +342,15 @@
     </div>
 
   </div>
-  
+
   <!-- Preparation Guide Modal - Moved outside main container to prevent stacking context issues -->
   <div v-if="showGuide" class="preparation-guide-wrapper">
     <Modal @close="showGuide = false">
       <template #header>
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <span>Preparation Guide for Psychological Consultation</span>
-          <button @click="showGuide = false" style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
+          <button @click="showGuide = false"
+            style="background:none;border:none;font-size:1.5rem;line-height:1;color:#e75a97;cursor:pointer;">×</button>
         </div>
       </template>
       <template #body>
@@ -394,7 +398,8 @@
   <div v-if="showOnlineConfirm" class="modal-overlay">
     <div class="modal-content">
       <h3>Switch to Online Resources?</h3>
-      <p>Are you sure you want to switch to online resources? This will help you find professional help from the comfort of your home.</p>
+      <p>Are you sure you want to switch to online resources? This will help you find professional help from the comfort
+        of your home.</p>
       <div class="modal-actions">
         <button class="cancel-btn" @click="handleCancel">Cancel</button>
         <button class="confirm-btn" @click="handleConfirm">Continue</button>
@@ -410,6 +415,17 @@ import { Loader } from '@googlemaps/js-api-loader'
 import Chart from 'chart.js/auto'
 import Modal from '../components/Modal.vue'
 import axios from 'axios'
+import { Bar } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement
+} from 'chart.js'
+
 
 // State variables
 const currentTab = ref(0)
@@ -432,6 +448,7 @@ const selectedMonth = ref('Any time')
 const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
 
+
 // 添加新的 ref
 const showOnlineConfirm = ref(false)
 const isSearching = ref(false)
@@ -453,7 +470,7 @@ const initMap = async () => {
     if (map.value) {
       map.value = null;
     }
-    
+
     // 清除所有标记
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
@@ -537,16 +554,16 @@ const initMap = async () => {
     if (clinics.length > 0) {
       displayedClinics.value = [...clinics];
       await updateMarkers();
-      
+
       if (!selectedClinic.value) {
         selectedClinic.value = displayedClinics.value[0];
       }
-      
+
       // 将地图中心设置到选中的诊所
       if (selectedClinic.value) {
-        map.value.setCenter({ 
-          lat: selectedClinic.value.lat, 
-          lng: selectedClinic.value.lng 
+        map.value.setCenter({
+          lat: selectedClinic.value.lat,
+          lng: selectedClinic.value.lng
         });
         map.value.setZoom(14);
       }
@@ -653,17 +670,17 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
 onMounted(async () => {
   renderChart();
-  
+
   // 如果当前是offline标签，初始化地图
   if (activeTab.value === 'offline') {
     await nextTick();
@@ -1343,43 +1360,43 @@ const clinics = [
     }
   },
   {
-      id: 35,
-      name: 'Brisbane Mind Health',
-      rating: 4.9,
-      reviews: 76,
-      address: '789 Queen Street, Brisbane QLD 4000',
-      website: 'https://example.com/brisbane-mind',
-      lat: -27.4698,
-      lng: 153.0251,
-      openingHours: {
-        'Monday': '9:00 AM - 5:30 PM',
-        'Tuesday': '9:00 AM - 5:30 PM',
-        'Wednesday': '9:00 AM - 5:30 PM',
-        'Thursday': '9:00 AM - 7:30 PM',
-        'Friday': '9:00 AM - 5:30 PM',
-        'Saturday': '10:00 AM - 1:00 PM',
-        'Sunday': 'Closed'
-      }
-    },
-    {
-      id: 36,
-      name: 'Sydney Wellness Clinic',
-      rating: 4.6,
-      reviews: 95,
-      address: '456 George Street, Sydney NSW 2000',
-      website: 'https://example.com/sydney-wellness',
-      lat: -33.8688,
-      lng: 151.2093,
-      openingHours: {
-        'Monday': '8:30 AM - 6:00 PM',
-        'Tuesday': '8:30 AM - 6:00 PM',
-        'Wednesday': '8:30 AM - 6:00 PM',
-        'Thursday': '8:30 AM - 8:00 PM',
-        'Friday': '8:30 AM - 6:00 PM',
-        'Saturday': '9:00 AM - 3:00 PM',
-        'Sunday': 'Closed'
-      }
+    id: 35,
+    name: 'Brisbane Mind Health',
+    rating: 4.9,
+    reviews: 76,
+    address: '789 Queen Street, Brisbane QLD 4000',
+    website: 'https://example.com/brisbane-mind',
+    lat: -27.4698,
+    lng: 153.0251,
+    openingHours: {
+      'Monday': '9:00 AM - 5:30 PM',
+      'Tuesday': '9:00 AM - 5:30 PM',
+      'Wednesday': '9:00 AM - 5:30 PM',
+      'Thursday': '9:00 AM - 7:30 PM',
+      'Friday': '9:00 AM - 5:30 PM',
+      'Saturday': '10:00 AM - 1:00 PM',
+      'Sunday': 'Closed'
     }
+  },
+  {
+    id: 36,
+    name: 'Sydney Wellness Clinic',
+    rating: 4.6,
+    reviews: 95,
+    address: '456 George Street, Sydney NSW 2000',
+    website: 'https://example.com/sydney-wellness',
+    lat: -33.8688,
+    lng: 151.2093,
+    openingHours: {
+      'Monday': '8:30 AM - 6:00 PM',
+      'Tuesday': '8:30 AM - 6:00 PM',
+      'Wednesday': '8:30 AM - 6:00 PM',
+      'Thursday': '8:30 AM - 8:00 PM',
+      'Friday': '8:30 AM - 6:00 PM',
+      'Saturday': '9:00 AM - 3:00 PM',
+      'Sunday': 'Closed'
+    }
+  }
 ];
 
 // Initialize displayed clinics
@@ -1398,6 +1415,39 @@ searchAddress.value = '';
 showGuide.value = false;
 
 // 切换 Tab
+const tabs = [
+  {
+    name: 'Screen Time and Emotional Wellbeing', insights: [
+      'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
+      'Maintaining lower daily screen time correlates with better emotional wellbeing.',
+      'Balanced digital habits foster more positive and neutral emotional states.'
+    ]
+  },
+  {
+    name: 'Digital Habits and Sleep Health', insights: [
+      'More than 3 hours of daily social media use is linked with sleep disturbances.',
+      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
+      'Reducing evening screen time can improve sleep quality and mental health.'
+    ]
+  },
+  {
+    name: 'Engagement Metrics and Emotional Rewards', insights: [
+      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
+      'Creators focusing on meaningful community engagement over numbers show better mental health.',
+      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
+    ]
+  },
+  {
+    name: 'Managing Digital Distractions and Anxiety', insights: [
+      'Higher daily screen time is associated with elevated anxiety levels.',
+      'Spending less time on digital activities correlates with lower anxiety scores.',
+      'Practising regular tech-free breaks can significantly lower digital stress levels.'
+    ]
+  }
+]
+
+import { nextTick } from 'vue'
+
 const switchTab = (index) => {
   currentTab.value = index
   renderChart()
@@ -1421,56 +1471,188 @@ const renderChart = () => {
       options: {
         responsive: true,
         plugins: { title: { display: false } },
-        scales: { x: { stacked: true }, y: { stacked: true, max: 100 } }
+        scales: {
+          x: {
+            stacked: true,
+            title: { display: true, text: 'Daily Screen Time (hours)' }
+          },
+          y: {
+            stacked: true,
+            max: 100,
+            title: { display: true, text: 'Percentage of Emotional States (%)' }
+          }
+        }
       }
+
     })
-  } else if (currentTab.value === 1) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
-        datasets: [{
-          label: 'Sleep Problems (1-5)',
-          data: [1.5, 2, 2.5, 3.2, 4, 4.5],
-          borderColor: '#7e57c2',
-          backgroundColor: '#7e57c2',
-          fill: false,
-          tension: 0.3
-        }]
+
+  });
+
+
+} else if (currentTab.value === 1) {
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
+      datasets: [{
+        label: 'Sleep Problems (1-5)',
+        data: [1.5, 2, 2.5, 3.2, 4, 4.5],
+        borderColor: '#7e57c2',
+        backgroundColor: '#7e57c2',
+        fill: false,
+        tension: 0.3
+      }]
+    },
+
+    options: { responsive: true, plugins: { title: { display: false } } }
+  })
+
+  options: {
+    responsive: true,
+      plugins: { title: { display: false } },
+    scales: {
+      x: {
+        title: { display: true, text: 'Daily Screen Time (hours)' }
       },
-      options: { responsive: true, plugins: { title: { display: false } } }
-    })
-  } else if (currentTab.value === 2) {
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Below 1h', '1-3h', '3-5h'],
-        datasets: [{
-          label: 'Engagement',
-          data: [20, 50, 30],
-          backgroundColor: '#42a5f5'
-        }]
-      },
-      options: { responsive: true, plugins: { title: { display: false } } }
-    })
-  } else if (currentTab.value === 3) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
-        datasets: [{
-          label: 'Average Anxiety',
-          data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
-          borderColor: '#66bb6a',
-          backgroundColor: '#66bb6a',
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: { responsive: true, plugins: { title: { display: false } } }
-    })
+      y: {
+        title: { display: true, text: 'Sleep Problem Score (1 = Best, 5 = Worst)' },
+        suggestedMin: 1,
+          suggestedMax: 5
+      }
+    }
   }
+});
+
+
+  } else if (currentTab.value === 2) {
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Below 1h', '1-3h', '3-5h'],
+      datasets: [{
+        label: 'Engagement',
+        data: [20, 50, 30],
+        backgroundColor: '#42a5f5'
+      }]
+    },
+
+    options: { responsive: true, plugins: { title: { display: false } } }
+  })
+
+  options: {
+    responsive: true,
+      plugins: { title: { display: false } },
+    scales: {
+      x: {
+        title: { display: true, text: 'Daily Usage Time (hours)' }
+      },
+      y: {
+        title: { display: true, text: 'Engagement Score' }
+      }
+    }
+  }
+});
+
+
+  } else if (currentTab.value === 3) {
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
+      datasets: [{
+        label: 'Average Anxiety',
+        data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
+        borderColor: '#66bb6a',
+        backgroundColor: '#66bb6a',
+        fill: false,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: false } },
+      scales: {
+        x: {
+          title: { display: true, text: 'Daily Usage Time (hours)' }
+        },
+        y: {
+          title: { display: true, text: 'Average Anxiety Level (1-5)' }
+        }
+      }
+    }
+  });
 }
+};
+
+
+onMounted(() => {
+  renderChart();
+
+  // Initialise example clinic data
+  displayedClinics.value = [
+    {
+      id: 1,
+      name: 'Melbourne Psychology Centre',
+      rating: 4.8,
+      reviews: 128,
+      address: '123 Collins Street, Melbourne VIC 3000',
+      website: 'https://example.com/melbourne-psychology',
+      lat: -37.8136,
+      lng: 144.9631,
+      openingHours: {
+        'Monday': '9:00 AM - 5:00 PM',
+        'Tuesday': '9:00 AM - 5:00 PM',
+        'Wednesday': '9:00 AM - 5:00 PM',
+        'Thursday': '9:00 AM - 7:00 PM',
+        'Friday': '9:00 AM - 5:00 PM',
+        'Saturday': '10:00 AM - 2:00 PM',
+        'Sunday': 'Closed'
+      }
+    },
+    {
+      id: 2,
+      name: 'Sydney Wellness Clinic',
+      rating: 4.6,
+      reviews: 95,
+      address: '456 George Street, Sydney NSW 2000',
+      website: 'https://example.com/sydney-wellness',
+      lat: -33.8688,
+      lng: 151.2093,
+      openingHours: {
+        'Monday': '8:30 AM - 6:00 PM',
+        'Tuesday': '8:30 AM - 6:00 PM',
+        'Wednesday': '8:30 AM - 6:00 PM',
+        'Thursday': '8:30 AM - 8:00 PM',
+        'Friday': '8:30 AM - 6:00 PM',
+        'Saturday': '9:00 AM - 3:00 PM',
+        'Sunday': 'Closed'
+      }
+    },
+    {
+      id: 3,
+      name: 'Brisbane Mind Health',
+      rating: 4.9,
+      reviews: 76,
+      address: '789 Queen Street, Brisbane QLD 4000',
+      website: 'https://example.com/brisbane-mind',
+      lat: -27.4698,
+      lng: 153.0251,
+      openingHours: {
+        'Monday': '9:00 AM - 5:30 PM',
+        'Tuesday': '9:00 AM - 5:30 PM',
+        'Wednesday': '9:00 AM - 5:30 PM',
+        'Thursday': '9:00 AM - 7:30 PM',
+        'Friday': '9:00 AM - 5:30 PM',
+        'Saturday': '10:00 AM - 1:00 PM',
+        'Sunday': 'Closed'
+      }
+    }
+  ]
+
+  // Set default selected clinic so the details panel is visible initially
+  selectedClinic.value = displayedClinics.value[0]
+})
+
 
 // Event modal functions
 const openModal = () => {
@@ -1494,17 +1676,17 @@ const resetFilters = () => {
 // Function to switch resource tab
 const switchResourceTab = async (tabName) => {
   activeTab.value = tabName;
-  
+
   // When switching to offline tab
   if (tabName === 'offline') {
     // Set first clinic as default if selectedClinic is null
     if (!selectedClinic.value && displayedClinics.value.length > 0) {
       selectedClinic.value = displayedClinics.value[0];
     }
-    
+
     // Wait for DOM update
     await nextTick();
-    
+
     // Force reinitialize map
     await initMap();
   }
@@ -1519,13 +1701,13 @@ const handleCancel = () => {
 // Function to get directions to selected clinic
 const getDirections = () => {
   if (!selectedClinic.value) return;
-  
+
   // Construct Google Maps directions URL
   const destination = encodeURIComponent(selectedClinic.value.address);
-  const origin = userLocation.value 
+  const origin = userLocation.value
     ? `${userLocation.value.lat},${userLocation.value.lng}`
     : '';
-  
+
   // Open Google Maps in a new tab
   const url = `https://www.google.com/maps/dir/${origin}/${destination}`;
   window.open(url, '_blank');
@@ -1585,7 +1767,7 @@ const events = [
     date: 'May 28th',
     time: '1:00 PM - 3:00 PM',
     link: 'https://www.eventbrite.com.au/e/resilience-self-leadership-wellbeing-warrnambool-business-workshop-tickets-1271353776369?aff=ebdssbdestsearch',
-    image: 'workplaceWarrnambool.avif', 
+    image: 'workplaceWarrnambool.avif',
     price: 'Paid'
   },
   {
@@ -1681,36 +1863,36 @@ const sortedFilteredEvents = computed(() => {
     if (searchQuery.value && !event.title.toLowerCase().includes(searchQuery.value.toLowerCase())) {
       return false
     }
-    
+
     // Filter by location
     if (selectedLocation.value !== 'All locations' && event.location !== selectedLocation.value) {
       return false
     }
-    
+
     // Filter by category
-    if (selectedCategory.value !== 'All types' && 
-        !event.tags.some(tag => tag.toLowerCase().includes(selectedCategory.value.toLowerCase()))) {
+    if (selectedCategory.value !== 'All types' &&
+      !event.tags.some(tag => tag.toLowerCase().includes(selectedCategory.value.toLowerCase()))) {
       return false
     }
-    
+
     // Filter by month
-    if (selectedMonth.value !== 'Any time' && 
-        !event.tags.some(tag => tag.toLowerCase() === selectedMonth.value.toLowerCase())) {
+    if (selectedMonth.value !== 'Any time' &&
+      !event.tags.some(tag => tag.toLowerCase() === selectedMonth.value.toLowerCase())) {
       return false
     }
-    
+
     // Filter by price
     if (selectedPrice.value === 'Free' && event.price !== 'Free') {
       return false
     }
-    
+
     if (selectedPrice.value === 'Paid' && event.price === 'Free') {
       return false
     }
-    
+
     return true
   })
-  
+
   // Then sort according to the selected sort option
   return filteredEvents.sort((a, b) => {
     switch (sortOption.value) {
@@ -1733,7 +1915,7 @@ const featuredActivities = computed(() => {
   const april = events.find(event => event.tags.some(tag => tag === 'April'))
   const may = events.find(event => event.tags.some(tag => tag === 'May'))
   const june = events.find(event => event.tags.some(tag => tag === 'June' || tag === 'October'))
-  
+
   // Return three featured events (ensure we have 3 even if fewer months are available)
   return [april, may, june].filter(Boolean).slice(0, 3)
 })
@@ -1745,7 +1927,8 @@ const handleConfirm = () => {
 }
 
 const tabs = [
-  { name: 'Screen Time and Emotional Wellbeing', insights: [
+  {
+    name: 'Screen Time and Emotional Wellbeing', insights: [
       'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
       'Maintaining lower daily screen time correlates with better emotional wellbeing.',
       'Balanced digital habits foster more positive and neutral emotional states.'
@@ -1784,12 +1967,12 @@ const submitFeedback = async () => {
       rating: rating.value,
       timestamp: new Date().toISOString()
     })
-    
+
     // Increment the total ratings count after successful submission
     totalRatings.value++
-    
+
     console.log('Feedback submitted successfully')
-    
+
     // Close modal after a short delay to show the thank you message
     setTimeout(() => {
       closeModal()
@@ -1811,13 +1994,15 @@ const submitFeedback = async () => {
 
 .preparation-guide-wrapper {
   position: relative;
-  z-index: 10000; /* Ensure this is the highest z-index in the application */
+  z-index: 10000;
+  /* Ensure this is the highest z-index in the application */
 }
 
 .visualisation-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align top instead of center */
+  align-items: flex-start;
+  /* Align top instead of center */
   flex-wrap: wrap;
   margin-top: 30px;
 }
@@ -1841,8 +2026,10 @@ const submitFeedback = async () => {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center title and boxes horizontally */
-  margin-top: 20px; /* Push a little lower */
+  align-items: center;
+  /* Center title and boxes horizontally */
+  margin-top: 20px;
+  /* Push a little lower */
 }
 
 .insight-heading {
@@ -1859,8 +2046,10 @@ const submitFeedback = async () => {
   padding: 12px 16px;
   margin-bottom: 12px;
   font-size: 1rem;
-  width: 100%; /* Full width */
-  max-width: 500px; /* Limit width nicely */
+  width: 100%;
+  /* Full width */
+  max-width: 500px;
+  /* Limit width nicely */
   box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
@@ -1974,13 +2163,11 @@ const submitFeedback = async () => {
   font-size: 4rem;
   font-weight: bold;
   position: relative;
-  background: linear-gradient(
-    to right,
-    #65c9a4 20%,
-    #7e78d2 40%,
-    #7e78d2 60%,
-    #65c9a4 80%
-  );
+  background: linear-gradient(to right,
+      #65c9a4 20%,
+      #7e78d2 40%,
+      #7e78d2 60%,
+      #65c9a4 80%);
   background-size: 200% auto;
   color: transparent;
   -webkit-background-clip: text;
@@ -1993,20 +2180,24 @@ const submitFeedback = async () => {
   margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  padding: 0 0 0.2em; /* Add bottom padding */
-  transform: translateY(-0.05em); /* Slightly move text up to ensure background covers all letters */
+  padding: 0 0 0.2em;
+  /* Add bottom padding */
+  transform: translateY(-0.05em);
+  /* Slightly move text up to ensure background covers all letters */
 }
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(101, 201, 164, 0.5));
   transform: scale(1.02);
-  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
+  animation: liquidFlow 2s linear infinite;
+  /* Speed up animation on hover */
 }
 
 @keyframes liquidFlow {
   0% {
     background-position: 0% center;
   }
+
   100% {
     background-position: 200% center;
   }
@@ -2028,7 +2219,8 @@ const submitFeedback = async () => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: normal; /* Default allow wrapping */
+  white-space: normal;
+  /* Default allow wrapping */
   text-align: left;
   max-width: 100%;
 }
@@ -2037,9 +2229,11 @@ const submitFeedback = async () => {
   .title-group h1 {
     font-size: 3rem;
   }
+
   .title-group h2 {
     font-size: 1.875rem;
   }
+
   .subtitle {
     font-size: 1.125rem;
   }
@@ -2049,9 +2243,11 @@ const submitFeedback = async () => {
   .title-group h1 {
     font-size: 3.75rem;
   }
+
   .title-group h2 {
     font-size: 2.25rem;
   }
+
   .subtitle {
     font-size: 1.25rem;
   }
@@ -2061,12 +2257,15 @@ const submitFeedback = async () => {
   .title-group h1 {
     font-size: 4.5rem;
   }
+
   .title-group h2 {
     font-size: 3rem;
   }
+
   .subtitle {
     font-size: 1.5rem;
-    white-space: nowrap; /* No wrapping on wide screens */
+    white-space: nowrap;
+    /* No wrapping on wide screens */
   }
 }
 
@@ -2074,12 +2273,15 @@ const submitFeedback = async () => {
   .title-group h1 {
     font-size: 6rem;
   }
+
   .title-group h2 {
     font-size: 3.75rem;
   }
+
   .subtitle {
     font-size: 1.875rem;
-    white-space: nowrap; /* No wrapping on wide screens */
+    white-space: nowrap;
+    /* No wrapping on wide screens */
   }
 }
 
@@ -2173,9 +2375,10 @@ const submitFeedback = async () => {
   .title-group h2 {
     white-space: normal;
   }
-  
+
   .subtitle {
-    white-space: normal; /* For medium screens, allow wrapping */
+    white-space: normal;
+    /* For medium screens, allow wrapping */
   }
 }
 
@@ -2184,30 +2387,30 @@ const submitFeedback = async () => {
     min-height: 40vh;
     padding: 6rem 0 1rem;
   }
-  
+
   .hero-content {
     min-height: 40vh;
   }
-  
+
   .slogan {
     margin-left: 1.5rem;
   }
-  
+
   .decorative-elements {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
     justify-content: end;
   }
-  
+
   .title-group h1 {
     @apply text-5xl;
   }
-  
+
   .title-group h2 {
     @apply text-4xl;
   }
-  
+
   .subtitle {
     @apply text-xl;
   }
@@ -2218,32 +2421,32 @@ const submitFeedback = async () => {
     min-height: 22vh;
     padding: 7rem 0 0.5rem;
   }
-  
+
   .hero-content {
     min-height: 22vh;
     flex-direction: column;
     align-items: flex-start;
     padding-top: 0.75rem;
   }
-  
+
   .slogan {
     margin-left: 1rem;
     max-width: 90%;
   }
-  
+
   .decorative-elements {
     opacity: 0.1;
     transform: translateX(0) scale(0.8);
   }
-  
+
   .title-group h1 {
     @apply text-4xl;
   }
-  
+
   .title-group h2 {
     @apply text-3xl;
   }
-  
+
   .subtitle {
     @apply text-lg;
   }
@@ -2274,11 +2477,11 @@ const submitFeedback = async () => {
   .title-group h1 {
     @apply text-3xl;
   }
-  
+
   .title-group h2 {
     @apply text-2xl;
   }
-  
+
   .subtitle {
     @apply text-base;
   }
@@ -2289,11 +2492,11 @@ const submitFeedback = async () => {
     min-height: 16vh;
     padding: 8rem 0 0.5rem;
   }
-  
+
   .hero-content {
     min-height: 16vh;
   }
-  
+
   .decorative-elements {
     opacity: 0;
     display: none;
@@ -2482,7 +2685,7 @@ section:not(:last-child)::after {
   font-size: 1.25rem;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
+  box-shadow: 0 2px 8px rgba(231, 90, 151, 0.04);
   border: none;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
   outline: none;
@@ -2492,14 +2695,14 @@ section:not(:last-child)::after {
 .resource-tab.active {
   background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
+  box-shadow: 0 4px 16px rgba(231, 90, 151, 0.10);
   transform: scale(1.04);
 }
 
 .resource-tab:not(.active):hover {
   background: #ececec;
   color: #e75a97;
-  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
+  box-shadow: 0 2px 12px rgba(231, 90, 151, 0.08);
 }
 
 .resource-content {
@@ -2553,7 +2756,7 @@ section:not(:last-child)::after {
   height: 100% !important;
   min-height: 560px;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   position: absolute;
   top: 0;
   left: 0;
@@ -2670,6 +2873,7 @@ section:not(:last-child)::after {
   padding: 1.5rem;
   border-radius: 12px;
 }
+
 .opening-hours h4 {
   font-size: 1.1rem;
   margin-bottom: 1rem;
@@ -2682,14 +2886,14 @@ section:not(:last-child)::after {
   gap: 0.75rem;
 }
 
-.hours-grid > div {
+.hours-grid>div {
   display: flex;
   justify-content: space-between;
   padding-bottom: 0.5rem;
   border-bottom: 1px dashed #e0e0e0;
 }
 
-.hours-grid > div:last-child {
+.hours-grid>div:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
@@ -3007,7 +3211,8 @@ section:not(:last-child)::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000; /* Keep this lower than modal-overlay's z-index */
+  z-index: 1000;
+  /* Keep this lower than modal-overlay's z-index */
   overflow-y: auto;
   padding: 2rem 0;
 }
@@ -3128,6 +3333,50 @@ section:not(:last-child)::after {
 
 :deep(.pac-item-selected) {
   background-color: #f0f0f0;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(231, 90, 151, 0.04);
+  padding: 0.5rem 1.5rem;
+  border: 1.5px solid #f3e6ef;
+}
+
+.search-input {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 1.5rem;
+  font-size: 1.1rem;
+  background: #faf7fa;
+  color: #444;
+  outline: none;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 2px #e75a97;
+  background: #fff;
+}
+
+.search-btn {
+  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(231, 90, 151, 0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.search-btn:hover {
+  background: linear-gradient(90deg, #d4407f 0%, #e75a97 100%);
+  box-shadow: 0 4px 16px rgba(231, 90, 151, 0.12);
+  transform: translateY(-2px) scale(1.03);
+
 }
 
 /* Filter styles */
@@ -3223,12 +3472,12 @@ section:not(:last-child)::after {
     padding: 1.25rem;
     gap: 1rem;
   }
-  
-  .filter-group, 
+
+  .filter-group,
   .filter-actions {
     width: 100%;
   }
-  
+
   .clear-filters-btn {
     width: 100%;
     margin-top: 0.5rem;
@@ -3536,7 +3785,7 @@ section:not(:last-child)::after {
     align-items: flex-start;
     padding: 16px;
   }
-  
+
   .resource-logo {
     margin-right: 0;
     margin-bottom: 1rem;
@@ -3545,380 +3794,422 @@ section:not(:last-child)::after {
     padding: 16px;
   }
 
+
   .resource-icon {
     width: 88px;
     height: 88px;
   }
-}
-
-/* Add general tag styles */
-.tag {
-  padding: 0.2rem 0.7rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #222222;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s ease;
-  margin-right: 0.5rem;
-}
-
-/* Remove dark tag styles */
-.tag.may, 
-.tag.june, 
-.tag.workshop, 
-.tag.mental-health, 
-.tag.physical-wellness-practice, 
-.tag.workplace-wellbeing, 
-.tag.workplace-wellbeing-workshop {
-  color: #222222;
-}
-
-/* Remove light tag styles */
-.tag.april, 
-.tag.free-event, 
-.tag.october, 
-.tag.sales-ended, 
-.tag.nearly-full {
-  color: #222222;
-}
-
-.tag:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-}
-
-/* Modify different tag colours */
-.tag.sold-out {
-  background-color: #ff5252;
-}
-
-.tag.nearly-full {
-  background-color: #ff9800;
-}
-
-.tag.april {
-  background-color: #8bc34a;
-}
-
-.tag.may {
-  background-color: #2196F3;
-}
-
-.tag.june {
-  background-color: #9C27B0;
-}
-
-.tag.october {
-  background-color: #FF9800;
-}
-
-.tag.workshop {
-  background-color: #795548;
-}
-
-.tag.free-event {
-  background-color: #4CAF50;
-}
-
-.tag.paid {
-  background-color: #F44336;
-}
-
-.tag.festival {
-  background-color: #e91e63;
-}
-
-.tag.mental-health {
-  background-color: #673ab7;
-}
-
-.tag.outdoor-wellness {
-  background-color: #009688;
-}
-
-.tag.physical-wellness-practice {
-  background-color: #3f51b5;
-}
-
-.tag.workplace-wellbeing, .tag.workplace-wellbeing-workshop {
-  background-color: #607D8B;
-}
-
-.tag.sales-ended {
-  background-color: #9E9E9E;
-}
-
-/* Modify activity tag container styles */
-.activity-tags {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-  padding: 0 1rem;
-}
-
-/* 添加确认对话框样式 */
-.confirmation-dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.confirmation-dialog {
-  background-color: white;
-  border-radius: 16px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 450px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.dialog-header h2 {
-  color: #e75a97;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.dialog-content {
-  margin: 1.5rem 0;
-  color: #333;
-  text-align: center;
-}
-
-.dialog-content p {
-  margin: 0.8rem 0;
-  line-height: 1.5;
-  font-size: 1.1rem;
-}
-
-.dialog-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.cancel-btn, .confirm-btn {
-  padding: 0.75rem 2rem;
-  border-radius: 25px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.1rem;
-  min-width: 150px;
-}
-
-.cancel-btn {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
-}
-
-.confirm-btn {
-  background-color: #e75a97;
-  color: white;
-  border: none;
-}
-
-.cancel-btn:hover,
-.confirm-btn:hover {
-  transform: translateY(-2px);
-}
-
-.confirm-btn:hover {
-  background-color: #d4407f;
-}
-
-.cancel-btn:hover {
-  background-color: #ebebeb;
-}
-
-.resource-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #f8f0f4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.resource-img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-}
-
-.position-btn {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0 1.5rem;
-  border-radius: 25px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  height: 44px;
-  white-space: nowrap;
-  font-size: 0.95rem;
-  line-height: 44px;
-}
-
-.search-input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #e75a97;
-  box-shadow: 0 0 0 3px rgba(231, 90, 151, 0.1);
-}
-
-.search-btn:disabled {
-  background: #e0e0e0;
-  cursor: not-allowed;
-}
-
-.search-btn:not(:disabled):hover {
-  background: #d4407f;
-  transform: translateY(-1px);
-}
-
-.search-btn:not(:disabled):active {
-  transform: translateY(0);
-}
-
-.loading-spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* 添加响应式布局 */
-@media (max-width: 768px) {
-  .resource-content {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .map-container {
-    min-height: 400px;
-    border-radius: 16px 16px 0 0;
-  }
-
-  #google-map {
-    min-height: 400px;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .resource-details {
-    border-radius: 0 0 16px 16px;
-  }
-
-  .resource-name {
-    font-size: 1.5rem;
-  }
-
-  .rating-score {
-    font-size: 1.5rem;
-  }
-
-  .resource-location, 
-  .resource-website {
-    font-size: 1rem;
-  }
 
   .opening-hours {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    padding: 1rem;
-  }
-
-  .hours-grid {
-    gap: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .resource-tabs {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .resource-tab {
-    width: 100%;
-    text-align: center;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-  }
-
-  .search-bar {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-
-  .search-btn {
-    width: 100%;
-  }
-
-  .map-container {
-    min-height: 300px;
-  }
-
-  #google-map {
-    min-height: 300px;
-  }
-
-  .resource-details {
-    padding: 1rem;
-  }
-
-  .resource-name {
-    font-size: 1.25rem;
-  }
-
-  .rating-score {
-    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .opening-hours h4 {
     font-size: 1rem;
+    margin-bottom: 0.75rem;
+    color: #333;
   }
 
   .hours-grid {
-    font-size: 0.9rem;
+    display: grid;
+    gap: 0.5rem;
   }
-}
-</style>
+
+  .hours-grid>div {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 0.3rem;
+  }
+
+  .day {
+    color: #333;
+    font-weight: 500;
+  }
+
+  .hours {
+    color: #666;
+    text-align: right;
+
+  }
+
+  /* Add general tag styles */
+  .tag {
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #222222;
+
+    /* Changed to darker text */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+  }
+
+  /* Remove dark tag styles */
+  .tag.may,
+  .tag.june,
+  .tag.workshop,
+  .tag.mental-health,
+  .tag.physical-wellness-practice,
+  .tag.workplace-wellbeing,
+  .tag.workplace-wellbeing-workshop {
+    color: #222222;
+  }
+
+  /* Remove light tag styles */
+  .tag.april,
+  .tag.free-event,
+  .tag.october,
+  .tag.sales-ended,
+  .tag.nearly-full {
+    color: #222222;
+  }
+
+  .tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Modify different tag colours */
+  .tag.sold-out {
+    background-color: #ff5252;
+  }
+
+  .tag.nearly-full {
+    background-color: #ff9800;
+  }
+
+  .tag.april {
+    background-color: #8bc34a;
+  }
+
+  .tag.may {
+    background-color: #2196F3;
+  }
+
+  .tag.june {
+    background-color: #9C27B0;
+  }
+
+  .tag.october {
+    background-color: #FF9800;
+  }
+
+  .tag.workshop {
+    background-color: #795548;
+  }
+
+  .tag.free-event {
+    background-color: #4CAF50;
+  }
+
+  .tag.paid {
+    background-color: #F44336;
+  }
+
+  .tag.festival {
+    background-color: #e91e63;
+  }
+
+  .tag.mental-health {
+    background-color: #673ab7;
+  }
+
+  .tag.outdoor-wellness {
+    background-color: #009688;
+  }
+
+  .tag.physical-wellness-practice {
+    background-color: #3f51b5;
+  }
+
+  .tag.workplace-wellbeing,
+  .tag.workplace-wellbeing-workshop {
+    background-color: #607D8B;
+  }
+
+  .tag.sales-ended {
+    background-color: #9E9E9E;
+  }
+
+  /* Modify activity tag container styles */
+  .activity-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+  }
+
+  /* 添加确认对话框样式 */
+  .confirmation-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .confirmation-dialog {
+    background-color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .dialog-header h2 {
+    color: #e75a97;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .dialog-content {
+    margin: 1.5rem 0;
+    color: #333;
+    text-align: center;
+  }
+
+  .dialog-content p {
+    margin: 0.8rem 0;
+    line-height: 1.5;
+    font-size: 1.1rem;
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .cancel-btn,
+  .confirm-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    min-width: 150px;
+  }
+
+  .cancel-btn {
+    background-color: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+  }
+
+  .confirm-btn {
+    background-color: #e75a97;
+    color: white;
+    border: none;
+  }
+
+  .cancel-btn:hover,
+  .confirm-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .confirm-btn:hover {
+    background-color: #d4407f;
+  }
+
+  .cancel-btn:hover {
+    background-color: #ebebeb;
+  }
+
+  .resource-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #f8f0f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .resource-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+
+  .position-btn {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e75a97;
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    height: 44px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    line-height: 44px;
+  }
+
+  .search-input:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #e75a97;
+    box-shadow: 0 0 0 3px rgba(231, 90, 151, 0.1);
+  }
+
+  .search-btn:disabled {
+    background: #e0e0e0;
+    cursor: not-allowed;
+  }
+
+  .search-btn:not(:disabled):hover {
+    background: #d4407f;
+    transform: translateY(-1px);
+  }
+
+  .search-btn:not(:disabled):active {
+    transform: translateY(0);
+  }
+
+  .loading-spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* 添加响应式布局 */
+  @media (max-width: 768px) {
+    .resource-content {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .map-container {
+      min-height: 400px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    #google-map {
+      min-height: 400px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .resource-details {
+      border-radius: 0 0 16px 16px;
+    }
+
+    .resource-name {
+      font-size: 1.5rem;
+    }
+
+    .rating-score {
+      font-size: 1.5rem;
+    }
+
+    .resource-location,
+    .resource-website {
+      font-size: 1rem;
+    }
+
+    .opening-hours {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+
+    .hours-grid {
+      gap: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .resource-tabs {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .resource-tab {
+      width: 100%;
+      text-align: center;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+    }
+
+    .search-bar {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .search-input {
+      width: 100%;
+    }
+
+    .search-btn {
+      width: 100%;
+    }
+
+    .map-container {
+      min-height: 300px;
+    }
+
+    #google-map {
+      min-height: 300px;
+    }
+
+    .resource-details {
+      padding: 1rem;
+    }
+
+    .resource-name {
+      font-size: 1.25rem;
+    }
+
+    .rating-score {
+      font-size: 1.25rem;
+    }
+
+    .opening-hours h4 {
+      font-size: 1rem;
+    }
+
+    .hours-grid {
+      font-size: 0.9rem;
+    }
+  }</style>
