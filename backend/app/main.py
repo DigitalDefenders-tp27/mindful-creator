@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.youtube.routes import router as youtube_router
 from app.api.data.routes import router as data_router
+from .routes import relaxation
 
 # Create FastAPI application
 app = FastAPI(
@@ -33,10 +34,11 @@ app.add_middleware(
 # Register routes
 app.include_router(youtube_router, prefix="/api/youtube", tags=["youtube"])
 app.include_router(data_router, prefix="/api", tags=["data"])
+app.include_router(relaxation.router, prefix="/api", tags=["relaxation"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Mindful Creator API"}
+    return {"message": "Mindful Creator API is running"}
 
 if __name__ == "__main__":
     import uvicorn

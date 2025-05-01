@@ -409,6 +409,7 @@ import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
 import Chart from 'chart.js/auto'
 import Modal from '../components/Modal.vue'
+import axios from 'axios'
 
 // State variables
 const currentTab = ref(0)
@@ -1826,6 +1827,38 @@ const searchBtnContent = computed(() => {
 const switchToOnline = () => {
   activeTab.value = 'online'
 }
+
+const submitFeedback = async () => {
+  if (rating.value === 0) {
+    alert('Please provide a rating before submitting.')
+    return
+  }
+
+  submitted.value = true
+
+  try {
+    await axios.post('http://localhost:8001/api/activities/submit-rating', {
+      activity: currentActivity.value,
+      rating: rating.value,
+      timestamp: new Date().toISOString()
+    })
+    
+    // Increment the total ratings count after successful submission
+    totalRatings.value++
+    
+    console.log('Feedback submitted successfully')
+    
+    // Close modal after a short delay to show the thank you message
+    setTimeout(() => {
+      closeModal()
+    }, 1500)
+  } catch (err) {
+    console.error('Failed to submit feedback:', err)
+    // Revert submitted state if submission failed
+    submitted.value = false
+    alert('Failed to submit rating. Please try again.')
+  }
+}
 </script>
 
 <style scoped>
@@ -2695,7 +2728,6 @@ section:not(:last-child)::after {
   padding: 1.5rem;
   border-radius: 12px;
 }
-
 .opening-hours h4 {
   font-size: 1.1rem;
   margin-bottom: 1rem;
@@ -2734,6 +2766,58 @@ section:not(:last-child)::after {
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 140px;
+  max-width: 200px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 44px;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  opacity: 0.9;
+}
+
+/* 添加响应式布局 */
+@media (max-width: 480px) {
+  .resource-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+
+  .action-btn {
+    width: 100%;
+    max-width: none;
+    height: 44px;
+  }
+
+  .position-btn {
+    width: auto;
+    min-width: 160px;
+    height: 44px;
+  }
 }
 
 .action-btn {
@@ -2827,47 +2911,146 @@ section:not(:last-child)::after {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
+  margin-top: 2rem;
 }
 
 .activity-card {
-  background-color: #fff;
+  background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(230, 239, 182, 0.4);
-  position: relative;
-  z-index: 2;
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .activity-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .activity-img {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 16/9;
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
 
 .activity-card:hover .activity-img {
   transform: scale(1.02);
 }
 
 .activity-title {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 600;
   padding: 1rem;
   padding-bottom: 0.5rem;
   padding-right: 1.5rem;
   color: #333;
+  margin: 1rem;
+  line-height: 1.3;
 }
 
-.activity-card:hover .activity-title {
-  color: #333;
+.activity-tags {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.activity-details {
+  padding: 0 1rem 1rem;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #666;
+}
+
+/* 添加响应式布局 */
+@media (max-width: 1024px) {
+  .activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .activity-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .activities-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .view-all-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .activities-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .activity-card {
+    max-width: 100%;
+  }
+
+  .activity-img {
+    aspect-ratio: 16/10;
+  }
+
+  .activity-title {
+    font-size: 1.25rem;
+    margin: 0.75rem;
+  }
+
+  .activity-tags {
+    padding: 0 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .activity-details {
+    padding: 0 0.75rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .recent-title {
+    font-size: 1rem;
+  }
+
+  .activity-title {
+    font-size: 1.1rem;
+  }
+
+  .activity-tags {
+    gap: 0.25rem;
+  }
+
+  .tag {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .activity-details {
+    font-size: 0.9rem;
+  }
 }
 
 /* Modal window styles */
@@ -3693,5 +3876,106 @@ section:not(:last-child)::after {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* 添加响应式布局 */
+@media (max-width: 768px) {
+  .resource-content {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .map-container {
+    min-height: 400px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  #google-map {
+    min-height: 400px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .resource-details {
+    border-radius: 0 0 16px 16px;
+  }
+
+  .resource-name {
+    font-size: 1.5rem;
+  }
+
+  .rating-score {
+    font-size: 1.5rem;
+  }
+
+  .resource-location, 
+  .resource-website {
+    font-size: 1rem;
+  }
+
+  .opening-hours {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .hours-grid {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .resource-tabs {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .resource-tab {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+
+  .map-container {
+    min-height: 300px;
+  }
+
+  #google-map {
+    min-height: 300px;
+  }
+
+  .resource-details {
+    padding: 1rem;
+  }
+
+  .resource-name {
+    font-size: 1.25rem;
+  }
+
+  .rating-score {
+    font-size: 1.25rem;
+  }
+
+  .opening-hours h4 {
+    font-size: 1rem;
+  }
+
+  .hours-grid {
+    font-size: 0.9rem;
+  }
 }
 </style>

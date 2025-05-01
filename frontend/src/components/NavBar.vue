@@ -17,14 +17,13 @@
           <span>ETHIC</span>
           <span>INFLUENCER</span>
         </router-link>
-        <router-link to="/critical-response" class="nav-link two-words" active-class="active" @click="closeMenu">
-          <span>CRITICAL</span>
-          <span>RESPONSE</span>
-        </router-link>
-        <router-link to="/relaxation" class="nav-link" active-class="active" @click="closeMenu"><span>RELAXATION</span></router-link>
         <router-link to="/creator-wellbeing" class="nav-link two-words" active-class="active" @click="closeMenu">
           <span>CREATOR</span>
           <span>WELLBEING</span>
+        </router-link>
+        <router-link to="/critical-response" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>CRITICAL</span>
+          <span>RESPONSE</span>
         </router-link>
         <router-link to="/privacy" class="nav-link" active-class="active" @click="closeMenu"><span>PRIVACY</span></router-link>
       </div>
@@ -92,25 +91,27 @@ const closeMenu = () => {
 .navbar-left {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Left align */
-  padding-left: 2rem; /* Restore padding */
+  justify-content: flex-start;
+  padding-left: 3rem; /* Increase left padding to match link spacing */
 }
 
 /* Centre Navigation Links Area */
 .navbar-center {
   display: flex;
   align-items: center;
-  gap: 2.5rem; /* Increase spacing between links */
+  gap: 3rem; /* Adjust spacing between links to be more even */
   justify-content: center; /* Centre align */
   position: relative; /* Change to relative positioning */
   transform: none; /* Remove transform */
+  margin: 0 auto; /* Center the navigation links container */
+  padding: 0 2rem; /* Add padding on both sides */
 }
 
-/* Right empty space area to maintain layout balance */
+/* Right empty space area */
 .navbar-right {
   display: flex;
-  justify-content: flex-end; /* Right align */
-  padding-right: 2rem; /* Maintain padding */
+  justify-content: flex-end;
+  padding-right: 3rem; /* Increase right padding to match link spacing */
 }
 
 /* Logo Styles */
@@ -182,13 +183,14 @@ const closeMenu = () => {
 /* Navigation Link Styles */
 .nav-link {
   color: #555;
-  font-size: 1rem;
+  font-size: 0.95rem; /* Slightly adjust font size for better spacing */
   font-weight: 500;
   transition: all 0.2s;
   position: relative;
   text-decoration: none;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  padding: 0.5rem 0; /* Add vertical padding */
 }
 
 /* Single word navigation link styles */
@@ -204,8 +206,8 @@ const closeMenu = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1.2;
-  gap: 2px;
+  line-height: 1.3; /* Adjust line height for better vertical spacing */
+  gap: 3px; /* Adjust gap between two words */
   text-align: center;
   width: max-content;
 }
