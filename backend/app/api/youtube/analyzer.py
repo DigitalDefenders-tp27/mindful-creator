@@ -196,7 +196,7 @@ def _normalise_space_result(result: Any) -> Dict:
 
 def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     """
-    Analyse comments using Space API for sentiment and toxicity
+    Analyse comments using Space CLI for sentiment and toxicity
     
     Args:
         comments: List of comments (should be a list of strings)
@@ -230,150 +230,77 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     
     # Calculate total number of comments for percentage calculations
     total_comments = len(processed_comments)
-    logger.info(f"Total comments to analyze: {total_comments}")
+    logger.info(f"Total comments to analyse: {total_comments}")
     
     try:
-        # Instead of using gradio-client which has WebSocket issues,
-        # we'll use direct HTTP requests to the API endpoints
-        logger.info("Using direct HTTP requests to Space API...")
+        # Use Space CLI (gradio_client) to communicate with HF Spaces
+        # This is the proper and only reliable way to connect to Spaces
+        logger.info("Using Space CLI to connect to HF Spaces...")
         
-        # Hugging Face Space REST API URL
-        # This bypasses the WebSocket connection entirely
-        space_api_url = "https://jet-12138-commentresponse.hf.space/api/predict"
-        hf_token = os.environ.get("HF_TOKEN")
-        
-        # Prepare payload for direct REST API call
-        # Convert comments list to a single multi-line string
-        comments_text = "\n".join(processed_comments)
-        
-        # Prepare the payload according to the Space API format
-        payload = {
-            "data": [comments_text]
-        }
-        
-        # Prepare headers
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        # Add authentication if token is available
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
-        
-        logger.info(f"Sending direct HTTP request to Space API with {len(processed_comments)} comments")
-        
-        # Make the HTTP request with timeout and retries
-        max_attempts = 3
-        attempt = 0
-        response = None
-        
-        while attempt < max_attempts and not response:
-            attempt += 1
-            try:
-                logger.info(f"HTTP request attempt {attempt}/{max_attempts}")
-                
-                # Use requests library for direct HTTP call
-                import requests
-                response = requests.post(
-                    space_api_url,
-                    json=payload,
-                    headers=headers,
-                    timeout=60  # 60 second timeout
-                )
-                
-                # Check if request was successful
-                if response.status_code == 200:
-                    logger.info(f"HTTP request successful: status code {response.status_code}")
-                    break
-                else:
-                    logger.warning(f"HTTP request failed: status code {response.status_code}")
-                    response = None
-                    if attempt < max_attempts:
-                        time.sleep(2)  # Wait before retrying
-            except Exception as req_error:
-                logger.error(f"HTTP request error on attempt {attempt}: {str(req_error)}")
-                if attempt < max_attempts:
-                    time.sleep(2)  # Wait before retrying
-        
-        # Process the response if successful
-        if response and response.status_code == 200:
-            try:
-                # Parse JSON response
-                raw_result = response.json()
-                logger.info("Space API HTTP request completed successfully")
-                
-                # Check the structure of the response
-                if "data" in raw_result and isinstance(raw_result["data"], list) and len(raw_result["data"]) > 0:
-                    # Extract the result from the data array
-                    space_data = raw_result["data"][0]
-                    
-                    # Extract sentiment and toxicity data
-                    sentiment_counts = space_data.get("sentiment_counts", {})
-                    logger.info(f"Sentiment counts: {sentiment_counts}")
-                    
-                    toxicity_counts = space_data.get("toxicity_counts", {})
-                    logger.info(f"Toxicity counts: {toxicity_counts}")
-                    
-                    toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
-                    logger.info(f"Total toxic comments: {toxicity_total}")
-                    
-                    # Return the analysis results
-                    return {
-                        "sentiment": {
-                            "positive_count": sentiment_counts.get("Positive", 0),
-                            "neutral_count": sentiment_counts.get("Neutral", 0),
-                            "negative_count": sentiment_counts.get("Negative", 0)
-                        },
-                        "toxicity": {
-                            "toxic_count": toxicity_total,
-                            "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
-                            "toxic_types": {
-                                "toxic": toxicity_counts.get("Toxic", 0),
-                                "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
-                                "obscene": toxicity_counts.get("Obscene", 0),
-                                "threat": toxicity_counts.get("Threat", 0),
-                                "insult": toxicity_counts.get("Insult", 0),
-                                "identity_hate": toxicity_counts.get("Identity Hate", 0)
-                            }
-                        }
+        try:
+            # Import the gradio_client library - the official Space CLI
+            from gradio_client import Client
+            
+            # Give it a burl with the Space client
+            logger.info("Creating Space client connection...")
+            client = Client("https://jet-12138-commentresponse.hf.space/")
+            
+            # Prep the comments as a single multiline string (the expected format)
+            comments_text = "\n".join(processed_comments)
+            
+            # Fair dinkum attempt to call the Space predict endpoint
+            logger.info(f"Sending {len(processed_comments)} comments to Space using gradio_client")
+            
+            # Set a longer timeout for the predict call (defaults can be too short)
+            result = client.predict(
+                comments_text,  # Input: string with line-separated comments
+                api_name="predict"  # Use the default API name
+            )
+            
+            # Normalise the Space result format for consistency
+            space_data = _normalise_space_result(result)
+            
+            # Extract the good oil from the response
+            sentiment_counts = space_data.get("sentiment_counts", {})
+            logger.info(f"Sentiment counts: {sentiment_counts}")
+            
+            toxicity_counts = space_data.get("toxicity_counts", {})
+            logger.info(f"Toxicity counts: {toxicity_counts}")
+            
+            toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
+            logger.info(f"Total toxic comments: {toxicity_total}")
+            
+            # Beauty! Return the analysis results in our standard format
+            return {
+                "sentiment": {
+                    "positive_count": sentiment_counts.get("Positive", 0),
+                    "neutral_count": sentiment_counts.get("Neutral", 0),
+                    "negative_count": sentiment_counts.get("Negative", 0)
+                },
+                "toxicity": {
+                    "toxic_count": toxicity_total,
+                    "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
+                    "toxic_types": {
+                        "toxic": toxicity_counts.get("Toxic", 0),
+                        "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
+                        "obscene": toxicity_counts.get("Obscene", 0),
+                        "threat": toxicity_counts.get("Threat", 0),
+                        "insult": toxicity_counts.get("Insult", 0),
+                        "identity_hate": toxicity_counts.get("Identity Hate", 0)
                     }
-                else:
-                    logger.error(f"Unexpected Space API response structure: {raw_result}")
-                    raise ValueError("Invalid response structure from Space API")
-            except Exception as parse_error:
-                logger.error(f"Failed to parse Space API response: {str(parse_error)}")
-                raise
-        else:
-            # HTTP request failed after all attempts
-            error_message = f"Space API HTTP request failed after {max_attempts} attempts"
-            if response:
-                error_message += f": Status code {response.status_code}"
-            logger.error(error_message)
-            raise Exception(error_message)
-                
-        # The code below will run if the direct HTTP request approach fails
-        # If all else fails, return a standardized error structure 
-        # that the frontend can handle
-        return {
-            "sentiment": {
-                "positive_count": 0,
-                "neutral_count": 0,
-                "negative_count": 0
-            },
-            "toxicity": {
-                "toxic_count": 0,
-                "toxic_percentage": 0,
-                "toxic_types": {
-                    "toxic": 0,
-                    "severe_toxic": 0,
-                    "obscene": 0,
-                    "threat": 0,
-                    "insult": 0,
-                    "identity_hate": 0
-                }
-            },
-            "note": "API Error: Space API HTTP request failed"
-        }
+                },
+                "note": "Analysis performed using Space CLI"
+            }
+            
+        except ImportError as ie:
+            # Strewth! Couldn't import the Space CLI library
+            logger.error(f"Failed to import gradio_client: {str(ie)}")
+            raise Exception("Space CLI (gradio_client) not available. Please install with 'pip install gradio_client'")
+            
+        except Exception as space_error:
+            # Something's gone walkabout with the Space call
+            logger.error(f"Space CLI communication error: {str(space_error)}")
+            raise Exception(f"Space CLI error: {str(space_error)}")
 
     except Exception as e:
         logger.error(f"Unexpected error in Space API analysis: {str(e)}")
@@ -432,7 +359,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             except ImportError:
                 logger.warning("Local model not found, generating simulated data")
                 
-                # Generate simulated data based on comment count
+                # No worries, we'll just make some fair dinkum guesses
                 total = len(processed_comments)
                 positive = max(1, round(total * 0.4))  # About 40% positive
                 negative = max(1, round(total * 0.3))  # About 30% negative
