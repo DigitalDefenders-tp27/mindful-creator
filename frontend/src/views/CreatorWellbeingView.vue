@@ -1,5 +1,20 @@
 <template>
   <div class="creator-wellbeing">
+    <!-- Scroll Island -->
+    <ScrollIsland title="Creator Wellbeing" ref="scrollIslandRef">
+      <div class="island-sections">
+        <div class="island-section" @click="scrollToSection('dashboard-section')">
+          <h4>Digital Impact Analysis Dashboard</h4>
+        </div>
+        <div class="island-section" @click="scrollToSection('resource-finder-section')">
+          <h4>Wellbeing Resource Finder</h4>
+        </div>
+        <div class="island-section" @click="scrollToSection('activities-section')">
+          <h4>Wellbeing Activities Hub</h4>
+        </div>
+      </div>
+    </ScrollIsland>
+    
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-content">
@@ -58,10 +73,18 @@
         <div class="resource-finder-content">
           <!-- Tabs for resource type -->
           <div class="resource-tabs">
-            <div class="resource-tab" :class="{ active: activeTab === 'offline' }"
-              @click="switchResourceTab('offline')">Psychologist (Offline Resources)</div>
-            <div class="resource-tab" :class="{ active: activeTab === 'online' }" @click="onOnlineTabClick">Online
-              Resources</div>
+
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'offline' }"
+              @click="switchResourceTab('offline')"
+            >Medical Clinic</div>
+            <div 
+              class="resource-tab" 
+              :class="{ active: activeTab === 'online' }"
+              @click="onOnlineTabClick"
+            >Online Resources</div>
+
           </div>
 
           <!-- Search bar for address -->
@@ -99,7 +122,7 @@
                     d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"
                     fill="white" />
                 </svg>
-                Get My Position
+                Get My Location
               </button>
             </div>
 
@@ -172,7 +195,7 @@
                 <div class="resource-website">
                   <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
                   <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
-                  <button class="online-switch" @click="switchToOnline">Switch to online</button>
+                  <button class="online-switch" @click="switchToOnline">Switch to Online</button>
                 </div>
 
                 <div class="opening-hours">
@@ -192,7 +215,7 @@
                     xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L4.5 9.5H9V16H15V9.5H19.5L12 2Z" fill="white" />
                   </svg>
-                  Get direction
+                  Get Direction
                 </button>
                 <button class="action-btn guide-btn" @click="showGuide = true">
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -211,7 +234,7 @@
     </section>
 
     <!-- Wellbeing Activities Hub -->
-    <section class="activities-section">
+    <section class="activities-section" id="wellbeing-activities">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
         <p class="section-subtitle">Release your stress by joining fun activities and making like-minded friends.</p>
@@ -409,7 +432,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
 import Chart from 'chart.js/auto'
@@ -425,6 +448,9 @@ import {
   LinearScale,
   BarElement
 } from 'chart.js'
+
+
+import ScrollIsland from '@/components/ScrollIsland.vue'
 
 
 // State variables
@@ -449,7 +475,6 @@ const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
 
 
-// 添加新的 ref
 const showOnlineConfirm = ref(false)
 const isSearching = ref(false)
 const map = ref(null)
@@ -460,41 +485,40 @@ const searchBox = ref(null)
 
 const router = useRouter()
 
-// 添加全局google对象引用
+// Add global Google object reference
 let googleInstance = null;
 
 // Initialize Google Maps
 const initMap = async () => {
   try {
-    // 如果地图已经存在，先清理
+    // If map already exists, clean it first
     if (map.value) {
       map.value = null;
     }
 
-    // 清除所有标记
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
       markers.value = [];
     }
 
-    // 检查API密钥
+    // Check API key
     if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
       throw new Error('Google Maps API key is missing');
     }
 
-    // 检查地图容器
+    // Check map container
     const mapElement = document.getElementById('google-map');
     if (!mapElement) {
       throw new Error('Map container not found');
     }
 
-    // 确保地图容器可见
+    // Ensure map container is visible
     if (!mapElement.offsetParent) {
       console.log('Map container is not visible, waiting for it to become visible...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // 等待DOM更新
+      await new Promise(resolve => setTimeout(resolve, 500)); // Wait for DOM update
     }
 
-    // 设置地图容器尺寸
+    // Set map container dimensions
     mapElement.style.width = '100%';
     mapElement.style.height = '630px';
 
@@ -506,11 +530,11 @@ const initMap = async () => {
       region: "AU"
     });
 
-    // 加载Google Maps
+    // Load Google Maps
     googleInstance = await loader.load();
     const { Map } = await googleInstance.maps.importLibrary("maps");
 
-    // 初始化地图
+    // Initialize map
     map.value = new Map(mapElement, {
       center: { lat: -37.8136, lng: 144.9631 },
       zoom: 13,
@@ -526,10 +550,10 @@ const initMap = async () => {
       ]
     });
 
-    // 触发resize事件以确保地图正确渲染
+    // Trigger resize event to ensure map renders correctly
     googleInstance.maps.event.trigger(map.value, 'resize');
 
-    // 初始化Places Autocomplete
+    // Initialize Places Autocomplete
     const input = document.querySelector('.search-input');
     if (input) {
       const autocomplete = new googleInstance.maps.places.Autocomplete(input, {
@@ -550,7 +574,7 @@ const initMap = async () => {
       });
     }
 
-    // 显示诊所标记
+    // Show clinic markers
     if (clinics.length > 0) {
       displayedClinics.value = [...clinics];
       await updateMarkers();
@@ -559,7 +583,6 @@ const initMap = async () => {
         selectedClinic.value = displayedClinics.value[0];
       }
 
-      // 将地图中心设置到选中的诊所
       if (selectedClinic.value) {
         map.value.setCenter({
           lat: selectedClinic.value.lat,
@@ -575,20 +598,20 @@ const initMap = async () => {
   }
 };
 
-// 更新updateMarkers函数
+// Update updateMarkers function
 const updateMarkers = async () => {
   try {
     if (!map.value || !googleInstance) {
       throw new Error('Map not initialized');
     }
 
-    // 清除现有标记
+    // Clear existing markers
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
       markers.value = [];
     }
 
-    // 为每个诊所添加标记
+    // Add marker for each clinic
     displayedClinics.value.forEach(clinic => {
       const marker = new googleInstance.maps.Marker({
         position: { lat: clinic.lat, lng: clinic.lng },
@@ -681,7 +704,6 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 onMounted(async () => {
   renderChart();
 
-  // 如果当前是offline标签，初始化地图
   if (activeTab.value === 'offline') {
     await nextTick();
     await initMap();
@@ -709,7 +731,6 @@ const getMyPosition = () => {
   }
 }
 
-// 诊所数据（请补充到36家）
 const clinics = [
   {
     id: 1,
@@ -1402,19 +1423,14 @@ const clinics = [
 // Initialize displayed clinics
 displayedClinics.value = [...clinics];
 
-// 当前选中的诊所
 selectedClinic.value = clinics[0];
 
-// Tab 状态
 activeTab.value = 'offline';
 
-// 搜索框
 searchAddress.value = '';
 
-// 弹窗
 showGuide.value = false;
 
-// 切换 Tab
 const tabs = [
   {
     name: 'Screen Time and Emotional Wellbeing', insights: [
@@ -1695,7 +1711,7 @@ const switchResourceTab = async (tabName) => {
 const handleCancel = () => {
   showOnlineConfirm.value = false
   activeTab.value = 'online'
-  selectedClinic.value = null // 清除选中的诊所
+  selectedClinic.value = null
 }
 
 // Function to get directions to selected clinic
@@ -1984,6 +2000,38 @@ const submitFeedback = async () => {
     alert('Failed to submit rating. Please try again.')
   }
 }
+
+// Function to scroll to a specific section on the page
+const scrollToSection = (sectionId) => {
+  // For Wellbeing Activities Hub, use the ID instead of class
+  let selector = `.${sectionId}`;
+  if (sectionId === 'activities-section') {
+    selector = '#wellbeing-activities';
+  }
+  
+  const section = document.querySelector(selector);
+  if (section) {
+    // Get the navbar height to use as an offset
+    const navbarHeight = 100; // Increased to give more space below the navbar
+    
+    // Calculate the position to scroll to
+    const offsetPosition = section.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+    
+    // Scroll to the section with the offset
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+    
+    // Close the island after navigation
+    if (scrollIslandRef.value) {
+      scrollIslandRef.value.closeIsland();
+    }
+  }
+};
+
+// Reference to the ScrollIsland component
+const scrollIslandRef = ref(null);
 </script>
 
 <style scoped>
@@ -3930,10 +3978,41 @@ section:not(:last-child)::after {
     background-color: #3f51b5;
   }
 
-  .tag.workplace-wellbeing,
-  .tag.workplace-wellbeing-workshop {
-    background-color: #607D8B;
-  }
+
+.position-btn {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  height: 44px;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  line-height: 44px;
+  transition: all 0.3s ease;
+}
+
+.position-btn:hover {
+  background-color: #d4407f;
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.position-btn:active {
+  transform: translateX(-50%) translateY(0);
+}
 
   .tag.sales-ended {
     background-color: #9E9E9E;
@@ -3948,7 +4027,6 @@ section:not(:last-child)::after {
     padding: 0 1rem;
   }
 
-  /* 添加确认对话框样式 */
   .confirmation-dialog-overlay {
     position: fixed;
     top: 0;
@@ -3990,11 +4068,10 @@ section:not(:last-child)::after {
     font-size: 1.1rem;
   }
 
-  .dialog-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
+@media (max-width: 768px) {
+  .resource-content {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .cancel-btn,
@@ -4157,59 +4234,68 @@ section:not(:last-child)::after {
       gap: 0.5rem;
     }
   }
+}
 
-  @media (max-width: 480px) {
-    .resource-tabs {
-      flex-direction: column;
-      gap: 1rem;
-      align-items: stretch;
-    }
+/* Island Sections Styling */
+.island-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  padding-bottom: 0;
+}
 
-    .resource-tab {
-      width: 100%;
-      text-align: center;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-    }
+.island-section {
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: none;
+  position: relative;
+  overflow: hidden;
+}
 
-    .search-bar {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+.island-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
 
-    .search-input {
-      width: 100%;
-    }
+.island-section:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
 
-    .search-btn {
-      width: 100%;
-    }
+.island-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
 
-    .map-container {
-      min-height: 300px;
-    }
+.island-section:hover {
+  transform: translateX(3px);
+}
 
-    #google-map {
-      min-height: 300px;
-    }
+.island-section:active {
+  transform: translateX(5px);
+}
 
-    .resource-details {
-      padding: 1rem;
-    }
+.island-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
 
-    .resource-name {
-      font-size: 1.25rem;
-    }
-
-    .rating-score {
-      font-size: 1.25rem;
-    }
-
-    .opening-hours h4 {
-      font-size: 1rem;
-    }
-
-    .hours-grid {
-      font-size: 0.9rem;
-    }
-  }</style>
+.island-section p {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.9;
+}
+</style>

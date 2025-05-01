@@ -105,7 +105,7 @@
         <button class="continue-btn">Jump to Critical Response</button>
       </router-link>
       <router-link to="/creator-wellbeing">
-        <button class="continue-btn">Jump to Creator Wellbeing</button>
+        <button class="continue-btn wellbeing-btn">Jump to Creator Wellbeing</button>
       </router-link>
     </div>
   </div>
@@ -683,6 +683,10 @@ section:not(:last-child)::after {
   margin-top: 2rem;
   margin-bottom: 6rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .continue-btn {
@@ -697,11 +701,22 @@ section:not(:last-child)::after {
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(142, 45, 226, 0.25);
   letter-spacing: 0.5px;
+  width: 340px;
 }
 
 .continue-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(142, 45, 226, 0.4);
+}
+
+.wellbeing-btn {
+  background: linear-gradient(135deg, #F9F871 0%, #7ECE73 100%);
+  color: #333;
+  box-shadow: 0 4px 15px rgba(126, 206, 115, 0.25);
+}
+
+.wellbeing-btn:hover {
+  box-shadow: 0 8px 20px rgba(126, 206, 115, 0.4);
 }
 
 /* Animation */
