@@ -1,10 +1,12 @@
-from flask import Blueprint, jsonify
-from database import get_connection   # ← Import properly
+from fastapi import APIRouter, Response
+from typing import List, Dict, Any
+import json
+from database import get_connection
 
-main = Blueprint('main', __name__)
+router = APIRouter()
 
-@main.route('/api/train_cleaned', methods=['GET'])
-def get_train_cleaned():
+@router.get("/train_cleaned")
+async def get_train_cleaned():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM train_cleaned")
@@ -14,11 +16,10 @@ def get_train_cleaned():
     conn.close()
     
     data = [dict(zip(columns, row)) for row in rows]
-    response = Response(json.dumps(data), mimetype='application/json')
-    return response
+    return Response(content=json.dumps(data), media_type="application/json")
 
-@main.route('/api/smmh_cleaned', methods=['GET'])
-def get_smmh_cleaned():
+@router.get("/smmh_cleaned")
+async def get_smmh_cleaned():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM smmh_cleaned")
@@ -26,10 +27,10 @@ def get_smmh_cleaned():
     columns = [desc[0] for desc in cur.description]
     cur.close()
     conn.close()
-    return jsonify([dict(zip(columns, row)) for row in rows])
+    return [dict(zip(columns, row)) for row in rows]
 
-@main.route('/api/screen_time_data', methods=['GET'])
-def get_screen_time_data():
+@router.get("/screen_time_data")
+async def get_screen_time_data():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM screen_time_data ORDER BY date")
@@ -37,10 +38,10 @@ def get_screen_time_data():
     columns = [desc[0] for desc in cur.description]
     cur.close()
     conn.close()
-    return jsonify([dict(zip(columns, row)) for row in rows])
+    return [dict(zip(columns, row)) for row in rows]
 
-@main.route('/api/music_mental_health_data', methods=['GET'])
-def get_music_mental_health_data():
+@router.get("/music_mental_health_data")
+async def get_music_mental_health_data():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM music_mental_health_data")
@@ -48,4 +49,4 @@ def get_music_mental_health_data():
     columns = [desc[0] for desc in cur.description]
     cur.close()
     conn.close()
-    return jsonify([dict(zip(columns, row)) for row in rows])
+    return [dict(zip(columns, row)) for row in rows] 

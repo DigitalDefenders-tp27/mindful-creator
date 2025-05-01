@@ -44,7 +44,7 @@ const router = createRouter({
       path: '/privacy',
       name: 'privacy',
       component: PrivacyView,
-      meta: { requiresAuth: false }  // 无需身份验证即可访问隐私政策
+      meta: { requiresAuth: false } 
     },
     {
       path: '/password',
@@ -53,7 +53,6 @@ const router = createRouter({
     }
   ],
   scrollBehavior() {
-    // 始终滚动到顶部
     return { top: 0 }
   }
 })

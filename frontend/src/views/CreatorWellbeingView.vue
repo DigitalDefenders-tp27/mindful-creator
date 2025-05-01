@@ -11,7 +11,7 @@
           <p class="subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         </div>
         <div class="decorative-elements">
-          <!-- 右上角第一排 / Top Row Right -->
+          <!-- Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
@@ -49,7 +49,7 @@
       </div>
     </section>
 
-    <!-- 健康资源查找器 / Wellbeing Resource Finder -->
+    <!-- Wellbeing Resource Finder -->
     <section class="resource-finder-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Resource Finder</h1>
@@ -210,7 +210,7 @@
       </div>
     </section>
 
-    <!-- 健康活动中心 / Wellbeing Activities Hub -->
+    <!-- Wellbeing Activities Hub -->
     <section class="activities-section">
       <div class="container">
         <h1 class="section-title">Wellbeing Activities Hub</h1>
@@ -796,38 +796,38 @@ const events = [
   }
 ]
 
-// 用于获取事件图片URL的函数
+// Function to get image URL for events
 const getImageUrl = (filename) => {
   return new URL(`../assets/icons/activitiesImages/${filename}`, import.meta.url).href
 }
 
-// 过滤和排序事件的计算属性
+// Computed property for filtering and sorting events
 const sortedFilteredEvents = computed(() => {
-  // 先基于搜索词和筛选器过滤事件
+  // First filter events based on search terms and filters
   let filteredEvents = events.filter(event => {
-    // 搜索标题
+    // Search by title
     if (searchQuery.value && !event.title.toLowerCase().includes(searchQuery.value.toLowerCase())) {
       return false
     }
     
-    // 筛选位置
+    // Filter by location
     if (selectedLocation.value !== 'All locations' && event.location !== selectedLocation.value) {
       return false
     }
     
-    // 筛选类别
+    // Filter by category
     if (selectedCategory.value !== 'All types' && 
         !event.tags.some(tag => tag.toLowerCase().includes(selectedCategory.value.toLowerCase()))) {
       return false
     }
     
-    // 筛选月份
+    // Filter by month
     if (selectedMonth.value !== 'Any time' && 
         !event.tags.some(tag => tag.toLowerCase() === selectedMonth.value.toLowerCase())) {
       return false
     }
     
-    // 筛选价格
+    // Filter by price
     if (selectedPrice.value === 'Free' && event.price !== 'Free') {
       return false
     }
@@ -839,7 +839,7 @@ const sortedFilteredEvents = computed(() => {
     return true
   })
   
-  // 然后根据排序选项进行排序
+  // Then sort according to the selected sort option
   return filteredEvents.sort((a, b) => {
     switch (sortOption.value) {
       case 'dateAsc':
@@ -1059,8 +1059,8 @@ const featuredActivities = computed(() => {
   margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  padding: 0 0 0.2em; /* 增加底部内边距 */
-  transform: translateY(-0.05em); /* 略微向上移动文本，确保背景覆盖整个字母 */
+  padding: 0 0 0.2em; /* Add bottom padding */
+  transform: translateY(-0.05em); /* Slightly move text up to ensure background covers all letters */
 }
 
 .title-group h1:hover {
@@ -1094,7 +1094,7 @@ const featuredActivities = computed(() => {
   color: #666;
   line-height: 1.4;
   margin-top: 1.5rem;
-  white-space: normal; /* 默认允许换行 */
+  white-space: normal; /* Default allow wrapping */
   text-align: left;
   max-width: 100%;
 }
@@ -1132,7 +1132,7 @@ const featuredActivities = computed(() => {
   }
   .subtitle {
     font-size: 1.5rem;
-    white-space: nowrap; /* 宽屏幕上不换行 */
+    white-space: nowrap; /* No wrapping on wide screens */
   }
 }
 
@@ -1145,7 +1145,7 @@ const featuredActivities = computed(() => {
   }
   .subtitle {
     font-size: 1.875rem;
-    white-space: nowrap; /* 宽屏幕上不换行 */
+    white-space: nowrap; /* No wrapping on wide screens */
   }
 }
 
@@ -1201,7 +1201,7 @@ const featuredActivities = computed(() => {
   transition: all 0.5s ease;
 }
 
-/* Hover效果增强 */
+/* Enhanced hover effect */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
@@ -1241,7 +1241,7 @@ const featuredActivities = computed(() => {
   }
   
   .subtitle {
-    white-space: normal; /* 中等屏幕开始换行 */
+    white-space: normal; /* For medium screens, allow wrapping */
   }
 }
 
@@ -2291,13 +2291,13 @@ section:not(:last-child)::after {
   text-align: right;
 }
 
-/* 添加通用的标签样式 */
+/* Add general tag styles */
 .tag {
   padding: 0.2rem 0.7rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #222222; /* 改为深色文字 */
+  color: #222222; /* Changed to darker text */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -2306,7 +2306,7 @@ section:not(:last-child)::after {
   transition: all 0.2s ease;
 }
 
-/* 移除深色标签样式 */
+/* Remove dark tag styles */
 .tag.may, 
 .tag.june, 
 .tag.workshop, 
@@ -2317,7 +2317,7 @@ section:not(:last-child)::after {
   color: #222222;
 }
 
-/* 移除浅色标签样式 */
+/* Remove light tag styles */
 .tag.april, 
 .tag.free-event, 
 .tag.october, 
@@ -2331,7 +2331,7 @@ section:not(:last-child)::after {
   box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
-/* 修改不同标签的颜色 */
+/* Modify different tag colours */
 .tag.sold-out {
   background-color: #ff5252;
 }
@@ -2392,7 +2392,7 @@ section:not(:last-child)::after {
   background-color: #9E9E9E;
 }
 
-/* 修改活动标签容器样式 */
+/* Modify activity tag container styles */
 .activity-tags {
   display: flex;
   gap: 0.5rem;
