@@ -25,6 +25,17 @@ echo "=== Debugging Space API endpoints ==="
 python -m backend.debug_space_connection
 echo "=== End of Space API debug ==="
 
+# 测试API名称方法
+echo "=== Testing API name '/predict' method ==="
+python -m backend.tests.test_api_name
+API_TEST_RESULT=$?
+
+if [ $API_TEST_RESULT -eq 0 ]; then
+  echo "✅ API name '/predict' test successful!"
+else
+  echo "⚠️ API name '/predict' test failed. May fall back to simulated values."
+fi
+
 # 运行Space连接测试
 echo "Testing Space CLI connection..."
 python -m backend.tests.test_space_cli

@@ -67,56 +67,105 @@ def test_space_connection():
         # 测试所有可能的fn_index值
         success = False
         
-        for fn_idx in range(5):  # 尝试前5个函数索引
-            logger.info(f"Testing with fn_index={fn_idx}...")
-            try:
-                # 尝试使用当前函数索引
-                predict_start = time.time()
-                result = client.predict(
-                    comments_text,
-                    fn_index=fn_idx
-                )
-                predict_time = time.time() - predict_start
+        # 首先尝试使用api_name="/predict"
+        logger.info("Testing with api_name='/predict'...")
+        try:
+            predict_start = time.time()
+            result = client.predict(
+                comments_text,
+                api_name="/predict"
+            )
+            predict_time = time.time() - predict_start
+            
+            logger.info(f"Prediction with api_name='/predict' completed in {predict_time:.2f} seconds")
+            logger.info(f"Result type: {type(result)}")
+            
+            # 检查结果是否是预期的格式
+            is_valid_result = False
+            
+            if isinstance(result, dict):
+                logger.info(f"Result keys: {list(result.keys())}")
                 
-                logger.info(f"Prediction with fn_index={fn_idx} completed in {predict_time:.2f} seconds")
-                logger.info(f"Result type: {type(result)}")
-                
-                # 检查结果是否是预期的格式
-                is_valid_result = False
-                
-                if isinstance(result, dict):
-                    logger.info(f"Result keys: {list(result.keys())}")
+                # 检查是否包含关键字段
+                if any(key in result for key in ["sentiment_counts", "toxicity_counts", "comments_with_any_toxicity"]):
+                    logger.info(f"Found valid result with api_name='/predict'")
+                    is_valid_result = True
                     
-                    # 检查是否包含关键字段
-                    if any(key in result for key in ["sentiment_counts", "toxicity_counts", "comments_with_any_toxicity"]):
-                        logger.info(f"Found valid result with fn_index={fn_idx}")
-                        is_valid_result = True
+                    # 记录成功方式为api_name
+                    success = True
+                    api_method = "api_name='/predict'"
+                    
+                    # 记录详细信息
+                    if "sentiment_counts" in result:
+                        logger.info(f"Sentiment counts: {result['sentiment_counts']}")
+                    
+                    if "toxicity_counts" in result:
+                        logger.info(f"Toxicity counts: {result['toxicity_counts']}")
+                    
+                    if "comments_with_any_toxicity" in result:
+                        logger.info(f"Toxic comments: {result['comments_with_any_toxicity']}")
+            
+            if not is_valid_result:
+                logger.warning(f"api_name='/predict' returned unexpected result format")
+            
+        except Exception as e:
+            logger.warning(f"api_name='/predict' failed: {str(e)}")
+        
+        # 如果api_name方法失败，继续尝试fn_index方法
+        if not success:
+            for fn_idx in range(5):  # 尝试前5个函数索引
+                logger.info(f"Testing with fn_index={fn_idx}...")
+                try:
+                    # 尝试使用当前函数索引
+                    predict_start = time.time()
+                    result = client.predict(
+                        comments_text,
+                        fn_index=fn_idx
+                    )
+                    predict_time = time.time() - predict_start
+                    
+                    logger.info(f"Prediction with fn_index={fn_idx} completed in {predict_time:.2f} seconds")
+                    logger.info(f"Result type: {type(result)}")
+                    
+                    # 检查结果是否是预期的格式
+                    is_valid_result = False
+                    
+                    if isinstance(result, dict):
+                        logger.info(f"Result keys: {list(result.keys())}")
                         
-                        # 保存正确的函数索引
-                        success = True
-                        correct_fn_index = fn_idx
-                        
-                        # 记录详细信息
-                        if "sentiment_counts" in result:
-                            logger.info(f"Sentiment counts: {result['sentiment_counts']}")
-                        
-                        if "toxicity_counts" in result:
-                            logger.info(f"Toxicity counts: {result['toxicity_counts']}")
-                        
-                        if "comments_with_any_toxicity" in result:
-                            logger.info(f"Toxic comments: {result['comments_with_any_toxicity']}")
-                        
-                        # 找到有效结果后跳出循环
-                        break
-                
-                if not is_valid_result:
-                    logger.warning(f"fn_index={fn_idx} returned unexpected result format")
-                
-            except Exception as e:
-                logger.warning(f"fn_index={fn_idx} failed: {str(e)}")
+                        # 检查是否包含关键字段
+                        if any(key in result for key in ["sentiment_counts", "toxicity_counts", "comments_with_any_toxicity"]):
+                            logger.info(f"Found valid result with fn_index={fn_idx}")
+                            is_valid_result = True
+                            
+                            # 保存正确的函数索引
+                            success = True
+                            correct_fn_index = fn_idx
+                            
+                            # 记录详细信息
+                            if "sentiment_counts" in result:
+                                logger.info(f"Sentiment counts: {result['sentiment_counts']}")
+                            
+                            if "toxicity_counts" in result:
+                                logger.info(f"Toxicity counts: {result['toxicity_counts']}")
+                            
+                            if "comments_with_any_toxicity" in result:
+                                logger.info(f"Toxic comments: {result['comments_with_any_toxicity']}")
+                            
+                            # 找到有效结果后跳出循环
+                            break
+                    
+                    if not is_valid_result:
+                        logger.warning(f"fn_index={fn_idx} returned unexpected result format")
+                    
+                except Exception as e:
+                    logger.warning(f"fn_index={fn_idx} failed: {str(e)}")
         
         if success:
-            logger.info(f"✅ Found working endpoint with fn_index={correct_fn_index}")
+            if 'api_method' in locals():
+                logger.info(f"✅ Found working endpoint with {api_method}")
+            else:
+                logger.info(f"✅ Found working endpoint with fn_index={correct_fn_index}")
             logger.info("✅ Space CLI connection test successful!")
             return True
         else:
