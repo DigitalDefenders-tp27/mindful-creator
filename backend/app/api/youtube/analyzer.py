@@ -240,16 +240,18 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         # Call predict with comments - gradio-client will handle the wrapping
         api_start = time.time()
         
+        # 将评论列表转换为单一的多行字符串
+        comments_payload = "\n".join(processed_comments)
+        
         # Log what we're sending to the API for debugging
         logger.info(f"Sending {len(processed_comments)} comments to Space API")
         sample_comment = processed_comments[0] if processed_comments else ""
         logger.info(f"Sample comment: {sample_comment[:50]}...")
         
         try:
-            # When using gradio-client, directly pass the list of comments
-            # The client will handle the wrapping in {"data": [...]} format
+            # 传递字符串而不是列表
             raw_result = cli.predict(
-                processed_comments,  # 直接传递评论列表，不使用json.dumps()
+                comments_payload,  # 传递单一的多行字符串
                 api_name="/predict"
             )
             logger.info("Space call completed in %.2fs", time.time() - api_start)
