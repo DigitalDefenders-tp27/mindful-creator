@@ -1645,7 +1645,6 @@
     font-size: 1.1rem;
   }
   
-  /* 添加响应式样式 */
   @media (max-width: 768px) {
     .steps-grid {
       gap: 1.5rem;
@@ -1994,7 +1993,7 @@
     color: #555;
   }
 
-  /* Strategies Section (修改) */
+  /* Strategies Section */
   .strategies-section {
     margin-bottom: 2.5rem;
     background-color: #f8f9fa;
@@ -2004,7 +2003,7 @@
   }
 
   .strategies-section h3 {
-    font-size: 1.6rem; /* 略微放大标题字号 */
+    font-size: 1.6rem; 
     margin-bottom: 1.8rem;
     color: #333;
     font-weight: 600;
@@ -2013,12 +2012,12 @@
 
   .strategy-content {
     color: #555;
-    line-height: 2; /* 扩大行间距 */
+    line-height: 2;
     text-align: left;
-    font-size: 1.05rem; /* 略微放大字体 */
+    font-size: 1.05rem;
   }
 
-  /* Example Comments Section (修改) */
+  /* Example Comments Section */
   .examples-section {
     margin-bottom: 2.5rem;
   }
@@ -2049,26 +2048,26 @@
   }
 
   .example-comment {
-    background-color: #f0f7fa; /* 保持原有的蓝灰色背景 */
+    background-color: #f0f7fa;
     padding: 1.2rem;
     border-bottom: 1px solid #eee;
   }
 
   .example-comment h4 {
     font-weight: 600;
-    color: #3b7a9e; /* 保持原有的标题颜色 */
+    color: #3b7a9e;
     margin-bottom: 0.5rem;
     font-size: 1rem;
   }
 
   .example-response {
-    background-color: #f2f8f2; /* 新的浅绿色背景 */
+    background-color: #f2f8f2;
     padding: 1.2rem;
   }
 
   .example-response h4 {
     font-weight: 600;
-    color: #3c8a56; /* 更改标题颜色匹配新背景 */
+    color: #3c8a56;
     margin-bottom: 0.5rem;
     font-size: 1rem;
   }
