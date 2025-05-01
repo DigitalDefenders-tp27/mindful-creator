@@ -42,29 +42,46 @@
 
 ```
 mindful-creator/
-├── frontend/             # 前端代码
-│   ├── public/           # 静态资源
-│   │   ├── icons/        # UI图标
-│   │   ├── images/       # 内容图片
-│   │   └── emojis/       # 情感表情
-│   │   ├── components/   # Vue 组件
-│   │   │   ├── ui/       # UI组件
-│   │   │   └── Activities/ # 活动组件
-│   │   ├── content/      # 内容文件
-│   │   ├── lib/          # 工具库
-│   │   ├── router/       # Vue Router 配置
-│   │   ├── styles/       # 全局样式
-│   │   ├── views/        # 页面组件
-│   │   ├── App.vue       # 根组件
-│   │   └── main.js       # 入口文件
-│   ├── .gitignore        # Git 忽略文件
-│   ├── index.html        # HTML 模板
-│   ├── package.json      # 依赖和脚本
-│   ├── postcss.config.js # PostCSS 配置
-│   ├── tailwind.config.js # Tailwind CSS 配置
-│   └── vite.config.js    # Vite 配置
-└── backend/              # 后端代码
-    └── [backend structure] # 后端结构待添加
+├── frontend/                # 前端代码
+│   ├── public/              # 静态资源
+│   ├── src/                 # 源文件
+│   │   ├── assets/          # 图片、图标等
+│   │   │   ├── icons/       # UI图标
+│   │   │   ├── images/      # 内容图片
+│   │   │   └── emojis/      # 情感表情
+│   │   ├── components/      # Vue 组件
+│   │   │   ├── ui/          # UI组件
+│   │   │   └── Activities/  # 活动组件
+│   │   ├── content/         # 内容文件
+│   │   ├── lib/             # 工具库
+│   │   ├── router/          # Vue Router 配置
+│   │   ├── stores/          # Pinia 状态管理
+│   │   ├── styles/          # 全局样式
+│   │   ├── utils/           # 工具函数
+│   │   ├── views/           # 页面组件
+│   │   ├── App.vue          # 根组件
+│   │   └── main.js          # 入口文件
+│   ├── .gitignore           # Git 忽略文件
+│   ├── index.html           # HTML 模板
+│   ├── package.json         # 依赖和脚本
+│   ├── postcss.config.js    # PostCSS 配置
+│   ├── tailwind.config.js   # Tailwind CSS 配置
+│   └── vite.config.js       # Vite 配置
+├── backend/                 # 后端代码
+│   ├── app/                 # 主应用程序
+│   │   ├── api/             # API 端点
+│   │   ├── routes/          # 路由处理器
+│   │   ├── __init__.py      # 包初始化
+│   │   └── main.py          # 主应用程序文件
+│   ├── datasets/            # 数据文件
+│   ├── tests/               # 测试文件
+│   ├── .env                 # 环境变量
+│   ├── .env.example         # 环境变量示例
+│   ├── database.py          # 数据库配置
+│   ├── Dockerfile           # Docker 配置
+│   ├── requirements.txt     # Python 依赖
+│   └── run.py               # 服务器运行器
+└── data/                    # 项目数据文件
 ```
 
 ## 主要部分
@@ -86,6 +103,12 @@ mindful-creator/
   - Tailwind CSS样式库
   - Marked (用于Markdown渲染)
   - Vite (用于构建和开发)
+  - Pinia (用于状态管理)
+
+- **后端**:
+  - FastAPI (Python网络框架)
+  - SQLite (数据库)
+  - Python 3.9+
 
 - **设计特性**:
   - 响应式设计
@@ -115,6 +138,7 @@ mindful-creator/
 - Lucide Vue Next (^0.487.0)
 - Tailwind Merge (^2.6.0)
 - Tailwind CSS Animate (^1.0.7)
+- Pinia (^2.1.7)
 
 ### 前端开发依赖
 - @vitejs/plugin-vue (^5.2.3)
@@ -127,4 +151,13 @@ mindful-creator/
 - npm-run-all2 (^7.0.2)
 - Oxlint (^0.16.0)
 - Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2) 
+- Vite Plugin Vue DevTools (^7.7.2)
+
+### 后端依赖
+- fastapi
+- uvicorn
+- sqlalchemy
+- python-dotenv
+- pydantic
+- pytest
+- httpx 

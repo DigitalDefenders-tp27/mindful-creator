@@ -42,29 +42,46 @@ A Vue.js application for content creators to manage their content and engage wit
 
 ```
 mindful-creator/
-├── frontend/             # Frontend code
-│   ├── public/           # Static assets
-│   │   ├── icons/        # UI icons
-│   │   ├── images/       # Content images
-│   │   └── emojis/       # Emotion emojis
-│   │   ├── components/   # Vue components
-│   │   │   ├── ui/       # UI components
-│   │   │   └── Activities/ # Activity components
-│   │   ├── content/      # Content files
-│   │   ├── lib/          # Utility libraries
-│   │   ├── router/       # Vue Router configuration
-│   │   ├── styles/       # Global styles
-│   │   ├── views/        # Page components
-│   │   ├── App.vue       # Root component
-│   │   └── main.js       # Entry point
-│   ├── .gitignore        # Git ignore file
-│   ├── index.html        # HTML template
-│   ├── package.json      # Dependencies and scripts
-│   ├── postcss.config.js # PostCSS configuration
-│   ├── tailwind.config.js # Tailwind CSS configuration
-│   └── vite.config.js    # Vite configuration
-└── backend/              # Backend code
-    └── [backend structure] # Backend structure to be added
+├── frontend/                # Frontend code
+│   ├── public/              # Static assets
+│   ├── src/                 # Source files
+│   │   ├── assets/          # Images, icons, etc.
+│   │   │   ├── icons/       # UI icons
+│   │   │   ├── images/      # Content images
+│   │   │   └── emojis/      # Emotion emojis
+│   │   ├── components/      # Vue components
+│   │   │   ├── ui/          # UI components
+│   │   │   └── Activities/  # Activity components
+│   │   ├── content/         # Content files
+│   │   ├── lib/             # Utility libraries
+│   │   ├── router/          # Vue Router configuration
+│   │   ├── stores/          # Pinia stores
+│   │   ├── styles/          # Global styles
+│   │   ├── utils/           # Utility functions
+│   │   ├── views/           # Page components
+│   │   ├── App.vue          # Root component
+│   │   └── main.js          # Entry point
+│   ├── .gitignore           # Git ignore file
+│   ├── index.html           # HTML template
+│   ├── package.json         # Dependencies and scripts
+│   ├── postcss.config.js    # PostCSS configuration
+│   ├── tailwind.config.js   # Tailwind CSS configuration
+│   └── vite.config.js       # Vite configuration
+├── backend/                 # Backend code
+│   ├── app/                 # Main application
+│   │   ├── api/             # API endpoints
+│   │   ├── routes/          # Route handlers
+│   │   ├── __init__.py      # Package initialisation
+│   │   └── main.py          # Main application file
+│   ├── datasets/            # Data files
+│   ├── tests/               # Test files
+│   ├── .env                 # Environment variables
+│   ├── .env.example         # Example environment variables
+│   ├── database.py          # Database configuration
+│   ├── Dockerfile           # Docker configuration
+│   ├── requirements.txt     # Python dependencies
+│   └── run.py               # Server runner
+└── data/                    # Project data files
 ```
 
 ## Key Sections
@@ -86,6 +103,12 @@ Peaceful moments for mental reset with various relaxation activities.
   - Tailwind CSS
   - Marked (for Markdown rendering)
   - Vite (for build and development)
+  - Pinia (for state management)
+
+- **Backend**:
+  - FastAPI (Python web framework)
+  - SQLite (database)
+  - Python 3.9+
 
 - **Design Features**:
   - Responsive Design
@@ -115,6 +138,7 @@ Peaceful moments for mental reset with various relaxation activities.
 - Lucide Vue Next (^0.487.0)
 - Tailwind Merge (^2.6.0)
 - Tailwind CSS Animate (^1.0.7)
+- Pinia (^2.1.7)
 
 ### Frontend Dev Dependencies
 - @vitejs/plugin-vue (^5.2.3)
@@ -127,4 +151,13 @@ Peaceful moments for mental reset with various relaxation activities.
 - npm-run-all2 (^7.0.2)
 - Oxlint (^0.16.0)
 - Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2) 
+- Vite Plugin Vue DevTools (^7.7.2)
+
+### Backend Dependencies
+- fastapi
+- uvicorn
+- sqlalchemy
+- python-dotenv
+- pydantic
+- pytest
+- httpx 
