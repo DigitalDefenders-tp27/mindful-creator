@@ -42,31 +42,46 @@
 
 ```
 mindful-creator/
-├── frontend/             # फ्रंटएंड कोड
-│   ├── public/           # स्थिर संपत्तियां
-│   ├── src/              # स्रोत फाइलें
-│   │   ├── assets/       # चित्र, आइकन, आदि
-│   │   │   ├── icons/    # UI आइकन
-│   │   │   ├── images/   # सामग्री चित्र
-│   │   │   └── emojis/   # भावना इमोजी
-│   │   ├── components/   # Vue कंपोनेंट्स
-│   │   │   ├── ui/       # UI कंपोनेंट्स
-│   │   │   └── Activities/ # गतिविधि कंपोनेंट्स
-│   │   ├── content/      # सामग्री फाइलें
-│   │   ├── lib/          # उपयोगिता लाइब्रेरी
-│   │   ├── router/       # Vue Router कॉन्फिगरेशन
-│   │   ├── styles/       # वैश्विक शैलियाँ
-│   │   ├── views/        # पेज कंपोनेंट्स
-│   │   ├── App.vue       # रूट कंपोनेंट
-│   │   └── main.js       # प्रवेश बिंदु
-│   ├── .gitignore        # Git अनदेखा फाइल
-│   ├── index.html        # HTML टेम्पलेट
-│   ├── package.json      # निर्भरताएँ और स्क्रिप्ट
-│   ├── postcss.config.js # PostCSS कॉन्फिगरेशन
-│   ├── tailwind.config.js # Tailwind CSS कॉन्फिगरेशन
-│   └── vite.config.js    # Vite कॉन्फिगरेशन
-└── backend/              # बैकएंड कोड
-    └── [backend structure] # बैकएंड संरचना जोड़ी जाएगी
+├── frontend/                # फ्रंटएंड कोड
+│   ├── public/              # स्थिर संपत्तियां
+│   ├── src/                 # स्रोत फाइलें
+│   │   ├── assets/          # चित्र, आइकन, आदि
+│   │   │   ├── icons/       # UI आइकन
+│   │   │   ├── images/      # सामग्री चित्र
+│   │   │   └── emojis/      # भावना इमोजी
+│   │   ├── components/      # Vue कंपोनेंट्स
+│   │   │   ├── ui/          # UI कंपोनेंट्स
+│   │   │   └── Activities/  # गतिविधि कंपोनेंट्स
+│   │   ├── content/         # सामग्री फाइलें
+│   │   ├── lib/             # उपयोगिता लाइब्रेरी
+│   │   ├── router/          # Vue Router कॉन्फिगरेशन
+│   │   ├── stores/          # Pinia स्टोर्स
+│   │   ├── styles/          # वैश्विक शैलियाँ
+│   │   ├── utils/           # उपयोगिता फंक्शन्स
+│   │   ├── views/           # पेज कंपोनेंट्स
+│   │   ├── App.vue          # रूट कंपोनेंट
+│   │   └── main.js          # प्रवेश बिंदु
+│   ├── .gitignore           # Git अनदेखा फाइल
+│   ├── index.html           # HTML टेम्पलेट
+│   ├── package.json         # निर्भरताएँ और स्क्रिप्ट
+│   ├── postcss.config.js    # PostCSS कॉन्फिगरेशन
+│   ├── tailwind.config.js   # Tailwind CSS कॉन्फिगरेशन
+│   └── vite.config.js       # Vite कॉन्फिगरेशन
+├── backend/                 # बैकएंड कोड
+│   ├── app/                 # मुख्य एप्लिकेशन
+│   │   ├── api/             # API एंडपॉइंट्स
+│   │   ├── routes/          # रूट हैंडलर्स
+│   │   ├── __init__.py      # पैकेज इनिशियलाइजेशन
+│   │   └── main.py          # मुख्य एप्लिकेशन फाइल
+│   ├── datasets/            # डेटा फाइल्स
+│   ├── tests/               # टेस्ट फाइल्स
+│   ├── .env                 # एनवायरनमेंट वेरिएबल्स
+│   ├── .env.example         # एनवायरनमेंट वेरिएबल्स उदाहरण
+│   ├── database.py          # डेटाबेस कॉन्फिगरेशन
+│   ├── Dockerfile           # डॉकर कॉन्फिगरेशन
+│   ├── requirements.txt     # पाइथन निर्भरताएँ
+│   └── run.py               # सर्वर रनर
+└── data/                    # प्रोजेक्ट डेटा फाइल्स
 ```
 
 ## प्रमुख अनुभाग
@@ -88,6 +103,12 @@ mindful-creator/
   - Tailwind CSS
   - Marked (Markdown रेंडरिंग के लिए)
   - Vite (बिल्ड और विकास के लिए)
+  - Pinia (स्टेट मैनेजमेंट के लिए)
+
+- **बैकएंड**:
+  - FastAPI (पाइथन वेब फ्रेमवर्क)
+  - SQLite (डेटाबेस)
+  - Python 3.9+
 
 - **डिज़ाइन विशेषताएँ**:
   - रेस्पॉन्सिव डिज़ाइन
@@ -117,6 +138,7 @@ mindful-creator/
 - Lucide Vue Next (^0.487.0)
 - Tailwind Merge (^2.6.0)
 - Tailwind CSS Animate (^1.0.7)
+- Pinia (^2.1.7)
 
 ### फ्रंटएंड विकास निर्भरताएँ
 - @vitejs/plugin-vue (^5.2.3)
@@ -129,4 +151,13 @@ mindful-creator/
 - npm-run-all2 (^7.0.2)
 - Oxlint (^0.16.0)
 - Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2) 
+- Vite Plugin Vue DevTools (^7.7.2)
+
+### बैकएंड निर्भरताएँ
+- fastapi
+- uvicorn
+- sqlalchemy
+- python-dotenv
+- pydantic
+- pytest
+- httpx 
