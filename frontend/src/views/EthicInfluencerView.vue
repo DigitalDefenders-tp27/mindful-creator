@@ -912,7 +912,6 @@ onMounted(() => {
   pointer-events: none;
 }
 
-/* 美化渐变背景，使其更加轻微 */
 .ethic-container::after {
   content: '';
   position: absolute;
@@ -946,7 +945,6 @@ onMounted(() => {
   grid-template-columns: 300px minmax(300px, 1fr);
 }
 
-/* 响应式布局调整 */
 @media (max-width: 1024px) {
   .content-row {
     grid-template-columns: 250px minmax(250px, 1fr);
@@ -1118,7 +1116,6 @@ onMounted(() => {
   justify-content: center;
 }
 
-/* 统一所有长卡片的文本内边距 */
 .content-row .long-card .preview-text {
   padding: 1.5rem 5rem 1.5rem 1.5rem;
 }
@@ -1214,7 +1211,6 @@ onMounted(() => {
   margin-right: 1.5rem;
 }
 
-/* 增加卡片内容的间距和样式 */
 .preview-text :deep(h1) {
   @apply text-2xl sm:text-2xl md:text-3xl font-bold;
   margin-bottom: 1rem;
@@ -1239,7 +1235,6 @@ onMounted(() => {
   color: #555;
 }
 
-/* 响应式调整按钮 */
 @media (max-width: 768px) {
   .read-more-button {
     transform: scale(0.9) translateY(-50%);
@@ -1590,7 +1585,6 @@ section:not(:last-child)::after {
   display: none;
 }
 
-/* 确保在所有响应尺寸下都保持一致的圆角矩形设计 */
 @media (min-width: 769px) and (max-width: 1280px) {
   .long-card {
     border-radius: 16px !important;
@@ -1626,12 +1620,10 @@ section:not(:last-child)::after {
   }
 }
 
-/* 悬停状态的按钮文本颜色 */
 .read-more-button:hover :deep(.group-hover\:opacity-100 span) {
   color: white !important;
 }
 
-/* 当卡片被悬停时，按钮中的文字也变为白色 */
 .long-card:hover .read-more-button :deep(span) {
   color: white !important;
 }
