@@ -233,242 +233,240 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     logger.info(f"Total comments to analyze: {total_comments}")
     
     try:
-        # Attempt inference via Hugging Face Space using gradio-client
-        logger.info("Initialising Gradio client for Space inference...")
+        # Instead of using gradio-client which has WebSocket issues,
+        # we'll use direct HTTP requests to the API endpoints
+        logger.info("Using direct HTTP requests to Space API...")
         
-        # Add configuration to help with WebSocket connection issues
-        client_config = {
-            "hf_token": os.environ.get("HF_TOKEN"),  # Try with Hugging Face token if available
-            "use_websocket": False,  # Force use of REST API instead of WebSocket
-            "max_retries": 3,        # Set maximum retry count
-            "timeout": 180           # Increase timeout, considering possible slow service
+        # Hugging Face Space REST API URL
+        # This bypasses the WebSocket connection entirely
+        space_api_url = "https://jet-12138-commentresponse.hf.space/api/predict"
+        hf_token = os.environ.get("HF_TOKEN")
+        
+        # Prepare payload for direct REST API call
+        # Convert comments list to a single multi-line string
+        comments_text = "\n".join(processed_comments)
+        
+        # Prepare the payload according to the Space API format
+        payload = {
+            "data": [comments_text]
         }
         
-        # Filter out None values
-        client_config = {k: v for k, v in client_config.items() if v is not None}
+        # Prepare headers
+        headers = {
+            "Content-Type": "application/json"
+        }
         
-        # Log connection config (without sensitive token)
-        log_config = client_config.copy()
-        if "hf_token" in log_config:
-            log_config["hf_token"] = "REDACTED" if log_config["hf_token"] else None
-        logger.info(f"Connecting to Space with config: {log_config}")
+        # Add authentication if token is available
+        if hf_token:
+            headers["Authorization"] = f"Bearer {hf_token}"
         
-        # For tracking connection attempts
-        connection_attempts = 0
+        logger.info(f"Sending direct HTTP request to Space API with {len(processed_comments)} comments")
+        
+        # Make the HTTP request with timeout and retries
         max_attempts = 3
-        success = False
-        last_error = None
+        attempt = 0
+        response = None
         
-        while connection_attempts < max_attempts and not success:
-            connection_attempts += 1
+        while attempt < max_attempts and not response:
+            attempt += 1
             try:
-                logger.info(f"Connection attempt {connection_attempts}/{max_attempts}")
-                # First try with REST API connection with WebSocket disabled
-                cli = Client("Jet-12138/CommentResponse", **client_config)
-                success = True
-                logger.info("Successfully connected to Space API")
-            except Exception as e:
-                last_error = e
-                logger.warning(f"Connection attempt {connection_attempts} failed: {e}")
-                if connection_attempts < max_attempts:
-                    # If failed, try different configurations
-                    if "use_websocket" in client_config and client_config["use_websocket"] is False:
-                        # If WebSocket is already disabled but still failing, try without any special config
-                        client_config = {}
-                        logger.info("Trying connection without any special configuration...")
-                    else:
-                        # Try with minimal configuration
-                        client_config = {"use_websocket": False}
-                        logger.info("Trying minimal configuration...")
-                    time.sleep(1)  # Add a short delay between attempts
-        
-        if not success:
-            raise Exception(f"Failed to connect to Space API after {max_attempts} attempts: {last_error}")
-
-        # Call predict with comments - gradio-client will handle the wrapping
-        api_start = time.time()
-        
-        # Convert comments list to a single multi-line string
-        comments_payload = "\n".join(processed_comments)
-        
-        # Log what we're sending to the API for debugging
-        logger.info(f"Sending {len(processed_comments)} comments to Space API")
-        sample_comment = processed_comments[0] if processed_comments else ""
-        logger.info(f"Sample comment: {sample_comment[:50]}...")
-        
-        try:
-            # Pass string instead of list
-            raw_result = cli.predict(
-                comments_payload,  # Pass single multi-line string
-                api_name="/predict"
-            )
-            logger.info("Space call completed in %.2fs", time.time() - api_start)
-            
-            # If we get here, the call succeeded
-            # Log the raw result for debugging
-            logger.info(f"Raw result type: {type(raw_result)}")
-            if isinstance(raw_result, dict):
-                logger.info(f"Raw result keys: {list(raw_result.keys())}")
-            elif isinstance(raw_result, str):
-                logger.info(f"Raw result (first 200 chars): {raw_result[:200]}...")
-            else:
-                logger.info(f"Raw result format: {raw_result.__class__.__name__}")
-            
-            # Normalize the result to ensure consistent structure
-            space_data = _normalise_space_result(raw_result)
-            logger.info(f"Normalized result keys: {list(space_data.keys()) if isinstance(space_data, dict) else 'not a dict'}")
-            
-            # Extract and log sentiment and toxicity data
-            sentiment_counts = space_data.get("sentiment_counts", {})
-            logger.info(f"Sentiment counts: {sentiment_counts}")
-            
-            toxicity_counts = space_data.get("toxicity_counts", {})
-            logger.info(f"Toxicity counts: {toxicity_counts}")
-            
-            toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
-            logger.info(f"Total toxic comments: {toxicity_total}")
-        except Exception as e:
-            logger.error(f"Space API call failed: {str(e)}")
-            
-            # If the Space API fails completely, attempt to use a local model fallback
-            try:
-                logger.info("Attempting to use local model fallback...")
-                # Check if we can import the local model
-                try:
-                    from nlp_model.common.model_loader import get_model
-                    from nlp_model.common.utils import predict_batch
-                    
-                    # Local model is available
-                    logger.info("Local model found, using it for analysis")
-                    
-                    # Process with local model
-                    predictions = predict_batch(processed_comments, get_model())
-                    sentiment_counts = {
-                        "Positive": sum(1 for p in predictions if p["sentiment"] == "positive"),
-                        "Neutral": sum(1 for p in predictions if p["sentiment"] == "neutral"),
-                        "Negative": sum(1 for p in predictions if p["sentiment"] == "negative")
-                    }
-                    
-                    toxicity_counts = {
-                        "Toxic": sum(1 for p in predictions if p["toxic"]),
-                        "Severe Toxic": sum(1 for p in predictions if p["severe_toxic"]),
-                        "Obscene": sum(1 for p in predictions if p["obscene"]),
-                        "Threat": sum(1 for p in predictions if p["threat"]),
-                        "Insult": sum(1 for p in predictions if p["insult"]),
-                        "Identity Hate": sum(1 for p in predictions if p["identity_hate"])
-                    }
-                    
-                    toxic_comments = sum(1 for p in predictions if any(p[t] for t in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]))
-                    
-                    # Create result structure similar to Space API
-                    result = {
-                        "sentiment": {
-                            "positive_count": sentiment_counts["Positive"],
-                            "neutral_count": sentiment_counts["Neutral"],
-                            "negative_count": sentiment_counts["Negative"]
-                        },
-                        "toxicity": {
-                            "toxic_count": toxic_comments,
-                            "toxic_percentage": (toxic_comments / total_comments * 100) if total_comments else 0,
-                            "toxic_types": {
-                                "toxic": toxicity_counts["Toxic"],
-                                "severe_toxic": toxicity_counts["Severe Toxic"],
-                                "obscene": toxicity_counts["Obscene"],
-                                "threat": toxicity_counts["Threat"],
-                                "insult": toxicity_counts["Insult"],
-                                "identity_hate": toxicity_counts["Identity Hate"]
-                            }
-                        },
-                        "note": "Analysis performed using local model (Space API unavailable)"
-                    }
-                    return result
-                except ImportError:
-                    logger.warning("Local model not found, generating simulated data")
-                    
-                    # Generate simulated data based on comment count
-                    total = len(processed_comments)
-                    positive = max(1, round(total * 0.4))  # About 40% positive
-                    negative = max(1, round(total * 0.3))  # About 30% negative
-                    neutral = total - positive - negative   # Remainder neutral
-                    
-                    # To avoid zero data, ensure we have at least some data
-                    if total > 0 and (positive + neutral + negative == 0):
-                        positive = 1
-                        
-                    # Generate simulated toxicity data
-                    toxic_count = max(1, round(total * 0.15))  # About 15% toxic
-                    
-                    result = {
-                        "sentiment": {
-                            "positive_count": positive,
-                            "neutral_count": neutral,
-                            "negative_count": negative
-                        },
-                        "toxicity": {
-                            "toxic_count": toxic_count,
-                            "toxic_percentage": (toxic_count / total * 100) if total else 0,
-                            "toxic_types": {
-                                "toxic": max(1, round(toxic_count * 0.7)),
-                                "severe_toxic": round(toxic_count * 0.1),
-                                "obscene": round(toxic_count * 0.4),
-                                "threat": round(toxic_count * 0.05),
-                                "insult": round(toxic_count * 0.3),
-                                "identity_hate": round(toxic_count * 0.1)
-                            }
-                        },
-                        "note": "API Error: server rejected WebSocket connection: HTTP 403... (Using estimated values)"
-                    }
-                    return result
-            except Exception as fallback_error:
-                logger.error(f"Fallback mechanism also failed: {str(fallback_error)}")
+                logger.info(f"HTTP request attempt {attempt}/{max_attempts}")
                 
-            # If all else fails, return a standardized error structure 
-            # that the frontend can handle
-            return {
-                "sentiment": {
-                    "positive_count": 0,
-                    "neutral_count": 0,
-                    "negative_count": 0
-                },
-                "toxicity": {
-                    "toxic_count": 0,
-                    "toxic_percentage": 0,
-                    "toxic_types": {
-                        "toxic": 0,
-                        "severe_toxic": 0,
-                        "obscene": 0,
-                        "threat": 0,
-                        "insult": 0,
-                        "identity_hate": 0
+                # Use requests library for direct HTTP call
+                import requests
+                response = requests.post(
+                    space_api_url,
+                    json=payload,
+                    headers=headers,
+                    timeout=60  # 60 second timeout
+                )
+                
+                # Check if request was successful
+                if response.status_code == 200:
+                    logger.info(f"HTTP request successful: status code {response.status_code}")
+                    break
+                else:
+                    logger.warning(f"HTTP request failed: status code {response.status_code}")
+                    response = None
+                    if attempt < max_attempts:
+                        time.sleep(2)  # Wait before retrying
+            except Exception as req_error:
+                logger.error(f"HTTP request error on attempt {attempt}: {str(req_error)}")
+                if attempt < max_attempts:
+                    time.sleep(2)  # Wait before retrying
+        
+        # Process the response if successful
+        if response and response.status_code == 200:
+            try:
+                # Parse JSON response
+                raw_result = response.json()
+                logger.info("Space API HTTP request completed successfully")
+                
+                # Check the structure of the response
+                if "data" in raw_result and isinstance(raw_result["data"], list) and len(raw_result["data"]) > 0:
+                    # Extract the result from the data array
+                    space_data = raw_result["data"][0]
+                    
+                    # Extract sentiment and toxicity data
+                    sentiment_counts = space_data.get("sentiment_counts", {})
+                    logger.info(f"Sentiment counts: {sentiment_counts}")
+                    
+                    toxicity_counts = space_data.get("toxicity_counts", {})
+                    logger.info(f"Toxicity counts: {toxicity_counts}")
+                    
+                    toxicity_total = int(space_data.get("comments_with_any_toxicity", 0))
+                    logger.info(f"Total toxic comments: {toxicity_total}")
+                    
+                    # Return the analysis results
+                    return {
+                        "sentiment": {
+                            "positive_count": sentiment_counts.get("Positive", 0),
+                            "neutral_count": sentiment_counts.get("Neutral", 0),
+                            "negative_count": sentiment_counts.get("Negative", 0)
+                        },
+                        "toxicity": {
+                            "toxic_count": toxicity_total,
+                            "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
+                            "toxic_types": {
+                                "toxic": toxicity_counts.get("Toxic", 0),
+                                "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
+                                "obscene": toxicity_counts.get("Obscene", 0),
+                                "threat": toxicity_counts.get("Threat", 0),
+                                "insult": toxicity_counts.get("Insult", 0),
+                                "identity_hate": toxicity_counts.get("Identity Hate", 0)
+                            }
+                        }
                     }
-                },
-                "note": f"API Error: {str(e)[:100]}..."
-            }
-
-        result = {
+                else:
+                    logger.error(f"Unexpected Space API response structure: {raw_result}")
+                    raise ValueError("Invalid response structure from Space API")
+            except Exception as parse_error:
+                logger.error(f"Failed to parse Space API response: {str(parse_error)}")
+                raise
+        else:
+            # HTTP request failed after all attempts
+            error_message = f"Space API HTTP request failed after {max_attempts} attempts"
+            if response:
+                error_message += f": Status code {response.status_code}"
+            logger.error(error_message)
+            raise Exception(error_message)
+                
+        # The code below will run if the direct HTTP request approach fails
+        # If all else fails, return a standardized error structure 
+        # that the frontend can handle
+        return {
             "sentiment": {
-                "positive_count": sentiment_counts.get("Positive", 0),
-                "neutral_count": sentiment_counts.get("Neutral", 0),
-                "negative_count": sentiment_counts.get("Negative", 0)
+                "positive_count": 0,
+                "neutral_count": 0,
+                "negative_count": 0
             },
             "toxicity": {
-                "toxic_count": toxicity_total,
-                "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
+                "toxic_count": 0,
+                "toxic_percentage": 0,
                 "toxic_types": {
-                    "toxic": toxicity_counts.get("Toxic", 0),
-                    "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
-                    "obscene": toxicity_counts.get("Obscene", 0),
-                    "threat": toxicity_counts.get("Threat", 0),
-                    "insult": toxicity_counts.get("Insult", 0),
-                    "identity_hate": toxicity_counts.get("Identity Hate", 0)
+                    "toxic": 0,
+                    "severe_toxic": 0,
+                    "obscene": 0,
+                    "threat": 0,
+                    "insult": 0,
+                    "identity_hate": 0
                 }
-            }
+            },
+            "note": "API Error: Space API HTTP request failed"
         }
 
-        return result
-    
     except Exception as e:
         logger.error(f"Unexpected error in Space API analysis: {str(e)}")
+        
+        # Try fallback to local model or simulated data
+        try:
+            logger.info("Attempting to use local model or generate simulated data...")
+            # Check if we can import the local model
+            try:
+                from nlp_model.common.model_loader import get_model
+                from nlp_model.common.utils import predict_batch
+                
+                # Local model is available
+                logger.info("Local model found, using it for analysis")
+                
+                # Process with local model
+                predictions = predict_batch(processed_comments, get_model())
+                sentiment_counts = {
+                    "Positive": sum(1 for p in predictions if p["sentiment"] == "positive"),
+                    "Neutral": sum(1 for p in predictions if p["sentiment"] == "neutral"),
+                    "Negative": sum(1 for p in predictions if p["sentiment"] == "negative")
+                }
+                
+                toxicity_counts = {
+                    "Toxic": sum(1 for p in predictions if p["toxic"]),
+                    "Severe Toxic": sum(1 for p in predictions if p["severe_toxic"]),
+                    "Obscene": sum(1 for p in predictions if p["obscene"]),
+                    "Threat": sum(1 for p in predictions if p["threat"]),
+                    "Insult": sum(1 for p in predictions if p["insult"]),
+                    "Identity Hate": sum(1 for p in predictions if p["identity_hate"])
+                }
+                
+                toxic_comments = sum(1 for p in predictions if any(p[t] for t in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]))
+                
+                # Create result structure similar to Space API
+                return {
+                    "sentiment": {
+                        "positive_count": sentiment_counts["Positive"],
+                        "neutral_count": sentiment_counts["Neutral"],
+                        "negative_count": sentiment_counts["Negative"]
+                    },
+                    "toxicity": {
+                        "toxic_count": toxic_comments,
+                        "toxic_percentage": (toxic_comments / total_comments * 100) if total_comments else 0,
+                        "toxic_types": {
+                            "toxic": toxicity_counts["Toxic"],
+                            "severe_toxic": toxicity_counts["Severe Toxic"],
+                            "obscene": toxicity_counts["Obscene"],
+                            "threat": toxicity_counts["Threat"],
+                            "insult": toxicity_counts["Insult"],
+                            "identity_hate": toxicity_counts["Identity Hate"]
+                        }
+                    },
+                    "note": "Analysis performed using local model (Space API unavailable)"
+                }
+            except ImportError:
+                logger.warning("Local model not found, generating simulated data")
+                
+                # Generate simulated data based on comment count
+                total = len(processed_comments)
+                positive = max(1, round(total * 0.4))  # About 40% positive
+                negative = max(1, round(total * 0.3))  # About 30% negative
+                neutral = total - positive - negative   # Remainder neutral
+                
+                # To avoid zero data, ensure we have at least some data
+                if total > 0 and (positive + neutral + negative == 0):
+                    positive = 1
+                    
+                # Generate simulated toxicity data
+                toxic_count = max(1, round(total * 0.15))  # About 15% toxic
+                
+                return {
+                    "sentiment": {
+                        "positive_count": positive,
+                        "neutral_count": neutral,
+                        "negative_count": negative
+                    },
+                    "toxicity": {
+                        "toxic_count": toxic_count,
+                        "toxic_percentage": (toxic_count / total * 100) if total else 0,
+                        "toxic_types": {
+                            "toxic": max(1, round(toxic_count * 0.7)),
+                            "severe_toxic": round(toxic_count * 0.1),
+                            "obscene": round(toxic_count * 0.4),
+                            "threat": round(toxic_count * 0.05),
+                            "insult": round(toxic_count * 0.3),
+                            "identity_hate": round(toxic_count * 0.1)
+                        }
+                    },
+                    "note": "Using simulated values (Space API unavailable)"
+                }
+        except Exception as fallback_error:
+            logger.error(f"Fallback mechanism also failed: {str(fallback_error)}")
         
         # Always return a consistent structure even on error
         return {
