@@ -96,7 +96,7 @@
           <div class="process-card">
             <div class="card-number">1</div>
             <div class="card-content">
-              <img src="/src/assets/icons/elements/post.png" alt="Smartphone icon" class="card-icon">
+              <img src="/src/assets/icons/elements/video.png" alt="Smartphone icon" class="card-icon">
               <p class="card-text">Open your Youtube video.</p>
             </div>
           </div>
@@ -176,13 +176,13 @@
             </div>
             
             <!-- Debug Information (Add after video info section) -->
-            <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
+            <!-- <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
               <p class="note-message"><strong>Heads up:</strong> {{ analysisResult.analysis.note }}</p>
               <details>
                 <summary>Technical Details</summary>
                 <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
               </details>
-            </div>
+            </div> -->
             
             <!-- Results Grid -->
             <div class="results-grid section-divider">
@@ -374,7 +374,7 @@
       
       // Create AbortController for the request with timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
       
       // First make a simple GET request to check if the server is responding at all
       let serverAvailable = false
