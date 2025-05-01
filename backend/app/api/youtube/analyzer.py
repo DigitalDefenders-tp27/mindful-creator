@@ -249,7 +249,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             # When using gradio-client, directly pass the list of comments
             # The client will handle the wrapping in {"data": [...]} format
             raw_result = cli.predict(
-                processed_comments,  # Just pass the list of strings
+                processed_comments,  # 直接传递评论列表，不使用json.dumps()
                 api_name="/predict"
             )
             logger.info("Space call completed in %.2fs", time.time() - api_start)

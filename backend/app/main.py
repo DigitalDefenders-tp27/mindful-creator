@@ -19,6 +19,8 @@ origins = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
+    "https://mindful-creator-awoc.vercel.app",
+    "https://mindful-creator-mymc.vercel.app",
 ]
 
 app.add_middleware(
