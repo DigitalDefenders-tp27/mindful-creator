@@ -219,7 +219,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     processed_comments = []
     for comment in comments[:100]:
         if isinstance(comment, str) and comment.strip():
-            # 移除任何可能的路径对象
+            # Remove any potential path objects
             processed_comments.append(str(comment).strip())
         else:
             logger.warning(f"Skipping invalid comment: {comment}")
@@ -240,8 +240,8 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         client_config = {
             "hf_token": os.environ.get("HF_TOKEN"),  # Try with Hugging Face token if available
             "use_websocket": False,  # Force use of REST API instead of WebSocket
-            "max_retries": 3,        # 设置最大重试次数
-            "timeout": 180           # 增加超时时间，考虑到服务可能响应慢
+            "max_retries": 3,        # Set maximum retry count
+            "timeout": 180           # Increase timeout, considering possible slow service
         }
         
         # Filter out None values
@@ -253,7 +253,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             log_config["hf_token"] = "REDACTED" if log_config["hf_token"] else None
         logger.info(f"Connecting to Space with config: {log_config}")
         
-        # 用于跟踪连接尝试
+        # For tracking connection attempts
         connection_attempts = 0
         max_attempts = 3
         success = False
@@ -263,7 +263,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             connection_attempts += 1
             try:
                 logger.info(f"Connection attempt {connection_attempts}/{max_attempts}")
-                # 首先尝试完全禁用WebSocket的REST API连接
+                # First try with REST API connection with WebSocket disabled
                 cli = Client("Jet-12138/CommentResponse", **client_config)
                 success = True
                 logger.info("Successfully connected to Space API")
@@ -271,16 +271,16 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
                 last_error = e
                 logger.warning(f"Connection attempt {connection_attempts} failed: {e}")
                 if connection_attempts < max_attempts:
-                    # 如果失败，尝试不同的配置
+                    # If failed, try different configurations
                     if "use_websocket" in client_config and client_config["use_websocket"] is False:
-                        # 如果已经禁用WebSocket但仍然失败，尝试不使用任何特殊配置
+                        # If WebSocket is already disabled but still failing, try without any special config
                         client_config = {}
                         logger.info("Trying connection without any special configuration...")
                     else:
-                        # 尝试减少配置选项
+                        # Try with minimal configuration
                         client_config = {"use_websocket": False}
                         logger.info("Trying minimal configuration...")
-                    time.sleep(1)  # 在尝试之间增加短暂延迟
+                    time.sleep(1)  # Add a short delay between attempts
         
         if not success:
             raise Exception(f"Failed to connect to Space API after {max_attempts} attempts: {last_error}")
@@ -288,7 +288,7 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         # Call predict with comments - gradio-client will handle the wrapping
         api_start = time.time()
         
-        # 将评论列表转换为单一的多行字符串
+        # Convert comments list to a single multi-line string
         comments_payload = "\n".join(processed_comments)
         
         # Log what we're sending to the API for debugging
@@ -297,9 +297,9 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
         logger.info(f"Sample comment: {sample_comment[:50]}...")
         
         try:
-            # 传递字符串而不是列表
+            # Pass string instead of list
             raw_result = cli.predict(
-                comments_payload,  # 传递单一的多行字符串
+                comments_payload,  # Pass single multi-line string
                 api_name="/predict"
             )
             logger.info("Space call completed in %.2fs", time.time() - api_start)
@@ -387,16 +387,16 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
                     
                     # Generate simulated data based on comment count
                     total = len(processed_comments)
-                    positive = max(1, round(total * 0.4))  # 约40%积极
-                    negative = max(1, round(total * 0.3))  # 约30%消极
-                    neutral = total - positive - negative   # 剩余为中性
+                    positive = max(1, round(total * 0.4))  # About 40% positive
+                    negative = max(1, round(total * 0.3))  # About 30% negative
+                    neutral = total - positive - negative   # Remainder neutral
                     
-                    # 为了避免数据为零，确保至少有一些数据
+                    # To avoid zero data, ensure we have at least some data
                     if total > 0 and (positive + neutral + negative == 0):
                         positive = 1
                         
-                    # 生成模拟毒性数据
-                    toxic_count = max(1, round(total * 0.15))  # 约15%有毒性
+                    # Generate simulated toxicity data
+                    toxic_count = max(1, round(total * 0.15))  # About 15% toxic
                     
                     result = {
                         "sentiment": {

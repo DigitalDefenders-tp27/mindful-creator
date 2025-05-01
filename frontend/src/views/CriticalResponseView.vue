@@ -140,12 +140,12 @@
             </button>
           </div>
           <p v-if="analysisError" class="error-message">
-            <strong>Error:</strong> {{ analysisError }}
-            <button @click="retryAnalysis" class="retry-button">Retry</button>
+            <strong>Strewth!</strong> {{ analysisError }}
+            <button @click="retryAnalysis" class="retry-button">Give it another go</button>
           </p>
           <p v-if="isLoading" class="loading-message">
             <span class="loading-spinner"></span>
-            Fetching and analysing comments. This may take a moment...
+            Grabbing and checking those comments. Hang in there, mate...
           </p>
         </div>
       </div>
@@ -169,17 +169,17 @@
             <div v-if="analysisResult.wsError" class="websocket-warning section-divider">
               <div class="warning-icon">⚠️</div>
               <div class="warning-content">
-                <h4>Using Estimated Analysis Data</h4>
-                <p>The sentiment and toxicity analysis service (Hugging Face Space) is currently unavailable, but we've generated helpful response strategies and example replies based on your video comments.</p>
-                <p class="warning-note">Note: Sentiment and toxicity scores are estimated.</p>
+                <h4>Fair Dinkum Results (Not Perfect)</h4>
+                <p>The sentiment and toxicity analysis service is having a bit of a wobbly, but we've still managed to work out some helpful response strategies and examples based on your video comments.</p>
+                <p class="warning-note">Note: The sentiment and toxicity scores are our best guess.</p>
               </div>
             </div>
             
             <!-- Debug Information (Add after video info section) -->
             <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
-              <p class="note-message"><strong>Note:</strong> {{ analysisResult.analysis.note }}</p>
+              <p class="note-message"><strong>Heads up:</strong> {{ analysisResult.analysis.note }}</p>
               <details>
-                <summary>Debug Information</summary>
+                <summary>Technical Details</summary>
                 <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
               </details>
             </div>
@@ -352,117 +352,139 @@
     
     // Validate URL
     if (!youtubeUrl.value) {
-      analysisError.value = '请输入一个YouTube视频URL'
+      analysisError.value = 'Please enter a YouTube video URL, mate'
       return
     }
     
-    // 验证URL格式
+    // Validate URL format
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
     if (!youtubeRegex.test(youtubeUrl.value)) {
-      analysisError.value = '请输入有效的YouTube视频URL'
+      analysisError.value = 'Please enter a valid YouTube URL, that one\'s not right'
       return
     }
     
     // Set loading state
     isLoading.value = true
     
-    // API URL - ensure using the correct YouTube API endpoint (not WebSocket)
-    const apiUrl = 'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze'
+    // API URL with fallback options
+    const primaryApiUrl = 'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze'
     
     try {
-      // 添加5秒超时检查
-      const serverCheckTimeout = setTimeout(() => {
-        if (isLoading.value) {
-          console.warn('服务器响应超时，尝试继续请求但显示警告...')
-        }
-      }, 5000)
+      console.log('Starting YouTube analysis process...')
       
-      // First check if API server is available
-      console.log('测试服务器可用性...')
-      const abortController = new AbortController()
-      const timeoutId = setTimeout(() => abortController.abort(), 8000) // 8秒超时
+      // Create AbortController for the request with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
       
+      // First make a simple GET request to check if the server is responding at all
+      let serverAvailable = false
       try {
-        // 尝试发送一个简单请求检查服务器状态
-        const checkResponse = await fetch('https://mindful-creator-production-e20c.up.railway.app/api/health', {
+        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app/', {
           method: 'GET',
-          mode: 'cors',
-          credentials: 'omit',
-          signal: abortController.signal
+          mode: 'no-cors', // Use no-cors to avoid CORS failures during check
+          signal: AbortSignal.timeout(5000)
         })
         
-        clearTimeout(timeoutId)
+        console.log('Basic connectivity check completed')
+        serverAvailable = true
+      } catch (healthError) {
+        console.warn('Server may be down or unreachable:', healthError)
+        // Continue anyway - will try the actual request
+      }
+      
+      console.log('Sending API request to:', primaryApiUrl)
+      
+      let response
+      try {
+        // Send request to backend API with improved error handling
+        response = await fetch(primaryApiUrl, {
+          method: 'POST',
+          // Use 'no-cors' mode when having CORS issues
+          mode: 'cors',
+          credentials: 'omit', // Don't send credentials
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            video_url: youtubeUrl.value,
+            max_comments: 50 // Limit number of comments to process
+          }),
+          signal: controller.signal
+        })
+      } catch (fetchError) {
+        console.error('Fetch operation failed:', fetchError)
         
-        if (!checkResponse.ok) {
-          throw new Error(`服务器状态检查失败: ${checkResponse.status}`)
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out. The server might be too busy right now.')
         }
         
-        console.log('服务器正常运行中, 继续分析请求')
-      } catch (checkError) {
+        if (fetchError.message.includes('Failed to fetch') || 
+            fetchError.message.includes('NetworkError') ||
+            fetchError.message.includes('Load failed')) {
+          throw new Error('The server appears to be down. Please try again later.')
+        }
+        
+        throw fetchError
+      } finally {
         clearTimeout(timeoutId)
-        console.warn('服务器健康检查失败，但仍将尝试分析请求:', checkError)
-        // 继续执行，不中断流程
       }
       
-      console.log('发送API请求至:', apiUrl)
-      
-      // 为主请求创建一个新的AbortController
-      const mainAbortController = new AbortController()
-      const mainTimeoutId = setTimeout(() => mainAbortController.abort(), 90000) // 90秒超时
-      
-      // Send request to backend API
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'omit', // 不发送凭证以避免CORS预检问题
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          video_url: youtubeUrl.value,
-          max_comments: 50 // 限制处理的评论数量
-        }),
-        signal: mainAbortController.signal
-      })
-      
-      clearTimeout(mainTimeoutId)
-      clearTimeout(serverCheckTimeout)
-      
-      // 检查HTTP错误
+      // Check for HTTP errors
       if (!response.ok) {
-        console.error('API错误状态:', response.status, response.statusText)
-        throw new Error(`服务器返回错误 ${response.status}: ${response.statusText}`)
+        console.error('API error status:', response.status, response.statusText)
+        
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+          // These are gateway/availability errors - server is likely down
+          throw new Error('The server is currently unavailable. The backend might be restarting or down for maintenance.')
+        }
+        
+        throw new Error(`Server returned error ${response.status}: ${response.statusText}`)
       }
       
-      // 解析响应
+      // Parse response
       const data = await response.json()
-      console.log('API响应:', data)
+      console.log('API response received')
       
-      // 检查API响应状态
+      // Check API response status
       if (data.status === 'error') {
-        console.error('API返回错误:', data.message)
-        analysisError.value = data.message || '分析失败，请稍后再试'
+        console.error('API returned error:', data.message)
+        analysisError.value = data.message || 'Analysis failed, please try again later'
         isLoading.value = false
         return
       }
       
-      // 检查WebSocket错误情况
+      // Check for WebSocket error cases
       if (data.analysis && data.analysis.note && data.analysis.note.includes('API Error: server rejected WebSocket connection')) {
-        console.warn('检测到WebSocket连接问题，但我们仍然收到了分析数据')
+        console.warn('Detected WebSocket connection issue, but we still received analysis data')
         
-        // 在显示结果中添加关于部分分析的注释
+        // Add a note to the displayed result about the partial analysis
         data.wsError = true
       }
       
-      // 更新分析结果并显示模态框
+      // Update analysis result and display modal
       analysisResult.value = data
       showResultsModal.value = true
       isLoading.value = false
       
     } catch (error) {
-      console.error('API请求错误:', error)
-      analysisError.value = `连接到后端服务失败: ${error.message}`
+      console.error('API request error:', error)
+      
+      // Handle specific errors with user-friendly messages
+      if (error.message.includes('NetworkError') || 
+          error.message.includes('Failed to fetch') || 
+          error.message.includes('Load failed') ||
+          error.message.includes('server is down') ||
+          error.message.includes('server is currently unavailable')) {
+        analysisError.value = "Crikey! The server's having a bit of a lie-down right now. Try again in a few minutes."
+      } else if (error.name === 'AbortError' || error.message.includes('timed out')) {
+        analysisError.value = "Fair dinkum, that's taking ages! The request timed out. Give it another go when the server's less busy."
+      } else if (error.message.includes('CORS') || error.message.includes('access control checks')) {
+        analysisError.value = "Strewth! There's a browser security issue connecting to the server. Try refreshing the page or using a different browser."
+      } else {
+        analysisError.value = `Looks like we hit a snag: ${error.message}`
+      }
+      
       isLoading.value = false
     }
   }
