@@ -251,10 +251,10 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
             # Fair dinkum attempt to call the Space predict endpoint
             logger.info(f"Sending {len(processed_comments)} comments to Space using gradio_client")
             
-            # Set a longer timeout for the predict call (defaults can be too short)
+            # 使用测试脚本发现的正确函数索引 (fn_index=2)
             result = client.predict(
                 comments_text,  # Input: string with line-separated comments
-                api_name="predict"  # Use the default API name
+                fn_index=2      # 使用fn_index=2调用正确的端点
             )
             
             # Normalise the Space result format for consistency
