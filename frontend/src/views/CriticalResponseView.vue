@@ -408,7 +408,7 @@
           },
           body: JSON.stringify({
             video_url: youtubeUrl.value,
-            max_comments: 50 // Limit number of comments to process
+            max_comments: 100 // Limit number of comments to process
           }),
           signal: controller.signal
         })
