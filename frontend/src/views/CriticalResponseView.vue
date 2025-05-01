@@ -352,7 +352,14 @@
     
     // Validate URL
     if (!youtubeUrl.value) {
-      analysisError.value = 'Please enter a YouTube video URL'
+      analysisError.value = '请输入一个YouTube视频URL'
+      return
+    }
+    
+    // 验证URL格式
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
+    if (!youtubeRegex.test(youtubeUrl.value)) {
+      analysisError.value = '请输入有效的YouTube视频URL'
       return
     }
     
@@ -363,128 +370,99 @@
     const apiUrl = 'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze'
     
     try {
-      // First check if API server is available using the ws-test endpoint
-      const checkResponse = await fetch('https://mindful-creator-production-e20c.up.railway.app/ws-test', {
-        method: 'GET',
-        // Avoid including credentials which might cause CORS issues
-        mode: 'cors',
-        credentials: 'omit', // Don't send credentials - fixes 403 issues with CORS preflight
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        // Add timeout to avoid long wait times
-        signal: AbortSignal.timeout(5000)
-      }).catch(err => {
-        console.error('Server availability check failed:', err)
-        return null
-      })
+      // 添加5秒超时检查
+      const serverCheckTimeout = setTimeout(() => {
+        if (isLoading.value) {
+          console.warn('服务器响应超时，尝试继续请求但显示警告...')
+        }
+      }, 5000)
       
-      if (!checkResponse || !checkResponse.ok) {
-        analysisError.value = 'The backend service appears to be offline or unavailable. Please try again later.'
-        isLoading.value = false
-        return
+      // First check if API server is available
+      console.log('测试服务器可用性...')
+      const abortController = new AbortController()
+      const timeoutId = setTimeout(() => abortController.abort(), 8000) // 8秒超时
+      
+      try {
+        // 尝试发送一个简单请求检查服务器状态
+        const checkResponse = await fetch('https://mindful-creator-production-e20c.up.railway.app/api/health', {
+          method: 'GET',
+          mode: 'cors',
+          credentials: 'omit',
+          signal: abortController.signal
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (!checkResponse.ok) {
+          throw new Error(`服务器状态检查失败: ${checkResponse.status}`)
+        }
+        
+        console.log('服务器正常运行中, 继续分析请求')
+      } catch (checkError) {
+        clearTimeout(timeoutId)
+        console.warn('服务器健康检查失败，但仍将尝试分析请求:', checkError)
+        // 继续执行，不中断流程
       }
       
-      console.log('Server is available, sending API request to:', apiUrl);
+      console.log('发送API请求至:', apiUrl)
+      
+      // 为主请求创建一个新的AbortController
+      const mainAbortController = new AbortController()
+      const mainTimeoutId = setTimeout(() => mainAbortController.abort(), 90000) // 90秒超时
       
       // Send request to backend API
       const response = await fetch(apiUrl, {
         method: 'POST',
-        mode: 'cors', // Explicitly set CORS mode
-        credentials: 'omit', // Don't send credentials - fixes 403 issues with CORS preflight
+        mode: 'cors',
+        credentials: 'omit', // 不发送凭证以避免CORS预检问题
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           video_url: youtubeUrl.value,
-          max_comments: 50 // Limit number of comments to process
+          max_comments: 50 // 限制处理的评论数量
         }),
-        // Add timeout to avoid long wait times
-        signal: AbortSignal.timeout(60000) // 60 second timeout
+        signal: mainAbortController.signal
       })
       
-      // Check for HTTP errors
+      clearTimeout(mainTimeoutId)
+      clearTimeout(serverCheckTimeout)
+      
+      // 检查HTTP错误
       if (!response.ok) {
-        console.error('API error status:', response.status, response.statusText);
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`)
+        console.error('API错误状态:', response.status, response.statusText)
+        throw new Error(`服务器返回错误 ${response.status}: ${response.statusText}`)
       }
       
-      // Parse response
+      // 解析响应
       const data = await response.json()
-      console.log('API response:', data);
+      console.log('API响应:', data)
       
-      // Check API response status
+      // 检查API响应状态
       if (data.status === 'error') {
-        analysisError.value = data.message || 'Analysis failed, please try again later'
+        console.error('API返回错误:', data.message)
+        analysisError.value = data.message || '分析失败，请稍后再试'
+        isLoading.value = false
         return
       }
       
-      // Handle case where there's a WebSocket error but we still got some analysis data
+      // 检查WebSocket错误情况
       if (data.analysis && data.analysis.note && data.analysis.note.includes('API Error: server rejected WebSocket connection')) {
-        console.warn('WebSocket connection issue detected, but we still received analysis data');
+        console.warn('检测到WebSocket连接问题，但我们仍然收到了分析数据')
         
-        // Add a note to the displayed result about the partial analysis
-        data.wsError = true;
-        
-        // Space API failed but we can still show other data
-        // The analysis.note indicates the Hugging Face Space is rejecting WebSocket
-        // This is likely because the Hugging Face Space "Jet-12138/CommentResponse" is no longer available
-        // We can still show the responses from the LLM service
-        
-        // Update sentiment and toxicity with default values if they're all zeros
-        const sentiment = data.analysis.sentiment;
-        const toxicity = data.analysis.toxicity;
-        
-        let isAllZeros = true;
-        if (sentiment) {
-          isAllZeros = sentiment.positive_count === 0 && 
-                       sentiment.neutral_count === 0 && 
-                       sentiment.negative_count === 0;
-        }
-        
-        // If all sentiment values are zeros, set some placeholder values
-        // based on the example comments to make the UI look better
-        if (isAllZeros && data.example_comments && data.example_comments.length > 0) {
-          // Estimate sentiment based on example comments count
-          const count = data.example_comments.length;
-          data.analysis.sentiment = {
-            positive_count: Math.floor(count * 0.4),
-            neutral_count: Math.floor(count * 0.4),
-            negative_count: Math.floor(count * 0.2)
-          };
-          
-          // Also update toxicity data with estimations
-          data.analysis.toxicity = {
-            toxic_count: Math.floor(count * 0.3),
-            toxic_percentage: 30,
-            toxic_types: {
-              toxic: Math.floor(count * 0.15),
-              severe_toxic: Math.floor(count * 0.05),
-              obscene: Math.floor(count * 0.05),
-              threat: 0,
-              insult: Math.floor(count * 0.05),
-              identity_hate: 0
-            }
-          };
-        }
+        // 在显示结果中添加关于部分分析的注释
+        data.wsError = true
       }
       
-      // Save result and show modal
+      // 更新分析结果并显示模态框
       analysisResult.value = data
       showResultsModal.value = true
+      isLoading.value = false
       
-    } catch (err) {
-      console.error('API request error:', err)
-      
-      // More descriptive error messages based on error type
-      if (err.name === 'AbortError') {
-        analysisError.value = 'The request timed out. The server might be busy or temporarily unavailable.'
-      } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
-        analysisError.value = 'Could not connect to the backend service. Please check your internet connection.'
-      } else {
-        analysisError.value = `Failed to analyse comments: ${err.message}`
-      }
-    } finally {
+    } catch (error) {
+      console.error('API请求错误:', error)
+      analysisError.value = `连接到后端服务失败: ${error.message}`
       isLoading.value = false
     }
   }
