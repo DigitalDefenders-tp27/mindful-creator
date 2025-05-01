@@ -23,7 +23,7 @@ app.use(VueGoogleMaps, {
 })
 
 app.config.globalProperties.$api = {
-  baseURL: 'https://mindful-creator-production-e20c.up.railway.app',
+  baseURL: 'https://mindful-creator-production-e20c.up.railway.app/',
   async getInfluencerGuide() {
     const response = await fetch(`${this.baseURL}/api/influencer-guide`)
     return response.json()
