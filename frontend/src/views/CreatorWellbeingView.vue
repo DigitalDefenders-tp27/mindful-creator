@@ -448,7 +448,7 @@ const selectedMonth = ref('Any time')
 const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
 
-// 添加新的 ref
+// Add new ref
 const showOnlineConfirm = ref(false)
 const isSearching = ref(false)
 const map = ref(null)
@@ -459,41 +459,41 @@ const searchBox = ref(null)
 
 const router = useRouter()
 
-// 添加全局google对象引用
+// Add global Google object reference
 let googleInstance = null;
 
 // Initialize Google Maps
 const initMap = async () => {
   try {
-    // 如果地图已经存在，先清理
+    // If map already exists, clean it first
     if (map.value) {
       map.value = null;
     }
     
-    // 清除所有标记
+    // Clear all markers
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
       markers.value = [];
     }
 
-    // 检查API密钥
+    // Check API key
     if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
       throw new Error('Google Maps API key is missing');
     }
 
-    // 检查地图容器
+    // Check map container
     const mapElement = document.getElementById('google-map');
     if (!mapElement) {
       throw new Error('Map container not found');
     }
 
-    // 确保地图容器可见
+    // Ensure map container is visible
     if (!mapElement.offsetParent) {
       console.log('Map container is not visible, waiting for it to become visible...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // 等待DOM更新
+      await new Promise(resolve => setTimeout(resolve, 500)); // Wait for DOM update
     }
 
-    // 设置地图容器尺寸
+    // Set map container dimensions
     mapElement.style.width = '100%';
     mapElement.style.height = '630px';
 
@@ -505,11 +505,11 @@ const initMap = async () => {
       region: "AU"
     });
 
-    // 加载Google Maps
+    // Load Google Maps
     googleInstance = await loader.load();
     const { Map } = await googleInstance.maps.importLibrary("maps");
 
-    // 初始化地图
+    // Initialize map
     map.value = new Map(mapElement, {
       center: { lat: -37.8136, lng: 144.9631 },
       zoom: 13,
@@ -525,10 +525,10 @@ const initMap = async () => {
       ]
     });
 
-    // 触发resize事件以确保地图正确渲染
+    // Trigger resize event to ensure map renders correctly
     googleInstance.maps.event.trigger(map.value, 'resize');
 
-    // 初始化Places Autocomplete
+    // Initialize Places Autocomplete
     const input = document.querySelector('.search-input');
     if (input) {
       const autocomplete = new googleInstance.maps.places.Autocomplete(input, {
@@ -549,7 +549,7 @@ const initMap = async () => {
       });
     }
 
-    // 显示诊所标记
+    // Show clinic markers
     if (clinics.length > 0) {
       displayedClinics.value = [...clinics];
       await updateMarkers();
@@ -558,7 +558,7 @@ const initMap = async () => {
         selectedClinic.value = displayedClinics.value[0];
       }
       
-      // 将地图中心设置到选中的诊所
+      // Set map center to selected clinic
       if (selectedClinic.value) {
         map.value.setCenter({ 
           lat: selectedClinic.value.lat, 
@@ -574,20 +574,20 @@ const initMap = async () => {
   }
 };
 
-// 更新updateMarkers函数
+// Update updateMarkers function
 const updateMarkers = async () => {
   try {
     if (!map.value || !googleInstance) {
       throw new Error('Map not initialized');
     }
 
-    // 清除现有标记
+    // Clear existing markers
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
       markers.value = [];
     }
 
-    // 为每个诊所添加标记
+    // Add marker for each clinic
     displayedClinics.value.forEach(clinic => {
       const marker = new googleInstance.maps.Marker({
         position: { lat: clinic.lat, lng: clinic.lng },
@@ -680,7 +680,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 onMounted(async () => {
   renderChart();
   
-  // 如果当前是offline标签，初始化地图
+  // If current is offline tab, initialize map
   if (activeTab.value === 'offline') {
     await nextTick();
     await initMap();
@@ -708,7 +708,6 @@ const getMyPosition = () => {
   }
 }
 
-// 诊所数据（请补充到36家）
 const clinics = [
   {
     id: 1,
@@ -1401,19 +1400,14 @@ const clinics = [
 // Initialize displayed clinics
 displayedClinics.value = [...clinics];
 
-// 当前选中的诊所
 selectedClinic.value = clinics[0];
 
-// Tab 状态
 activeTab.value = 'offline';
 
-// 搜索框
 searchAddress.value = '';
 
-// 弹窗
 showGuide.value = false;
 
-// 切换 Tab
 const switchTab = (index) => {
   currentTab.value = index
   renderChart()
@@ -1529,7 +1523,7 @@ const switchResourceTab = async (tabName) => {
 const handleCancel = () => {
   showOnlineConfirm.value = false
   activeTab.value = 'online'
-  selectedClinic.value = null // 清除选中的诊所
+  selectedClinic.value = null
 }
 
 // Function to get directions to selected clinic
@@ -3880,7 +3874,6 @@ section:not(:last-child)::after {
   to { transform: rotate(360deg); }
 }
 
-/* 添加响应式布局 */
 @media (max-width: 768px) {
   .resource-content {
     grid-template-columns: 1fr;
