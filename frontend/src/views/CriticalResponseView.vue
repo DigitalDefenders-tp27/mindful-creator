@@ -347,7 +347,7 @@
     
     try {
       // Send request to backend API
-      const response = await fetch('https://mindful-creator-production.up.railway.app/api/youtube/analyze', {
+      const response = await fetch('https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

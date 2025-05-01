@@ -210,7 +210,7 @@ const sendMessage = async () => {
   if (userMessage.value.trim()) {
     chatHistory.value.push({ role: 'user', text: userMessage.value })
     try {
-      const res = await axios.post('https://mindful-creator-production.up.railway.app/api/chatbot', {
+      const res = await axios.post('https://mindful-creator-production-e20c.up.railway.app/api/chatbot', {
         message: userMessage.value,
       })
       chatHistory.value.push({ role: 'bot', text: res.data.reply })
