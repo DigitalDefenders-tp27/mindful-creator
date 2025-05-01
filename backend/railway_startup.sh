@@ -20,6 +20,11 @@ mkdir -p $GRADIO_TEMP_DIR
 export GRADIO_CLIENT_TEMP_DIR=$GRADIO_TEMP_DIR
 echo "Setting GRADIO_CLIENT_TEMP_DIR to: $GRADIO_CLIENT_TEMP_DIR"
 
+# 调试Space API端点
+echo "=== Debugging Space API endpoints ==="
+python -m backend.debug_space_connection
+echo "=== End of Space API debug ==="
+
 # 运行Space连接测试
 echo "Testing Space CLI connection..."
 python -m backend.tests.test_space_cli
