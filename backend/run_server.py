@@ -12,8 +12,26 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('server')
 
+
 def main():
     logger.info("=== Starting Mindful Creator Backend Service ===")
+logger.info("=== Starting Mindful Creator Backend Service ===")
+
+# Load environment variables from .env file
+logger.info("Loading environment variables...")
+root_env = os.path.join(os.path.dirname(__file__), os.pardir, ".env")
+load_dotenv(root_env)
+
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql://postgres:DhybdxDhwpiNkqWeySoABQBcMSgbUTJW@maglev.proxy.rlwy.net:17054/railway"
+)
+
+# Manually set environment variables if not already set
+if not os.environ.get("YOUTUBE_API_KEY"):
+    os.environ["YOUTUBE_API_KEY"] = "AIzaSyDU95gTm6jKz85RdDj84QpU1tUETrCCP8M"
+    logger.warning("YOUTUBE_API_KEY environment variable not found, using default value")
+
     
     # Load environment variables
     logger.info("Loading environment variables...")
