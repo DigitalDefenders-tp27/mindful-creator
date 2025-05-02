@@ -1,0 +1,1 @@
+web: cd backend && sh railway_startup.sh 
