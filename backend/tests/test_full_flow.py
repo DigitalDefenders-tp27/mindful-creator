@@ -223,7 +223,7 @@ def test_full_api_call(youtube_url: str, max_comments: int) -> Dict[str, Any]:
         import requests
         
         # API URL
-        api_url = "https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze"
+        api_url = "https://gleaming-celebration.railway.internal/api/youtube/analyze"
         
         # 准备请求数据
         request_data = {

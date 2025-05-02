@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 # 测试配置
-RAILWAY_URL = "https://mindful-creator-production-e20c.up.railway.app"
+RAILWAY_URL = "https://gleaming-celebration.railway.internal"
 SPACES_URL = "https://jet-12138-commentresponse.hf.space"
 TEST_COMMENTS = [
     "G'day mate! Brilliant video, absolute ripper content!",
