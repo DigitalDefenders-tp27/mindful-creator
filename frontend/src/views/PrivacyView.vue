@@ -1766,13 +1766,20 @@ const toggleInstaMobileSection = (section) => {
 const enlargeImage = (src) => {
   // Check if the src is the placeholder before enlarging
   if (src && !src.includes('screenshot-placeholder.svg')) {
-    try {
-      // Resolve the asset URL correctly using import.meta.url
-      enlargedImageSrc.value = new URL(src, import.meta.url).href;
-    } catch (e) {
-      console.error(`Error resolving image URL: ${src}`, e);
-      enlargedImageSrc.value = null; // Don't show modal if URL is invalid
+    let resolvedSrc;
+    if (import.meta.env.DEV) {
+      // In development, resolve relative paths using import.meta.url
+      try {
+        resolvedSrc = new URL(src, import.meta.url).href;
+      } catch (e) {
+        console.error(`Error resolving image URL in dev: ${src}`, e);
+        resolvedSrc = src; // Fallback for safety, though should normally resolve
+      }
+    } else {
+      // In production, the src passed from the template is already the correct public path
+      resolvedSrc = src;
     }
+    enlargedImageSrc.value = resolvedSrc;
   }
 };
 
