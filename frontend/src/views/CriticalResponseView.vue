@@ -367,7 +367,7 @@
     isLoading.value = true
     
     // API URL with fallback options
-    const primaryApiUrl = 'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze'
+    const primaryApiUrl = 'https://gleaming-celebration.railway.internal/api/youtube/analyze'
     
     try {
       console.log('Starting YouTube analysis process...')
@@ -379,7 +379,7 @@
       // First make a simple GET request to check if the server is responding at all
       let serverAvailable = false
       try {
-        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app/', {
+        const healthCheck = await fetch('https://gleaming-celebration.railway.internal/', {
           method: 'GET',
           mode: 'no-cors', // Use no-cors to avoid CORS failures during check
           signal: AbortSignal.timeout(5000)
