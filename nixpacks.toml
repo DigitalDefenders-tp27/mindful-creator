@@ -8,9 +8,7 @@ nixPkgs = [
   "git", 
   "git-lfs",
   "gcc",
-  "gcc-unwrapped",
-  "stdenv.cc.cc.lib",
-  "libstdcxx5"
+  "stdenv.cc"
 ]
 
 [phases.install]
@@ -20,7 +18,4 @@ cmds = [
 ]
 
 [start]
-cmd = "source .venv/bin/activate && cd backend && PYTHONPATH=$PYTHONPATH:$(pwd) sh railway_startup.sh"
-
-[build.env]
-LD_LIBRARY_PATH = "/lib:/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" 
+cmd = "source .venv/bin/activate && cd backend && PYTHONPATH=$PYTHONPATH:$(pwd) LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH sh railway_startup.sh" 
