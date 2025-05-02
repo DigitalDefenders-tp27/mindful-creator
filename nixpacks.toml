@@ -1,11 +1,32 @@
 [phases.setup]
-nixPkgs = ["python3", "python3Packages.pip", "python3Packages.setuptools", "python3Packages.wheel", "postgresql", "git", "git-lfs"]
+nixPkgs = [
+  "python3", 
+  "python3Packages.pip", 
+  "python3Packages.setuptools", 
+  "python3Packages.wheel", 
+  "postgresql", 
+  "git", 
+  "git-lfs"
+]
 
 [phases.install]
+aptPkgs = [
+  "libstdc++6",
+  "build-essential",
+  "gcc",
+  "g++",
+  "libgomp1"
+]
 cmds = [
   "python -m venv .venv",
   "source .venv/bin/activate && pip install -r backend/requirements.txt"
 ]
 
+[phases.setup.env]
+DEBIAN_FRONTEND = "noninteractive"
+
 [start]
-cmd = "source .venv/bin/activate && cd backend && PYTHONPATH=$PYTHONPATH:$(pwd) sh railway_startup.sh" 
+cmd = "source .venv/bin/activate && cd backend && PYTHONPATH=$PYTHONPATH:$(pwd) sh railway_startup.sh"
+
+[build.env]
+LD_LIBRARY_PATH = "/lib:/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}" 
