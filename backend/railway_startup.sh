@@ -20,6 +20,14 @@ mkdir -p $GRADIO_TEMP_DIR
 export GRADIO_CLIENT_TEMP_DIR=$GRADIO_TEMP_DIR
 echo "Setting GRADIO_CLIENT_TEMP_DIR to: $GRADIO_CLIENT_TEMP_DIR"
 
+# 安装Git LFS并克隆模型
+echo "=== Installing Git LFS and cloning model repository ==="
+apt-get update && apt-get install -y git-lfs
+git lfs install
+mkdir -p backend/app/nlp
+git clone https://huggingface.co/spaces/Jet-12138/CommentResponse backend/app/nlp
+echo "=== Model repository cloned successfully ==="
+
 # 调试Space API端点
 echo "=== Debugging Space API endpoints ==="
 python -m backend.debug_space_connection
