@@ -6,24 +6,18 @@ nixPkgs = [
   "python3Packages.wheel", 
   "postgresql", 
   "git", 
-  "git-lfs"
+  "git-lfs",
+  "gcc",
+  "gcc-unwrapped",
+  "stdenv.cc.cc.lib",
+  "libstdcxx5"
 ]
 
 [phases.install]
-aptPkgs = [
-  "libstdc++6",
-  "build-essential",
-  "gcc",
-  "g++",
-  "libgomp1"
-]
 cmds = [
   "python -m venv .venv",
   "source .venv/bin/activate && pip install -r backend/requirements.txt"
 ]
-
-[phases.setup.env]
-DEBIAN_FRONTEND = "noninteractive"
 
 [start]
 cmd = "source .venv/bin/activate && cd backend && PYTHONPATH=$PYTHONPATH:$(pwd) sh railway_startup.sh"
