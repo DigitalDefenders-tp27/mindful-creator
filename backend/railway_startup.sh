@@ -16,6 +16,10 @@ apt-get update && apt-get install -y git-lfs
 git lfs install
 mkdir -p backend/app/nlp
 git clone https://huggingface.co/spaces/Jet-12138/CommentResponse backend/app/nlp
+
+# 删除嵌套的 .git 目录
+echo "=== Removing nested .git directory ==="
+rm -rf backend/app/nlp/.git
 echo "=== Model repository cloned successfully ==="
 
 # 测试API名称方法
