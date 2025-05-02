@@ -10,6 +10,9 @@ import pathlib
 import time
 import tempfile
 import sys
+import re
+import traceback
+import torch
 
 # Ensure project root directory is in the Python path
 proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -196,7 +199,7 @@ def _normalise_space_result(result: Any) -> Dict:
 
 def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     """
-    Analyse comments using Gradio Space API for sentiment and toxicity
+    Analyse comments using local NLP model or Gradio Space API for sentiment and toxicity
     
     Args:
         comments: List of comments (should be a list of strings)
@@ -232,9 +235,68 @@ def analyse_comments_with_space_api(comments: List[Any]) -> Dict:
     total_comments = len(processed_comments)
     logger.info(f"Total comments to analyse: {total_comments}")
     
+    # First try using the local model
+    try:
+        logger.info("Attempting to use local model...")
+        # Import here to avoid circular imports
+        local_nlp_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "nlp")
+        
+        if os.path.exists(local_nlp_path) and os.path.isdir(local_nlp_path):
+            logger.info(f"Local NLP model directory found at {local_nlp_path}")
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+            
+            try:
+                # Use the local model
+                from backend.app.nlp.app import analyse_batch
+                
+                # Run analysis using the local model
+                logger.info("Running analysis with local model...")
+                comments_text = "\n".join(processed_comments)
+                result = analyse_batch(comments_text)
+                
+                # Extract data from response
+                sentiment_counts = result.get("sentiment_counts", {})
+                logger.info(f"Sentiment counts: {sentiment_counts}")
+                
+                toxicity_counts = result.get("toxicity_counts", {})
+                logger.info(f"Toxicity counts: {toxicity_counts}")
+                
+                toxicity_total = int(result.get("comments_with_any_toxicity", 0))
+                logger.info(f"Total toxic comments: {toxicity_total}")
+                
+                # Return analysis in our standard format
+                return {
+                    "sentiment": {
+                        "positive_count": sentiment_counts.get("Positive", 0),
+                        "neutral_count": sentiment_counts.get("Neutral", 0),
+                        "negative_count": sentiment_counts.get("Negative", 0)
+                    },
+                    "toxicity": {
+                        "toxic_count": toxicity_total,
+                        "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
+                        "toxic_types": {
+                            "toxic": toxicity_counts.get("Toxic", 0),
+                            "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
+                            "obscene": toxicity_counts.get("Obscene", 0),
+                            "threat": toxicity_counts.get("Threat", 0),
+                            "insult": toxicity_counts.get("Insult", 0),
+                            "identity_hate": toxicity_counts.get("Identity Hate", 0)
+                        }
+                    },
+                    "note": "Analysis performed using local model"
+                }
+            except Exception as local_err:
+                logger.error(f"Error using local model: {str(local_err)}")
+                logger.error(traceback.format_exc())
+                logger.info("Falling back to Space API...")
+        else:
+            logger.warning(f"Local NLP model directory not found at {local_nlp_path}")
+    except Exception as e:
+        logger.error(f"Local model analysis failed: {str(e)}")
+    
     # Space URLs - both the public URL and API URL
     SPACE_PUBLIC_URL = "https://huggingface.co/spaces/Jet-12138/CommentResponse"
-    SPACE_API_URL = "https://jet-12138-commentresponse.hf.space"  # The API endpoint format
+    SPACE_API_URL = "https://jet-12138-commentresponse.hf.space"
     
     try:
         # Use gradio_client to connect to Space API

@@ -13,3 +13,7 @@ venv/
 .env
 backend/server.log
 server.log
+
+# NLP Model files - keep only __init__.py
+backend/app/nlp/*
+!backend/app/nlp/__init__.py
