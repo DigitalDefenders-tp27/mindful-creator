@@ -144,7 +144,7 @@ def run_performance_test():
     # Step 4: Test the complete API endpoint
     with Timer("API endpoint complete analysis") as timer:
         try:
-            backend_url = os.environ.get("BACKEND_URL", "http://localhost:8080")
+            backend_url = os.environ.get("BACKEND_URL", "http://gleaming-celebration-production-0ae0.up.railway.app:8080")
             api_endpoint = f"{backend_url}/api/youtube/analyze"
             
             logger.info(f"Calling API endpoint: {api_endpoint}")
