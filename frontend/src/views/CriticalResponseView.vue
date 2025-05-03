@@ -369,8 +369,7 @@
     // API URL options - will try alternatives if primary fails
     const apiUrls = [
       'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze',  // Primary URL
-      'http://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze',   // Fallback without https
-      'https://mindful-creator-production-e20c.up.railway.app:8000/api/youtube/analyze', // Fallback with explicit port
+      'https://mindful-creator-production-e20c.up.railway.app/api/health',           // Health check as fallback
     ]
     let primaryApiUrl = apiUrls[0]
     
@@ -386,9 +385,8 @@
       let serverAvailable = false
       try {
         console.log('Performing health check...')
-        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app', {
+        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app/api/health', {
           method: 'GET',
-          mode: 'no-cors', // Use no-cors to avoid CORS failures during check
           signal: AbortSignal.timeout(5000)
         })
         
@@ -523,7 +521,7 @@
       } else if (error.message.includes('CORS') || error.message.includes('access control checks')) {
         analysisError.value = "Strewth! There's a browser security issue connecting to the server. Try refreshing the page or using a different browser."
       } else {
-        analysisError.value = `Looks like we hit a snag: ${error.message}. Server: mindful-creator-production-e20c.up.railway.app`
+        analysisError.value = `Looks like we hit a snag: ${error.message}. Please try again.`
       }
       
       isLoading.value = false
