@@ -69,16 +69,16 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
     
     logger.info(f"Analyzing {len(comments)} comments with OpenRouter")
     
-    # 设置超时和重试参数
+    # Set timeout and retry parameters
     max_retries = 2
-    timeout_seconds = 300  # 增加到5分钟，允许模型加载和处理时间
+    timeout_seconds = 300  # Increased to 5 minutes to allow for model loading and processing
     
-    # 使用异常处理和降级模式确保即使LLM调用失败也能返回有用的结果
+    # Use exception handling and fallback modes to ensure useful results even if LLM calls fail
     try:
         # Identify most critical comments
         toxic_comments = []
         try:
-            # 设置超时，如果超时就使用一个小样本
+            # Set timeout, if it times out, use a small sample
             for attempt in range(max_retries):
                 try:
                     logger.info(f"Identifying critical comments (attempt {attempt+1}/{max_retries})")
@@ -86,15 +86,15 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
                     break
                 except Exception as e:
                     logger.error(f"Error identifying critical comments (attempt {attempt+1}): {e}")
-                    if attempt == max_retries - 1:  # 最后一次尝试失败
-                        # 降级：从原始评论中选择一些样本
+                    if attempt == max_retries - 1:  # Last attempt failed
+                        # Fallback: select a sample from original comments
                         logger.warning("Failed to identify critical comments, using sample of original comments")
                         toxic_comments = comments[:min(3, len(comments))]
         except Exception as e:
             logger.error(f"Failed to identify critical comments: {e}")
             toxic_comments = comments[:min(3, len(comments))]
         
-        # 确保有评论可以分析
+        # Make sure we have comments to analyse
         if not toxic_comments and comments:
             toxic_comments = comments[:min(3, len(comments))]
         
@@ -108,7 +108,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
                     break
             except Exception as e:
                 logger.error(f"Error generating strategies (attempt {attempt+1}): {e}")
-                if attempt == max_retries - 1:  # 最后一次尝试失败
+                if attempt == max_retries - 1:  # Last attempt failed
                     strategies = generate_fallback_strategies(toxic_comments)
         
         # Generate example responses with timeout and retry
@@ -121,10 +121,10 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
                     break
             except Exception as e:
                 logger.error(f"Error generating example responses (attempt {attempt+1}): {e}")
-                if attempt == max_retries - 1:  # 最后一次尝试失败
+                if attempt == max_retries - 1:  # Last attempt failed
                     example_responses = generate_fallback_examples(toxic_comments)
         
-        # 确保总是返回有效的策略和示例
+        # Ensure we always return valid strategies and examples
         if not strategies:
             strategies = generate_fallback_strategies(toxic_comments)
         
@@ -138,7 +138,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Error in LLM analysis: {e}")
-        # 确保返回降级结果，而不是错误
+        # Ensure we return fallback results, not an error
         return {
             "status": "partial",
             "strategies": generate_fallback_strategies(comments[:min(3, len(comments))]),
@@ -424,7 +424,7 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
 
 # 添加降级函数
 def generate_fallback_strategies(comments: List[str]) -> str:
-    """生成预定义的应对策略"""
+    """Generate predefined response strategies"""
     return """• Keep your cool when responding to negative comments - no need to get defensive or worked up
 • Focus on the fair dinkum feedback while ignoring the personal attacks
 • Show appreciation for constructive criticism even when it's delivered a bit harshly
@@ -432,8 +432,8 @@ def generate_fallback_strategies(comments: List[str]) -> str:
 • Remember you don't have to respond to every negative comment - sometimes it's best to let it go"""
 
 def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
-    """生成预定义的示例回复"""
-    # 确保即使没有评论也能返回有用的示例
+    """Generate predefined example responses"""
+    # Ensure we return useful examples even if no comments are provided
     if not comments:
         return [
             {
@@ -446,13 +446,13 @@ def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
             }
         ]
     
-    # 为实际评论生成通用但合理的回复
+    # Generate generic but reasonable responses for actual comments
     results = []
-    for i, comment in enumerate(comments[:3]):  # 最多处理3条评论
-        # 截取评论前100个字符作为预览
+    for i, comment in enumerate(comments[:3]):  # Process at most 3 comments
+        # Take first 100 chars of comment as preview
         preview = comment[:100] + "..." if len(comment) > 100 else comment
         
-        # 基于评论长度选择不同的标准回复
+        # Choose different standard responses based on comment length
         if len(comment) < 30:
             response = "Thanks for your feedback, mate. Really appreciate you taking the time to share your thoughts!"
         elif "?" in comment:

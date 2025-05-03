@@ -48,9 +48,9 @@ async def analyze_youtube_comments_endpoint(
     """
     Analyze YouTube comments for a given video URL.
     """
-    # 设置更长的处理超时时间 - 最长5分钟
+    # Set longer processing timeout - max 5 minutes
     start_time = time.time()
-    max_time = 300  # 5分钟超时
+    max_time = 300  # 5 minute timeout
     
     try:
         logger.info(f"Received request to analyze comments from: {request.video_url}")
@@ -84,7 +84,7 @@ async def analyze_youtube_comments_endpoint(
                 "message": f"Error fetching comments: {str(e)}"
             }
         
-        # 添加结果字典，无论哪个分析模块失败都能返回部分结果
+        # Create results dictionary to return partial results even if some analysis modules fail
         results = {
             "success": True,
             "video_id": video_id,
@@ -94,13 +94,13 @@ async def analyze_youtube_comments_endpoint(
             "processing_time_seconds": 0
         }
         
-        # 检查是否已经超时
+        # Check if we're already out of time
         current_time = time.time()
         remaining_time = max_time - (current_time - start_time)
         logger.info(f"Time used so far: {current_time - start_time:.2f}s, remaining: {remaining_time:.2f}s")
         
         # Analyze comments with local model
-        if remaining_time > 10:  # 确保至少有10秒钟来处理
+        if remaining_time > 10:  # Make sure we have at least 10 seconds to process
             try:
                 logger.info("Starting sentiment analysis with local model")
                 sentiment_results = analyse_comments_with_local_model(comments)
@@ -108,17 +108,17 @@ async def analyze_youtube_comments_endpoint(
                 logger.info("Sentiment analysis completed successfully")
             except Exception as e:
                 logger.error(f"Error in sentiment analysis: {str(e)}")
-                # 不返回错误，继续处理
+                # Don't return error, continue processing
         else:
             logger.warning("Skipping sentiment analysis due to time constraints")
         
-        # 再次检查剩余时间
+        # Check remaining time again
         current_time = time.time()
         remaining_time = max_time - (current_time - start_time)
         logger.info(f"Time used after sentiment analysis: {current_time - start_time:.2f}s, remaining: {remaining_time:.2f}s")
         
         # Analyze comments with LLM
-        if remaining_time > 10:  # 确保至少有10秒钟来处理
+        if remaining_time > 10:  # Make sure we have at least 10 seconds to process
             try:
                 logger.info("Starting LLM analysis")
                 llm_results = analyse_youtube_comments(comments)
@@ -126,11 +126,11 @@ async def analyze_youtube_comments_endpoint(
                 logger.info("LLM analysis completed successfully")
             except Exception as e:
                 logger.error(f"Error in LLM analysis: {str(e)}")
-                # 不返回错误，继续处理
+                # Don't return error, continue processing
         else:
             logger.warning("Skipping LLM analysis due to time constraints")
         
-        # 计算处理时间并添加到结果
+        # Calculate processing time and add to results
         end_time = time.time()
         results["processing_time_seconds"] = round(end_time - start_time, 2)
         logger.info(f"Analysis completed in {results['processing_time_seconds']} seconds")
@@ -138,12 +138,12 @@ async def analyze_youtube_comments_endpoint(
         return results
         
     except Exception as e:
-        # 计算处理时间并添加到结果
+        # Calculate processing time and add to results
         end_time = time.time()
         processing_time = round(end_time - start_time, 2)
         
         logger.error(f"Unhandled error in analyze_youtube_comments_endpoint after {processing_time}s: {str(e)}")
-        # 确保返回的响应格式正确
+        # Ensure response format is correct
         return {
             "success": False,
             "message": f"An unexpected error occurred: {str(e)}",
