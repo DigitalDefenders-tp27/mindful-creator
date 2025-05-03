@@ -3,8 +3,9 @@ set -e
 
 echo "=== Mindful Creator Backend Startup ==="
 
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-APP_PORT="${PORT:-8080}"
+APP_PORT="${PORT:-8000}"
+echo "Starting Uvicorn on port $APP_PORT …"
+exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
 
 MODEL_DIR="app/nlp"
 if [[ -f "$MODEL_DIR/app.py" ]]; then
@@ -21,3 +22,4 @@ ls -la "$MODEL_DIR"
 
 echo "Starting Uvicorn on $APP_PORT ..."
 exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
+echo "PORT env from Railway = ${PORT}"
