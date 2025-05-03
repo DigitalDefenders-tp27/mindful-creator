@@ -59,7 +59,8 @@ try:
     app.include_router(youtube_router, prefix="/api/youtube")
     logger.info("Successfully loaded all additional routes")
 except Exception as e:
-    logger.error(f"Error loading additional routes: {str(e)}")
+    logger.warning("Extra routes skipped: %s: %s", type(e).__name__, e)
+
     logger.info("Continuing startup with basic functionality")
 
 # Custom middleware to manually add CORS headers for all responses

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
-
-echo "=== Mindful Creator Backend Startup ==="
+APP_PORT=8080
+echo "Starting Uvicorn on port $APP_PORT ..."
+exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
 
 APP_PORT="${PORT:-8000}"
 echo "Starting Uvicorn on port $APP_PORT …"
