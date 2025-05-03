@@ -2,6 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install Git and Git LFS
+RUN apt-get update && \
+    apt-get install -y git git-lfs && \
+    git lfs install && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy requirements file
 COPY requirements.txt .
 

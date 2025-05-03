@@ -239,7 +239,7 @@ export default websocketService;
 // import websocketService from '@/utils/websocket';
 // 
 // // Connect to backend WebSocket with ping enabled to keep connection alive
-// websocketService.connect('wss://mindful-creator-production-e20c.up.railway.app/ws', {
+// websocketService.connect('wss://gleaming-celebration.railway.internal/ws', {
 //   enablePing: true,
 //   pingIntervalMs: 20000 // 20 seconds
 // });
@@ -277,7 +277,7 @@ export default websocketService;
  *    - Check if there's a custom domain and try connecting with it
  * 
  * 3. WebSocket URL format should be:
- *    wss://mindful-creator-production-e20c.up.railway.app/ws
+ *    wss://gleaming-celebration.railway.internal/ws
  *    Note: URL must use wss:// rather than ws:// or https://
  * 
  * 4. If you still get 403 or 1006 errors:
@@ -286,5 +286,5 @@ export default websocketService;
  *    - Try restarting the service using Railway's "Advanced Settings"
  *    - Ensure "Always On" is enabled in Railway service settings
  *    - Try connecting through a test endpoint first: 
- *      https://mindful-creator-production-e20c.up.railway.app/ws-test
+ *      https://gleaming-celebration.railway.internal/ws-test
  */ 

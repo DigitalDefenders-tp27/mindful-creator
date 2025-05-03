@@ -9,7 +9,7 @@
           id="ws-url" 
           type="text" 
           v-model="wsUrl" 
-          placeholder="Enter WebSocket URL, e.g.: wss://mindful-creator-production-e20c.up.railway.app/ws"
+          placeholder="Enter WebSocket URL, e.g.: wss://gleaming-celebration.railway.internal/ws"
           class="url-input-field"
         />
       </div>
@@ -130,7 +130,7 @@ const socket = ref(null);
 const isConnected = ref(false);
 const connectionError = ref(null);
 const messages = ref([]);
-const wsUrl = ref('wss://mindful-creator-production-e20c.up.railway.app/ws');
+const wsUrl = ref('wss://gleaming-celebration.railway.internal/ws');
 const messageToSend = ref('');
 const enablePing = ref(true);
 const pingIntervalMs = ref(20000); // 20 seconds
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 onMounted(() => {
   addMessage('Welcome to the WebSocket Testing Tool', 'info');
   addMessage('Click the "Connect" button to begin testing', 'info');
-  addMessage('Backend address: mindful-creator-production-e20c.up.railway.app', 'info');
+  addMessage('Backend address: gleaming-celebration.railway.internal', 'info');
   addMessage('Ping messages are enabled to keep the connection alive', 'info');
 });
 </script>
