@@ -1,23 +1,31 @@
 import os
 import logging
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import time
+from typing import Dict, Any
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import datetime
+import uvicorn
 
 from app.api.router import router as api_router
 from app.api.relaxation.routes import router as relaxation_router
 from app.api.notes.routes import router as notes_router
 from app.api.youtube.routes import router as youtube_router
+from app.database import get_db
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("websocket")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger(__name__)
 
 # Create FastAPI application
 app = FastAPI(
     title="Mindful Creator API",
-    description="API for the Mindful Creator application",
-    version="0.1.0",
+    description="API for analyzing YouTube comments and providing response strategies",
+    version="1.0.0"
 )
 
 # Setup CORS
@@ -90,19 +98,49 @@ async def websocket_test():
     return {"status": "ok", "message": "WebSocket test endpoint available"}
 
 # Health check endpoint
-@app.get("/api/health")
-async def health_check():
-    """Health check endpoint to verify API server is running"""
+@app.get("/health")
+def health_check() -> Dict[str, Any]:
+    """简单的健康检查端点，用于监控应用状态"""
     return {
-        "status": "ok",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "message": "API server is running"
+        "status": "healthy",
+        "timestamp": time.time(),
+        "environment": os.environ.get("APP_ENV", "development"),
+        "nlp_model_loaded": os.environ.get("MODEL_LOADED", "false").lower() == "true"
     }
 
 @app.get("/")
-async def root():
-    return {"message": "Mindful Creator API is running"}
+def root() -> Dict[str, str]:
+    """根路径的简化健康检查"""
+    return {"status": "online"}
+
+# Request processing middleware, add performance monitoring
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    
+    # Record request information
+    logger.info(f"Request: {request.method} {request.url.path}")
+    
+    response = await call_next(request)
+    
+    # Add processing time header
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    logger.info(f"Response time: {process_time:.2f}s")
+    
+    return response
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True) 
+    logger.info(f"Starting server on port {os.environ.get('PORT', 8000)}")
+    logger.info(f"Environment: {os.environ.get('APP_ENV', 'development')}")
+    logger.info(f"NLP model loaded: {os.environ.get('MODEL_LOADED', 'false').lower() == 'true'}")
+    
+    # Use optimized Uvicorn configuration
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=os.environ.get('PORT', 8000),
+        log_level="info",
+        workers=1,  # Adjust worker count based on resources
+        timeout_keep_alive=65
+    ) 

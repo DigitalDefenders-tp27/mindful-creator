@@ -366,11 +366,17 @@
     // Set loading state
     isLoading.value = true
     
-    // API URL with fallback options
-    const primaryApiUrl = 'https://mindful-creator-production-e20c.up.railway.app:8000/api/youtube/analyze'
+    // API URL options - will try alternatives if primary fails
+    const apiUrls = [
+      'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze',  // Primary URL
+      'http://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze',   // Fallback without https
+      'https://mindful-creator-production-e20c.up.railway.app:8000/api/youtube/analyze', // Fallback with explicit port
+    ]
+    let primaryApiUrl = apiUrls[0]
     
     try {
       console.log('Starting YouTube analysis process...')
+      console.log('Using API URL:', primaryApiUrl)
       
       // Create AbortController for the request with timeout
       const controller = new AbortController()
@@ -379,16 +385,17 @@
       // First make a simple GET request to check if the server is responding at all
       let serverAvailable = false
       try {
-        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app:8000', {
+        console.log('Performing health check...')
+        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app', {
           method: 'GET',
           mode: 'no-cors', // Use no-cors to avoid CORS failures during check
           signal: AbortSignal.timeout(5000)
         })
         
-        console.log('Basic connectivity check completed')
+        console.log('Basic connectivity check response:', healthCheck.status, healthCheck.statusText)
         serverAvailable = true
       } catch (healthError) {
-        console.warn('Server may be down or unreachable:', healthError)
+        console.warn('Server health check failed:', healthError.message)
         // Continue anyway - will try the actual request
       }
       
@@ -397,21 +404,46 @@
       let response
       try {
         // Send request to backend API with improved error handling
-        response = await fetch(primaryApiUrl, {
-          method: 'POST',
-          // Use 'no-cors' mode when having CORS issues
-          mode: 'cors',
-          credentials: 'omit', // Don't send credentials
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            video_url: youtubeUrl.value,
-            max_comments: 100 // Limit number of comments to process
-          }),
-          signal: controller.signal
-        })
+        console.log('Sending POST request to API endpoint...')
+        
+        // Try multiple URL formats if needed
+        let fetchError = null
+        for (let i = 0; i < apiUrls.length; i++) {
+          try {
+            console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i]}`)
+            response = await fetch(apiUrls[i], {
+              method: 'POST',
+              mode: 'cors',
+              credentials: 'omit',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                video_url: youtubeUrl.value,
+                max_comments: 100
+              }),
+              signal: controller.signal
+            })
+            
+            console.log(`Response from attempt ${i+1}:`, response.status, response.statusText)
+            
+            // If we got a successful response, break the loop
+            if (response.ok) {
+              console.log('Successful response received')
+              break
+            }
+          } catch (error) {
+            console.warn(`Attempt ${i+1} failed:`, error.message)
+            fetchError = error
+            // Continue to next URL if available
+          }
+        }
+        
+        // If we tried all URLs and still have no valid response
+        if (!response || !response.ok) {
+          throw fetchError || new Error('All API endpoints failed')
+        }
       } catch (fetchError) {
         console.error('Fetch operation failed:', fetchError)
         
@@ -470,19 +502,28 @@
     } catch (error) {
       console.error('API request error:', error)
       
+      // 添加一个直接的错误对象记录，帮助查找问题
+      const errorDetails = {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        time: new Date().toISOString()
+      }
+      console.log('Full error details:', errorDetails)
+      
       // Handle specific errors with user-friendly messages
       if (error.message.includes('NetworkError') || 
           error.message.includes('Failed to fetch') || 
           error.message.includes('Load failed') ||
           error.message.includes('server is down') ||
           error.message.includes('server is currently unavailable')) {
-        analysisError.value = "Crikey! The server's having a bit of a lie-down right now. Try again in a few minutes."
+        analysisError.value = "Crikey! The server's having a bit of a lie-down right now. Try again in a few minutes. (Error: " + error.message + ")"
       } else if (error.name === 'AbortError' || error.message.includes('timed out')) {
         analysisError.value = "Fair dinkum, that's taking ages! The request timed out. Give it another go when the server's less busy."
       } else if (error.message.includes('CORS') || error.message.includes('access control checks')) {
         analysisError.value = "Strewth! There's a browser security issue connecting to the server. Try refreshing the page or using a different browser."
       } else {
-        analysisError.value = `Looks like we hit a snag: ${error.message}`
+        analysisError.value = `Looks like we hit a snag: ${error.message}. Server: mindful-creator-production-e20c.up.railway.app`
       }
       
       isLoading.value = false
