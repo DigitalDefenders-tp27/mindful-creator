@@ -7,6 +7,11 @@ import time
 import os
 import requests
 from fastapi import BackgroundTasks
+import re
+from fastapi.responses import JSONResponse
+import google.oauth2.credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from .analyzer import (
     analyse_comments_with_local_model,
@@ -19,7 +24,10 @@ from .llm_handler import analyse_youtube_comments
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/youtube",
+    tags=["youtube"]
+)
 
 # Add an OPTIONS endpoint to handle preflight CORS requests
 @router.options("/analyze")
@@ -267,4 +275,244 @@ def test_youtube_endpoint():
         return {
             "status": "error",
             "message": f"Test endpoint error: {str(e)}"
-        } 
+        }
+
+@router.options("", include_in_schema=False)
+async def preflight_youtube():
+    """CORS预检请求的处理"""
+    logger.info("YouTube CORS preflight request handled")
+    return {}
+
+@router.post("/analyse", response_model=List[YouTubeAnalysisResponse])
+async def analyse_youtube_video(request: YouTubeRequest):
+    """
+    分析YouTube视频评论，识别关键评论，并提供回应策略
+    """
+    start_time = time.time()
+    logger.info(f"YouTube comment analysis request received: urls={request.youtube_url}, max_comments={request.limit}")
+    
+    try:
+        # 检查YouTubeAPI的环境变量
+        api_key = os.environ.get('YOUTUBE_API_KEY')
+        if not api_key:
+            logger.error("YouTube API key not found in environment variables")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "success": False, 
+                    "message": "YouTube API key not configured"
+                }
+            )
+        
+        logger.info("YouTube API key found")
+        responses = []
+        
+        # 从请求中提取视频ID
+        video_id = extract_video_id(request.youtube_url)
+        if not video_id:
+            logger.error("No valid YouTube video ID found in the provided URL")
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False, 
+                    "message": "No valid YouTube video ID found in the provided URL"
+                }
+            )
+        
+        # 构建YouTube API客户端
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        logger.info(f"YouTube API client built successfully")
+        
+        # 获取视频详情
+        video_info = get_video_info(youtube, video_id)
+        logger.info(f"Retrieved video info: title='{video_info['title']}', id={video_id}")
+        
+        # 获取评论
+        logger.info(f"Fetching comments for video ID: {video_id}, max_comments: {request.limit}")
+        comments_time_start = time.time()
+        comments = get_video_comments(youtube, video_id, request.limit)
+        comments_time = time.time() - comments_time_start
+        logger.info(f"Retrieved {len(comments)} comments in {comments_time:.2f} seconds")
+        
+        if not comments:
+            logger.warning(f"No comments found for video ID: {video_id}")
+            responses.append(
+                YouTubeAnalysisResponse(
+                    videoTitle=video_info["title"],
+                    videoId=video_id,
+                    thumbnailUrl=video_info["thumbnail"],
+                    totalCommentsAnalysed=0,
+                    criticalComments=[],
+                    success=True,
+                    message="No comments found for this video"
+                )
+            )
+            return responses
+        
+        # 记录分析开始
+        analysis_time_start = time.time()
+        logger.info(f"Starting comment analysis for {len(comments)} comments")
+        
+        # 使用LLM分析评论
+        model_status = os.environ.get("MODEL_LOADED", "false").lower() == "true"
+        if model_status:
+            logger.info("Using full LLM analysis")
+        else:
+            logger.warning("Model not loaded, using simplified analysis")
+        
+        # 执行评论分析
+        try:
+            # 转换评论格式
+            comment_texts = [comment['text'] for comment in comments]
+            logger.info(f"Analyzing {len(comment_texts)} comments using LLM")
+            
+            # 调用LLM分析函数
+            analysis_result = analyse_youtube_comments(comment_texts)
+            
+            if not analysis_result:
+                logger.warning("LLM analysis returned no results")
+                analysis_result = []
+            
+            logger.info(f"LLM analysis completed, identified {len(analysis_result)} critical comments")
+            
+            # 将分析结果与原始评论匹配
+            critical_comments = []
+            for critical_comment in analysis_result:
+                # 找到原始评论的完整信息
+                original_comment = next(
+                    (c for c in comments if c['text'] == critical_comment['comment']), 
+                    None
+                )
+                
+                if original_comment:
+                    critical_comments.append(
+                        CriticalCommentResponse(
+                            commentText=original_comment['text'],
+                            author=original_comment['author'],
+                            publishTime=original_comment['publishedAt'],
+                            likesCount=original_comment['likeCount'],
+                            responseStrategy=critical_comment['strategy'],
+                            exampleResponse=critical_comment['example_response']
+                        )
+                    )
+                else:
+                    logger.warning(f"Could not find original comment for analysis result: {critical_comment['comment'][:50]}...")
+            
+            analysis_time = time.time() - analysis_time_start
+            logger.info(f"Comment analysis completed in {analysis_time:.2f} seconds")
+            
+            # 创建并添加响应
+            response = YouTubeAnalysisResponse(
+                videoTitle=video_info["title"],
+                videoId=video_id,
+                thumbnailUrl=video_info["thumbnail"],
+                totalCommentsAnalysed=len(comments),
+                criticalComments=critical_comments,
+                success=True
+            )
+            responses.append(response)
+            
+        except Exception as e:
+            logger.error(f"Error during comment analysis: {str(e)}")
+            logger.error(traceback.format_exc())
+            responses.append(
+                YouTubeAnalysisResponse(
+                    videoTitle=video_info["title"],
+                    videoId=video_id,
+                    thumbnailUrl=video_info["thumbnail"],
+                    totalCommentsAnalysed=len(comments),
+                    criticalComments=[],
+                    success=False,
+                    message=f"Error during comment analysis: {str(e)}"
+                )
+            )
+        
+        total_time = time.time() - start_time
+        logger.info(f"YouTube analysis completed in {total_time:.2f} seconds, processed 1 video")
+        return responses
+    
+    except Exception as e:
+        logger.error(f"Unhandled exception in YouTube analysis: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500, 
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+def get_video_info(youtube, video_id: str) -> Dict:
+    """获取视频详情信息"""
+    try:
+        response = youtube.videos().list(
+            part='snippet',
+            id=video_id
+        ).execute()
+        
+        if not response.get('items'):
+            logger.warning(f"No video details found for ID: {video_id}")
+            return {
+                "title": "Unknown Video",
+                "thumbnail": ""
+            }
+        
+        video_data = response['items'][0]['snippet']
+        title = video_data.get('title', 'Unknown Video')
+        thumbnail = video_data.get('thumbnails', {}).get('high', {}).get('url', '')
+        
+        logger.info(f"Retrieved video info for ID {video_id}: title='{title}'")
+        return {
+            "title": title,
+            "thumbnail": thumbnail
+        }
+    except Exception as e:
+        logger.error(f"Error getting video info for ID {video_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        return {
+            "title": "Unknown Video",
+            "thumbnail": ""
+        }
+
+def get_video_comments(youtube, video_id: str, max_comments: int) -> List[Dict]:
+    """获取视频评论"""
+    try:
+        comments = []
+        next_page_token = None
+        
+        while len(comments) < max_comments:
+            # 调用YouTube API获取评论
+            response = youtube.commentThreads().list(
+                part='snippet',
+                videoId=video_id,
+                maxResults=min(100, max_comments - len(comments)),  # 每页最多100条评论
+                pageToken=next_page_token
+            ).execute()
+            
+            # 处理响应数据
+            for item in response.get('items', []):
+                snippet = item.get('snippet', {}).get('topLevelComment', {}).get('snippet', {})
+                comment = {
+                    'text': snippet.get('textDisplay', ''),
+                    'author': snippet.get('authorDisplayName', 'Anonymous'),
+                    'publishedAt': snippet.get('publishedAt', ''),
+                    'likeCount': snippet.get('likeCount', 0)
+                }
+                comments.append(comment)
+            
+            # 检查是否有下一页
+            next_page_token = response.get('nextPageToken')
+            if not next_page_token or len(response.get('items', [])) == 0:
+                break
+        
+        logger.info(f"Retrieved {len(comments)} comments for video ID: {video_id}")
+        return comments
+    
+    except HttpError as e:
+        logger.error(f"YouTube API error getting comments for video {video_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        if "commentsDisabled" in str(e):
+            logger.warning(f"Comments are disabled for video ID: {video_id}")
+        return []
+    
+    except Exception as e:
+        logger.error(f"Error getting comments for video {video_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        return [] 
