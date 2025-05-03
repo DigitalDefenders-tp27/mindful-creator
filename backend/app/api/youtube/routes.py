@@ -16,6 +16,22 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Add an OPTIONS endpoint to handle preflight CORS requests
+@router.options("/analyze")
+async def options_analyze():
+    """Handle OPTIONS requests for CORS preflight."""
+    logger.info("Received OPTIONS request for /analyze endpoint")
+    return Response(
+        content="",
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
+
 class YouTubeAnalysisRequest(BaseModel):
     video_url: str
     max_comments: int = 100  # Default to 20 comments

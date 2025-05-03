@@ -24,28 +24,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Setup CORS
-origins = [
-    "http://localhost:3000", 
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:4173",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "https://mindful-creator-git-main-tiezhu.vercel.app",
-    "https://mindful-creator.vercel.app",
-    "https://mindful-creator-tiezhu.vercel.app",
-    "https://mindful-creator-production-e20c.up.railway.app",
-    "https://gleaming-celebration-production-0ae0.up.railway.app",
-    "https://www.tiezhu.org",
-    "https://tiezhu.org",
-    "*"  # Allow all origins as fallback - make sure this is at the end
-]
-
+# Setup CORS - Simplified to ensure it works in all environments
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://(.*\.)?mindful-creator.*\.vercel\.app|https://.*\.up\.railway\.app|https://(.*\.)?tiezhu\.org",
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,6 +61,19 @@ try:
 except Exception as e:
     logger.error(f"Error loading additional routes: {str(e)}")
     logger.info("Continuing startup with basic functionality")
+
+# Custom middleware to manually add CORS headers for all responses
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Add CORS headers to every response
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    
+    return response
 
 # Request processing middleware
 @app.middleware("http")
