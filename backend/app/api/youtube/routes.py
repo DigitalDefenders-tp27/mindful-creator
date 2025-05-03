@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response, Body, status
 from typing import Dict, List, Any, Optional
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 import logging
 import traceback
 import time
@@ -8,14 +8,16 @@ import os
 import requests
 from fastapi import BackgroundTasks
 
-from app.api.youtube.analyzer import analyze_comments_with_local_model, extract_video_id, fetch_comments
-from app.api.youtube.llm_handler import analyse_youtube_comments_with_llm
-from app.models.youtube import YoutubeRequest
-from app.utils.logging import get_logger
+from .analyzer import (
+    analyse_comments_with_local_model,
+    extract_video_id,
+    fetch_youtube_comments,
+)
+from .llm_handler import analyse_youtube_comments
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -51,6 +53,21 @@ async def options_analyse():
         }
     )
 
+# Add YoutubeRequest model definition
+class YoutubeRequest(BaseModel):
+    youtube_url: str
+    limit: Optional[int] = Field(100, description="Maximum number of comments to fetch")
+    llm_enabled: Optional[bool] = Field(True, description="Whether to use LLM for analysis")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "limit": 100,
+                "llm_enabled": True
+            }
+        }
+
 class YouTubeAnalysisRequest(BaseModel):
     video_url: str
     max_comments: int = 100  # Default to 20 comments
@@ -59,7 +76,7 @@ class YouTubeAnalysisRequest(BaseModel):
         schema_extra = {
             "example": {
                 "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                "max_comments": 10
+                "max_comments": 100
             }
         }
 
@@ -92,7 +109,7 @@ async def analyse_youtube_comments(
         Analysis results
     """
     try:
-        # Extract comments based on the request
+        # Extract video ID for reference
         video_id = extract_video_id(request.youtube_url)
         if not video_id:
             raise HTTPException(
@@ -100,11 +117,11 @@ async def analyse_youtube_comments(
                 detail="Invalid YouTube URL. Could not extract video ID."
             )
             
-        # Get comments depending on the mode (recent, popular, etc.)
-        mode = request.mode.lower() if request.mode else "recent"
-        logger.info(f"Extracting comments for video {video_id} with mode: {mode}")
+        # Get comments directly from the URL
+        limit = request.limit or 100
+        logger.info(f"Extracting comments for video URL: {request.youtube_url} with limit: {limit}")
         
-        comments = fetch_comments(video_id, mode, request.limit or 50)
+        comments = fetch_youtube_comments(request.youtube_url, limit)
         
         if not comments:
             return {"error": "No comments found for this video"}
@@ -112,7 +129,7 @@ async def analyse_youtube_comments(
         # First get basic analysis
         if os.environ.get("MODEL_LOADED", "false").lower() != "true":
             # If model isn't loaded, return a specific message
-            basic_analysis = analyze_comments_with_local_model(comments)
+            basic_analysis = analyse_comments_with_local_model(comments)
             return {
                 "video_id": video_id,
                 "analysis": basic_analysis,
@@ -121,14 +138,13 @@ async def analyse_youtube_comments(
             }
         
         # If model is loaded, perform both local and LLM analysis
-        basic_analysis = analyze_comments_with_local_model(comments)
+        basic_analysis = analyse_comments_with_local_model(comments)
         
         # Schedule the LLM analysis in the background if needed
         if request.llm_enabled:
             logger.info("Scheduling LLM comment analysis in background")
             background_tasks.add_task(
-                analyse_youtube_comments_with_llm,
-                video_id, 
+                analyse_youtube_comments,
                 comments
             )
             llm_status = "processing"
@@ -184,7 +200,7 @@ async def test_local_model(request: TestRequest):
         # Try to analyze with local model
         try:
             # Use our actual analysis function
-            result = analyze_comments_with_local_model(request.comments)
+            result = analyse_comments_with_local_model(request.comments)
             analysis_success = True
             
             # Check if it returned an error

@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -e
-APP_PORT=8080
-echo "Starting Uvicorn on port $APP_PORT ..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
 
+# 使用Railway提供的PORT环境变量，如果未设置则默认为8000
 APP_PORT="${PORT:-8000}"
-echo "Starting Uvicorn on port $APP_PORT …"
-exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
+echo "PORT env from Railway = ${PORT:-not set}"
+echo "Using port: $APP_PORT"
+echo "Current dir: $(pwd)"
 
 MODEL_DIR="app/nlp"
 if [[ -f "$MODEL_DIR/app.py" ]]; then
@@ -17,10 +16,12 @@ else
   export MODEL_LOADED=false
 fi
 
-echo "Current dir: $(pwd)"
 echo "Model dir listing:"
 ls -la "$MODEL_DIR"
 
-echo "Starting Uvicorn on $APP_PORT ..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
-echo "PORT env from Railway = ${PORT}"
+echo "Starting Uvicorn on port $APP_PORT ..."
+exec uvicorn app.main:app \
+     --host 0.0.0.0 \
+     --port "$APP_PORT" \
+     --workers 1 \
+     --log-level info
