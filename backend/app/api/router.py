@@ -1,31 +1,23 @@
+# app/api/router.py
 from fastapi import APIRouter
 import time
 
-# Create main API router
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", include_in_schema=False)
 async def api_root():
-    """
-    Root endpoint for the API.
-    
-    Returns:
-        dict: A simple message confirming the API is working
-    """
+    """Simple “alive” message at /api/"""
     return {
         "status": "ok",
         "message": "Mindful Creator API is available",
         "version": "1.0"
     }
 
-@router.get("/health")
-def api_health_check():
-    """
-    Simple API health check endpoint that always succeeds.
-    This endpoint is separate from the main health check and is used by Railway for deployment checks.
-    """
+@router.get("/health", include_in_schema=False)
+async def api_health_check():
+    """Railway health-check endpoint → /api/health"""
     return {
         "status": "healthy",
         "timestamp": time.time(),
         "message": "API is running"
-    } 
+    }
