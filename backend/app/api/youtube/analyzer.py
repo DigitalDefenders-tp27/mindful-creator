@@ -122,9 +122,6 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
         logger.error("YouTube API key not configured. Set YOUTUBE_API_KEY environment variable.")
         return []
     
-    # Increase timeout to 5 minutes
-    timeout_seconds = 300
-    
     try:
         # Build YouTube API request
         youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
@@ -137,13 +134,13 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
             try:
                 logger.info(f"Fetching comments (attempt {attempt+1}/{max_retries})")
                 
-                # Get comment threads
+                # Get comment threads - don't pass timeout to execute()
                 results = youtube.commentThreads().list(
                     part="snippet",
                     videoId=video_id,
                     textFormat="plainText",
                     maxResults=min(max_comments, 100)  # API limits to max 100 per page
-                ).execute(timeout=timeout_seconds)
+                ).execute()
                 
                 # Extract comment text
                 for item in results.get("items", []):
@@ -162,7 +159,7 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
                     textFormat="plainText",
                     maxResults=min(max_comments - len(comments), 100),
                     pageToken=next_page_token
-                ).execute(timeout=timeout_seconds)
+                ).execute()
                 
                 for item in results.get("items", []):
                     comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
