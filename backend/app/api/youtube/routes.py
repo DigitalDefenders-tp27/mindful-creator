@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, Body
+from fastapi import APIRouter, HTTPException, Response, Body, status
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel, HttpUrl
 import logging
@@ -41,7 +41,7 @@ class TestRequest(BaseModel):
     test_type: str
     comments: List[str]
 
-@router.post("/analyze", response_model=YouTubeAnalysisResponse, status_code=HTTP_200_OK)
+@router.post("/analyze", response_model=YouTubeAnalysisResponse, status_code=status.HTTP_200_OK)
 async def analyze_youtube_comments_endpoint(
     request: YouTubeAnalysisRequest
 ) -> Dict[str, Any]:
