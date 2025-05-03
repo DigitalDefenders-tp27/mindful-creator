@@ -3,61 +3,39 @@ set -e
 
 echo "=== Mindful Creator Backend Startup ==="
 
-# Install critical dependencies
-echo "Installing critical dependencies..."
+# Install essential dependencies
 pip install --upgrade --quiet websockets requests fastapi uvicorn
 
 # Set up Python path
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 echo "PYTHONPATH = $PYTHONPATH"
 
-# Create model directory
+# Prepare model directory with minimal placeholder to ensure app starts quickly
 MODEL_DIR="app/nlp"
 mkdir -p "$MODEL_DIR"
 
-# Simple model fallback function
-create_fallback_model() {
-  echo "⚠️  Creating placeholder model"
-  cat > "$MODEL_DIR/app.py" <<'PY'
+# Create basic placeholder model
+echo "Creating minimal model placeholder"
+cat > "$MODEL_DIR/app.py" <<EOF
 def analyse_batch(comments_text: str):
     return {"sentiment_counts": {}, "toxicity_counts": {}, "comments_with_any_toxicity": 0}
-PY
-  echo '{}' > "$MODEL_DIR/config.json"
-  echo "MODEL_LOADED=false" >> .env
-}
+EOF
+echo '{}' > "$MODEL_DIR/config.json"
 
-# Create a simple model immediately to ensure app can start
-create_fallback_model
+# Model can be downloaded later - this keeps startup fast
+echo "Skipping model download for fast startup"
 
-# Try to download the actual model in the background, with a timeout
-echo "Attempting to download NLP model in background (will timeout after 5 minutes)..."
-(
-  timeout 300s git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse "$MODEL_DIR.download" && \
-  rm -rf "$MODEL_DIR.download/.git" && \
-  mv "$MODEL_DIR.download"/* "$MODEL_DIR"/ && \
-  rm -rf "$MODEL_DIR.download" && \
-  echo "MODEL_LOADED=true" >> .env && \
-  echo "✓ Model downloaded and installed successfully" || echo "⚠️  Model download timed out or failed, using placeholder"
-) &
-
-# Set up environment variables
+# Get port setting and start server
 APP_PORT="${PORT:-8000}"
-echo "Uvicorn will listen on port $APP_PORT"
-export TIMEOUT=60
+echo "Starting Uvicorn on port $APP_PORT"
 
 # Diagnostics
-echo "==== Environment Information ===="
 echo "Current directory: $(pwd)"
-echo "Directory listing:"
-ls -la
-echo "Python version:"
-python --version
-echo "================================="
+echo "Content of model directory: $(ls -la $MODEL_DIR)"
 
-# Start the app with appropriate settings
-echo "Starting Mindful Creator API..."
+# Start server with minimal configuration for reliable startup
 exec uvicorn app.main:app \
       --host 0.0.0.0 \
       --port "$APP_PORT" \
       --workers 1 \
-      --timeout-keep-alive 60
+      --log-level info
