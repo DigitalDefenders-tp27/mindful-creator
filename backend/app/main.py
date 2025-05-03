@@ -37,13 +37,15 @@ origins = [
     "https://mindful-creator-tiezhu.vercel.app",
     "https://mindful-creator-production-e20c.up.railway.app",
     "https://gleaming-celebration-production-0ae0.up.railway.app",
+    "https://www.tiezhu.org",
+    "https://tiezhu.org",
     "*"  # Allow all origins as fallback - make sure this is at the end
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https://(.*\.)?mindful-creator.*\.vercel\.app|https://.*\.up\.railway\.app",
+    allow_origin_regex=r"https://(.*\.)?mindful-creator.*\.vercel\.app|https://.*\.up\.railway\.app|https://(.*\.)?tiezhu\.org",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
