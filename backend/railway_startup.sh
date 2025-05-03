@@ -15,21 +15,29 @@ mkdir -p app/nlp
 
 MODEL_LOADED=false
 
-function run_with_timeout() {
-  local timeout=$1
-  local command="${@:2}"
+# Timeout function with POSIX-compatible syntax
+run_with_timeout() {
+  timeout=$1
+  shift
   
-  ( $command ) & pid=$!
+  # Start the command in background
+  "$@" & command_pid=$!
   
-  ( sleep $timeout && kill -SIGTERM $pid 2>/dev/null ) & watcher=$!
+  # Start the watchdog timer in background
+  (
+    sleep "$timeout" 
+    kill -SIGTERM $command_pid 2>/dev/null
+  ) & watchdog_pid=$!
   
-  wait $pid 2>/dev/null
-  status=$?
+  # Wait for the command to finish
+  wait $command_pid 2>/dev/null
+  command_status=$?
   
-  pkill -P $watcher 2>/dev/null
-  wait $watcher 2>/dev/null
+  # Kill the watchdog timer
+  kill $watchdog_pid 2>/dev/null
+  wait $watchdog_pid 2>/dev/null
   
-  return $status
+  return $command_status
 }
 
 echo "=== Installing Git LFS and cloning model repository ==="
@@ -71,10 +79,10 @@ EOF
 EOF
 fi
 
-# 测试API名称方法 - 跳过测试避免路径问题
+# Skip API testing to avoid path issues
 echo "=== Skipping API test due to path constraints ==="
 
-# 设置PORT环境变量（如果没有设置）
+# Set PORT environment variable if not already set
 if [ -z "$PORT" ]; then
   export PORT=8000
   echo "PORT not set, using default: 8000"
@@ -82,15 +90,15 @@ else
   echo "Using provided PORT: $PORT"
 fi
 
-# 设置超时环境变量，使应用程序响应更快
+# Set timeout variables for faster application response
 export TIMEOUT=20
 export MODEL_LOADED=$MODEL_LOADED
 
-# 启动应用，设置适当的超时和工作线程
+# Start the application with proper timeout and worker settings
 echo "Starting Mindful Creator API..."
 echo "Current directory: $(pwd)"
 echo "Directory listing:"
 ls -la
 
-# 增加工作线程和超时设置
+# Set worker count and timeout settings
 uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2 --timeout-keep-alive 30 

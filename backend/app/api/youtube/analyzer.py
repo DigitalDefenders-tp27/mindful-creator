@@ -122,14 +122,14 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
         logger.error("YouTube API key not configured. Set YOUTUBE_API_KEY environment variable.")
         return []
     
-    # 增加超时参数到5分钟
+    # Increase timeout to 5 minutes
     timeout_seconds = 300
     
     try:
-        # 构建YouTube API请求
+        # Build YouTube API request
         youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
         
-        # 设置重试次数
+        # Set retry count
         max_retries = 2
         comments = []
         
@@ -137,24 +137,24 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
             try:
                 logger.info(f"Fetching comments (attempt {attempt+1}/{max_retries})")
                 
-                # 获取评论线程
+                # Get comment threads
                 results = youtube.commentThreads().list(
                     part="snippet",
                     videoId=video_id,
                     textFormat="plainText",
-                    maxResults=min(max_comments, 100)  # API限制每页最多100条
+                    maxResults=min(max_comments, 100)  # API limits to max 100 per page
                 ).execute(timeout=timeout_seconds)
                 
-                # 提取评论文本
+                # Extract comment text
                 for item in results.get("items", []):
                     comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
                     comments.append(comment)
                 
-                # 如果已经获取足够的评论，或者没有下一页，则退出
+                # If we've got enough comments or there's no next page, break
                 if len(comments) >= max_comments or "nextPageToken" not in results:
                     break
                 
-                # 获取下一页评论
+                # Get next page of comments
                 next_page_token = results["nextPageToken"]
                 results = youtube.commentThreads().list(
                     part="snippet",
@@ -168,16 +168,16 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
                     comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
                     comments.append(comment)
                 
-                # 成功获取评论，跳出重试循环
+                # Successfully fetched comments, break retry loop
                 break
                 
             except Exception as e:
                 logger.error(f"Error fetching comments (attempt {attempt+1}): {e}")
                 if attempt < max_retries - 1:
-                    # 在重试前等待
+                    # Wait before retrying
                     time.sleep(1)
                 else:
-                    # 最后一次重试失败，抛出异常
+                    # Last retry failed, raise exception
                     raise
         
         logger.info(f"Successfully fetched {len(comments)} comments")
@@ -189,22 +189,22 @@ def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
         
 def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]:
     """
-    备用方法：使用替代API或库获取YouTube评论
+    Backup method: Using alternative API or library to get YouTube comments
     
     Args:
-        video_id: YouTube视频ID
-        max_comments: 最大评论数量
+        video_id: YouTube video ID
+        max_comments: Maximum number of comments
         
     Returns:
-        评论列表
+        List of comments
     """
     logger.info(f"Using fallback method to fetch comments for video {video_id}")
     
     try:
-        # 这里只是一个简单的备用实现
-        # 在生产系统中，这里可以实现一个不依赖YouTube API的爬虫方法
+        # This is just a simple backup implementation
+        # In a production system, we could implement a scraper that doesn't rely on YouTube API
         
-        # 由于没有实际的备用实现，返回一些模拟的评论
+        # Since there's no actual backup implementation, return some mock comments
         logger.warning("Using mock comments as fallback - implement a real fallback method for production")
         mock_comments = [
             "Bloody ripper of a video, mate! Thanks heaps for sharing!",
@@ -214,7 +214,7 @@ def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]
             "Crikey, the sound quality could be better on this one."
         ]
         
-        # 返回指定数量的模拟评论
+        # Return the specified number of mock comments
         return mock_comments[:min(len(mock_comments), max_comments)]
         
     except Exception as e:
