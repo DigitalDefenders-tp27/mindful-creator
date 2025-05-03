@@ -379,7 +379,7 @@
       // First make a simple GET request to check if the server is responding at all
       let serverAvailable = false
       try {
-        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app/', {
+        const healthCheck = await fetch('https://mindful-creator-production-e20c.up.railway.app', {
           method: 'GET',
           mode: 'no-cors', // Use no-cors to avoid CORS failures during check
           signal: AbortSignal.timeout(5000)

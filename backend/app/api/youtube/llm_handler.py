@@ -26,13 +26,20 @@ API_URL = "https://openrouter.ai/api/v1/chat/completions"
 API_KEY = os.getenv('OPENROUTER_API_KEY')
 MODEL_NAME = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat-v3-0324:free')
 
+# Log API configuration
+logger.info(f"OpenRouter API key configured: {bool(API_KEY)}")
+logger.info(f"Using model: {MODEL_NAME}")
+
 # Create a session for better performance
 _session = requests.Session()
 if API_KEY:
     _session.headers.update({
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://mindful-creator.vercel.app/",  # Required by OpenRouter
+        "X-Title": "Mindful Creator"  # Optional for OpenRouter analytics
     })
+    logger.info("OpenRouter session configured successfully")
 else:
     logger.error("OpenRouter API key not found in environment variables")
 
@@ -51,6 +58,16 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
             "status": "error",
             "message": "No comments provided for analysis"
         }
+    
+    if not API_KEY:
+        logger.warning("OpenRouter API key not configured, using fallback response")
+        return {
+            "status": "partial",
+            "strategies": "No specific strategies could be generated. OpenRouter API key is missing.",
+            "example_comments": []
+        }
+    
+    logger.info(f"Analyzing {len(comments)} comments with OpenRouter")
     
     # Identify most critical comments
     toxic_comments = identify_critical_comments(comments)

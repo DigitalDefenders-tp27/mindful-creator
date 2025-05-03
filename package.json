@@ -1,6 +1,15 @@
 {
+  "name": "mindful-creator",
+  "version": "1.0.0",
   "dependencies": {
     "echarts": "^5.6.0",
     "echarts-wordcloud": "^2.1.0"
+  },
+  "scripts": {
+    "start": "cd backend && sh railway_startup.sh",
+    "dev": "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
