@@ -29,6 +29,14 @@ echo "=== Model repository cloned successfully ==="
 # 测试API名称方法 - 跳过测试避免路径问题
 echo "=== Skipping API test due to path constraints ==="
 
+# 设置PORT环境变量（如果没有设置）
+if [ -z "$PORT" ]; then
+  export PORT=8000
+  echo "PORT not set, using default: 8000"
+else
+  echo "Using provided PORT: $PORT"
+fi
+
 # 启动应用
 echo "Starting Mindful Creator API..."
 echo "Current directory: $(pwd)"
