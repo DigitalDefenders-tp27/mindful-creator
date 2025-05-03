@@ -1,0 +1,10 @@
+{
+  "fetch_comments": 0.38515186309814453,
+  "local_nlp_analysis": 5.263537883758545,
+  "openrouter_analysis": 9.04576587677002,
+  "api_endpoint": 0.017107009887695312,
+  "total_time": 14.711791038513184,
+  "comment_count": 100,
+  "start_time": "2025-05-03 17:31:16",
+  "video_url": "https://www.youtube.com/watch?v=SS_XY4SosUU"
+}
