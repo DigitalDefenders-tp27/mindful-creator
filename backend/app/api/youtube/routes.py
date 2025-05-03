@@ -6,13 +6,16 @@ import traceback
 import time
 import os
 import requests
+from fastapi import BackgroundTasks
 
-from app.api.youtube.analyzer import analyze_youtube_video, extract_video_id, fetch_youtube_comments, analyse_comments_with_local_model
-from app.api.youtube.llm_handler import analyse_youtube_comments
+from app.api.youtube.analyzer import analyze_comments_with_local_model, extract_video_id, fetch_comments
+from app.api.youtube.llm_handler import analyse_youtube_comments_with_llm
+from app.models.youtube import YoutubeRequest
+from app.utils.logging import get_logger
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -21,6 +24,22 @@ router = APIRouter()
 async def options_analyze():
     """Handle OPTIONS requests for CORS preflight."""
     logger.info("Received OPTIONS request for /analyze endpoint")
+    return Response(
+        content="",
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
+
+# Add an OPTIONS endpoint to handle preflight CORS requests for the new endpoint
+@router.options("/analyse")
+async def options_analyse():
+    """Handle OPTIONS requests for CORS preflight."""
+    logger.info("Received OPTIONS request for /analyse endpoint")
     return Response(
         content="",
         status_code=200,
@@ -57,114 +76,79 @@ class TestRequest(BaseModel):
     test_type: str
     comments: List[str]
 
-@router.post("/analyze", response_model=YouTubeAnalysisResponse, status_code=status.HTTP_200_OK)
-async def analyze_youtube_comments_endpoint(
-    request: YouTubeAnalysisRequest
-) -> Dict[str, Any]:
+@router.post("/analyse")
+async def analyse_youtube_comments(
+    request: YoutubeRequest,
+    background_tasks: BackgroundTasks
+):
     """
-    Analyze YouTube comments for a given video URL.
-    """
-    # Set longer processing timeout - max 5 minutes
-    start_time = time.time()
-    max_time = 300  # 5 minute timeout
+    Analyse YouTube comments and generate response strategies.
     
-    try:
-        logger.info(f"Received request to analyze comments from: {request.video_url}")
+    Args:
+        request: The YouTube analysis request containing the video URL and other parameters
+        background_tasks: FastAPI background tasks
         
-        # Extract video ID and fetch comments
-        try:
-            logger.info("Extracting video ID")
-            video_id = extract_video_id(request.video_url)
-            if not video_id:
-                logger.error(f"Failed to extract video ID from URL: {request.video_url}")
-                return {
-                    "success": False,
-                    "message": "Could not extract video ID from the provided URL"
-                }
+    Returns:
+        Analysis results
+    """
+    try:
+        # Extract comments based on the request
+        video_id = extract_video_id(request.youtube_url)
+        if not video_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid YouTube URL. Could not extract video ID."
+            )
             
-            logger.info(f"Fetching comments for video ID: {video_id}")
-            comments = fetch_youtube_comments(request.video_url, request.max_comments)
-            
-            if not comments:
-                logger.warning(f"No comments found for video ID: {video_id}")
-                return {
-                    "success": False, 
-                    "message": "No comments found for this video. It may have comments disabled or no comments yet."
-                }
-                
-            logger.info(f"Successfully retrieved {len(comments)} comments")
-        except Exception as e:
-            logger.error(f"Error fetching comments: {str(e)}")
+        # Get comments depending on the mode (recent, popular, etc.)
+        mode = request.mode.lower() if request.mode else "recent"
+        logger.info(f"Extracting comments for video {video_id} with mode: {mode}")
+        
+        comments = fetch_comments(video_id, mode, request.limit or 50)
+        
+        if not comments:
+            return {"error": "No comments found for this video"}
+        
+        # First get basic analysis
+        if os.environ.get("MODEL_LOADED", "false").lower() != "true":
+            # If model isn't loaded, return a specific message
+            basic_analysis = analyze_comments_with_local_model(comments)
             return {
-                "success": False,
-                "message": f"Error fetching comments: {str(e)}"
+                "video_id": video_id,
+                "analysis": basic_analysis,
+                "model_status": "not_loaded",
+                "message": "NLP model not loaded. Only basic analysis is available."
             }
         
-        # Create results dictionary to return partial results even if some analysis modules fail
-        results = {
-            "success": True,
-            "video_id": video_id,
-            "comment_count": len(comments),
-            "sentiment_analysis": None,
-            "llm_analysis": None,
-            "processing_time_seconds": 0
-        }
+        # If model is loaded, perform both local and LLM analysis
+        basic_analysis = analyze_comments_with_local_model(comments)
         
-        # Check if we're already out of time
-        current_time = time.time()
-        remaining_time = max_time - (current_time - start_time)
-        logger.info(f"Time used so far: {current_time - start_time:.2f}s, remaining: {remaining_time:.2f}s")
-        
-        # Analyze comments with local model
-        if remaining_time > 10:  # Make sure we have at least 10 seconds to process
-            try:
-                logger.info("Starting sentiment analysis with local model")
-                sentiment_results = analyse_comments_with_local_model(comments)
-                results["sentiment_analysis"] = sentiment_results
-                logger.info("Sentiment analysis completed successfully")
-            except Exception as e:
-                logger.error(f"Error in sentiment analysis: {str(e)}")
-                # Don't return error, continue processing
+        # Schedule the LLM analysis in the background if needed
+        if request.llm_enabled:
+            logger.info("Scheduling LLM comment analysis in background")
+            background_tasks.add_task(
+                analyse_youtube_comments_with_llm,
+                video_id, 
+                comments
+            )
+            llm_status = "processing"
         else:
-            logger.warning("Skipping sentiment analysis due to time constraints")
-        
-        # Check remaining time again
-        current_time = time.time()
-        remaining_time = max_time - (current_time - start_time)
-        logger.info(f"Time used after sentiment analysis: {current_time - start_time:.2f}s, remaining: {remaining_time:.2f}s")
-        
-        # Analyze comments with LLM
-        if remaining_time > 10:  # Make sure we have at least 10 seconds to process
-            try:
-                logger.info("Starting LLM analysis")
-                llm_results = analyse_youtube_comments(comments)
-                results["llm_analysis"] = llm_results
-                logger.info("LLM analysis completed successfully")
-            except Exception as e:
-                logger.error(f"Error in LLM analysis: {str(e)}")
-                # Don't return error, continue processing
-        else:
-            logger.warning("Skipping LLM analysis due to time constraints")
-        
-        # Calculate processing time and add to results
-        end_time = time.time()
-        results["processing_time_seconds"] = round(end_time - start_time, 2)
-        logger.info(f"Analysis completed in {results['processing_time_seconds']} seconds")
-        
-        return results
-        
-    except Exception as e:
-        # Calculate processing time and add to results
-        end_time = time.time()
-        processing_time = round(end_time - start_time, 2)
-        
-        logger.error(f"Unhandled error in analyze_youtube_comments_endpoint after {processing_time}s: {str(e)}")
-        # Ensure response format is correct
+            llm_status = "disabled"
+            
         return {
-            "success": False,
-            "message": f"An unexpected error occurred: {str(e)}",
-            "processing_time_seconds": processing_time
+            "video_id": video_id,
+            "analysis": basic_analysis,
+            "llm_status": llm_status,
+            "model_status": "loaded"
         }
+            
+    except Exception as e:
+        logger.error(f"Error in analyse_youtube_comments: {str(e)}")
+        logger.exception(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to analyze YouTube comments: {str(e)}"
+        )
 
 @router.post("/test-model")
 async def test_local_model(request: TestRequest):
@@ -200,7 +184,7 @@ async def test_local_model(request: TestRequest):
         # Try to analyze with local model
         try:
             # Use our actual analysis function
-            result = analyse_comments_with_local_model(request.comments)
+            result = analyze_comments_with_local_model(request.comments)
             analysis_success = True
             
             # Check if it returned an error
@@ -247,6 +231,23 @@ async def test_local_model(request: TestRequest):
     except Exception as e:
         logger.error(f"Error in test_local_model: {str(e)}")
         logger.error(traceback.format_exc())
+        return {
+            "status": "error",
+            "message": f"Test failed with exception: {str(e)}"
+        }
+
+@router.get("/test")
+def test_youtube_endpoint():
+    """
+    Test endpoint for YouTube API
+    """
+    try:
+        return {
+            "status": "success",
+            "message": "YouTube API endpoint is working"
+        }
+    except Exception as e:
+        logger.error(f"Test endpoint error: {e}")
         return {
             "status": "error",
             "message": f"Test endpoint error: {str(e)}"

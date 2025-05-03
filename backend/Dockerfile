@@ -1,29 +1,22 @@
 FROM python:3.11-slim
-
 WORKDIR /app
-
-# Install Git and Git LFS
+    
 RUN apt-get update && \
-    apt-get install -y git git-lfs && \
+    apt-get install -y --no-install-recommends git git-lfs && \
     git lfs install && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN echo "⏬  Downloading NLP model ..." && \
+    git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse app/app/nlp && \
+    cd app/app/nlp && git lfs pull && \
+    rm -rf .git && \
+    echo "✓ Model downloaded"
 
-# Copy application code
 COPY . .
 
-# Set environment variables
-ENV PYTHONPATH="/app"
-ENV PORT=8000
-
-# Expose the application port
-EXPOSE ${PORT}
-
-# Command to run the application
-CMD ["python", "run_server.py"] 
+EXPOSE 8080
+CMD ["sh", "railway_startup.sh"]
