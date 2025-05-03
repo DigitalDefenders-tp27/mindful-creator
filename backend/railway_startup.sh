@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# 使用Railway提供的PORT环境变量，如果未设置则默认为8000
 APP_PORT="${PORT:-8000}"
 echo "PORT env from Railway = ${PORT:-not set}"
 echo "Using port: $APP_PORT"
