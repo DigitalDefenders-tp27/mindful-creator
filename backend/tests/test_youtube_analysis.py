@@ -132,7 +132,7 @@ class TestYouTubeAnalysis(unittest.TestCase):
             openrouter_result = analyse_youtube_comments(comments)
             
             # 4. Make a direct API request to the backend endpoint
-            backend_url = os.environ.get("BACKEND_URL", "http://localhost:8080")
+            backend_url = os.environ.get("BACKEND_URL", "http://gleaming-celebration-production-0ae0.up.railway.app:8080")
             api_endpoint = f"{backend_url}/api/youtube/analyze"
             
             # Use the requests library to make the API call

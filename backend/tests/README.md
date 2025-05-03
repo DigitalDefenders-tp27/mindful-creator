@@ -15,7 +15,7 @@ This directory contains tests for the YouTube API and NLP integration. The tests
 - Ensure you have the required environment variables set:
   - `YOUTUBE_API_KEY`: Your YouTube API key
   - `OPENROUTER_API_KEY`: Your OpenRouter API key
-  - `BACKEND_URL` (optional): URL of your backend API (defaults to `http://localhost:8080`)
+  - `BACKEND_URL` (optional): URL of your backend API (defaults to `http://gleaming-celebration-production-0ae0.up.railway.app:8080`)
 
 ### Option 1: Simple Script
 

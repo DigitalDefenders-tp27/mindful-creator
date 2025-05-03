@@ -75,7 +75,7 @@ def run_test():
     # Step 4: Test the API endpoint directly
     logger.info("\n=== Step 4: Testing API endpoint ===")
     try:
-        backend_url = os.environ.get("BACKEND_URL", "http://localhost:8080")
+        backend_url = os.environ.get("BACKEND_URL", "http://gleaming-celebration-production-0ae0.up.railway.app:8080")
         api_endpoint = f"{backend_url}/api/youtube/analyze"
         
         logger.info(f"Calling API endpoint: {api_endpoint}")
