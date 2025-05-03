@@ -14,3 +14,4 @@ websockets<11
 setuptools>=42
 wheel
 build
+psutil>=5.9.0  # 用于系统资源监控
