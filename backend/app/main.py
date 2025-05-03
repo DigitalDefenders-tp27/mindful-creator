@@ -55,9 +55,39 @@ app.add_middleware(
     expose_headers=["Content-Type", "X-API-Version"]
 )
 
-# Register routes
-# app.include_router(data_router, prefix="/api", tags=["data"])
-# app.include_router(data_router,   prefix="/api/data",    tags=["data"])
+# Critical healthcheck endpoints - must be added before any other route registration
+# This ensures the endpoints are available even if other parts of the app fail to initialize
+
+@app.get("/")
+def root() -> Dict[str, str]:
+    """Root path simplified health check - always responds for Railway's healthcheck"""
+    logger.info("Root endpoint called - responding with basic status")
+    return {"status": "online"}
+
+@app.get("/health")
+def health_check() -> Dict[str, Any]:
+    """Simple health check endpoint for monitoring application status"""
+    logger.info("Health check endpoint called")
+    try:
+        # Ensure we have valid data in the response
+        return {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "environment": os.environ.get("APP_ENV", "development"),
+            "nlp_model_loaded": os.environ.get("MODEL_LOADED", "false").lower() == "true",
+            "api_version": "1.0.0"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        # Still return a valid response even if there's an error
+        return {
+            "status": "degraded",
+            "error": str(e),
+            "timestamp": time.time()
+        }
+
+# Register routes - moved after health check endpoint
+logger.info("Registering API routes")
 app.include_router(api_router, prefix="/api")
 app.include_router(relaxation_router, prefix="/api/relaxation")
 app.include_router(notes_router, prefix="/api/notes")
@@ -97,34 +127,6 @@ async def websocket_test():
     """Simple endpoint to test if the server is capable of WebSocket connections"""
     return {"status": "ok", "message": "WebSocket test endpoint available"}
 
-# Health check endpoint
-@app.get("/health")
-def health_check() -> Dict[str, Any]:
-    """Simple health check endpoint for monitoring application status"""
-    try:
-        # Ensure we have valid data in the response
-        return {
-            "status": "healthy",
-            "timestamp": time.time(),
-            "environment": os.environ.get("APP_ENV", "development"),
-            "nlp_model_loaded": os.environ.get("MODEL_LOADED", "false").lower() == "true",
-            "api_version": "1.0.0"
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
-        # Still return a valid response even if there's an error
-        return {
-            "status": "degraded",
-            "error": str(e),
-            "timestamp": time.time()
-        }
-
-@app.get("/")
-def root() -> Dict[str, str]:
-    """Root path simplified health check"""
-    # Ensure the root endpoint always returns quickly
-    return {"status": "online"}
-
 # Request processing middleware, add performance monitoring
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -143,7 +145,9 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 if __name__ == "__main__":
-    logger.info(f"Starting server on port {os.environ.get('PORT', 8000)}")
+    # Get port from environment with fallback
+    port = int(os.environ.get("PORT", 8000))
+    logger.info(f"Starting server on port {port}")
     logger.info(f"Environment: {os.environ.get('APP_ENV', 'development')}")
     logger.info(f"NLP model loaded: {os.environ.get('MODEL_LOADED', 'false').lower() == 'true'}")
     
@@ -151,7 +155,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=os.environ.get('PORT', 8000),
+        port=port,
         log_level="info",
         workers=1,  # Adjust worker count based on resources
         timeout_keep_alive=65
