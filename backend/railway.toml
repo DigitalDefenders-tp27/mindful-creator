@@ -1,19 +1,8 @@
 [build]
-builder = "nixpacks"
-buildCommand = "pip install -r requirements.txt"
+builder = "dockerfile"
 
 [deploy]
-startCommand = "sh railway_startup.sh"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[nixpacks]
-platformEnv = ["PYTHONPATH=."]
-
-[nixpacks.setup]
-cmds = ["apt-get update && apt-get install -y git git-lfs"]
-
-[nixpacks.plan.phases.build]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"] 

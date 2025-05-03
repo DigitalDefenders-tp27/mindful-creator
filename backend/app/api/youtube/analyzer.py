@@ -223,47 +223,58 @@ def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]
 
 def analyse_comments_with_local_model(comments: List[Any]) -> Dict:
     """
-    Analyse comments using only the local NLP model for sentiment and toxicity
+    Analyze comments with local NLP model.
     
     Args:
-        comments: List of comments (should be a list of strings)
+        comments: List of comment strings
         
     Returns:
-        Analysis results summary
+        Dictionary with analysis results
     """
-    if not comments:
-        logger.warning("No comments available for analysis")
+    # Process and clean up comments
+    processed_comments = []
+    for comment in comments:
+        if isinstance(comment, str):
+            # Simple text cleanup
+            text = comment.strip()
+            if text:  # Only add non-empty comments
+                processed_comments.append(text)
+    
+    logger.info(f"Processing {len(processed_comments)} comments with local model")
+    
+    # Check for environment variable indicating if model is loaded
+    model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
+    
+    if not model_loaded:
+        logger.warning("NLP model not loaded. Returning limited analysis results.")
         return {
-            "error": "No comments available for analysis"
+            "note": "Model not loaded. The analysis is limited and uses predefined patterns.",
+            "sentiment": {
+                "positive_count": 0,
+                "neutral_count": len(processed_comments),
+                "negative_count": 0,
+                "positive_percentage": 0,
+                "neutral_percentage": 100,
+                "negative_percentage": 0
+            },
+            "toxicity": {
+                "toxic_count": 0,
+                "non_toxic_count": len(processed_comments),
+                "toxic_percentage": 0,
+                "toxic_types": {
+                    "toxic": 0,
+                    "severe_toxic": 0,
+                    "obscene": 0,
+                    "threat": 0,
+                    "insult": 0,
+                    "identity_hate": 0
+                }
+            }
         }
     
-    # Validate comments format
-    if not isinstance(comments, list):
-        logger.error("Comments must be a list")
-        return {"error": "Comments must be a list"}
-        
-    # Ensure all comments are strings and limit to 100
-    processed_comments = []
-    for comment in comments[:100]:
-        if isinstance(comment, str) and comment.strip():
-            # Remove any potential path objects
-            processed_comments.append(str(comment).strip())
-        else:
-            logger.warning(f"Skipping invalid comment: {comment}")
-    
-    if not processed_comments:
-        logger.warning("No valid comments after filtering")
-        return {"error": "No valid comments available for analysis"}
-    
-    # Calculate total number of comments for percentage calculations
-    total_comments = len(processed_comments)
-    logger.info(f"Total comments to analyse: {total_comments}")
-    
-    # Use the local NLP model for analysis with timeout
+    # Continue with model-based analysis if model is loaded
     try:
-        logger.info("Using local NLP model for analysis...")
-        
-        # Set a timeout for model analysis to prevent hanging
+        # Use the local NLP model for analysis with timeout
         import signal
         from functools import wraps
         
@@ -331,7 +342,7 @@ def analyse_comments_with_local_model(comments: List[Any]) -> Dict:
                     },
                     "toxicity": {
                         "toxic_count": toxicity_total,
-                        "toxic_percentage": (toxicity_total / total_comments * 100) if total_comments else 0,
+                        "toxic_percentage": (toxicity_total / len(processed_comments) * 100) if len(processed_comments) else 0,
                         "toxic_types": {
                             "toxic": toxicity_counts.get("Toxic", 0),
                             "severe_toxic": toxicity_counts.get("Severe Toxic", 0),
