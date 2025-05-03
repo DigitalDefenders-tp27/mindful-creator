@@ -100,17 +100,29 @@ async def websocket_test():
 # Health check endpoint
 @app.get("/health")
 def health_check() -> Dict[str, Any]:
-    """简单的健康检查端点，用于监控应用状态"""
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "environment": os.environ.get("APP_ENV", "development"),
-        "nlp_model_loaded": os.environ.get("MODEL_LOADED", "false").lower() == "true"
-    }
+    """Simple health check endpoint for monitoring application status"""
+    try:
+        # Ensure we have valid data in the response
+        return {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "environment": os.environ.get("APP_ENV", "development"),
+            "nlp_model_loaded": os.environ.get("MODEL_LOADED", "false").lower() == "true",
+            "api_version": "1.0.0"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        # Still return a valid response even if there's an error
+        return {
+            "status": "degraded",
+            "error": str(e),
+            "timestamp": time.time()
+        }
 
 @app.get("/")
 def root() -> Dict[str, str]:
-    """根路径的简化健康检查"""
+    """Root path simplified health check"""
+    # Ensure the root endpoint always returns quickly
     return {"status": "online"}
 
 # Request processing middleware, add performance monitoring
