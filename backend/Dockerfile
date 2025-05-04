@@ -16,7 +16,7 @@ RUN git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse 
     cd nlp && git lfs pull && rm -rf .git
 
 # ---------- App source ----------
-COPY . .
+COPY railway_startup.sh .
 RUN chmod +x railway_startup.sh
 
 # EXPOSE 8080
