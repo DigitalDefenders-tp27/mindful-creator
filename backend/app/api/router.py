@@ -1,76 +1,84 @@
 # app/api/router.py
-import os, sys, time, platform, logging, psutil
+import os, time, platform, logging, psutil
 from datetime import datetime
 from typing import Dict, Any
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request
+from pydantic import BaseModel
+
+_LOG = logging.getLogger("api.router")
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
-# ------------------------------------------------------------------
-# 根路由 —— 简单存活探针
-# ------------------------------------------------------------------
-@router.get("/")
+# ──────────────────────────────────────────────────────────────
+# Pydantic schema 便于 openapi & front-end 类型推断
+# ──────────────────────────────────────────────────────────────
+class HealthPayload(BaseModel):
+    status: str
+    timestamp: str
+    environment: Dict[str, Any]
+    resources: Dict[str, Any]
+    features: Dict[str, Any]
+    uptime_seconds: float
+    response_time_ms: float
+
+# ──────────────────────────────────────────────────────────────
+# /           —— very light liveness probe
+# ──────────────────────────────────────────────────────────────
+@router.get("/", tags=["misc"], summary="Root probe")
 async def api_root() -> Dict[str, str]:
-    logger.info("API root endpoint accessed")
+    _LOG.info("GET / (root) hit")
     return {"status": "alive"}
 
-# ------------------------------------------------------------------
-# 健康检查实现（供 GET / POST 共用）
-# ------------------------------------------------------------------
-async def _health_payload(request: Request) -> Dict[str, Any]:
-    t0 = time.time()
-
-    # ── 进程 / 系统资源 ───────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────
+# /health   —— single source of truth for Railway & FE
+# ──────────────────────────────────────────────────────────────
+def _collect_health(app_state, start_t: float) -> Dict[str, Any]:
     proc   = psutil.Process(os.getpid())
     vmem   = psutil.virtual_memory()
-    rss_mb = round(proc.memory_info().rss / 1024 / 1024, 2)
-    vms_mb = round(proc.memory_info().vms / 1024 / 1024, 2)
-    cpu_pct = round(proc.cpu_percent(interval=0.1), 2)
-
-    # ── App.state 中的模型信息 ────────────────────────────────────
-    model_loaded = getattr(request.app.state, "model_loaded", False)
-
-    # ── 其他环境变量 ──────────────────────────────────────────────
-    youtube_key_ok = bool(os.getenv("YOUTUBE_API_KEY"))
 
     return {
         "status": "ok",
         "timestamp": datetime.utcnow().isoformat(),
         "environment": {
             "python_version": platform.python_version(),
-            "platform": platform.platform(),
-            "process_id": os.getpid()
+            "platform":       platform.platform(),
+            "pid":            os.getpid(),
         },
         "resources": {
-            "memory_rss_mb": rss_mb,
-            "memory_vms_mb": vms_mb,
-            "cpu_percent": cpu_pct,
-            "system_memory_total_gb": round(vmem.total / 1024 / 1024 / 1024, 2),
-            "system_memory_available_gb": round(vmem.available / 1024 / 1024 / 1024, 2),
-            "system_memory_percent": round(vmem.percent, 2),
+            "memory_rss_mb": round(proc.memory_info().rss / 1024 / 1024, 2),
+            "cpu_percent":   round(proc.cpu_percent(0.1), 2),
+            "system_mem_pct": round(vmem.percent, 2),
         },
         "features": {
-            "model_loaded": model_loaded,
-            "youtube_api_available": youtube_key_ok,
+            "model_loaded": getattr(app_state, "model_loaded", False),
+            "youtube_api_available": bool(os.getenv("YOUTUBE_API_KEY")),
         },
         "uptime_seconds": round(time.time() - proc.create_time(), 2),
-        "response_time_ms": round((time.time() - t0) * 1000, 2),
+        "response_time_ms": round((time.time() - start_t) * 1000, 2),
     }
 
-# ------------------------------------------------------------------
-# GET /health  —— 供 Railway / 浏览器探活
-# ------------------------------------------------------------------
-@router.get("/health")
+@router.get(
+    "/health",
+    tags=["health"],
+    response_model=HealthPayload,
+    summary="Health check (GET)",
+    status_code=200,
+)
 async def health_get(request: Request):
-    logger.info("GET /health accessed")
-    return await _health_payload(request)
+    _LOG.debug("GET /health hit")
+    t0 = time.time()
+    return _collect_health(request.app.state, t0)
 
-# ------------------------------------------------------------------
-# POST /health —— 供前端 fetch POST 健康检查
-# ------------------------------------------------------------------
-@router.post("/health")
-async def health_post(request: Request):
-    logger.info("POST /health accessed")
-    return await _health_payload(request)
+# 如前端一定要 POST，取消下面注释即可
+# @router.post(
+#     "/health",
+#     tags=["health"],
+#     response_model=HealthPayload,
+#     summary="Health check (POST)",
+#     status_code=200,
+# )
+# async def health_post(request: Request):
+#     _LOG.debug("POST /health hit")
+#     t0 = time.time()
+#     return _collect_health(request.app.state, t0)
