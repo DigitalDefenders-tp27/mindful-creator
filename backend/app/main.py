@@ -184,12 +184,12 @@ async def add_process_time_header(request: Request, call_next):
 # Record application startup completion
 startup_time = time.time() - start_time
 logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_time:.2f} seconds ======")
-# Hardcode the port to 8000 for Railway to ensure consistency
-logger.info(f"API available at http://0.0.0.0:8000")
+# Use PORT environment variable for consistency with railway_startup.sh
+port = int(os.environ.get("PORT", 8000))
+logger.info(f"API available at http://0.0.0.0:{port}")
 log_system_resources()
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
     logger.info(f"Starting server on port {port}")
     
     # Use optimized Uvicorn configuration
@@ -201,15 +201,5 @@ if __name__ == "__main__":
         workers=1,
         timeout_keep_alive=65
     ) 
-
-# app/main.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from transformers import AutoTokenizer, AutoModel
-import pathlib, logging, time
-
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Mindful Creator API")
 
 
