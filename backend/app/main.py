@@ -61,6 +61,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# 配置CORS中间件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # 本地开发
+        "https://mindful-creator.vercel.app",  # 主Vercel域名
+        "https://mindful-creator-mcqbwi1f8-tp27.vercel.app",
+        "https://tiezhu.org",
+        "https://www.tiezhu.org"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有方法
+    allow_headers=["*"],  # 允许所有头部
+)
+
 from transformers import AutoTokenizer
 import sys, os, time, json, torch
 
