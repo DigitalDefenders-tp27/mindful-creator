@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# 定义日志函数
+# Define logging functions
 log_info() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] $1"
 }
@@ -14,7 +14,7 @@ log_error() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] $1"
 }
 
-# 显示系统信息
+# Display system information
 show_system_info() {
   log_info "===== System Information ====="
   echo "- Memory Usage:"
@@ -39,11 +39,11 @@ show_system_info() {
   printenv | grep -E "PATH|PYTHON|PORT|MODEL"
 }
 
-# 启动脚本开始
+# Startup script begins
 log_info "===== Mindful Creator Backend Startup ====="
 show_system_info
 
-# 检查安装必要的依赖项
+# Check and install essential dependencies
 log_info "Installing essential dependencies..."
 pip install --upgrade --quiet websockets requests fastapi uvicorn
 if [ $? -ne 0 ]; then
@@ -52,26 +52,26 @@ else
   log_info "Dependencies installed successfully"
 fi
 
-# 设置 Python 路径
+# Set Python path
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 log_info "PYTHONPATH = $PYTHONPATH"
 
-# 使用Railway提供的PORT环境变量，如果未设置则默认为8000
+# Use the PORT environment variable provided by Railway, default to 8000 if not set
 APP_PORT="${PORT:-8000}"
 log_info "PORT env from Railway = ${PORT:-not set}"
 log_info "Using port: $APP_PORT"
 
-# 检查和报告模型状态
+# Check and report model status
 MODEL_DIR="app/nlp"
 log_info "Checking model files in $MODEL_DIR..."
 
-# 创建目录（如果不存在）
+# Create directory if it doesn't exist
 if [ ! -d "$MODEL_DIR" ]; then
   log_info "Creating model directory: $MODEL_DIR"
   mkdir -p "$MODEL_DIR"
 fi
 
-# 检查关键模型文件
+# Check key model files
 log_info "Model directory contents:"
 ls -la "$MODEL_DIR"
 
@@ -94,20 +94,20 @@ else
   export MODEL_LOADED=false
 fi
 
-# 报告模型状态
+# Report model status
 log_info "Model status: $MODEL_STATUS"
 log_info "MODEL_LOADED=$MODEL_LOADED"
 echo "MODEL_LOADED=$MODEL_LOADED" >> .env
 
-# 显示模型目录大小
+# Show model directory size
 MODEL_SIZE=$(du -sh "$MODEL_DIR" 2>/dev/null | cut -f1)
 log_info "Model directory size: ${MODEL_SIZE:-unknown}"
 
-# 启动前再次检查资源
+# Check resources before starting
 log_info "Resource usage before starting server:"
 show_system_info
 
-# 启动服务器
+# Start the server
 log_info "Starting Uvicorn server on port ${APP_PORT}..."
 # Export PORT to ensure it's available in all environments
 export PORT="$APP_PORT"
