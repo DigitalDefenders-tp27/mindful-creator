@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 下载一次并持久化
-RUN python - << 'PY'
+RUN python - <<PY
 from transformers import AutoModel, AutoTokenizer
 m = AutoModel.from_pretrained("bert-base-uncased")
 t = AutoTokenizer.from_pretrained("bert-base-uncased")
