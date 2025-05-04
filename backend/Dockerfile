@@ -19,7 +19,7 @@ RUN mkdir -p app/app/nlp && \
 # Copy application code
 COPY . .
 
-# Expose port - use the PORT env var, defaulting to 8000
+# Set port 8000 for Railway - VERY IMPORTANT
 EXPOSE 8000
 
 # Set environment variables
@@ -27,7 +27,10 @@ ENV PYTHONPATH=/app
 ENV PORT=8000
 
 # Make sure Railway sees the correct port in logs
-RUN echo "Railway will detect port: $PORT"
+RUN echo "=== RAILWAY DEPLOYMENT CONFIGURATION ===" && \
+    echo "Port: 8000" && \
+    echo "Health check endpoint: /health" && \
+    echo "=== END CONFIGURATION ==="
 
 # Start command - use railway_startup.sh
 CMD ["sh", "railway_startup.sh"] 

@@ -85,8 +85,8 @@ def root() -> Dict[str, str]:
 @app.get("/health")
 async def root_health_check() -> Dict[str, Any]:
     """Root health check specifically for Railway"""
-    logger.info("Root health check endpoint accessed")
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat()}
+    logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED - Railway health check")
+    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
 
 # Record model status
 model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
@@ -161,9 +161,8 @@ async def add_process_time_header(request: Request, call_next):
 # Record application startup completion
 startup_time = time.time() - start_time
 logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_time:.2f} seconds ======")
-# Use the same PORT environment variable that's used by Uvicorn
-app_port = os.environ.get('PORT', '8000')
-logger.info(f"API available at http://0.0.0.0:{app_port}")
+# Hardcode the port to 8000 for Railway to ensure consistency
+logger.info(f"API available at http://0.0.0.0:8000")
 log_system_resources()
 
 if __name__ == "__main__":
