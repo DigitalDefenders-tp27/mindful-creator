@@ -81,6 +81,13 @@ def root() -> Dict[str, str]:
     """Root path simplified health check"""
     return {"status": "online"}
 
+# Additional health check endpoint at the root level for Railway
+@app.get("/health")
+async def root_health_check() -> Dict[str, Any]:
+    """Root health check specifically for Railway"""
+    logger.info("Root health check endpoint accessed")
+    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat()}
+
 # Record model status
 model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
 logger.info(f"MODEL_LOADED environment variable: {os.environ.get('MODEL_LOADED', 'not set')}")
