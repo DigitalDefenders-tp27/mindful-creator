@@ -14,4 +14,5 @@ internal = false
 ports = [{port = 8000, protocol = "tcp"}]
 
 [variables]
-PYTHONPATH = "/app" 
+PYTHONPATH = "/app"
+PORT = "8000" 

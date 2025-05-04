@@ -56,9 +56,10 @@ fi
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 log_info "PYTHONPATH = $PYTHONPATH"
 
-# Use the PORT environment variable provided by Railway, default to 8000 if not set
-APP_PORT="${PORT:-8000}"
-log_info "PORT env from Railway = ${PORT:-not set}"
+# Use the PORT environment variable, must be 8000 for Railway health check
+export PORT=8000
+log_info "PORT set to $PORT for Railway compatibility"
+APP_PORT=$PORT
 log_info "Using port: $APP_PORT"
 
 # Check and report model status
@@ -107,9 +108,7 @@ log_info "Model directory size: ${MODEL_SIZE:-unknown}"
 log_info "Resource usage before starting server:"
 show_system_info
 
-# Start the server
-log_info "Starting Uvicorn server on port ${APP_PORT}..."
-# Export PORT to ensure it's available in all environments
-export PORT="$APP_PORT"
-# Make sure port is explicitly passed to uvicorn
-exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
+# Start the server - ENSURE we use port 8000 for Railway
+log_info "Starting Uvicorn server on port 8000 for Railway compatibility..."
+# Make sure port is explicitly passed to uvicorn as 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --log-level info
