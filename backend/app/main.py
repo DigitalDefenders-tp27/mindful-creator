@@ -13,6 +13,8 @@ from fastapi.routing import APIRouter
 import datetime
 import uvicorn
 import platform
+import json
+import torch
 
 # First import only the base router to ensure health check endpoint is available
 from app.api.router import router as api_router
