@@ -57,4 +57,4 @@ RUN echo "🏁 Build completed" && \
     sysinfo
 
 EXPOSE 8000
-CMD ["sh", "railway_startup.sh"]
+CMD ["sh", "railway_startup.sh"] 
