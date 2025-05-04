@@ -63,42 +63,42 @@ app = FastAPI(
 from transformers import AutoTokenizer, AutoModel
 import pathlib, os.path
 
-# 修改模型路径定义，确保它是绝对路径并且可检查存在性
-MODEL_PATH = "/app/nlp"   # Dockerfile 克隆到的目录
+# === 模型 / tokenizer 路径 ===================================================
+TOKENIZER_DIR = "/app/bert-base-uncased"   # Dockerfile 已保存
+MODEL_DIR     = "/app/nlp"                 # 克隆下来的 CommentResponse
 
 @app.on_event("startup")
+@app.on_event("startup")
 async def load_nlp_model():
-    """一次性加载 tokenizer / model 并存到 app.state"""
-    start = time.time()
+    """一次性加载 tokenizer / model 并存入 app.state"""
+    t0 = time.time()
     try:
-        # 检查模型路径是否存在
-        if not os.path.exists(MODEL_PATH):
-            logger.warning(f"⚠️ NLP model path not found: {MODEL_PATH}")
-            # 尝试列出/app目录内容以便调试
-            try:
-                app_contents = os.listdir("/app")
-                logger.info(f"Contents of /app directory: {app_contents}")
-            except Exception as dir_err:
-                logger.warning(f"Could not list /app directory: {dir_err}")
-                
-            app.state.model_loaded = False
-            app.state.model_load_error = f"Model path not found: {MODEL_PATH}"
-            return
-            
-        logger.info(f"Loading NLP model from: {MODEL_PATH}")
-        tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-        model = AutoModel.from_pretrained(MODEL_PATH)
-        app.state.tokenizer = tokenizer
-        app.state.model = model
+        # ── 路径检查 ───────────────────────────────────────────────
+        if not os.path.isdir(MODEL_DIR):
+            raise FileNotFoundError(f"MODEL_DIR not found: {MODEL_DIR}")
+        if not os.path.isdir(TOKENIZER_DIR):
+            raise FileNotFoundError(f"TOKENIZER_DIR not found: {TOKENIZER_DIR}")
+
+        logger.info(f"Loading tokenizer from {TOKENIZER_DIR}")
+        tokenizer = AutoTokenizer.from_pretrained(
+            TOKENIZER_DIR,
+            local_files_only=True
+        )
+
+        logger.info(f"Loading model weights from {MODEL_DIR}")
+        model = AutoModel.from_pretrained(
+            MODEL_DIR,
+            local_files_only=True
+        )
+
+        app.state.tokenizer    = tokenizer
+        app.state.model        = model
         app.state.model_loaded = True
-        logger.info(f"NLP model loaded ✅  ({time.time()-start:.2f}s)")
-    except Exception as e:
-        app.state.model_loaded = False
-        app.state.model_load_error = str(e)
-        logger.exception(f"❌ Failed to load NLP model: {e}")
-        # 记录更多系统信息以便调试
-        logger.error(f"Python path: {sys.path}")
-        logger.error(f"Current working directory: {os.getcwd()}")
+        logger.info(f"✅ NLP model ready  ({time.time() - t0:.2f}s)")
+    except Exception as exc:
+        app.state.model_loaded    = False
+        app.state.model_load_error = str(exc)
+        logger.exception(f"❌ Failed to load NLP model: {exc}")
 
 # Setup CORS - Updated to fix allow_credentials and allow_origins conflict
 app.add_middleware(
