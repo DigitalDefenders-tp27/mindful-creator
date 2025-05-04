@@ -65,7 +65,6 @@ import pathlib, os.path
 
 # 修改模型路径定义，确保它是绝对路径并且可检查存在性
 MODEL_PATH = "/app/nlp"   # Dockerfile 克隆到的目录
-FALLBACK_MODEL = "bert-base-uncased"  # 备用模型名称
 
 @app.on_event("startup")
 async def load_nlp_model():
@@ -87,35 +86,12 @@ async def load_nlp_model():
             return
             
         logger.info(f"Loading NLP model from: {MODEL_PATH}")
-        
-        try:
-            # 尝试加载本地模型
-            tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-            model = AutoModel.from_pretrained(MODEL_PATH)
-            app.state.tokenizer = tokenizer
-            app.state.model = model
-            app.state.model_loaded = True
-            logger.info(f"NLP model loaded from local path ✅  ({time.time()-start:.2f}s)")
-        except Exception as local_err:
-            logger.warning(f"Failed to load model from local path: {local_err}")
-            logger.info(f"Attempting to load fallback model: {FALLBACK_MODEL}")
-            
-            # 尝试加载备用模型
-            try:
-                tokenizer = AutoTokenizer.from_pretrained(FALLBACK_MODEL)
-                model = AutoModel.from_pretrained(FALLBACK_MODEL)
-                app.state.tokenizer = tokenizer
-                app.state.model = model
-                app.state.model_loaded = True
-                app.state.using_fallback = True
-                logger.info(f"Fallback NLP model loaded ✅  ({time.time()-start:.2f}s)")
-            except Exception as fallback_err:
-                # 如果备用模型也加载失败，使用空模型
-                logger.error(f"Failed to load fallback model: {fallback_err}")
-                app.state.model_loaded = False
-                app.state.model_load_error = f"Failed to load both local and fallback models"
-                app.state.using_placeholder = True
-                logger.warning("Using placeholder NLP handling")
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+        model = AutoModel.from_pretrained(MODEL_PATH)
+        app.state.tokenizer = tokenizer
+        app.state.model = model
+        app.state.model_loaded = True
+        logger.info(f"NLP model loaded ✅  ({time.time()-start:.2f}s)")
     except Exception as e:
         app.state.model_loaded = False
         app.state.model_load_error = str(e)

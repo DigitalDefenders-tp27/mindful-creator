@@ -13,11 +13,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 下载一次并持久化
 RUN python - <<'PY'
-    from transformers import BertTokenizer
-    tok = BertTokenizer.from_pretrained("bert-base-uncased")
-    tok.save_pretrained("/app/bert-base-uncased")
-    print("✅ bert-base-uncased tokenizer saved to /app/bert-base-uncased")
-    PY
+from transformers import BertTokenizer
+tok = BertTokenizer.from_pretrained("bert-base-uncased")
+tok.save_pretrained("/app/bert-base-uncased")
+print("✅ bert-base-uncased tokenizer saved to /app/bert-base-uncased")
+PY
 
 # ---------- Clone NLP model (cached layer) ----------
 RUN mkdir -p /app/nlp && \
