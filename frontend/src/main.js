@@ -23,7 +23,7 @@ app.use(VueGoogleMaps, {
 })
 
 app.config.globalProperties.$api = {
-  baseURL: 'gleaming-celebration-production-0ae0.up.railway.app',
+  baseURL: 'https://api.tiezhu.org',
   async getInfluencerGuide() {
     const response = await fetch(`${this.baseURL}/api/influencer-guide`)
     return response.json()
