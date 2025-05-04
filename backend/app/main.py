@@ -117,6 +117,13 @@ async def root_health_check() -> Dict[str, Any]:
     logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED - Railway health check")
     return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
 
+# Explicit API health check endpoint to match railway.toml configuration
+@app.get("/api/health")
+async def api_health_check() -> Dict[str, Any]:
+    """API health check endpoint for Railway deployment"""
+    logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
+    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+
 # Record model status
 model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
 logger.info(f"MODEL_LOADED environment variable: {os.environ.get('MODEL_LOADED', 'not set')}")
