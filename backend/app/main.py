@@ -64,61 +64,53 @@ from transformers import AutoTokenizer, AutoModel
 import pathlib, os.path
 
 # === 模型 / tokenizer 路径 ===================================================
-TOKENIZER_DIR = "/app/bert-base-uncased"   # Dockerfile 已保存
-MODEL_DIR     = "/app/nlp"                 # 克隆下来的 CommentResponse
+TOKENIZER_DIR = "/app/bert-base-uncased"   # 早前已保存
+MODEL_DIR     = "/app/nlp"                 # 克隆的 CommentResponse
+WEIGHTS_FILE  = os.path.join(MODEL_DIR, "pytorch_model.bin")
+CFG_FILE      = os.path.join(MODEL_DIR, "config.json")
 
-@app.on_event("startup")
 @app.on_event("startup")
 async def load_nlp_model():
-    """一次性加载 tokenizer / model 并存入 app.state"""
+    """加载自定义 CommentMTLModel + tokenizer 并写入 app.state"""
     t0 = time.time()
     try:
-        # ── 路径检查 ───────────────────────────────────────────────
-        if not os.path.isdir(MODEL_DIR):
-            raise FileNotFoundError(f"MODEL_DIR not found: {MODEL_DIR}")
-        if not os.path.isdir(TOKENIZER_DIR):
-            raise FileNotFoundError(f"TOKENIZER_DIR not found: {TOKENIZER_DIR}")
+        # ---- 路径校验 ---------------------------------------------------
+        for p in (TOKENIZER_DIR, MODEL_DIR, WEIGHTS_FILE, CFG_FILE):
+            if not os.path.exists(p):
+                raise FileNotFoundError(f"Missing file/dir: {p}")
 
-        logger.info(f"Loading tokenizer from {TOKENIZER_DIR}")
+        # ---- Tokenizer --------------------------------------------------
+        logger.info(f"Tokenizer ← {TOKENIZER_DIR}")
         tokenizer = AutoTokenizer.from_pretrained(
-            TOKENIZER_DIR,
-            local_files_only=True
+            TOKENIZER_DIR, local_files_only=True
         )
 
-        logger.info(f"Loading model weights from {MODEL_DIR}")
-        model = AutoModel.from_pretrained(
-            MODEL_DIR,
-            local_files_only=True
-        )
+        # ---- 动态导入自定义模型类 --------------------------------------
+        sys.path.insert(0, MODEL_DIR)            # 让 Python 能找到 model.py
+        from model import CommentMTLModel        # noqa: E402
 
+        with open(CFG_FILE) as f:
+            cfg = json.load(f)
+
+        model = CommentMTLModel(
+            model_name="bert-base-uncased",
+            num_sentiment_labels=cfg["num_sentiment_labels"],
+            num_toxicity_labels=cfg["num_toxicity_labels"],
+            dropout_prob=cfg.get("dropout_prob", 0.1)
+        )
+        model.load_state_dict(torch.load(WEIGHTS_FILE, map_location="cpu"))
+        model.eval()
+
+        # ---- 挂到 app.state --------------------------------------------
         app.state.tokenizer    = tokenizer
         app.state.model        = model
         app.state.model_loaded = True
-        logger.info(f"✅ NLP model ready  ({time.time() - t0:.2f}s)")
+        logger.info(f"✅ NLP model ready ({time.time()-t0:.2f}s)")
+
     except Exception as exc:
-        app.state.model_loaded    = False
+        app.state.model_loaded     = False
         app.state.model_load_error = str(exc)
         logger.exception(f"❌ Failed to load NLP model: {exc}")
-
-# Setup CORS - Updated to fix allow_credentials and allow_origins conflict
-app.add_middleware(
-    CORSMiddleware,
-    # List of allowed origins
-    allow_origins=[
-        "https://mindful-creator.vercel.app",
-        "https://www.tiezhu.org",
-        "https://api.tiezhu.org",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    max_age=86400,  # Cache preflight requests for 24 hours
-    expose_headers=["Content-Type", "X-API-Version"]
-)
 
 # First register the API router which contains the health check endpoint
 logger.info("Registering API router (contains health check endpoint)")
