@@ -369,7 +369,6 @@
     // API URL options - will try alternatives if primary fails
     const apiUrls = [
       'https://mindful-creator-production-e20c.up.railway.app/api/youtube/analyze',  // Primary URL
-      'https://mindful-creator-production-e20c.up.railway.app/api/health',           // Health check as fallback
     ]
     let primaryApiUrl = apiUrls[0]
     
@@ -409,6 +408,8 @@
         for (let i = 0; i < apiUrls.length; i++) {
           try {
             console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i]}`)
+            
+            // 发送请求到API端点
             response = await fetch(apiUrls[i], {
               method: 'POST',
               mode: 'cors',
