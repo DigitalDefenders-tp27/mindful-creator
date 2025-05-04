@@ -61,24 +61,44 @@ app = FastAPI(
 )
 
 from transformers import AutoTokenizer, AutoModel
-import pathlib
+import pathlib, os.path
 
-MODEL_PATH = pathlib.Path("/app/nlp")   # Dockerfile 克隆到的目录
+# 修改模型路径定义，确保它是绝对路径并且可检查存在性
+MODEL_PATH = "/app/nlp"   # Dockerfile 克隆到的目录
 
 @app.on_event("startup")
 async def load_nlp_model():
     """一次性加载 tokenizer / model 并存到 app.state"""
     start = time.time()
     try:
+        # 检查模型路径是否存在
+        if not os.path.exists(MODEL_PATH):
+            logger.warning(f"⚠️ NLP model path not found: {MODEL_PATH}")
+            # 尝试列出/app目录内容以便调试
+            try:
+                app_contents = os.listdir("/app")
+                logger.info(f"Contents of /app directory: {app_contents}")
+            except Exception as dir_err:
+                logger.warning(f"Could not list /app directory: {dir_err}")
+                
+            app.state.model_loaded = False
+            app.state.model_load_error = f"Model path not found: {MODEL_PATH}"
+            return
+            
+        logger.info(f"Loading NLP model from: {MODEL_PATH}")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-        model     = AutoModel.from_pretrained(MODEL_PATH)
+        model = AutoModel.from_pretrained(MODEL_PATH)
         app.state.tokenizer = tokenizer
-        app.state.model     = model
+        app.state.model = model
         app.state.model_loaded = True
         logger.info(f"NLP model loaded ✅  ({time.time()-start:.2f}s)")
     except Exception as e:
         app.state.model_loaded = False
+        app.state.model_load_error = str(e)
         logger.exception(f"❌ Failed to load NLP model: {e}")
+        # 记录更多系统信息以便调试
+        logger.error(f"Python path: {sys.path}")
+        logger.error(f"Current working directory: {os.getcwd()}")
 
 # Setup CORS - Updated to fix allow_credentials and allow_origins conflict
 app.add_middleware(
@@ -123,6 +143,43 @@ async def api_health_check() -> Dict[str, Any]:
     """API health check endpoint for Railway deployment"""
     logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
     return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+
+# 添加诊断端点
+@app.get("/api/diagnostics/nlp")
+async def nlp_diagnostics() -> Dict[str, Any]:
+    """诊断端点，用于检查NLP模型状态"""
+    logger.info("NLP DIAGNOSTICS ENDPOINT ACCESSED")
+    
+    # 检查模型路径
+    model_path_exists = os.path.exists(MODEL_PATH)
+    
+    # 列出目录内容
+    app_contents = []
+    nlp_contents = []
+    try:
+        app_contents = os.listdir("/app")
+        if model_path_exists:
+            nlp_contents = os.listdir(MODEL_PATH)
+    except Exception as e:
+        logger.error(f"Failed to list directories: {e}")
+    
+    # 收集诊断信息
+    diagnostics = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "model_path": MODEL_PATH,
+        "model_path_exists": model_path_exists,
+        "model_loaded": getattr(app.state, "model_loaded", False),
+        "model_load_error": getattr(app.state, "model_load_error", None),
+        "app_directory_contents": app_contents,
+        "nlp_directory_contents": nlp_contents,
+        "environment": {
+            "python_version": platform.python_version(),
+            "platform": platform.platform(),
+            "working_directory": os.getcwd()
+        }
+    }
+    
+    return diagnostics
 
 # Record model status
 model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
