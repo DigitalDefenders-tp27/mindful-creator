@@ -72,44 +72,6 @@ class TestRequest(BaseModel):
     test_type: str
     comments: List[str]
 
-# Add an OPTIONS endpoint to handle preflight CORS requests
-@router.options("/analyze")
-async def options_analyze():
-    """Handle OPTIONS requests for CORS preflight."""
-    logger.info("Received OPTIONS request for /analyze endpoint")
-    return Response(
-        content="",
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Max-Age": "86400",
-        }
-    )
-
-# Add an OPTIONS endpoint to handle preflight CORS requests for the new endpoint
-@router.options("/analyse")
-async def options_analyse():
-    """Handle OPTIONS requests for CORS preflight."""
-    logger.info("Received OPTIONS request for /analyse endpoint")
-    return Response(
-        content="",
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Max-Age": "86400",
-        }
-    )
-
-@router.options("", include_in_schema=False)
-async def preflight_youtube():
-    """Handle CORS preflight requests"""
-    logger.info("YouTube CORS preflight request handled")
-    return {}
-
 @router.post("/analyse", response_model=List[YouTubeAnalysisResponse])
 async def analyse_youtube_video(
     request: YouTubeRequest
