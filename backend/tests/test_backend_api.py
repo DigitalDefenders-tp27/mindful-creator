@@ -5,8 +5,8 @@ import requests
 class TestBackendAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Load the backend base URL from environment variable, default to Railway deployment address
-        cls.base_url = os.getenv('API_BASE', 'https://mindful-creator-production-e20c.up.railway.app')
+        # Load the backend base URL from environment variable, default to main API address
+        cls.base_url = os.getenv('API_BASE', 'https://api.tiezhu.org')
 
     def test_health_endpoint(self):
         """Test that the /api/health endpoint returns 200 OK and includes a 'status' field."""

@@ -67,6 +67,7 @@ app.add_middleware(
     allow_origins=[
         "https://mindful-creator.vercel.app",
         "https://www.tiezhu.org",
+        "https://api.tiezhu.org",
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
