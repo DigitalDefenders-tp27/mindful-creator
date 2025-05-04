@@ -12,8 +12,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ---------- Clone NLP model (cached layer) ----------
-RUN git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse nlp && \
-    cd nlp && git lfs pull && rm -rf .git
+RUN mkdir -p /app/nlp && \
+    git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse /app/nlp && \
+    cd /app/nlp && git lfs pull && rm -rf .git && \
+    echo "NLP model cloned to $(pwd)" && \
+    ls -la /app/nlp
 
 # ---------- App source ----------
 COPY railway_startup.sh .
