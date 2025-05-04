@@ -19,5 +19,6 @@ RUN git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse 
 COPY railway_startup.sh .
 RUN chmod +x railway_startup.sh
 
+COPY . .
 # EXPOSE 8080
 ENTRYPOINT ["bash", "railway_startup.sh"]
