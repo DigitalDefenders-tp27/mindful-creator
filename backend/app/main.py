@@ -65,8 +65,8 @@ from transformers import AutoTokenizer
 import sys, os, time, json, torch
 
 # === 模型 / tokenizer 路径 ===================================================
-TOKENIZER_DIR = "/app/bert-base-uncased"   # 早前已保存
-MODEL_DIR     = "/app/nlp"                 # 克隆的 CommentResponse
+TOKENIZER_DIR = "/app/bert-base-uncased"   # Dockerfile 中已下载好 base BERT
+MODEL_DIR     = "/app/nlp"                 # 克隆下来的 CommentResponse 空间
 WEIGHTS_FILE  = os.path.join(MODEL_DIR, "pytorch_model.bin")
 CFG_FILE      = os.path.join(MODEL_DIR, "config.json")
 
@@ -75,40 +75,40 @@ async def load_nlp_model():
     """加载自定义 CommentMTLModel + tokenizer 并写入 app.state"""
     t0 = time.time()
     try:
-        # ---- 路径校验 ---------------------------------------------------
+        # 1) 校验所有关键路径
         for p in (TOKENIZER_DIR, MODEL_DIR, WEIGHTS_FILE, CFG_FILE):
             if not os.path.exists(p):
                 raise FileNotFoundError(f"Missing file/dir: {p}")
 
-        # ---- Tokenizer --------------------------------------------------
+        # 2) 加载 tokenizer（离线）
         logger.info(f"Tokenizer ← {TOKENIZER_DIR}")
         tokenizer = AutoTokenizer.from_pretrained(
             TOKENIZER_DIR,
             local_files_only=True
         )
 
-        # ---- 导入自定义模型类 -------------------------------------------
-        # 确保 Python 能在 MODEL_DIR 里找到 model.py
+        # 3) 动态导入自定义模型类
         if MODEL_DIR not in sys.path:
             sys.path.insert(0, MODEL_DIR)
         from model import CommentMTLModel  # noqa: E402
 
-        # ---- 读取 config.json 并初始化模型 ------------------------------
+        # 4) 读取 config.json 并初始化模型，注意使用本地 BERT 目录作为 base
         with open(CFG_FILE, "r") as f:
             cfg = json.load(f)
 
         model = CommentMTLModel(
-            model_name="bert-base-uncased",
+            model_name=TOKENIZER_DIR,                 # ← 指向本地 BERT
             num_sentiment_labels=cfg["num_sentiment_labels"],
             num_toxicity_labels=cfg["num_toxicity_labels"],
             dropout_prob=cfg.get("dropout_prob", 0.1)
         )
-        # 加载 .bin 权重
+
+        # 5) 覆盖式加载 MTL head 的权重
         state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
         model.load_state_dict(state_dict)
         model.eval()
 
-        # ---- 挂载到 app.state --------------------------------------------
+        # 6) 挂载到 app.state
         app.state.tokenizer    = tokenizer
         app.state.model        = model
         app.state.model_loaded = True
