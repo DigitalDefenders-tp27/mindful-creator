@@ -11,6 +11,9 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse nlp && \
+    cd nlp && git lfs pull && rm -rf .git
+
 # Copy application code & 赋可执行权限
 COPY . .
 RUN chmod +x railway_startup.sh
