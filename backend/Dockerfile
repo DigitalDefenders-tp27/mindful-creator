@@ -11,20 +11,12 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download model
-RUN mkdir -p app/app/nlp && \
-    git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse app/app/nlp || \
-    (echo "Model download failed, creating empty dir" && mkdir -p app/app/nlp)
-
-# Copy application code
+# Copy application code & 赋可执行权限
 COPY . .
 RUN chmod +x railway_startup.sh
 
-# Expose port
+# 暴露端口（Railway 对 Dockerfile 默认映射 8080）
 EXPOSE 8080
 
-# Set environment variables
-ENV PYTHONPATH=/app
-
-# Use bash to execute startup script
-CMD ["bash", "railway_startup.sh"] 
+# **唯一定义容器启动命令** —— 让脚本跑起来
+ENTRYPOINT ["bash", "railway_startup.sh"] 
