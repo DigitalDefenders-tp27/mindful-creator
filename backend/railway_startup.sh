@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Current dir: $(pwd)"
-echo "PORT env from Railway = ${PORT:-unset}"
+echo ">> current dir $(pwd)"
+echo ">> PORT from Railway = ${PORT:-unset}"
 
-# 检测 NLP 模型文件
-MODEL_DIR="app/nlp"
-if [ -f "$MODEL_DIR/app.py" ]; then
-  echo "✅ NLP model found"
-else
-  echo "⚠️  NLP model NOT found, limited functionality"
-fi
+APP_PORT=8080                       # ***绝不能再改成 8000***
+echo ">> starting Uvicorn on ${APP_PORT}"
 
-echo "Dir listing:"
-ls -la "$MODEL_DIR"
-
-APP_PORT=8080          # Dockerfile / EXPOSE / Railway 均用 8080
-echo "Starting Uvicorn on port $APP_PORT ..."
-exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
+exec uvicorn app.main:app \
+     --host 0.0.0.0 \
+     --port "${APP_PORT}" \
+     --workers 1 \
+     --log-level info
