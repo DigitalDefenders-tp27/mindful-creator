@@ -1,6 +1,7 @@
+# Railway configuration for backend service
+
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "dockerfile"
 
 [deploy]
 healthcheckPath = "/api/health"
@@ -11,3 +12,6 @@ numReplicas = 1
 [service]
 internal = false
 ports = [{port = 8000, protocol = "tcp"}]
+
+[variables]
+PYTHONPATH = "/app" 
