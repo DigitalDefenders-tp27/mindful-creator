@@ -1,0 +1,29 @@
+2025-05-04 22:15:14,037 [INFO] backend-test: Initializing test suite with base URL: https://api.tiezhu.org
+2025-05-04 22:15:14,037 [INFO] backend-test: Starting complete backend test flow against https://api.tiezhu.org
+2025-05-04 22:15:14,037 [INFO] backend-test: Running test: Health Check
+2025-05-04 22:15:14,462 [INFO] backend-test: Health check successful: ok
+2025-05-04 22:15:14,463 [INFO] backend-test: Running test: Get Comments
+2025-05-04 22:15:14,981 [ERROR] backend-test: Test failed: Get Comments - Get comments failed with status code: 404
+2025-05-04 22:15:14,983 [INFO] backend-test: Running test: NLP Processing
+2025-05-04 22:15:15,289 [ERROR] backend-test: Test failed: NLP Processing - NLP processing failed with status code: 404
+2025-05-04 22:15:15,292 [INFO] backend-test: Running test: Notes Flow
+2025-05-04 22:15:15,922 [ERROR] backend-test: Test failed: Notes Flow - 'list' object has no attribute 'get'
+2025-05-04 22:15:15,925 [INFO] backend-test: Running test: YouTube Analysis
+2025-05-04 22:15:16,233 [ERROR] backend-test: Test failed: YouTube Analysis - YouTube analysis failed with status code: 404
+2025-05-04 22:15:16,235 [INFO] backend-test: Test suite completed. Passed: 1/5, Failed: 4/5
+
+==================================================
+BACKEND TEST SUMMARY FOR https://api.tiezhu.org
+==================================================
+1. Health Check: PASS (0.43s)
+2. Get Comments: FAIL (0.52s)
+   Error: Get comments failed with status code: 404
+3. NLP Processing: FAIL (0.31s)
+   Error: NLP processing failed with status code: 404
+4. Notes Flow: FAIL (0.63s)
+   Error: 'list' object has no attribute 'get'
+5. YouTube Analysis: FAIL (0.31s)
+   Error: YouTube analysis failed with status code: 404
+--------------------------------------------------
+Passed: 1/5 (20.0%)
+==================================================
