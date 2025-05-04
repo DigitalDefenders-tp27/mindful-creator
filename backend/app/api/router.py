@@ -20,10 +20,10 @@ async def api_root() -> Dict[str, str]:
     logger.info("API root endpoint accessed")
     return {"status": "alive"}
 
-@router.get("/health")
-async def health_check() -> Dict[str, Any]:
+# 共享的健康检查函数实现
+async def health_check_implementation() -> Dict[str, Any]:
     """
-    Health check endpoint optimized for Railway deployment
+    Health check implementation shared between GET and POST methods
     """
     start_time = time.time()
     
@@ -78,3 +78,19 @@ async def health_check() -> Dict[str, Any]:
             "error": str(e),
             "response_time_ms": round((time.time() - start_time) * 1000, 2)
         }
+
+@router.get("/health")
+async def health_check_get() -> Dict[str, Any]:
+    """
+    Health check endpoint (GET method) optimized for Railway deployment
+    """
+    logger.info("GET health check endpoint accessed")
+    return await health_check_implementation()
+
+@router.post("/health")
+async def health_check_post() -> Dict[str, Any]:
+    """
+    Health check endpoint (POST method) for compatibility with frontend
+    """
+    logger.info("POST health check endpoint accessed")
+    return await health_check_implementation()
