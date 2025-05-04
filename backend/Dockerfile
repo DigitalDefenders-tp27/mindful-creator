@@ -1,13 +1,13 @@
 FROM python:3.11-slim
 WORKDIR /app
 
-# 安装系统工具用于监控和日志
+# Install system tools for monitoring and logging
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git git-lfs procps && \
     git lfs install && \
     rm -rf /var/lib/apt/lists/*
 
-# 添加构建信息函数
+# Add build info function
 RUN echo '#!/bin/bash \n\
     echo "🔍 System Info:" \n\
     echo "- Memory: $(free -h)" \n\
@@ -16,7 +16,7 @@ RUN echo '#!/bin/bash \n\
     ' > /usr/local/bin/sysinfo && \
     chmod +x /usr/local/bin/sysinfo
 
-# 显示初始系统信息
+# Show initial system info
 RUN echo "📦 Build started" && sysinfo
 
 COPY requirements.txt .
@@ -25,7 +25,7 @@ RUN echo "📥 Installing dependencies..." && \
     pip install --no-cache-dir -r requirements.txt && \
     echo "✅ Dependencies installed" && sysinfo
 
-# 缓存模型下载状态到一个文件供后面检查
+# Cache model download status to a file for later checking
 RUN echo "⏬ Downloading NLP model (this may take several minutes)..." && \
     mkdir -p app/app/nlp && \
     echo "MODEL_DOWNLOAD_START=$(date +%s)" > /tmp/model_status.log && \
@@ -33,7 +33,7 @@ RUN echo "⏬ Downloading NLP model (this may take several minutes)..." && \
     (echo "❌ Model download failed. Creating empty model directory." && mkdir -p app/app/nlp) && \
     echo "MODEL_DOWNLOAD_END=$(date +%s)" >> /tmp/model_status.log
 
-# 显示模型下载后的状态
+# Show model download status
 RUN cd app/app/nlp && \
     if [ -f "pytorch_model.bin" ]; then \
         echo "✅ Model files:" && \
@@ -47,7 +47,7 @@ RUN cd app/app/nlp && \
 
 COPY . .
 
-# 显示最终构建信息
+# Show final build info
 RUN echo "🏁 Build completed" && \
     ls -la && \
     echo "📁 Application files:" && \

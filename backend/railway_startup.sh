@@ -109,4 +109,7 @@ show_system_info
 
 # 启动服务器
 log_info "Starting Uvicorn server on port ${APP_PORT}..."
+# Export PORT to ensure it's available in all environments
+export PORT="$APP_PORT"
+# Make sure port is explicitly passed to uvicorn
 exec uvicorn app.main:app --host 0.0.0.0 --port "$APP_PORT" --workers 1 --log-level info
