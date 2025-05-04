@@ -13,8 +13,7 @@ from fastapi.routing import APIRouter
 import datetime
 import uvicorn
 import platform
-import json
-import torch
+
 
 # First import only the base router to ensure health check endpoint is available
 from app.api.router import router as api_router
@@ -62,8 +61,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-from transformers import AutoTokenizer, AutoModel
-import pathlib, os.path
+from transformers import AutoTokenizer
+import sys, os, time, json, torch
 
 # === 模型 / tokenizer 路径 ===================================================
 TOKENIZER_DIR = "/app/bert-base-uncased"   # 早前已保存
@@ -84,14 +83,18 @@ async def load_nlp_model():
         # ---- Tokenizer --------------------------------------------------
         logger.info(f"Tokenizer ← {TOKENIZER_DIR}")
         tokenizer = AutoTokenizer.from_pretrained(
-            TOKENIZER_DIR, local_files_only=True
+            TOKENIZER_DIR,
+            local_files_only=True
         )
 
-        # ---- 动态导入自定义模型类 --------------------------------------
-        sys.path.insert(0, MODEL_DIR)            # 让 Python 能找到 model.py
-        from model import CommentMTLModel        # noqa: E402
+        # ---- 导入自定义模型类 -------------------------------------------
+        # 确保 Python 能在 MODEL_DIR 里找到 model.py
+        if MODEL_DIR not in sys.path:
+            sys.path.insert(0, MODEL_DIR)
+        from model import CommentMTLModel  # noqa: E402
 
-        with open(CFG_FILE) as f:
+        # ---- 读取 config.json 并初始化模型 ------------------------------
+        with open(CFG_FILE, "r") as f:
             cfg = json.load(f)
 
         model = CommentMTLModel(
@@ -100,10 +103,12 @@ async def load_nlp_model():
             num_toxicity_labels=cfg["num_toxicity_labels"],
             dropout_prob=cfg.get("dropout_prob", 0.1)
         )
-        model.load_state_dict(torch.load(WEIGHTS_FILE, map_location="cpu"))
+        # 加载 .bin 权重
+        state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
+        model.load_state_dict(state_dict)
         model.eval()
 
-        # ---- 挂到 app.state --------------------------------------------
+        # ---- 挂载到 app.state --------------------------------------------
         app.state.tokenizer    = tokenizer
         app.state.model        = model
         app.state.model_loaded = True
