@@ -63,7 +63,7 @@ app = FastAPI(
 # Setup CORS - Updated to fix allow_credentials and allow_origins conflict
 app.add_middleware(
     CORSMiddleware,
-    # 列出允许的特定源
+    # List of allowed origins
     allow_origins=[
         "https://mindful-creator.vercel.app",
         "https://www.tiezhu.org",
@@ -126,45 +126,6 @@ for route_module, prefix in ADDITIONAL_ROUTES:
         logger.error(f"Failed to load {route_module}: {str(e)}")
         logger.error(traceback.format_exc())
         logger.info(f"Continuing startup despite failure to load {route_module}")
-
-# Custom middleware to manually add CORS headers for all responses - Updated for CORS spec compliance
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-    
-    # Get the origin from the request
-    origin = request.headers.get("origin")
-    
-    # Set CORS headers with specific origin handling for credentials
-    if origin:
-        # Check if the origin is in our allowed list
-        allowed_origins = [
-            "https://mindful-creator.vercel.app",
-            "https://www.tiezhu.org",
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:3000"
-        ]
-        
-        # If origin is allowed, echo it back specifically
-        if origin in allowed_origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-        else:
-            # Otherwise use * but don't allow credentials
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Credentials"] = "false"
-    else:
-        # No origin in request, use * without credentials
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Credentials"] = "false"
-    
-    # Common headers for all responses
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    
-    return response
 
 # Request processing middleware
 @app.middleware("http")
