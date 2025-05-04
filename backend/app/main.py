@@ -60,6 +60,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from transformers import AutoTokenizer, AutoModel
+import pathlib
+
+MODEL_PATH = pathlib.Path("/app/nlp")   # Dockerfile 克隆到的目录
+
+@app.on_event("startup")
+async def load_nlp_model():
+    """一次性加载 tokenizer / model 并存到 app.state"""
+    start = time.time()
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+        model     = AutoModel.from_pretrained(MODEL_PATH)
+        app.state.tokenizer = tokenizer
+        app.state.model     = model
+        app.state.model_loaded = True
+        logger.info(f"NLP model loaded ✅  ({time.time()-start:.2f}s)")
+    except Exception as e:
+        app.state.model_loaded = False
+        logger.exception(f"❌ Failed to load NLP model: {e}")
+
 # Setup CORS - Updated to fix allow_credentials and allow_origins conflict
 app.add_middleware(
     CORSMiddleware,
@@ -174,3 +194,15 @@ if __name__ == "__main__":
         workers=1,
         timeout_keep_alive=65
     ) 
+
+# app/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from transformers import AutoTokenizer, AutoModel
+import pathlib, logging, time
+
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Mindful Creator API")
+
+
