@@ -1,8 +1,8 @@
-# Git
+# Version control
 .git
 .gitignore
 
-# Python cache files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -13,11 +13,10 @@ __pycache__/
 # Environment
 .env
 .venv
-env/
 venv/
 ENV/
 
-# MacOS
+# OS files
 .DS_Store
 
 # Development

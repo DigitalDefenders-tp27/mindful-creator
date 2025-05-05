@@ -1,13 +1,8 @@
+# Railway configuration for backend service
+
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+builder = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/api/health"
-healthcheckTimeout = 300
-restartPolicyType = "ON_FAILURE"
-numReplicas = 1
-
-[service]
-internal = false
-ports = [{port = 8000, protocol = "tcp"}]
+healthcheckTimeout = 100 
