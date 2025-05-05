@@ -249,6 +249,18 @@ async def analyse_video_comments(
     if not comments:
         return {"success": True, "totalComments": 0, "criticalComments": []}
 
+    # 默认示例回复（保证至少有些内容）
+    default_examples = [
+        {
+            "comment": "This video was so helpful, I learned a lot!",
+            "response": "Thanks for the kind words! Really glad you found it helpful."
+        },
+        {
+            "comment": "I don't agree with what you said about this topic.",
+            "response": "Thanks for your perspective. I value different viewpoints and appreciate you sharing yours!"
+        }
+    ]
+
     # 优先用本地模型
     if getattr(request.app.state, "model_loaded", False):
         logger.info("Using local model branch")
@@ -256,15 +268,23 @@ async def analyse_video_comments(
         
         # 使用LLM生成评论案例和回复策略
         try:
+            logger.info("Calling LLM for strategies and examples")
             llm_res = await _remote_llm_analyse(comments)
             strategies = llm_res.get("strategies", "")
             example_comments = llm_res.get("example_comments", [])
+            
+            logger.info(f"LLM returned {len(example_comments)} example comments")
+            
+            # 确保有示例评论
+            if not example_comments:
+                logger.warning("No example comments from LLM, using defaults")
+                example_comments = default_examples
         except Exception as e:
             logger.warning(f"Failed to get LLM strategies and examples: {e}")
-            strategies = ""
-            example_comments = []
+            strategies = "• Thank you for taking the time to watch and comment\n• Respond positively to constructive feedback\n• Stay professional even with negative comments\n• Use feedback to improve future content"
+            example_comments = default_examples
             
-        return {
+        response = {
             "success": True,
             "method": "local_model",
             "duration_s": round(time.time() - start, 2),
@@ -272,6 +292,9 @@ async def analyse_video_comments(
             "strategies": strategies,
             "example_comments": example_comments
         }
+        
+        logger.info(f"Returning response with {len(example_comments)} example comments")
+        return response
 
     # 否则回退到远程 LLM
     logger.info("Local model not available - falling back to remote LLM")
@@ -282,7 +305,14 @@ async def analyse_video_comments(
         strategies = llm_res.get("strategies", "")
         example_comments = llm_res.get("example_comments", [])
         
-        return {
+        logger.info(f"LLM returned {len(example_comments)} example comments")
+        
+        # 确保有示例评论
+        if not example_comments:
+            logger.warning("No example comments from LLM, using defaults")
+            example_comments = default_examples
+        
+        response = {
             "success": True,
             "method": "remote_llm",
             "duration_s": round(time.time() - start, 2),
@@ -290,7 +320,14 @@ async def analyse_video_comments(
             "strategies": strategies,
             "example_comments": example_comments
         }
+        
+        logger.info(f"Returning response with {len(example_comments)} example comments")
+        return response
     except Exception as e:
         logger.error(f"Remote LLM error: {e}")
         logger.error(traceback.format_exc())
-        return {"success": False, "message": str(e)}
+        return {
+            "success": False, 
+            "message": str(e),
+            "example_comments": default_examples  # 即使出错也返回示例
+        }
