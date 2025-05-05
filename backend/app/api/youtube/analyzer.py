@@ -253,22 +253,42 @@ async def analyse_video_comments(
     if getattr(request.app.state, "model_loaded", False):
         logger.info("Using local model branch")
         result = analyse_comments_with_local_model(request, comments)
+        
+        # 使用LLM生成评论案例和回复策略
+        try:
+            llm_res = await _remote_llm_analyse(comments)
+            strategies = llm_res.get("strategies", "")
+            example_comments = llm_res.get("example_comments", [])
+        except Exception as e:
+            logger.warning(f"Failed to get LLM strategies and examples: {e}")
+            strategies = ""
+            example_comments = []
+            
         return {
             "success": True,
             "method": "local_model",
             "duration_s": round(time.time() - start, 2),
             "analysis": result,
+            "strategies": strategies,
+            "example_comments": example_comments
         }
 
     # 否则回退到远程 LLM
     logger.info("Local model not available - falling back to remote LLM")
     try:
         llm_res = await _remote_llm_analyse(comments)
+        
+        # 从llm_res中提取策略和示例
+        strategies = llm_res.get("strategies", "")
+        example_comments = llm_res.get("example_comments", [])
+        
         return {
             "success": True,
             "method": "remote_llm",
             "duration_s": round(time.time() - start, 2),
             "analysis": llm_res,
+            "strategies": strategies,
+            "example_comments": example_comments
         }
     except Exception as e:
         logger.error(f"Remote LLM error: {e}")
