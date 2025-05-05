@@ -419,8 +419,8 @@
                 'Accept': 'application/json'
               },
               body: JSON.stringify({
-                video_url: youtubeUrl.value,
-                max_comments: 100
+                youtube_url: youtubeUrl.value,
+                limit: 100
               }),
               signal: controller.signal
             })

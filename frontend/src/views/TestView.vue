@@ -139,7 +139,7 @@ const analyzeComments = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        video_url: youtubeUrl.value
+        youtube_url: youtubeUrl.value
       })
     })
     
