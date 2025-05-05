@@ -1,356 +1,229 @@
 import os
-import requests
-import json
-import logging
-from typing import Dict, List, Any
-from urllib.parse import urlparse, parse_qs
-from googleapiclient.discovery import build
-from transformers import AutoTokenizer, AutoModel
-import pathlib
 import time
-import tempfile
-import sys
-import re
+import logging
 import traceback
-import torch
+from typing import List, Dict, Any, Optional
+from urllib.parse import urlparse, parse_qs
 
-# Ensure project root directory is in the Python path
-proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-if proj_root not in sys.path:
-    sys.path.insert(0, proj_root)
+from fastapi import Request
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-# Import FastAPI app to check loaded state
-from app.main import app
+from .llm_handler import analyse_youtube_comments as _remote_llm_analyse
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, 
-                   format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app.api.youtube.analyzer")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
-# Environment variables
-YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
-logger.info(f"YOUTUBE_API_KEY set: {bool(YOUTUBE_API_KEY)}")
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
-# Fallback API key if not set
-if not YOUTUBE_API_KEY:
-    YOUTUBE_API_KEY = "AIzaSyDU95gTm6jKz85RdDj84QpU1tUETrCCP8M"
-    logger.info(f"Manually set YOUTUBE_API_KEY: {bool(YOUTUBE_API_KEY)}")
 
-def extract_video_id(youtube_url: str) -> str:
-    """
-    Extract video ID from a YouTube URL
-    
-    Args:
-        youtube_url: YouTube video URL
-        
-    Returns:
-        YouTube video ID
-    """
-    logger.info(f"Extracting video ID from URL: {youtube_url}")
-    
-    # Handle different URL formats
-    parsed_url = urlparse(youtube_url)
-    
-    if parsed_url.hostname in ('youtu.be', 'www.youtu.be'):
-        # youtu.be/{video_id} format
-        video_id = parsed_url.path.strip('/')
-        logger.info(f"Extracted video ID from youtu.be short link: {video_id}")
-        return video_id
-    
-    if parsed_url.hostname in ('youtube.com', 'www.youtube.com'):
-        # youtube.com/watch?v={video_id} format
-        query_params = parse_qs(parsed_url.query)
-        video_id = query_params.get('v', [None])[0]
-        logger.info(f"Extracted video ID from standard YouTube URL: {video_id}")
-        return video_id
-    
-    # If input is just the video ID
+def extract_video_id(youtube_url: str) -> Optional[str]:
+    parsed = urlparse(youtube_url)
+    host = parsed.hostname or ""
+    if host in ("youtu.be", "www.youtu.be"):
+        return parsed.path.lstrip("/")
+    if host in ("youtube.com", "www.youtube.com"):
+        return parse_qs(parsed.query).get("v", [None])[0]
     if youtube_url and len(youtube_url) == 11:
-        logger.info(f"Input is already a video ID: {youtube_url}")
         return youtube_url
-    
     logger.warning(f"Could not extract video ID from URL: {youtube_url}")
     return None
 
-def fetch_youtube_comments(video_url: str, max_comments: int = 100) -> List[str]:
-    """
-    Fetch comments from a YouTube video.
-    
-    Args:
-        video_url: URL of the YouTube video
-        max_comments: Maximum number of comments to fetch
-        
-    Returns:
-        List of comment strings
-    """
-    video_id = extract_video_id(video_url)
-    if not video_id:
-        logger.error(f"Invalid YouTube URL: {video_url}")
-        return []
-    
-    try:
-        return fetch_comments(video_id, max_comments)
-    except Exception as e:
-        logger.error(f"Error fetching comments with primary method: {e}")
-        # 尝试备用方法
-        try:
-            return fetch_comments_fallback(video_id, max_comments)
-        except Exception as e:
-            logger.error(f"Error fetching comments with fallback method: {e}")
-            return []
 
-def fetch_comments(video_id: str, max_comments: int = 100) -> List[str]:
-    """
-    Fetch comments from a YouTube video using the YouTube API.
-    
-    Args:
-        video_id: YouTube video ID
-        max_comments: Maximum number of comments to fetch
-        
-    Returns:
-        List of comment strings
-    """
-    logger.info(f"Fetching up to {max_comments} comments for video {video_id}")
-    
+def fetch_youtube_comments(video_id: str, max_comments: int = 100) -> List[str]:
     if not YOUTUBE_API_KEY:
-        logger.error("YouTube API key not configured. Set YOUTUBE_API_KEY environment variable.")
+        logger.error("YouTube API key not set")
         return []
-    
+    comments: List[str] = []
     try:
-        # Build YouTube API request
-        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-        
-        # Set retry count
-        max_retries = 2
-        comments = []
-        
-        for attempt in range(max_retries):
-            try:
-                logger.info(f"Fetching comments (attempt {attempt+1}/{max_retries})")
-                
-                # Get comment threads - don't pass timeout to execute()
-                results = youtube.commentThreads().list(
-                    part="snippet",
-                    videoId=video_id,
-                    textFormat="plainText",
-                    maxResults=min(max_comments, 100)  # API limits to max 100 per page
-                ).execute()
-                
-                # Extract comment text
-                for item in results.get("items", []):
-                    comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
-                    comments.append(comment)
-                
-                # If we've got enough comments or there's no next page, break
-                if len(comments) >= max_comments or "nextPageToken" not in results:
-                    break
-                
-                # Get next page of comments
-                next_page_token = results["nextPageToken"]
-                results = youtube.commentThreads().list(
-                    part="snippet",
-                    videoId=video_id,
-                    textFormat="plainText",
-                    maxResults=min(max_comments - len(comments), 100),
-                    pageToken=next_page_token
-                ).execute()
-                
-                for item in results.get("items", []):
-                    comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
-                    comments.append(comment)
-                
-                # Successfully fetched comments, break retry loop
-                break
-                
-            except Exception as e:
-                logger.error(f"Error fetching comments (attempt {attempt+1}): {e}")
-                if attempt < max_retries - 1:
-                    # Wait before retrying
-                    time.sleep(1)
-                else:
-                    # Last retry failed, raise exception
-                    raise
-        
-        logger.info(f"Successfully fetched {len(comments)} comments")
-        return comments
-        
-    except Exception as e:
-        logger.error(f"Failed to fetch comments: {e}")
-        raise
-        
-def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]:
-    """
-    Backup method: Using alternative API or library to get YouTube comments
-    
-    Args:
-        video_id: YouTube video ID
-        max_comments: Maximum number of comments
-        
-    Returns:
-        List of comments
-    """
-    logger.info(f"Using fallback method to fetch comments for video {video_id}")
-    
-    try:
-        # This is just a simple backup implementation
-        # In a production system, we could implement a scraper that doesn't rely on YouTube API
-        
-        # Since there's no actual backup implementation, return some mock comments
-        logger.warning("Using mock comments as fallback - implement a real fallback method for production")
-        mock_comments = [
-            "Bloody ripper of a video, mate! Thanks heaps for sharing!",
-            "Fair dinkum, I reckon some of these points are a bit off.",
-            "Deadset good content as always! Can't wait for your next upload.",
-            "G'day! Could you explain that bit at 3:45 a bit more? Got a bit confused there.",
-            "Crikey, the sound quality could be better on this one."
-        ]
-        
-        # Return the specified number of mock comments
-        return mock_comments[:min(len(mock_comments), max_comments)]
-        
-    except Exception as e:
-        logger.error(f"Fallback method failed: {e}")
-        return []
+        youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+        next_page: Optional[str] = None
 
-def analyse_comments_with_local_model(comments: List[Any]) -> Dict:
+        while len(comments) < max_comments:
+            resp = (
+                youtube.commentThreads()
+                .list(
+                    part="snippet",
+                    videoId=video_id,
+                    textFormat="plainText",
+                    maxResults=min(100, max_comments - len(comments)),
+                    pageToken=next_page,
+                )
+                .execute()
+            )
+            for item in resp.get("items", []):
+                text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
+                comments.append(text)
+            next_page = resp.get("nextPageToken")
+            if not next_page:
+                break
+
+    except HttpError as e:
+        logger.error(f"YouTube API error: {e}")
+    except Exception as e:
+        logger.error(f"Error fetching comments: {e}")
+    logger.info(f"Fetched {len(comments)} comments for video {video_id}")
+    return comments
+
+
+def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]:
+    logger.warning("Using fallback mock comments")
+    mock = [
+        "This is a mock comment #1",
+        "This is a mock comment #2",
+        "This is a mock comment #3",
+    ]
+    return mock[:max_comments]
+
+
+def analyse_comments_with_local_model(
+    request: Request, comments: List[str]
+) -> Dict[str, Any]:
     """
-    Analyze comments with local NLP model.
+    用本地模型分析评论，必须在 `startup` 时已经把 tokenizer/model 放到 app.state
     """
-    # Check actual FastAPI model_loaded flag instead of env var
-    model_loaded = getattr(app.state, "model_loaded", False)
+    model_loaded = getattr(request.app.state, "model_loaded", False)
     if not model_loaded:
-        logger.warning("NLP model not loaded in app.state. Returning limited analysis results.")
-        # fallback limited analysis
+        logger.warning("NLP model not loaded in app.state, falling back to limited analysis")
+        # 返回一个简易统计
+        total = len(comments)
         return {
-            "note": "Model not loaded. The analysis is limited and uses predefined patterns.",
+            "note": "Model not loaded, limited analysis",
             "sentiment": {
                 "positive_count": 0,
-                "neutral_count": len(comments),
+                "neutral_count": total,
                 "negative_count": 0,
-                "positive_percentage": 0,
-                "neutral_percentage": 100,
-                "negative_percentage": 0
             },
             "toxicity": {
                 "toxic_count": 0,
-                "non_toxic_count": len(comments),
-                "toxic_percentage": 0,
-                "toxic_types": {
-                    "toxic": 0,
-                    "severe_toxic": 0,
-                    "obscene": 0,
-                    "threat": 0,
-                    "insult": 0,
-                    "identity_hate": 0
-                }
-            }
+                "non_toxic_count": total,
+            },
         }
 
-    # Proceed with real analysis if model_loaded
+    # 真正走本地模型
     try:
-        # Use imported tokenizer & model from app.state
-        tokenizer = app.state.tokenizer
-        model = app.state.model
-        logger.info(f"Processing {len(comments)} comments with local model")
-
-        # Encode comments
+        tokenizer = request.app.state.tokenizer
+        model = request.app.state.model
+        logger.info(f"Running local model on {len(comments)} comments")
         enc = tokenizer(
             comments,
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512
+            max_length=512,
         )
-        enc = {k: v.to(model.device) for k, v in enc.items()}
+        # 把 input 转到模型所在设备
+        device = next(model.parameters()).device
+        enc = {k: v.to(device) for k, v in enc.items()}
 
-        # Inference logic unchanged...
-        # ... your existing batching and counting logic ...
+        # 下面根据你的 CommentMTLModel 输出做批量推理
+        batch_size = 32
+        sentiment_counts = {"Negative": 0, "Neutral": 0, "Positive": 0}
+        toxicity_counts = {
+            "Toxic": 0,
+            "Severe Toxic": 0,
+            "Obscene": 0,
+            "Threat": 0,
+            "Insult": 0,
+            "Identity Hate": 0,
+        }
+        toxic_comments = 0
 
-        # Return actual analysis results
+        n = enc["input_ids"].size(0)
+        for i in range(0, n, batch_size):
+            sl = slice(i, i + batch_size)
+            out = model(
+                input_ids=enc["input_ids"][sl],
+                attention_mask=enc["attention_mask"][sl],
+                token_type_ids=enc.get("token_type_ids", None)[sl]
+                if "token_type_ids" in enc
+                else None,
+            )
+            # sentiment
+            logits = out["sentiment_logits"]
+            preds = logits.softmax(dim=-1).argmax(dim=-1).tolist()
+            for p in preds:
+                sentiment_counts[list(sentiment_counts.keys())[p]] += 1
+
+            # toxicity
+            probs = out["toxicity_logits"].sigmoid() > 0.3
+            toxic_comments += probs.any(dim=1).sum().item()
+            for idx, label in enumerate(toxicity_counts):
+                toxicity_counts[label] += int(probs[:, idx].sum().item())
+
         return {
-            # Construct your real output here
+            "note": "Analysis by local model",
+            "sentiment": sentiment_counts,
+            "toxicity": {
+                "counts": toxicity_counts,
+                "total_toxic_comments": toxic_comments,
+            },
         }
 
     except Exception as e:
-        logger.error(f"Local model analysis failed: {e}")
+        logger.error(f"Local model inference error: {e}")
         logger.error(traceback.format_exc())
-        # Fallback synthetic data
+        # 简易 fallback
         total = len(comments)
-        positive = max(1, round(total * 0.4))
-        negative = max(1, round(total * 0.3))
-        neutral = total - positive - negative
-        toxic_count = max(1, round(total * 0.15))
         return {
+            "note": "Local inference failed, fallback",
             "sentiment": {
-                "positive_count": positive,
-                "neutral_count": neutral,
-                "negative_count": negative
+                "positive_count": 0,
+                "neutral_count": total,
+                "negative_count": 0,
             },
             "toxicity": {
-                "toxic_count": toxic_count,
-                "toxic_percentage": (toxic_count / total * 100) if total else 0,
-                "toxic_types": {
-                    "toxic": max(1, round(toxic_count * 0.7)),
-                    "severe_toxic": round(toxic_count * 0.1),
-                    "obscene": round(toxic_count * 0.4),
-                    "threat": round(toxic_count * 0.05),
-                    "insult": round(toxic_count * 0.3),
-                    "identity_hate": round(toxic_count * 0.1)
-                }
+                "toxic_count": 0,
+                "non_toxic_count": total,
             },
-            "note": "Using simulated values (local NLP model analysis failed)"
         }
 
-# Create an alias for backward compatibility
-analyse_comments_with_space_api = analyse_comments_with_local_model
 
-async def analyze_youtube_video(video_url: str) -> Dict:
+async def analyse_video_comments(
+    request: Request, youtube_url: str, max_comments: int = 100
+) -> Dict[str, Any]:
     """
-    Analyse YouTube video comments
-    
-    Args:
-        video_url: YouTube video URL
-        
-    Returns:
-        Analysis results summary
+    入口函数，在 routes.py 里这样调用：
+      @router.post("/analyse")
+      async def analyse_endpoint(request: Request, payload: YouTubeRequest):
+          return await analyse_video_comments(request, payload.youtube_url, payload.limit)
     """
-    logger.info(f"Starting YouTube video comment analysis: {video_url}")
-    
+    logger.info(f"Starting analysis for {youtube_url}")
+    start = time.time()
+
+    video_id = extract_video_id(youtube_url)
+    if not video_id:
+        return {"success": False, "message": "Invalid YouTube URL"}
+
+    comments = fetch_youtube_comments(video_id, max_comments)
+    if not comments:
+        return {"success": True, "totalComments": 0, "criticalComments": []}
+
+    # 优先用本地模型
+    if getattr(request.app.state, "model_loaded", False):
+        logger.info("Using local model branch")
+        result = analyse_comments_with_local_model(request, comments)
+        return {
+            "success": True,
+            "method": "local_model",
+            "duration_s": round(time.time() - start, 2),
+            "analysis": result,
+        }
+
+    # 否则回退到远程 LLM
+    logger.info("Local model not available - falling back to remote LLM")
     try:
-        # Fetch YouTube comments
-        logger.info("Fetching YouTube comments...")
-        comments = fetch_youtube_comments(video_url)
-        
-        if not comments:
-            logger.warning("No comments retrieved, video may have no comments or retrieval failed")
-            return {
-                "status": "error",
-                "message": "Could not fetch comments or video has no comments"
-            }
-        
-        # Analyse comments using local model
-        logger.info(f"Starting local model analysis of {len(comments)} comments...")
-        analysis_result = analyse_comments_with_local_model(comments)
-        
-        if "error" in analysis_result:
-            error_msg = analysis_result["error"]
-            logger.error(f"Error analysing comments: {error_msg}")
-            return {
-                "status": "error",
-                "message": error_msg
-            }
-        
-        logger.info("Comment analysis complete, preparing results")
+        llm_res = await _remote_llm_analyse(comments)
         return {
-            "status": "success",
-            "total_comments": len(comments),
-            "analysis": analysis_result
+            "success": True,
+            "method": "remote_llm",
+            "duration_s": round(time.time() - start, 2),
+            "analysis": llm_res,
         }
-        
     except Exception as e:
-        logger.error(f"Exception occurred while processing request: {str(e)}")
-        logger.exception("Detailed exception information:")
-        return {
-            "status": "error",
-            "message": str(e)
-        } 
+        logger.error(f"Remote LLM error: {e}")
+        logger.error(traceback.format_exc())
+        return {"success": False, "message": str(e)}
