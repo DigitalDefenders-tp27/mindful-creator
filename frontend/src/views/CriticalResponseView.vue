@@ -176,13 +176,13 @@
             </div>
             
             <!-- Debug Information (Add after video info section) -->
-            <!-- <div v-if="analysisResult?.analysis?.note" class="debug-info section-divider">
-              <p class="note-message"><strong>Heads up:</strong> {{ analysisResult.analysis.note }}</p>
+            <div class="debug-info section-divider">
+              <p class="note-message"><strong>Debug Info:</strong></p>
               <details>
-                <summary>Technical Details</summary>
+                <summary>Response Data Structure</summary>
                 <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
               </details>
-            </div> -->
+            </div>
             
             <!-- Results Grid -->
             <div class="results-grid section-divider">
@@ -480,7 +480,15 @@
       // 处理返回的数据
       if (data.success && data.analysis) {
         // 如果是完整的分析结果
-        analysisResult.value = data.analysis
+        console.log('Received complete analysis result:', data)
+        analysisResult.value = {
+          total_comments: data.analysis?.sentiment?.positive_count + 
+                          data.analysis?.sentiment?.negative_count + 
+                          data.analysis?.sentiment?.neutral_count || 0,
+          analysis: data.analysis,
+          strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
+          example_comments: data.example_comments || []
+        }
         showResultsModal.value = true
         isLoading.value = false
         return
