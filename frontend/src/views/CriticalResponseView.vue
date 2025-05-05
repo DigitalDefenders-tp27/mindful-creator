@@ -407,10 +407,10 @@
         let fetchError = null
         for (let i = 0; i < apiUrls.length; i++) {
           try {
-            console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i]}`)
+            console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i].replace('/analyse', '/analyse_full')}`)
             
             // 发送请求到API端点
-            response = await fetch(apiUrls[i], {
+            response = await fetch(apiUrls[i].replace('/analyse', '/analyse_full'), {
               method: 'POST',
               mode: 'cors',
               credentials: 'omit',
@@ -475,9 +475,77 @@
       
       // Parse response
       const data = await response.json()
-      console.log('API response received')
+      console.log('API response received', data)
       
-      // Check API response status
+      // 处理返回的数据
+      if (data.success && data.analysis) {
+        // 如果是完整的分析结果
+        analysisResult.value = data.analysis
+        showResultsModal.value = true
+        isLoading.value = false
+        return
+      } else if (Array.isArray(data)) {
+        // 向后兼容：如果收到的是评论数组，需要构建分析结果对象
+        // 如果收到的是评论数组，需要构建分析结果对象
+        const comments = data
+        // 简单情感分析
+        const positiveWords = ["good", "great", "awesome", "amazing", "love", "best", "excellent", "fantastic", "brilliant"]
+        const negativeWords = ["bad", "terrible", "awful", "hate", "worst", "poor", "horrible", "disappointing"]
+        
+        let positiveCount = 0
+        let negativeCount = 0
+        let neutralCount = 0
+        
+        // 对每条评论进行简单的情感分析
+        comments.forEach(comment => {
+          const commentLower = comment.toLowerCase()
+          const positiveMatches = positiveWords.filter(word => commentLower.includes(word)).length
+          const negativeMatches = negativeWords.filter(word => commentLower.includes(word)).length
+          
+          if (positiveMatches > negativeMatches) positiveCount++
+          else if (negativeMatches > positiveMatches) negativeCount++
+          else neutralCount++
+        })
+        
+        // 构建分析结果对象
+        analysisResult.value = {
+          total_comments: comments.length,
+          raw_comments: comments,
+          analysis: {
+            sentiment: {
+              positive_count: positiveCount,
+              negative_count: negativeCount,
+              neutral_count: neutralCount,
+              positive_percentage: (positiveCount / comments.length * 100).toFixed(1),
+              negative_percentage: (negativeCount / comments.length * 100).toFixed(1),
+              neutral_percentage: (neutralCount / comments.length * 100).toFixed(1)
+            },
+            toxicity: {
+              toxic_count: negativeCount, // 简单起见，将负面评论数作为毒性评论数
+              non_toxic_count: positiveCount + neutralCount,
+              toxic_percentage: (negativeCount / comments.length * 100).toFixed(1)
+            }
+          },
+          // 生成一些示例回复策略
+          strategies: "• 感谢用户花时间观看你的视频并留下评论\n• 保持积极态度，即使面对负面评论\n• 诚恳接受建设性批评，并向观众表示感谢\n• 避免陷入争论，保持专业和友好",
+          example_comments: [
+            {
+              comment: comments.find(c => c.toLowerCase().includes("love") || c.toLowerCase().includes("good")) || "I love this video!",
+              response: "谢谢你的支持！很高兴你喜欢这个视频。"
+            },
+            {
+              comment: comments.find(c => c.toLowerCase().includes("hate") || c.toLowerCase().includes("bad")) || "I didn't like this content.",
+              response: "感谢你的反馈。我会继续努力改进内容质量。有什么具体建议吗？"
+            }
+          ]
+        }
+        
+        showResultsModal.value = true
+        isLoading.value = false
+        return
+      }
+      
+      // 如果返回的不是数组而是对象，检查API响应状态
       if (data.status === 'error') {
         console.error('API returned error:', data.message)
         analysisError.value = data.message || 'Analysis failed, please try again later'

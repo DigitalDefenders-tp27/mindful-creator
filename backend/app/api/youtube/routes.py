@@ -1,9 +1,9 @@
 # app/api/youtube/routes.py
-from fastapi import APIRouter, HTTPException
-from typing import List
+from fastapi import APIRouter, HTTPException, Request
+from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 
-from .analyzer import extract_video_id, fetch_youtube_comments
+from .analyzer import extract_video_id, fetch_youtube_comments, analyse_video_comments
 
 router = APIRouter(
     prefix="/youtube",
@@ -35,3 +35,28 @@ async def fetch_comments_only(req: YouTubeRequest) -> List[str]:
         raise HTTPException(status_code=500, detail="获取评论失败")
 
     return comments
+
+@router.post(
+    "/analyse_full",
+    response_model=Dict[str, Any],
+    summary="进行完整的YouTube评论分析"
+)
+async def analyse_full(request: Request, req: YouTubeRequest) -> Dict[str, Any]:
+    """
+    根据YouTube URL获取评论，分析内容情感和毒性，并用LLM生成回应策略。
+    
+    处理流程:
+    1. 获取YouTube评论
+    2. 用NLP模型分析评论情感和毒性
+    3. 用LLM生成回应策略和示例
+    4. 返回完整的分析结果
+    
+    Returns:
+        Dict包含以下字段:
+        - success: 是否成功
+        - method: 使用的分析方法
+        - duration_s: 处理时间
+        - analysis: 包含sentiment、toxicity等分析结果的对象
+    """
+    result = await analyse_video_comments(request, req.youtube_url, req.limit)
+    return result
