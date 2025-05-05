@@ -64,7 +64,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
         return {
             "status": "partial",
             "strategies": "No specific strategies could be generated. OpenRouter API key is missing.",
-            "example_comments": []
+            "example_comments": generate_fallback_examples([])  # 确保有默认示例
         }
     
     logger.info(f"Analyzing {len(comments)} comments with OpenRouter")
@@ -83,6 +83,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
                 try:
                     logger.info(f"Identifying critical comments (attempt {attempt+1}/{max_retries})")
                     toxic_comments = identify_critical_comments(comments)
+                    logger.info(f"Identified {len(toxic_comments)} critical comments: {toxic_comments}")
                     break
                 except Exception as e:
                     logger.error(f"Error identifying critical comments (attempt {attempt+1}): {e}")
@@ -97,6 +98,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
         # Make sure we have comments to analyse
         if not toxic_comments and comments:
             toxic_comments = comments[:min(3, len(comments))]
+            logger.info(f"Using sample of {len(toxic_comments)} comments as fallback")
         
         # Generate strategies with timeout and retry
         strategies = ""
@@ -117,6 +119,7 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
             try:
                 logger.info(f"Generating example responses (attempt {attempt+1}/{max_retries})")
                 example_responses = generate_example_responses(toxic_comments)
+                logger.info(f"Generated {len(example_responses)} example responses")
                 if example_responses:
                     break
             except Exception as e:
@@ -129,20 +132,29 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
             strategies = generate_fallback_strategies(toxic_comments)
         
         if not example_responses:
+            logger.warning("No example responses generated - using fallback examples")
             example_responses = generate_fallback_examples(toxic_comments)
+            
+        # 增加日志确认返回数据
+        logger.info(f"Returning analysis with {len(example_responses)} example comments")
         
-        return {
+        result = {
             "status": "success",
             "strategies": strategies,
             "example_comments": example_responses
         }
+        
+        return result
     except Exception as e:
         logger.error(f"Error in LLM analysis: {e}")
-        # Ensure we return fallback results, not an error
+        # 确保使用fallback，而不是返回错误
+        fallback_examples = generate_fallback_examples(comments[:min(3, len(comments))])
+        logger.info(f"Returning fallback with {len(fallback_examples)} example comments")
+        
         return {
             "status": "partial",
             "strategies": generate_fallback_strategies(comments[:min(3, len(comments))]),
-            "example_comments": generate_fallback_examples(comments[:min(3, len(comments))])
+            "example_comments": fallback_examples
         }
 
 def identify_critical_comments(comments: List[str], max_comments: int = 3) -> List[str]:
