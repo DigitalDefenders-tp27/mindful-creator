@@ -27,8 +27,8 @@ logger = logging.getLogger("youtube-test")
 
 # 测试配置
 TEST_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Astley视频
-MAX_COMMENTS = 10  # 最多获取的评论数
-TEST_RESULT = {"success": False}  # 全局测试结果
+MAX_COMMENTS = 100  # 最多获取的评论数，从10改为100
+TEST_RESULT = {"success": False, "timing": {}}  # 全局测试结果，添加timing字典记录时间
 
 def print_separator(title):
     """打印分隔线和标题"""
@@ -75,12 +75,13 @@ def test_fetch_comments():
             return []
         
         print(f"视频ID: {video_id}")
-        print(f"开始获取YouTube视频评论")
+        print(f"开始获取YouTube视频评论 (目标: {MAX_COMMENTS} 条评论)")
         start_time = time.time()
         
         comments = fetch_youtube_comments(video_id, max_comments=MAX_COMMENTS)
         
         elapsed = time.time() - start_time
+        TEST_RESULT["timing"]["fetch_comments"] = elapsed  # 记录评论获取阶段的耗时
         print(f"评论获取完成，耗时: {elapsed:.2f}秒")
         print(f"获取到 {len(comments)} 条评论")
         
@@ -131,6 +132,8 @@ def test_sentiment_analysis(comments=None):
         neutral_count = 0
         
         print(f"开始分析 {len(comments)} 条评论")
+        start_time = time.time()
+        
         for comment in comments:
             comment_lower = comment.lower()
             positive_matches = sum(1 for word in positive_words if word in comment_lower)
@@ -143,6 +146,9 @@ def test_sentiment_analysis(comments=None):
             else:
                 neutral_count += 1
         
+        elapsed = time.time() - start_time
+        TEST_RESULT["timing"]["sentiment_analysis"] = elapsed  # 记录情感分析阶段的耗时
+        
         results = {
             "sentiment": {
                 "positive_count": positive_count,
@@ -152,12 +158,13 @@ def test_sentiment_analysis(comments=None):
                 "negative_percentage": round(negative_count / len(comments) * 100, 1),
                 "neutral_percentage": round(neutral_count / len(comments) * 100, 1)
             },
-            "note": "基本文本分析结果，非机器学习模型"
+            "note": "基本文本分析结果，非机器学习模型",
+            "processing_time": elapsed  # 添加处理时间到结果
         }
         
         # 显示分析结果
         sentiment = results["sentiment"]
-        print(f"\n情感分析结果:")
+        print(f"\n情感分析结果 (耗时: {elapsed:.2f}秒):")
         print(f"- 正面评论: {sentiment['positive_count']} ({sentiment['positive_percentage']}%)")
         print(f"- 负面评论: {sentiment['negative_count']} ({sentiment['negative_percentage']}%)")
         print(f"- 中性评论: {sentiment['neutral_count']} ({sentiment['neutral_percentage']}%)")
@@ -210,6 +217,7 @@ def test_llm_analysis(comments=None):
         results = analyse_youtube_comments(comments)
         
         elapsed = time.time() - start_time
+        TEST_RESULT["timing"]["llm_analysis"] = elapsed  # 记录LLM分析阶段的耗时
         print(f"LLM分析完成，耗时: {elapsed:.2f}秒")
         
         # 显示分析结果
@@ -233,6 +241,10 @@ def test_llm_analysis(comments=None):
                 print(f"评论: {example.get('comment', '')}")
                 print(f"回复: {example.get('response', '')}")
         
+        # 添加处理时间到结果
+        if isinstance(results, dict):
+            results["processing_time"] = elapsed
+            
         # 保存到全局结果
         TEST_RESULT["llm_results"] = results
         TEST_RESULT["llm_ok"] = True
@@ -249,6 +261,8 @@ def test_complete_flow():
     print_separator("测试完整分析流程")
     
     try:
+        total_start_time = time.time()
+        
         # 1. 获取评论
         comments = test_fetch_comments()
         if not comments:
@@ -262,20 +276,37 @@ def test_complete_flow():
         # 3. LLM分析
         llm_results = test_llm_analysis(comments)
         
+        # 计算总耗时
+        total_elapsed = time.time() - total_start_time
+        TEST_RESULT["timing"]["complete_flow"] = total_elapsed
+        
         # 4. 整合结果
         complete_results = {
             "success": True, 
             "method": "test_complete_flow",
-            "duration_s": 0,
+            "duration_s": total_elapsed,
             "total_comments": len(comments),
+            "timing": {
+                "fetch_comments": TEST_RESULT["timing"].get("fetch_comments", 0),
+                "sentiment_analysis": TEST_RESULT["timing"].get("sentiment_analysis", 0),
+                "llm_analysis": TEST_RESULT["timing"].get("llm_analysis", 0),
+                "total": total_elapsed
+            },
             "analysis": {
                 "sentiment": sentiment_results.get("sentiment", {}),
                 "llm_results": llm_results
             }
         }
         
-        print(f"完整分析流程完成")
+        print(f"完整分析流程完成，总耗时: {total_elapsed:.2f}秒")
         print(f"分析状态: {'成功' if complete_results.get('success') else '失败'}")
+        
+        # 打印各阶段耗时统计
+        print("\n各阶段耗时统计:")
+        print(f"- 获取评论: {TEST_RESULT['timing'].get('fetch_comments', 0):.2f}秒")
+        print(f"- 情感分析: {TEST_RESULT['timing'].get('sentiment_analysis', 0):.2f}秒")
+        print(f"- LLM分析: {TEST_RESULT['timing'].get('llm_analysis', 0):.2f}秒")
+        print(f"- 总耗时: {total_elapsed:.2f}秒")
         
         # 保存到全局结果
         TEST_RESULT["complete_results"] = complete_results
@@ -291,6 +322,7 @@ def test_complete_flow():
 def run_all_tests():
     """运行所有测试"""
     print_separator("开始运行所有测试")
+    total_start_time = time.time()
     
     # 0. 检查模块导入
     imports_ok = check_imports()
@@ -311,6 +343,10 @@ def run_all_tests():
     
     # 4. 完整流程
     complete_results = test_complete_flow()
+    
+    # 计算总测试时间
+    total_elapsed = time.time() - total_start_time
+    TEST_RESULT["timing"]["total_testing"] = total_elapsed
     
     # 打印测试总结
     print_separator("测试总结")
@@ -333,6 +369,18 @@ def run_all_tests():
     
     success_rate = (passed / len(tests)) * 100
     print(f"\n通过率: {success_rate:.1f}% ({passed}/{len(tests)})")
+    
+    # 打印时间统计
+    print("\n时间统计:")
+    if "fetch_comments" in TEST_RESULT["timing"]:
+        print(f"- 获取评论: {TEST_RESULT['timing']['fetch_comments']:.2f}秒")
+    if "sentiment_analysis" in TEST_RESULT["timing"]:
+        print(f"- 情感分析: {TEST_RESULT['timing']['sentiment_analysis']:.2f}秒")
+    if "llm_analysis" in TEST_RESULT["timing"]:
+        print(f"- LLM分析: {TEST_RESULT['timing']['llm_analysis']:.2f}秒")
+    if "complete_flow" in TEST_RESULT["timing"]:
+        print(f"- 完整流程: {TEST_RESULT['timing']['complete_flow']:.2f}秒")
+    print(f"- 总测试时间: {total_elapsed:.2f}秒")
     
     # 返回退出码
     return 0 if passed == len(tests) else 1
