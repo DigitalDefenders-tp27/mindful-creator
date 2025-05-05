@@ -206,8 +206,8 @@ def test_llm_analysis(comments=None):
         print(f"开始LLM分析 {len(comments)} 条评论")
         start_time = time.time()
         
-        # LLM分析函数可能是异步的
-        results = asyncio.run(analyse_youtube_comments(comments))
+        # 直接调用函数，不使用asyncio.run()，因为这是同步函数
+        results = analyse_youtube_comments(comments)
         
         elapsed = time.time() - start_time
         print(f"LLM分析完成，耗时: {elapsed:.2f}秒")
