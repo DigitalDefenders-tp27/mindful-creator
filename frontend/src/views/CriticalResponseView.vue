@@ -11,7 +11,7 @@
             <p class="subtitle">Transform challenging interactions into growth opportunities</p>
           </div>
           <div class="decorative-elements">
-            <!-- 右上角第一排 / Top Row Right -->
+            <!-- Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
                 <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
@@ -232,13 +232,13 @@
               </div>
             </div>
             
-            <!-- Strategies Section (修改) -->
+            <!-- Strategies Section -->
             <div class="strategies-section section-divider" v-if="analysisResult?.strategies">
               <h3>Response Strategies</h3>
               <div class="strategy-content" v-html="formatStrategies(analysisResult.strategies)"></div>
             </div>
             
-            <!-- Example Comments Section (修改) -->
+            <!-- Example Comments Section -->
             <div class="examples-section section-divider" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
               <h3>Example Responses</h3>
               <div class="example-cards">
@@ -304,16 +304,16 @@
 
   // Format toxicity type names to more readable format
   const formatToxicityType = (type) => {
-    // 处理后端返回的可能格式（首字母大写或全小写）
+    // Handle different formats returned by backend (capitalised or lowercase)
     const typeMap = {
-      // 后端返回格式
+      // Backend return format
       'Toxic': 'General Toxicity',
       'Severe Toxic': 'Severe Toxicity',
       'Obscene': 'Obscene',
       'Threat': 'Threat',
       'Insult': 'Insult',
       'Identity Hate': 'Identity Hate',
-      // 前端原有格式（向后兼容）
+      // Original frontend format (for backwards compatibility)
       'toxic': 'General Toxicity',
       'severe_toxic': 'Severe Toxicity',
       'obscene': 'Obscene',
@@ -418,7 +418,7 @@
           try {
             console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i].replace('/analyse', '/analyse_full')}`)
             
-            // 发送请求到API端点
+            // Send request to API endpoint
             response = await fetch(apiUrls[i].replace('/analyse', '/analyse_full'), {
               method: 'POST',
               mode: 'cors',
@@ -486,16 +486,16 @@
       const data = await response.json()
       console.log('API response received', data)
       
-      // 处理返回的数据
+      // Process the returned data
       if (data.success && data.analysis) {
-        // 如果是完整的分析结果
+        // If we received a complete analysis result
         console.log('Received complete analysis result:', data)
         
-        // 适配后端返回的数据结构
+        // Adapt to the backend data structure
         const sentiment = data.analysis.sentiment || {};
         const toxicityCounts = data.analysis.toxicity?.counts || {};
         
-        // 计算毒性评论总数
+        // Calculate total toxic comments
         const toxicTotal = Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
         
         analysisResult.value = {
@@ -521,10 +521,10 @@
         isLoading.value = false
         return
       } else if (Array.isArray(data)) {
-        // 向后兼容：如果收到的是评论数组，需要构建分析结果对象
-        // 如果收到的是评论数组，需要构建分析结果对象
+        // Backwards compatibility: If we received an array of comments, build an analysis result object
+        // If the response is an array of comments, construct an analysis result
         const comments = data
-        // 简单情感分析
+        // Simple sentiment analysis
         const positiveWords = ["good", "great", "awesome", "amazing", "love", "best", "excellent", "fantastic", "brilliant"]
         const negativeWords = ["bad", "terrible", "awful", "hate", "worst", "poor", "horrible", "disappointing"]
         
@@ -532,7 +532,7 @@
         let negativeCount = 0
         let neutralCount = 0
         
-        // 对每条评论进行简单的情感分析
+        // Perform basic sentiment analysis on each comment
         comments.forEach(comment => {
           const commentLower = comment.toLowerCase()
           const positiveMatches = positiveWords.filter(word => commentLower.includes(word)).length
@@ -543,7 +543,7 @@
           else neutralCount++
         })
         
-        // 构建分析结果对象
+        // Construct the analysis result object
         analysisResult.value = {
           total_comments: comments.length,
           raw_comments: comments,
@@ -557,21 +557,21 @@
               neutral_percentage: (neutralCount / comments.length * 100).toFixed(1)
             },
             toxicity: {
-              toxic_count: negativeCount, // 简单起见，将负面评论数作为毒性评论数
+              toxic_count: negativeCount, // For simplicity, using negative comments as toxic comments
               non_toxic_count: positiveCount + neutralCount,
               toxic_percentage: (negativeCount / comments.length * 100).toFixed(1)
             }
           },
-          // 生成一些示例回复策略
-          strategies: "• 感谢用户花时间观看你的视频并留下评论\n• 保持积极态度，即使面对负面评论\n• 诚恳接受建设性批评，并向观众表示感谢\n• 避免陷入争论，保持专业和友好",
+          // Generate some example response strategies
+          strategies: "• Thanks to viewers for taking time to watch your video and leave comments\n• Keep a positive attitude, even when facing negative feedback\n• Accept constructive criticism with grace and thank your audience\n• Avoid getting into arguments, stay professional and friendly",
           example_comments: [
             {
               comment: comments.find(c => c.toLowerCase().includes("love") || c.toLowerCase().includes("good")) || "I love this video!",
-              response: "谢谢你的支持！很高兴你喜欢这个视频。"
+              response: "Thanks for your support! Really glad you enjoyed the video."
             },
             {
               comment: comments.find(c => c.toLowerCase().includes("hate") || c.toLowerCase().includes("bad")) || "I didn't like this content.",
-              response: "感谢你的反馈。我会继续努力改进内容质量。有什么具体建议吗？"
+              response: "Thanks for your feedback. I'll keep working to improve my content. Any specific suggestions?"
             }
           ]
         }
@@ -581,7 +581,7 @@
         return
       }
       
-      // 如果返回的不是数组而是对象，检查API响应状态
+      // If the response is not an array or analysis object, check API response status
       if (data.status === 'error') {
         console.error('API returned error:', data.message)
         analysisError.value = data.message || 'Analysis failed, please try again later'
@@ -605,7 +605,7 @@
     } catch (error) {
       console.error('API request error:', error)
       
-      // 添加一个直接的错误对象记录，帮助查找问题
+      // Add a direct error object for troubleshooting
       const errorDetails = {
         message: error.message,
         name: error.name,
@@ -1287,7 +1287,7 @@
     margin-top: -12px;
   }
 
-  /* 删除圆点相关样式并不显示圆点 */
+  /* Hide dot styles and don't display dots */
   .dot {
     display: none;
   }
@@ -1441,7 +1441,7 @@
     background-color: #9290a6;
   }
 
-  /* 为 InteractiveHoverButton 组件添加样式 */
+  /* Add styles for InteractiveHoverButton component */
   .read-more-button {
     position: absolute;
     right: 0;
@@ -2468,7 +2468,7 @@
     overflow-y: auto;
   }
 
-  /* 添加部分分隔线样式 */
+  /* Add section divider styles */
   .section-divider {
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 2rem;

@@ -11,52 +11,52 @@ router = APIRouter(
 )
 
 class YouTubeRequest(BaseModel):
-    youtube_url: str = Field(..., description="完整的 YouTube 视频链接，例如 https://www.youtube.com/watch?v=... ")
-    limit: int = Field(100, description="最多获取的评论条数，最大不超过 100")
+    youtube_url: str = Field(..., description="Complete YouTube video URL, e.g. https://www.youtube.com/watch?v=... ")
+    limit: int = Field(100, description="Maximum number of comments to fetch, up to 100")
 
 @router.post(
     "/analyse",
     response_model=List[str],
-    summary="仅返回指定视频的评论列表"
+    summary="Returns only the comments list for the specified video"
 )
 async def fetch_comments_only(req: YouTubeRequest) -> List[str]:
     """
-    根据 Frontend 提供的 YouTube URL 和 limit，获取指定数量的评论文本。
-    返回一个字符串列表，每条为一条评论。
+    Fetches a specified number of comments based on the YouTube URL and limit provided by the frontend.
+    Returns a list of strings, each representing a comment.
     """
-    # 提取 video_id
+    # Extract video_id
     video_id = extract_video_id(req.youtube_url)
     if not video_id:
-        raise HTTPException(status_code=400, detail="无效的 YouTube 视频链接")
+        raise HTTPException(status_code=400, detail="Invalid YouTube video URL")
 
-    # 获取评论（字符串列表）
+    # Fetch comments (list of strings)
     comments = fetch_youtube_comments(req.youtube_url, req.limit)
     if comments is None:
-        raise HTTPException(status_code=500, detail="获取评论失败")
+        raise HTTPException(status_code=500, detail="Failed to fetch comments")
 
     return comments
 
 @router.post(
     "/analyse_full",
     response_model=Dict[str, Any],
-    summary="进行完整的YouTube评论分析"
+    summary="Performs complete YouTube comment analysis"
 )
 async def analyse_full(request: Request, req: YouTubeRequest) -> Dict[str, Any]:
     """
-    根据YouTube URL获取评论，分析内容情感和毒性，并用LLM生成回应策略。
+    Retrieves comments based on YouTube URL, analyses sentiment and toxicity, and generates response strategies with LLM.
     
-    处理流程:
-    1. 获取YouTube评论
-    2. 用NLP模型分析评论情感和毒性
-    3. 用LLM生成回应策略和示例
-    4. 返回完整的分析结果
+    Processing flow:
+    1. Fetch YouTube comments
+    2. Analyse comments with NLP model for sentiment and toxicity
+    3. Generate response strategies and examples with LLM
+    4. Return complete analysis results
     
     Returns:
-        Dict包含以下字段:
-        - success: 是否成功
-        - method: 使用的分析方法
-        - duration_s: 处理时间
-        - analysis: 包含sentiment、toxicity等分析结果的对象
+        Dict containing the following fields:
+        - success: Whether the operation was successful
+        - method: Analysis method used
+        - duration_s: Processing time
+        - analysis: Object containing sentiment, toxicity and other analysis results
     """
     result = await analyse_video_comments(request, req.youtube_url, req.limit)
     return result

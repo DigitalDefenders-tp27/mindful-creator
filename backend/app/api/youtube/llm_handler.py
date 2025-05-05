@@ -281,19 +281,17 @@ def generate_response_strategies(critical_comments: List[str]) -> str:
 
 {comments_text}
 
-Provide 3-5 brief, professional strategies for content creators to respond effectively. Include:
-1. General principles for handling criticism
-2. Specific techniques based on comment themes
-3. Tips for maintaining creator wellbeing
+Provide 4-5 brief, professional strategies for responding to these types of comments.
+Each strategy should be a single concise point (1-2 sentences maximum).
+Format as bullet points starting with "•" (bullet symbol).
 
-Format as very concise, actionable bullet points.
-BE EXTREMELY CONCISE. USE NO MORE THAN 2-3 SHORT SENTENCES PER POINT.
+BE EXTREMELY CONCISE - focus on practical, actionable advice that's easy to implement.
 """
     
-    system_message = """You are a digital wellbeing expert specialising in social media and online content creation. 
-    You provide balanced, practical advice in the most concise format possible. 
-    Your guidance must be extremely brief, specific, and focused on actionable steps.
-    Avoid unnecessary elaboration, background information, or lengthy explanations."""
+    system_message = """You are a digital wellbeing expert who specializes in helping content creators respond to feedback.
+    Your advice is extremely concise, practical and straightforward. 
+    You avoid lengthy explanations and focus on simple, actionable points that can be expressed in 1-2 sentences maximum.
+    You format all advice as bullet points using the "•" symbol."""
     
     # Try up to 2 times with a small delay
     max_attempts = 2
@@ -437,11 +435,11 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
 # 添加降级函数
 def generate_fallback_strategies(comments: List[str]) -> str:
     """Generate predefined response strategies"""
-    return """• Keep your cool when responding to negative comments - no need to get defensive or worked up
-• Focus on the fair dinkum feedback while ignoring the personal attacks
-• Show appreciation for constructive criticism even when it's delivered a bit harshly
-• Set clear boundaries by moderating truly toxic or harmful comments
-• Remember you don't have to respond to every negative comment - sometimes it's best to let it go"""
+    return """• Acknowledge the feedback without defensiveness - thank viewers for taking time to comment
+• Focus on constructive elements while politely ignoring personal attacks
+• Keep responses brief and positive, maintaining a professional tone
+• Use critical feedback as opportunity for improvement in future content
+• Remember it's okay to not engage with purely toxic comments that offer no value"""
 
 def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
     """Generate predefined example responses"""
@@ -455,6 +453,10 @@ def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
             {
                 "comment": "This makes no sense. You're just waffling on about nothing important.",
                 "response": "Cheers for taking the time to watch. I'm working on making my explanations clearer - if a specific part confused you, let me know!"
+            },
+            {
+                "comment": "I can't believe you think this is good advice. It's completely wrong and misleading.",
+                "response": "I appreciate your perspective. My advice is based on my experience, but I'm always open to different approaches. What would you suggest instead?"
             }
         ]
     

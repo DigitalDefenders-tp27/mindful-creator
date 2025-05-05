@@ -11,7 +11,7 @@ _LOG = logging.getLogger("api.router")
 router = APIRouter()
 
 # ──────────────────────────────────────────────────────────────
-# Pydantic schema 便于 openapi & front-end 类型推断
+# Pydantic schema 
 # ──────────────────────────────────────────────────────────────
 class HealthPayload(BaseModel):
     status: str
@@ -69,16 +69,3 @@ async def health_get(request: Request):
     _LOG.debug("GET /health hit")
     t0 = time.time()
     return _collect_health(request.app.state, t0)
-
-# 如前端一定要 POST，取消下面注释即可
-# @router.post(
-#     "/health",
-#     tags=["health"],
-#     response_model=HealthPayload,
-#     summary="Health check (POST)",
-#     status_code=200,
-# )
-# async def health_post(request: Request):
-#     _LOG.debug("POST /health hit")
-#     t0 = time.time()
-#     return _collect_health(request.app.state, t0)

@@ -62,69 +62,69 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 配置CORS中间件
+# Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # 本地开发
-        "https://mindful-creator.vercel.app",  # 主Vercel域名
+        "http://localhost:3000",  # Local development
+        "https://mindful-creator.vercel.app",  # Main Vercel domain
         "https://mindful-creator-mcqbwi1f8-tp27.vercel.app",
         "https://tiezhu.org",
         "https://www.tiezhu.org"
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # 允许所有方法
-    allow_headers=["*"],  # 允许所有头部
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 from transformers import AutoTokenizer
 import sys, os, time, json, torch
 
-# === 模型 / tokenizer 路径 ===================================================
-TOKENIZER_DIR = "/app/bert-base-uncased"   # Dockerfile 中已下载好 base BERT
-MODEL_DIR     = "/app/nlp"                 # 克隆下来的 CommentResponse 空间
+# === Model / tokenizer paths ===================================================
+TOKENIZER_DIR = "/app/bert-base-uncased"   # Base BERT already downloaded in Dockerfile
+MODEL_DIR     = "/app/nlp"                 # Cloned CommentResponse space
 WEIGHTS_FILE  = os.path.join(MODEL_DIR, "pytorch_model.bin")
 CFG_FILE      = os.path.join(MODEL_DIR, "config.json")
 
 @app.on_event("startup")
 async def load_nlp_model():
-    """加载自定义 CommentMTLModel + tokenizer 并写入 app.state"""
+    """Load custom CommentMTLModel + tokenizer and save to app.state"""
     t0 = time.time()
     try:
-        # 1) 校验所有关键路径
+        # 1) Verify all key paths
         for p in (TOKENIZER_DIR, MODEL_DIR, WEIGHTS_FILE, CFG_FILE):
             if not os.path.exists(p):
                 raise FileNotFoundError(f"Missing file/dir: {p}")
 
-        # 2) 加载 tokenizer（离线）
+        # 2) Load tokenizer (offline)
         logger.info(f"Tokenizer ← {TOKENIZER_DIR}")
         tokenizer = AutoTokenizer.from_pretrained(
             TOKENIZER_DIR,
             local_files_only=True
         )
 
-        # 3) 动态导入自定义模型类
+        # 3) Dynamically import custom model class
         if MODEL_DIR not in sys.path:
             sys.path.insert(0, MODEL_DIR)
         from model import CommentMTLModel  # noqa: E402
 
-        # 4) 读取 config.json 并初始化模型，注意使用本地 BERT 目录作为 base
+        # 4) Read config.json and initialize model, note use of local BERT directory as base
         with open(CFG_FILE, "r") as f:
             cfg = json.load(f)
 
         model = CommentMTLModel(
-            model_name=TOKENIZER_DIR,                 # ← 指向本地 BERT
+            model_name=TOKENIZER_DIR,                 # ← Points to local BERT
             num_sentiment_labels=cfg["num_sentiment_labels"],
             num_toxicity_labels=cfg["num_toxicity_labels"],
             dropout_prob=cfg.get("dropout_prob", 0.1)
         )
 
-        # 5) 覆盖式加载 MTL head 的权重
+        # 5) Load MTL head weights
         state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
         model.load_state_dict(state_dict)
         model.eval()
 
-        # 6) 挂载到 app.state
+        # 6) Mount to app.state
         app.state.tokenizer    = tokenizer
         app.state.model        = model
         app.state.model_loaded = True
@@ -159,16 +159,16 @@ async def api_health_check() -> Dict[str, Any]:
     logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
     return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
 
-# 添加诊断端点
+# Add diagnostics endpoint
 @app.get("/api/diagnostics/nlp")
 async def nlp_diagnostics() -> Dict[str, Any]:
-    """诊断端点，用于检查NLP模型状态"""
+    """Diagnostics endpoint for checking NLP model status"""
     logger.info("NLP DIAGNOSTICS ENDPOINT ACCESSED")
     
-    # 检查模型路径
+    # Check model path
     model_path_exists = os.path.exists(MODEL_PATH)
     
-    # 列出目录内容
+    # List directory contents
     app_contents = []
     nlp_contents = []
     try:
@@ -178,7 +178,7 @@ async def nlp_diagnostics() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Failed to list directories: {e}")
     
-    # 收集诊断信息
+    # Collect diagnostic information
     diagnostics = {
         "timestamp": datetime.datetime.now().isoformat(),
         "model_path": MODEL_PATH,

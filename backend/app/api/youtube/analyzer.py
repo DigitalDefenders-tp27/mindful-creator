@@ -22,11 +22,11 @@ YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 def extract_video_id(youtube_url: str) -> Optional[str]:
     """
-    从YouTube URL中提取视频ID
-    支持格式:
+    Extract video ID from YouTube URL
+    Supports formats:
     - https://www.youtube.com/watch?v=VIDEO_ID
     - https://youtu.be/VIDEO_ID
-    - VIDEO_ID (直接是11位ID)
+    - VIDEO_ID (directly as 11-character ID)
     """
     if not youtube_url:
         logger.warning("Empty YouTube URL provided")
@@ -35,17 +35,17 @@ def extract_video_id(youtube_url: str) -> Optional[str]:
     try:
         parsed = urlparse(youtube_url)
         
-        # youtu.be格式链接
+        # youtu.be format links
         if parsed.hostname in ["youtu.be", "www.youtu.be"]:
             return parsed.path.lstrip("/")
             
-        # youtube.com格式链接
+        # youtube.com format links
         if parsed.hostname in ["youtube.com", "www.youtube.com"]:
             query_params = parse_qs(parsed.query)
             if "v" in query_params:
                 return query_params["v"][0]
                 
-        # 如果输入看起来像已经是视频ID (11位字符)
+        # If input looks like already a video ID (11 characters)
         if len(youtube_url) == 11 and "/" not in youtube_url and "?" not in youtube_url:
             return youtube_url
             
@@ -58,20 +58,20 @@ def extract_video_id(youtube_url: str) -> Optional[str]:
 
 def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[str]:
     """
-    获取YouTube视频评论
+    Fetch YouTube video comments
     
     Args:
-        youtube_url: YouTube视频URL或视频ID
-        max_comments: 最大获取评论数
+        youtube_url: YouTube video URL or video ID
+        max_comments: Maximum number of comments to fetch
         
     Returns:
-        评论文本列表
+        List of comment texts
     """
     if not YOUTUBE_API_KEY:
         logger.error("YouTube API key not set")
         return []
         
-    # 确保从URL中提取视频ID
+    # Ensure we extract video ID from URL
     video_id = extract_video_id(youtube_url)
     if not video_id:
         logger.error(f"Could not extract video ID from {youtube_url}")
@@ -89,7 +89,7 @@ def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[st
                 youtube.commentThreads()
                 .list(
                     part="snippet",
-                    videoId=video_id,  # 使用提取的视频ID
+                    videoId=video_id,  # Use extracted video ID
                     textFormat="plainText",
                     maxResults=min(100, max_comments - len(comments)),
                     pageToken=next_page,
@@ -97,12 +97,12 @@ def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[st
                 .execute()
             )
             
-            # 提取评论文本
+            # Extract comment text
             for item in resp.get("items", []):
                 text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
                 comments.append(text)
                 
-            # 检查是否有下一页
+            # Check if there's another page
             next_page = resp.get("nextPageToken")
             if not next_page:
                 break
@@ -130,12 +130,12 @@ def analyse_comments_with_local_model(
     request: Request, comments: List[str]
 ) -> Dict[str, Any]:
     """
-    用本地模型分析评论，必须在 `startup` 时已经把 tokenizer/model 放到 app.state
+    Analyse comments with local model, the tokenizer/model must be placed in app.state during startup
     """
     model_loaded = getattr(request.app.state, "model_loaded", False)
     if not model_loaded:
         logger.warning("NLP model not loaded in app.state, falling back to limited analysis")
-        # 返回一个简易统计
+        # Return a simple count
         total = len(comments)
         return {
             "note": "Model not loaded, limited analysis",
@@ -150,7 +150,7 @@ def analyse_comments_with_local_model(
             },
         }
 
-    # 真正走本地模型
+    # Actually use the local model
     try:
         tokenizer = request.app.state.tokenizer
         model = request.app.state.model
@@ -162,11 +162,11 @@ def analyse_comments_with_local_model(
             truncation=True,
             max_length=512,
         )
-        # 把 input 转到模型所在设备
+        # Transfer input to the device where model is located
         device = next(model.parameters()).device
         enc = {k: v.to(device) for k, v in enc.items()}
 
-        # 下面根据你的 CommentMTLModel 输出做批量推理
+        # Batch inference based on your CommentMTLModel output
         batch_size = 32
         sentiment_counts = {"Negative": 0, "Neutral": 0, "Positive": 0}
         toxicity_counts = {
@@ -213,7 +213,7 @@ def analyse_comments_with_local_model(
     except Exception as e:
         logger.error(f"Local model inference error: {e}")
         logger.error(traceback.format_exc())
-        # 简易 fallback
+        # Simple fallback
         total = len(comments)
         return {
             "note": "Local inference failed, fallback",
@@ -233,7 +233,7 @@ async def analyse_video_comments(
     request: Request, youtube_url: str, max_comments: int = 100
 ) -> Dict[str, Any]:
     """
-    入口函数，在 routes.py 里这样调用：
+    Entry function, called in routes.py like this:
       @router.post("/analyse")
       async def analyse_endpoint(request: Request, payload: YouTubeRequest):
           return await analyse_video_comments(request, payload.youtube_url, payload.limit)
@@ -249,7 +249,7 @@ async def analyse_video_comments(
     if not comments:
         return {"success": True, "totalComments": 0, "criticalComments": []}
 
-    # 默认示例回复（保证至少有些内容）
+    # Default example responses (ensure we have content)
     default_examples = [
         {
             "comment": "This video was so helpful, I learned a lot!",
@@ -258,15 +258,19 @@ async def analyse_video_comments(
         {
             "comment": "I don't agree with what you said about this topic.",
             "response": "Thanks for your perspective. I value different viewpoints and appreciate you sharing yours!"
+        },
+        {
+            "comment": "You're completely wrong about this. You should do more research before making videos.",
+            "response": "I appreciate your feedback. I do research thoroughly, but I'm always open to learning more. Feel free to share specific resources."
         }
     ]
 
-    # 优先用本地模型
+    # Prioritize local model
     if getattr(request.app.state, "model_loaded", False):
         logger.info("Using local model branch")
         result = analyse_comments_with_local_model(request, comments)
         
-        # 使用LLM生成评论案例和回复策略
+        # Use LLM to generate comment examples and response strategies
         try:
             logger.info("Calling LLM for strategies and examples")
             llm_res = await _remote_llm_analyse(comments)
@@ -275,7 +279,7 @@ async def analyse_video_comments(
             
             logger.info(f"LLM returned {len(example_comments)} example comments")
             
-            # 确保有示例评论
+            # Ensure we have example comments
             if not example_comments:
                 logger.warning("No example comments from LLM, using defaults")
                 example_comments = default_examples
@@ -296,18 +300,18 @@ async def analyse_video_comments(
         logger.info(f"Returning response with {len(example_comments)} example comments")
         return response
 
-    # 否则回退到远程 LLM
+    # Otherwise fall back to remote LLM
     logger.info("Local model not available - falling back to remote LLM")
     try:
         llm_res = await _remote_llm_analyse(comments)
         
-        # 从llm_res中提取策略和示例
+        # Extract strategies and examples from llm_res
         strategies = llm_res.get("strategies", "")
         example_comments = llm_res.get("example_comments", [])
         
         logger.info(f"LLM returned {len(example_comments)} example comments")
         
-        # 确保有示例评论
+        # Ensure we have example comments
         if not example_comments:
             logger.warning("No example comments from LLM, using defaults")
             example_comments = default_examples
@@ -329,5 +333,5 @@ async def analyse_video_comments(
         return {
             "success": False, 
             "message": str(e),
-            "example_comments": default_examples  # 即使出错也返回示例
+            "example_comments": default_examples  # Return examples even on error
         }
