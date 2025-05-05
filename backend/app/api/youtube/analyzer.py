@@ -21,42 +21,88 @@ YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 
 def extract_video_id(youtube_url: str) -> Optional[str]:
-    parsed = urlparse(youtube_url)
-    host = parsed.hostname or ""
-    if host in ("youtu.be", "www.youtu.be"):
-        return parsed.path.lstrip("/")
-    if host in ("youtube.com", "www.youtube.com"):
-        return parse_qs(parsed.query).get("v", [None])[0]
-    if youtube_url and len(youtube_url) == 11:
-        return youtube_url
-    logger.warning(f"Could not extract video ID from URL: {youtube_url}")
-    return None
+    """
+    从YouTube URL中提取视频ID
+    支持格式:
+    - https://www.youtube.com/watch?v=VIDEO_ID
+    - https://youtu.be/VIDEO_ID
+    - VIDEO_ID (直接是11位ID)
+    """
+    if not youtube_url:
+        logger.warning("Empty YouTube URL provided")
+        return None
+        
+    try:
+        parsed = urlparse(youtube_url)
+        
+        # youtu.be格式链接
+        if parsed.hostname in ["youtu.be", "www.youtu.be"]:
+            return parsed.path.lstrip("/")
+            
+        # youtube.com格式链接
+        if parsed.hostname in ["youtube.com", "www.youtube.com"]:
+            query_params = parse_qs(parsed.query)
+            if "v" in query_params:
+                return query_params["v"][0]
+                
+        # 如果输入看起来像已经是视频ID (11位字符)
+        if len(youtube_url) == 11 and "/" not in youtube_url and "?" not in youtube_url:
+            return youtube_url
+            
+        logger.warning(f"Could not extract video ID from URL: {youtube_url}")
+        return None
+    except Exception as e:
+        logger.error(f"Error extracting video ID from {youtube_url}: {str(e)}")
+        return None
 
 
-def fetch_youtube_comments(video_id: str, max_comments: int = 100) -> List[str]:
+def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[str]:
+    """
+    获取YouTube视频评论
+    
+    Args:
+        youtube_url: YouTube视频URL或视频ID
+        max_comments: 最大获取评论数
+        
+    Returns:
+        评论文本列表
+    """
     if not YOUTUBE_API_KEY:
         logger.error("YouTube API key not set")
         return []
-    comments: List[str] = []
+        
+    # 确保从URL中提取视频ID
+    video_id = extract_video_id(youtube_url)
+    if not video_id:
+        logger.error(f"Could not extract video ID from {youtube_url}")
+        return []
+        
+    logger.info(f"Fetching comments for video ID: {video_id}")
+    
+    comments = []
     try:
         youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
-        next_page: Optional[str] = None
+        next_page = None
 
         while len(comments) < max_comments:
             resp = (
                 youtube.commentThreads()
                 .list(
                     part="snippet",
-                    videoId=video_id,
+                    videoId=video_id,  # 使用提取的视频ID
                     textFormat="plainText",
                     maxResults=min(100, max_comments - len(comments)),
                     pageToken=next_page,
                 )
                 .execute()
             )
+            
+            # 提取评论文本
             for item in resp.get("items", []):
                 text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
                 comments.append(text)
+                
+            # 检查是否有下一页
             next_page = resp.get("nextPageToken")
             if not next_page:
                 break
@@ -65,6 +111,7 @@ def fetch_youtube_comments(video_id: str, max_comments: int = 100) -> List[str]:
         logger.error(f"YouTube API error: {e}")
     except Exception as e:
         logger.error(f"Error fetching comments: {e}")
+        
     logger.info(f"Fetched {len(comments)} comments for video {video_id}")
     return comments
 
@@ -198,7 +245,7 @@ async def analyse_video_comments(
     if not video_id:
         return {"success": False, "message": "Invalid YouTube URL"}
 
-    comments = fetch_youtube_comments(video_id, max_comments)
+    comments = fetch_youtube_comments(youtube_url, max_comments)
     if not comments:
         return {"success": True, "totalComments": 0, "criticalComments": []}
 
