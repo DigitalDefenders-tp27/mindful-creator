@@ -368,7 +368,7 @@
     
     // API URL options - will try alternatives if primary fails
     const apiUrls = [
-      'https://api.tiezhu.org/api/youtube/analyze',  // Primary URL
+      'https://api.tiezhu.org/api/youtube/analyse',  // Primary URL
     ]
     let primaryApiUrl = apiUrls[0]
     
