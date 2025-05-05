@@ -1,33 +1,28 @@
 # app/api/youtube/routes.py
 
-import os
-import time
-import logging
-import traceback
-from typing import List, Dict, Any, Optional
-
-from fastapi import APIRouter, Request, HTTPException, status
+from typing import List, Dict, Optional
+import os, logging, traceback
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from .analyzer import (
-    extract_video_id,
-    fetch_youtube_comments,
-    analyse_comments_with_local_model,
-)
-from .llm_handler import analyse_youtube_comments as llm_analyse_comments
+from .analyzer import extract_video_id, fetch_youtube_comments, analyse_comments_with_local_model
+from .llm_handler import analyse_youtube_comments
 
 logger = logging.getLogger(__name__)
 
-# ──────────────────────────────────────────────────────────────
-# Pydantic 请求/响应模型
-# ──────────────────────────────────────────────────────────────
+router = APIRouter(
+    prefix="/youtube",    # 这里保留 /youtube
+    tags=["youtube"]
+)
+
+# 请求体定义
 class YouTubeRequest(BaseModel):
-    youtube_url: str = Field(..., description="完整的 YouTube 视频 URL")
-    limit: Optional[int] = Field(100, description="最多抓取多少条评论")
-    llm_enabled: Optional[bool] = Field(True, description="是否启用 LLM 分析")
+    youtube_url: str
+    limit: Optional[int] = Field(100, description="最大抓取评论数")
+    llm_enabled: Optional[bool] = Field(True, description="是否调用 LLM")
 
 class CriticalCommentResponse(BaseModel):
     commentText: str
@@ -46,53 +41,40 @@ class YouTubeAnalysisResponse(BaseModel):
     success: bool
     message: str = ""
 
-# ──────────────────────────────────────────────────────────────
-# 路由定义
-# ──────────────────────────────────────────────────────────────
-router = APIRouter(
-    prefix="/youtube",
-    tags=["youtube"],
-)
-
-
 @router.post(
     "/analyse",
     response_model=List[YouTubeAnalysisResponse],
-    status_code=status.HTTP_200_OK,
-    summary="分析 YouTube 评论",
+    summary="分析 YouTube 评论"
 )
 async def analyse_youtube_video(
     yt_req: YouTubeRequest,
     request: Request
-) -> List[YouTubeAnalysisResponse]:
-    """
-    分析 YouTube 视频评论，返回关键评论和回复策略。
-    """
-    start = time.time()
-    logger.info(f"[YouTube] request: url={yt_req.youtube_url}, limit={yt_req.limit}, llm={yt_req.llm_enabled}")
-
-    # 1. 检查本地模型是否加载
+):
+    # 1. 模型是否加载
     if not getattr(request.app.state, "model_loaded", False):
-        logger.warning("本地 NLP 模型尚未加载")
+        logger.warning("模型尚未加载完成，拒绝请求")
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    # 2. 抓取评论
+    # 2. 检查 API key
+    api_key = os.getenv("YOUTUBE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="YOUTUBE_API_KEY 未配置")
+
+    # 3. 解析 video_id
     video_id = extract_video_id(yt_req.youtube_url)
     if not video_id:
-        logger.error("无法从 URL 中提取 video_id")
-        raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+        raise HTTPException(status_code=400, detail="无效的 YouTube URL")
 
-    try:
-        comments = fetch_youtube_comments(yt_req.youtube_url, yt_req.limit)
-    except Exception as e:
-        logger.error(f"fetch_youtube_comments 出错: {e}")
-        raise HTTPException(status_code=502, detail="Failed to fetch comments")
+    # 4. 调用 YouTube API 拿视频信息和评论
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    # 简单实现：不再分开 get_video_info/get_video_comments，直接拿评论列表
+    comments = fetch_youtube_comments(yt_req.youtube_url, yt_req.limit)
 
-    # 3. 如果没评论，直接返回空结果
+    # 如果没评论，直接返回空
     if not comments:
         return [
             YouTubeAnalysisResponse(
-                videoTitle="",
+                videoTitle="Unknown",
                 videoId=video_id,
                 thumbnailUrl="",
                 totalCommentsAnalysed=0,
@@ -102,48 +84,45 @@ async def analyse_youtube_video(
             )
         ]
 
-    # 4. 依据 llm_enabled 选择分析器
-    try:
-        if yt_req.llm_enabled:
-            # LLM 分析
-            comment_texts = [c["text"] for c in comments]
-            llm_results = llm_analyse_comments(comment_texts) or []
-            analysis_results = llm_results
-        else:
-            # 本地模型分析
-            analysis_results = analyse_comments_with_local_model(comments)
-    except Exception as e:
-        logger.error(f"评论分析出错: {e}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail="Analysis error")
+    # 5. 分析评论（本地 or LLM）
+    comment_texts = [c if isinstance(c, str) else c.get("text","") for c in comments]
+    analysis = []
+    if yt_req.llm_enabled:
+        analysis = analyse_youtube_comments(comment_texts) or []
+    else:
+        analysis = analyse_comments_with_local_model(comment_texts)
 
-    # 5. 将分析结果映射到响应模型
+    # 6. 格式化输出
     critical_comments: List[CriticalCommentResponse] = []
-    # LLM 返回 list of dicts: { comment, strategy, example_response }
-    for item in analysis_results:
-        # 找到原始评论
-        orig = next((c for c in comments if c["text"] == item.get("comment")), None)
-        if not orig:
-            continue
+    for item in analysis:
+        # 如果 LLM 返回的是 {'comment': "...", 'strategy': "...", 'example_response': "..."}
+        text = item.get("comment") or item.get("commentText")
+        strategy = item.get("strategy") or item.get("responseStrategy")
+        example = item.get("example_response") or item.get("exampleResponse")
+        # 找原始评论
+        idx = comment_texts.index(text) if text in comment_texts else None
+        author = comments[idx].get("author","") if idx is not None else ""
+        publishedAt = comments[idx].get("publishedAt","") if idx is not None else ""
+        likeCount = comments[idx].get("likeCount",0) if idx is not None else 0
+
         critical_comments.append(
             CriticalCommentResponse(
-                commentText=orig["text"],
-                author=orig["author"],
-                publishTime=orig["publishedAt"],
-                likesCount=orig["likeCount"],
-                responseStrategy=item.get("strategy", ""),
-                exampleResponse=item.get("example_response", "")
+                commentText=text,
+                author=author,
+                publishTime=publishedAt,
+                likesCount=likeCount,
+                responseStrategy=strategy,
+                exampleResponse=example
             )
         )
 
-    resp = YouTubeAnalysisResponse(
-        videoTitle="",     # 如果需要，可以额外通过 API 获取视频 title 和 thumbnail
-        videoId=video_id,
-        thumbnailUrl="",
-        totalCommentsAnalysed=len(comments),
-        criticalComments=critical_comments,
-        success=True,
-        message=""
-    )
-    logger.info(f"[YouTube] analysis done in {time.time()-start:.2f}s, found {len(critical_comments)} critical comments")
-    return [resp]
+    return [
+        YouTubeAnalysisResponse(
+            videoTitle="(fetched from API)",   # 这里你可以自己补上真正的视频标题
+            videoId=video_id,
+            thumbnailUrl="(fetched from API)", # 以及封面 URL
+            totalCommentsAnalysed=len(comment_texts),
+            criticalComments=critical_comments,
+            success=True
+        )
+    ]
