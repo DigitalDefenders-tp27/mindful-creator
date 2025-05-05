@@ -217,14 +217,14 @@
             </div>
             
             <!-- Donut Charts Section -->
-            <div class="charts-section section-divider">
+            <div class="charts-section section-divider" v-if="analysisResult?.analysis?.toxicity?.toxic_types">
               <h3>Toxicity Breakdown</h3>
               <p class="toxicity-subtitle">Breakdown of the {{ analysisResult?.analysis?.toxicity?.toxic_count || 0 }} toxic comments by category</p>
               <div class="donut-charts">
                 <div v-for="(count, type) in analysisResult?.analysis?.toxicity?.toxic_types" :key="type" class="donut-item">
                   <HalfDonutChart 
                     :percentage="calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count)" 
-                    :color="getToxicityColor(type)" 
+                    :color="getToxicityColor(formatToxicityType(type).toLowerCase())" 
                   />
                   <p class="donut-label">{{ formatToxicityType(type) }}</p>
                   <p class="donut-percent">{{ count }} ({{ calculatePercentage(count, analysisResult?.analysis?.toxicity?.toxic_count) }}%)</p>
@@ -304,7 +304,16 @@
 
   // Format toxicity type names to more readable format
   const formatToxicityType = (type) => {
+    // 处理后端返回的可能格式（首字母大写或全小写）
     const typeMap = {
+      // 后端返回格式
+      'Toxic': 'General Toxicity',
+      'Severe Toxic': 'Severe Toxicity',
+      'Obscene': 'Obscene',
+      'Threat': 'Threat',
+      'Insult': 'Insult',
+      'Identity Hate': 'Identity Hate',
+      // 前端原有格式（向后兼容）
       'toxic': 'General Toxicity',
       'severe_toxic': 'Severe Toxicity',
       'obscene': 'Obscene',
@@ -335,14 +344,14 @@
   // Get color for toxicity type
   const getToxicityColor = (type) => {
     const colorMap = {
-      'toxic': '#EF5350',        // Red
-      'severe_toxic': '#D32F2F',  // Dark Red
-      'obscene': '#FF7043',      // Orange
-      'threat': '#AB47BC',       // Purple
-      'insult': '#FFA726',       // Amber
-      'identity_hate': '#7E57C2' // Deep Purple
+      'general toxicity': '#EF5350',        // Red
+      'severe toxicity': '#D32F2F',         // Dark Red
+      'obscene': '#FF7043',                 // Orange
+      'threat': '#AB47BC',                  // Purple
+      'insult': '#FFA726',                  // Amber
+      'identity hate': '#7E57C2'            // Deep Purple
     }
-    return colorMap[type] || '#888888'
+    return colorMap[type.toLowerCase()] || '#888888'
   }
 
   // Analyse YouTube comments
@@ -481,14 +490,33 @@
       if (data.success && data.analysis) {
         // 如果是完整的分析结果
         console.log('Received complete analysis result:', data)
+        
+        // 适配后端返回的数据结构
+        const sentiment = data.analysis.sentiment || {};
+        const toxicityCounts = data.analysis.toxicity?.counts || {};
+        
+        // 计算毒性评论总数
+        const toxicTotal = Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
+        
         analysisResult.value = {
-          total_comments: data.analysis?.sentiment?.positive_count + 
-                          data.analysis?.sentiment?.negative_count + 
-                          data.analysis?.sentiment?.neutral_count || 0,
-          analysis: data.analysis,
+          total_comments: (sentiment.Positive || 0) + (sentiment.Neutral || 0) + (sentiment.Negative || 0),
+          analysis: {
+            sentiment: {
+              positive_count: sentiment.Positive || 0,
+              negative_count: sentiment.Negative || 0,
+              neutral_count: sentiment.Neutral || 0
+            },
+            toxicity: {
+              toxic_count: toxicTotal,
+              toxic_types: toxicityCounts,
+              toxic_percentage: toxicTotal > 0 ? 
+                (toxicTotal / ((sentiment.Positive || 0) + (sentiment.Neutral || 0) + (sentiment.Negative || 0)) * 100) : 0
+            }
+          },
           strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
           example_comments: data.example_comments || []
         }
+        
         showResultsModal.value = true
         isLoading.value = false
         return
