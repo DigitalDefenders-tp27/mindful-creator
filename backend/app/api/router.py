@@ -1,80 +1,84 @@
 # app/api/router.py
-from fastapi import APIRouter, Depends
-import logging
-import os
-import platform
-import sys
-import time
-import psutil
-from typing import Dict, Any
+import os, time, platform, logging, psutil
 from datetime import datetime
+from typing import Dict, Any
+
+from fastapi import APIRouter, Request
+from pydantic import BaseModel
+
+_LOG = logging.getLogger("api.router")
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
-@router.get("/")
+# ──────────────────────────────────────────────────────────────
+# Pydantic schema 便于 openapi & front-end 类型推断
+# ──────────────────────────────────────────────────────────────
+class HealthPayload(BaseModel):
+    status: str
+    timestamp: str
+    environment: Dict[str, Any]
+    resources: Dict[str, Any]
+    features: Dict[str, Any]
+    uptime_seconds: float
+    response_time_ms: float
+
+# ──────────────────────────────────────────────────────────────
+# /           —— very light liveness probe
+# ──────────────────────────────────────────────────────────────
+@router.get("/", tags=["misc"], summary="Root probe")
 async def api_root() -> Dict[str, str]:
-    """
-    API root endpoint
-    """
-    logger.info("API root endpoint accessed")
+    _LOG.info("GET / (root) hit")
     return {"status": "alive"}
 
-@router.get("/health")
-async def health_check() -> Dict[str, Any]:
-    """
-    Health check endpoint optimized for Railway deployment
-    """
-    start_time = time.time()
-    
-    # Get basic system information
-    try:
-        process = psutil.Process(os.getpid())
-        memory_info = process.memory_info()
-        system_memory = psutil.virtual_memory()
-        
-        # Check key service status
-        python_version = platform.python_version()
-        model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
-        api_key_available = os.environ.get("YOUTUBE_API_KEY") is not None
-        
-        # Get runtime information
-        process_uptime = time.time() - process.create_time()
-        
-        # Build detailed health information
-        health_data = {
-            "status": "ok",
-            "timestamp": datetime.now().isoformat(),
-            "environment": {
-                "python_version": python_version,
-                "platform": platform.platform(),
-                "process_id": os.getpid()
-            },
-            "resources": {
-                "memory_rss_mb": round(memory_info.rss / 1024 / 1024, 2),
-                "memory_vms_mb": round(memory_info.vms / 1024 / 1024, 2),
-                "cpu_percent": round(process.cpu_percent(interval=0.1), 2),
-                "system_memory_total_gb": round(system_memory.total / 1024 / 1024 / 1024, 2),
-                "system_memory_available_gb": round(system_memory.available / 1024 / 1024 / 1024, 2),
-                "system_memory_percent": round(system_memory.percent, 2)
-            },
-            "features": {
-                "model_loaded": model_loaded,
-                "youtube_api_available": api_key_available
-            },
-            "uptime_seconds": round(process_uptime, 2),
-            "response_time_ms": round((time.time() - start_time) * 1000, 2)
-        }
-        
-        logger.info(f"Health check completed in {health_data['response_time_ms']}ms")
-        return health_data
-    
-    except Exception as e:
-        logger.error(f"Health check error: {str(e)}")
-        # Return 200 status code even on error to ensure health check passes
-        return {
-            "status": "degraded",
-            "timestamp": datetime.now().isoformat(),
-            "error": str(e),
-            "response_time_ms": round((time.time() - start_time) * 1000, 2)
-        }
+# ──────────────────────────────────────────────────────────────
+# /health   —— single source of truth for Railway & FE
+# ──────────────────────────────────────────────────────────────
+def _collect_health(app_state, start_t: float) -> Dict[str, Any]:
+    proc   = psutil.Process(os.getpid())
+    vmem   = psutil.virtual_memory()
+
+    return {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": {
+            "python_version": platform.python_version(),
+            "platform":       platform.platform(),
+            "pid":            os.getpid(),
+        },
+        "resources": {
+            "memory_rss_mb": round(proc.memory_info().rss / 1024 / 1024, 2),
+            "cpu_percent":   round(proc.cpu_percent(0.1), 2),
+            "system_mem_pct": round(vmem.percent, 2),
+        },
+        "features": {
+            "model_loaded": getattr(app_state, "model_loaded", False),
+            "youtube_api_available": bool(os.getenv("YOUTUBE_API_KEY")),
+        },
+        "uptime_seconds": round(time.time() - proc.create_time(), 2),
+        "response_time_ms": round((time.time() - start_t) * 1000, 2),
+    }
+
+@router.get(
+    "/health",
+    tags=["health"],
+    response_model=HealthPayload,
+    summary="Health check (GET)",
+    status_code=200,
+)
+async def health_get(request: Request):
+    _LOG.debug("GET /health hit")
+    t0 = time.time()
+    return _collect_health(request.app.state, t0)
+
+# 如前端一定要 POST，取消下面注释即可
+# @router.post(
+#     "/health",
+#     tags=["health"],
+#     response_model=HealthPayload,
+#     summary="Health check (POST)",
+#     status_code=200,
+# )
+# async def health_post(request: Request):
+#     _LOG.debug("POST /health hit")
+#     t0 = time.time()
+#     return _collect_health(request.app.state, t0)
