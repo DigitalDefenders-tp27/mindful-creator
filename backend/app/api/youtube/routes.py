@@ -1,48 +1,33 @@
-from typing import List, Optional
-import os, logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from googleapiclient.discovery import build
+from typing import List
+from .analyzer import extract_video_id, fetch_youtube_comments
 
-from .analyzer import extract_video_id, get_video_comments
-
-logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/youtube", tags=["youtube"])
+router = APIRouter(
+    prefix="/youtube",
+    tags=["youtube"]
+)
 
 class YouTubeRequest(BaseModel):
-    youtube_url: str
-    limit: Optional[int] = Field(100, description="Maximum number of comments to fetch")
+    youtube_url: str = Field(..., description="完整的 YouTube 视频链接")
+    limit: int = Field(100, description="最多获取多少条评论")
 
 @router.post(
     "/analyse",
     response_model=List[str],
-    summary="Fetch raw YouTube comments"
+    summary="仅返回评论列表"
 )
-async def fetch_comments_only(yt_req: YouTubeRequest):
+async def analyse_comments(req: YouTubeRequest):
     """
-    Only fetch and return the plain text of YouTube comments, no extra metadata.
+    只返回指定视频的评论内容列表，按原始顺序。
     """
-    api_key = os.getenv("YOUTUBE_API_KEY")
-    if not api_key:
-        logger.error("YOUTUBE_API_KEY not configured")
-        raise HTTPException(status_code=500, detail="YOUTUBE_API_KEY not configured")
-
-    # Extract video ID
-    video_id = extract_video_id(yt_req.youtube_url)
+    video_id = extract_video_id(req.youtube_url)
     if not video_id:
-        logger.error(f"Invalid YouTube URL: {yt_req.youtube_url}")
-        raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+        raise HTTPException(status_code=400, detail="无效的 YouTube URL")
 
-    # Fetch comments
     try:
-        comments = get_video_comments(
-            build('youtube', 'v3', developerKey=api_key),
-            video_id,
-            yt_req.limit
-        )
+        comments = fetch_youtube_comments(req.youtube_url, req.limit)
     except Exception as e:
-        logger.error(f"Failed to fetch comments: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to fetch comments")
+        raise HTTPException(status_code=502, detail=f"拉取评论失败：{e}")
 
-    # Return only the text of each comment
-    return [c["text"] for c in comments]
+    return comments
