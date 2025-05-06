@@ -493,29 +493,76 @@
         
         // Adapt to the backend data structure
         const sentiment = data.analysis.sentiment || {};
-        const toxicityCounts = data.analysis.toxicity?.counts || {};
+        // Handle both capitalized and lowercase sentiment keys
+        const positiveCount = sentiment.Positive || sentiment.positive_count || 0;
+        const neutralCount = sentiment.Neutral || sentiment.neutral_count || 0;
+        const negativeCount = sentiment.Negative || sentiment.negative_count || 0;
         
-        // Calculate total toxic comments
-        const toxicTotal = Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
+        // Extract toxicity data - could be in different formats
+        let toxicityCounts = {};
+        let toxicTotal = 0;
         
+        if (data.analysis.toxicity) {
+          // Handle different toxicity data structures
+          if (data.analysis.toxicity.counts) {
+            // New format from backend
+            toxicityCounts = data.analysis.toxicity.counts;
+            toxicTotal = data.analysis.toxicity.total_toxic_comments || 
+                        Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
+          } else if (data.analysis.toxicity.toxic_types) {
+            // Old expected format
+            toxicityCounts = data.analysis.toxicity.toxic_types;
+            toxicTotal = data.analysis.toxicity.toxic_count || 0;
+          }
+        }
+        
+        // Process the example_comments to handle OpenRouter LLM response format
+        if (data.example_comments && data.example_comments.length > 0) {
+          data.example_comments = data.example_comments.map(example => {
+            // Check if this is an OpenRouter response with JSON wrapped in markdown
+            if (typeof example.response === 'string' && example.response.includes('```json')) {
+              try {
+                // Extract the JSON string from markdown code block
+                const jsonStr = example.response.replace(/```json\n|\n```/g, '');
+                // Try to parse it
+                const parsedResponse = JSON.parse(jsonStr);
+                // Use the response_suggestion field if available
+                if (parsedResponse.response_suggestion) {
+                  return {
+                    ...example,
+                    response: parsedResponse.response_suggestion
+                  };
+                }
+              } catch (e) {
+                console.warn('Failed to parse JSON in example response', e);
+              }
+            }
+            return example;
+          });
+        }
+        
+        // Build consistent analysis result object
         analysisResult.value = {
-          total_comments: (sentiment.Positive || 0) + (sentiment.Neutral || 0) + (sentiment.Negative || 0),
+          total_comments: positiveCount + neutralCount + negativeCount,
           analysis: {
             sentiment: {
-              positive_count: sentiment.Positive || 0,
-              negative_count: sentiment.Negative || 0,
-              neutral_count: sentiment.Neutral || 0
+              positive_count: positiveCount,
+              negative_count: negativeCount,
+              neutral_count: neutralCount
             },
             toxicity: {
               toxic_count: toxicTotal,
               toxic_types: toxicityCounts,
-              toxic_percentage: toxicTotal > 0 ? 
-                (toxicTotal / ((sentiment.Positive || 0) + (sentiment.Neutral || 0) + (sentiment.Negative || 0)) * 100) : 0
+              toxic_percentage: (positiveCount + neutralCount + negativeCount) > 0 ? 
+                (toxicTotal / (positiveCount + neutralCount + negativeCount) * 100) : 0
             }
           },
           strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
           example_comments: data.example_comments || []
         }
+        
+        // Debug log the processed result
+        console.log('Processed analysis result:', analysisResult.value);
         
         showResultsModal.value = true
         isLoading.value = false
