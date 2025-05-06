@@ -47,10 +47,10 @@ def extract_video_id(youtube_url: str) -> Optional[str]:
                 
         # If input looks like already a video ID (11 characters)
         if len(youtube_url) == 11 and "/" not in youtube_url and "?" not in youtube_url:
-        return youtube_url
+            return youtube_url
     
-    logger.warning(f"Could not extract video ID from URL: {youtube_url}")
-    return None
+        logger.warning(f"Could not extract video ID from URL: {youtube_url}")
+        return None
     except Exception as e:
         logger.error(f"Error extracting video ID from {youtube_url}: {str(e)}")
         return None
@@ -97,7 +97,7 @@ def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[st
                 .execute()
             )
                 
-                # Extract comment text
+            # Extract comment text
             for item in resp.get("items", []):
                 text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
                 comments.append(text)
@@ -109,13 +109,13 @@ def fetch_youtube_comments(youtube_url: str, max_comments: int = 100) -> List[st
                 
     except HttpError as e:
         logger.error(f"YouTube API error: {e}")
-            except Exception as e:
+    except Exception as e:
         logger.error(f"Error fetching comments: {e}")
         
     logger.info(f"Fetched {len(comments)} comments for video {video_id}")
-        return comments
-        
-        
+    return comments
+
+
 def fetch_comments_fallback(video_id: str, max_comments: int = 100) -> List[str]:
     logger.warning("Using fallback mock comments")
     mock = [
@@ -201,10 +201,10 @@ def analyse_comments_with_local_model(
             for idx, label in enumerate(toxicity_counts):
                 toxicity_counts[label] += int(probs[:, idx].sum().item())
 
-                return {
+        return {
             "note": "Analysis by local model",
             "sentiment": sentiment_counts,
-                    "toxicity": {
+            "toxicity": {
                 "counts": toxicity_counts,
                 "total_toxic_comments": toxic_comments,
             },
