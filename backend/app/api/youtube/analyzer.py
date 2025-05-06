@@ -4,18 +4,22 @@ import logging
 import traceback
 from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse, parse_qs
+import concurrent.futures
+import httpx
+import asyncio
 
 from fastapi import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from .llm_handler import analyse_youtube_comments as _remote_llm_analyse
+from app.api.models.bert_model import BERTModel
+from app.api.openai.ai_client import OpenAIClient
+from app.api.youtube.client import YouTubeClient
+from app.api.utils.logger import setup_logger
+from app.api.openrouter.client import OpenRouterClient
 
-logger = logging.getLogger("app.api.youtube.analyzer")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
+logger = setup_logger('analyzer')
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
@@ -265,73 +269,278 @@ async def analyse_video_comments(
         }
     ]
 
-    # Prioritize local model
-    if getattr(request.app.state, "model_loaded", False):
-        logger.info("Using local model branch")
-        result = analyse_comments_with_local_model(request, comments)
-        
-        # Use LLM to generate comment examples and response strategies
-        try:
-            logger.info("Calling LLM for strategies and examples")
-            llm_res = await _remote_llm_analyse(comments)
-            strategies = llm_res.get("strategies", "")
-            example_comments = llm_res.get("example_comments", [])
-            
-            logger.info(f"LLM returned {len(example_comments)} example comments")
-            
-            # Ensure we have example comments
-            if not example_comments:
-                logger.warning("No example comments from LLM, using defaults")
-                example_comments = default_examples
-        except Exception as e:
-            logger.warning(f"Failed to get LLM strategies and examples: {e}")
-            strategies = "• Thank you for taking the time to watch and comment\n• Respond positively to constructive feedback\n• Stay professional even with negative comments\n• Use feedback to improve future content"
-            example_comments = default_examples
-            
-        response = {
-            "success": True,
-            "method": "local_model",
-            "duration_s": round(time.time() - start, 2),
-            "analysis": result,
-            "strategies": strategies,
-            "example_comments": example_comments
-        }
-        
-        logger.info(f"Returning response with {len(example_comments)} example comments")
-        return response
+    # 创建最终返回值容器
+    response = {
+        "success": True,
+        "duration_s": 0,  # 稍后更新
+        "nlp_analysis": None,
+        "llm_analysis": None,
+        "strategies": "",
+        "example_comments": []
+    }
 
-    # Otherwise fall back to remote LLM
-    logger.info("Local model not available - falling back to remote LLM")
+    # 记录NLP和LLM处理开始时间，用于计算处理耗时
+    nlp_start = time.time()
+    llm_start = time.time()
+    
+    # 创建两个任务分别处理NLP和LLM分析，并行执行
+    nlp_result = None
+    llm_result = None
+    
+    # 如果本地NLP模型可用，则使用本地模型进行分析
+    if getattr(request.app.state, "model_loaded", False):
+        logger.info("Using local NLP model for sentiment/toxicity analysis")
+        nlp_result = analyse_comments_with_local_model(request, comments)
+        logger.info(f"NLP analysis completed in {round(time.time() - nlp_start, 2)}s")
+        response["nlp_analysis"] = nlp_result
+    else:
+        logger.info("Local NLP model not available")
+    
+    # 始终使用LLM（优先使用OpenRouter）进行策略和示例回复生成
     try:
+        logger.info("Calling LLM (OpenRouter) for strategies and examples")
         llm_res = await _remote_llm_analyse(comments)
         
-        # Extract strategies and examples from llm_res
+        # 提取策略和示例评论
         strategies = llm_res.get("strategies", "")
         example_comments = llm_res.get("example_comments", [])
         
         logger.info(f"LLM returned {len(example_comments)} example comments")
         
-        # Ensure we have example comments
-        if not example_comments:
+        # 确保我们有示例评论
+        if not example_comments or len(example_comments) == 0:
             logger.warning("No example comments from LLM, using defaults")
             example_comments = default_examples
+            
+        # 更新LLM结果
+        llm_result = llm_res
+        response["strategies"] = strategies
+        response["example_comments"] = example_comments
+        response["llm_analysis"] = llm_result  # 单独存储LLM分析结果
         
+        logger.info(f"LLM analysis completed in {round(time.time() - llm_start, 2)}s")
+    except Exception as e:
+        logger.warning(f"Failed to get LLM strategies and examples: {e}")
+        # 设置默认值
+        response["strategies"] = "• Thank you for taking the time to watch and comment\n• Respond positively to constructive feedback\n• Stay professional even with negative comments\n• Use feedback to improve future content"
+        response["example_comments"] = default_examples
+    
+    # 更新总处理时间
+    response["duration_s"] = round(time.time() - start, 2)
+    
+    # 如果两种分析都没有结果，返回错误
+    if not nlp_result and not llm_result:
+        return {
+            "success": False,
+            "message": "Both NLP and LLM analysis failed",
+            "example_comments": default_examples  # 确保返回一些示例
+        }
+    
+    logger.info(f"Analysis completed in {response['duration_s']}s")
+    return response 
+
+
+class Analyzer:
+    def __init__(self):
+        self.youtube_client = YouTubeClient()
+        self.bert_model = None
+        self.openai_client = OpenAIClient()
+        self.openrouter_client = OpenRouterClient()
+        
+        try:
+            # Try to load the BERT model
+            logger.info("Initializing BERT model...")
+            self.bert_model = BERTModel()
+            logger.info("BERT model initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing BERT model: {str(e)}")
+            self.bert_model = None
+
+    def analyse_video_comments(self, url: str, limit: int = 10) -> Dict[str, Any]:
+        """
+        Analyze YouTube video comments for sentiment and toxicity,
+        then generate response strategies and example responses.
+        
+        Args:
+            url: YouTube video URL
+            limit: Maximum number of comments to analyze
+            
+        Returns:
+            Dictionary with analysis results
+        """
+        start_time = time.time()
+        
+        # Initialize response container
         response = {
             "success": True,
-            "method": "remote_llm",
-            "duration_s": round(time.time() - start, 2),
-            "analysis": llm_res,
-            "strategies": strategies,
-            "example_comments": example_comments
+            "method": "unknown",
+            "duration": 0,
+            "nlp_analysis": None,
+            "llm_analysis": None,
+            "strategies": None,
+            "example_comments": None
         }
         
-        logger.info(f"Returning response with {len(example_comments)} example comments")
+        try:
+            # 1. Get comments from YouTube
+            logger.info(f"Fetching comments for {url}")
+            comments = self.youtube_client.get_video_comments(url, limit)
+            
+            if not comments:
+                return {
+                    "success": False,
+                    "message": "No comments found or unable to retrieve comments"
+                }
+                
+            logger.info(f"Retrieved {len(comments)} comments")
+            
+            # 2. Process comments with both NLP and LLM in parallel
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # Submit NLP analysis task
+                nlp_future = executor.submit(self.process_with_nlp_model, comments)
+                
+                # Submit LLM analysis task
+                llm_future = executor.submit(self.process_with_llm, comments, url)
+                
+                # Get results (this will wait for both tasks to complete)
+                nlp_result = nlp_future.result()
+                llm_result = llm_future.result()
+            
+            # 3. Combine results
+            response["nlp_analysis"] = nlp_result
+            response["llm_analysis"] = llm_result
+            response["strategies"] = llm_result.get("strategies") if llm_result and "strategies" in llm_result else None
+            response["example_comments"] = llm_result.get("example_comments") if llm_result and "example_comments" in llm_result else None
+            
+            # Determine the primary method used
+            if nlp_result:
+                response["method"] = "local_model"
+            elif llm_result:
+                response["method"] = "openrouter"
+            
+            logger.info("Analysis completed successfully")
+            
+        except Exception as e:
+            logger.error(f"Error during video comment analysis: {str(e)}")
+            return {
+                "success": False,
+                "message": f"Analysis failed: {str(e)}"
+            }
+        finally:
+            # Calculate duration
+            duration = time.time() - start_time
+            response["duration"] = round(duration, 2)
+            
         return response
-    except Exception as e:
-        logger.error(f"Remote LLM error: {e}")
-        logger.error(traceback.format_exc())
-        return {
-            "success": False, 
-            "message": str(e),
-            "example_comments": default_examples  # Return examples even on error
-        } 
+        
+    def process_with_nlp_model(self, comments: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Process comments using the local BERT model for sentiment and toxicity analysis"""
+        if not self.bert_model:
+            logger.info("Local NLP model not available")
+            return None
+            
+        try:
+            logger.info("Starting local NLP model analysis")
+            
+            # Extract just the comment text
+            comment_texts = [comment['text'] for comment in comments]
+            
+            # Perform sentiment analysis
+            sentiment_results = self.bert_model.predict_sentiment(comment_texts)
+            
+            # Perform toxicity analysis
+            toxicity_results = self.bert_model.predict_toxicity(comment_texts)
+            
+            # Count sentiments
+            sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0}
+            for sentiment in sentiment_results:
+                sentiment_counts[sentiment] += 1
+                
+            # Count toxicity types
+            total_toxic = 0
+            toxicity_counts = {
+                "toxic": 0,
+                "severe_toxic": 0,
+                "obscene": 0,
+                "threat": 0,
+                "insult": 0,
+                "identity_hate": 0
+            }
+            
+            for toxic_result in toxicity_results:
+                is_toxic = False
+                for toxic_type, value in toxic_result.items():
+                    if value:
+                        toxicity_counts[toxic_type] += 1
+                        is_toxic = True
+                if is_toxic:
+                    total_toxic += 1
+            
+            result = {
+                "sentiment": sentiment_counts,
+                "toxicity": {
+                    "counts": toxicity_counts,
+                    "total_toxic_comments": total_toxic
+                }
+            }
+            
+            logger.info("Local NLP model analysis completed")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error during NLP model processing: {str(e)}")
+            return None
+
+    def process_with_llm(self, comments: List[Dict[str, Any]], url: str) -> Optional[Dict[str, Any]]:
+        """Process comments using the LLM model (OpenRouter) for analysis, strategies and examples"""
+        try:
+            logger.info("Starting LLM analysis")
+            
+            # Use OpenRouter client
+            llm_response = self.openrouter_client.analyze_comments(comments, url)
+            
+            if not llm_response:
+                logger.warning("OpenRouter returned no response")
+                return None
+                
+            # Extract sentiment information if available
+            sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0}
+            strategies = None
+            example_comments = None
+            
+            # If the LLM response contains structured information
+            if isinstance(llm_response, dict):
+                # Extract sentiment if available
+                if "sentiment" in llm_response:
+                    sentiment_counts = llm_response["sentiment"]
+                
+                # Extract strategies
+                if "strategies" in llm_response:
+                    strategies = llm_response["strategies"]
+                
+                # Extract example comments
+                if "example_comments" in llm_response:
+                    example_comments = llm_response["example_comments"]
+            
+            result = {
+                "sentiment": sentiment_counts,
+                "strategies": strategies,
+                "example_comments": example_comments
+            }
+            
+            logger.info("LLM analysis completed")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error during LLM processing: {str(e)}")
+            return None
+
+    def analyze_single_comment(self, comment_text: str) -> str:
+        """Use OpenRouter to generate a response to a single comment"""
+        try:
+            logger.info(f"Analyzing single comment: {comment_text[:50]}...")
+            response = self.openrouter_client.single_comment_analysis(comment_text)
+            return response
+        except Exception as e:
+            logger.error(f"Error analyzing single comment: {str(e)}")
+            return f"Error analyzing comment: {str(e)}" 

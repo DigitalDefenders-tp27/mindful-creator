@@ -70,6 +70,12 @@ def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
     
     logger.info(f"Analyzing {len(comments)} comments with OpenRouter")
     
+    # 记录API配置，确保我们确实使用正确的API密钥
+    logger.info(f"Using API_URL: {API_URL}")
+    logger.info(f"Using MODEL_NAME: {MODEL_NAME}")
+    logger.info(f"API key configured: {bool(API_KEY)}")
+    logger.info(f"API key first 8 chars: {API_KEY[:8]}...")
+    
     # Set timeout and retry parameters
     max_retries = 2
     timeout_seconds = 300  # Increased to 5 minutes to allow for model loading and processing
@@ -373,11 +379,13 @@ Write a thoughtful, professional response that:
 4. Ends with a forward-looking statement
 
 KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
+Use Australian English phrasing where appropriate.
 """
         
         system_message = """You are a professional community manager who specialises in crafting 
         extremely concise responses to difficult social media comments. Your responses are authentic and clear,
-        but prioritize brevity above all else. Keep responses under 50 words."""
+        but prioritize brevity above all else. Keep responses under 50 words. Use Australian English phrasing 
+        where appropriate."""
         
         response_text = None
         # Try up to 2 times with a small delay
@@ -403,9 +411,13 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
                 
                 # Get the model's response
                 content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+                logger.info(f"Raw response from model: {content[:100]}...")
+                
+                # If we have content, use it directly
                 if content and len(content.strip()) > 0:
                     response_text = content.strip()
-                    break  # Successfully got a response, break the retry loop
+                    logger.info(f"Response generated: {response_text[:50]}...")
+                    break
                 
                 logger.warning(f"No content returned for comment on attempt {attempt+1}: {comment[:50]}...")
                 
@@ -420,7 +432,7 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
                 if attempt < max_attempts - 1:
                     time.sleep(1)
         
-        # 修改这里，不再使用预设内容，而是跳过该评论
+        # If we still don't have a response_text, skip this comment
         if not response_text:
             logger.warning(f"Could not generate response for comment: {comment[:50]}... - skipping")
             continue
@@ -431,6 +443,11 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
             "response": response_text
         })
     
+    # If we couldn't generate any responses, return fallback
+    if not responses:
+        logger.warning("No responses could be generated, using fallback examples")
+        return generate_fallback_examples(critical_comments)
+        
     return responses
 
 # 添加降级函数
@@ -443,21 +460,21 @@ def generate_fallback_strategies(comments: List[str]) -> str:
 • Remember it's okay to not engage with purely toxic comments that offer no value"""
 
 def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
-    """Generate predefined example responses"""
+    """Generate predefined example responses in Australian English"""
     # Ensure we return useful examples even if no comments are provided
     if not comments:
         return [
             {
                 "comment": "Your video was absolute rubbish, you clearly don't know what you're on about!",
-                "response": "Thanks for watching, mate. I'm always keen to improve my content - if you've got specific feedback, I'd love to hear it."
+                "response": "G'day! Thanks for watching and sharing your thoughts. I'm keen to improve - if you've got specific feedback, I'd be chuffed to hear more."
             },
             {
                 "comment": "This makes no sense. You're just waffling on about nothing important.",
-                "response": "Cheers for taking the time to watch. I'm working on making my explanations clearer - if a specific part confused you, let me know!"
+                "response": "Cheers for taking the time to watch, mate. I'm working on making my explanations clearer - if a specific part confused you, let me know!"
             },
             {
                 "comment": "I can't believe you think this is good advice. It's completely wrong and misleading.",
-                "response": "I appreciate your perspective. My advice is based on my experience, but I'm always open to different approaches. What would you suggest instead?"
+                "response": "Thanks for your candid feedback. My advice comes from my experience, but I'm always open to different perspectives. What approach would you recommend instead?"
             }
         ]
     

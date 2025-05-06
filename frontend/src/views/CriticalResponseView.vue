@@ -151,8 +151,8 @@
       </div>
       
       <!-- Analysis Results Modal -->
-      <div v-if="showResultsModal" class="modal-overlay" @click="closeModal">
-        <div class="analysis-modal" @click.stop>
+      <div v-if="showResults" class="modal-overlay">
+        <div class="analysis-modal">
           <div class="modal-header">
             <h2>YouTube Comments Analysis Results</h2>
             <button class="close-button" @click="closeModal">×</button>
@@ -162,7 +162,7 @@
             <!-- Video Info -->
             <div class="video-info-section section-divider">
               <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
-              <p><strong>Comments Analysed:</strong> {{ analysisResult.total_comments || 0 }}</p>
+              <p><strong>Comments Analysed:</strong> {{ analysisResult?.total_comments || 0 }}</p>
             </div>
             
             <!-- WebSocket Error Warning -->
@@ -290,6 +290,190 @@
                 <li>Set healthy boundaries with toxic commenters</li>
               </ul>
             </div> -->
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showResults" class="results-container">
+        <div class="header-section">
+          <h2>Analysis Results</h2>
+          <div class="analysis-source-tabs">
+            <button 
+              :class="['tab-button', { active: activeTab === 'combined' }]" 
+              @click="activeTab = 'combined'"
+            >
+              Combined View
+            </button>
+            <button 
+              v-if="analysisResult?.nlp_analysis" 
+              :class="['tab-button', { active: activeTab === 'nlp' }]" 
+              @click="activeTab = 'nlp'"
+            >
+              NLP Analysis
+            </button>
+            <button 
+              v-if="analysisResult?.llm_analysis" 
+              :class="['tab-button', { active: activeTab === 'llm' }]" 
+              @click="activeTab = 'llm'"
+            >
+              LLM Analysis
+            </button>
+          </div>
+        </div>
+
+        <div class="analysis-content">
+          <!-- Sentiment Analysis Section -->
+          <div class="sentiment-section">
+            <h3>Sentiment Breakdown</h3>
+            <div class="sentiment-charts">
+              <!-- Combined/Default Sentiment View -->
+              <template v-if="activeTab === 'combined'">
+                <div class="chart-container">
+                  <h4>Total Comments: {{ analysisResult?.total_comments || 0 }}</h4>
+                  <pie-chart
+                    :chart-data="getSentimentChartData(analysisResult?.analysis?.sentiment)"
+                    :options="chartOptions"
+                  />
+                </div>
+              </template>
+              
+              <!-- NLP Sentiment View -->
+              <template v-else-if="activeTab === 'nlp' && analysisResult?.nlp_analysis">
+                <div class="chart-container">
+                  <h4>NLP Analysis</h4>
+                  <h5>Total Comments: {{ 
+                    (analysisResult.nlp_analysis.sentiment?.Positive || 0) + 
+                    (analysisResult.nlp_analysis.sentiment?.Negative || 0) + 
+                    (analysisResult.nlp_analysis.sentiment?.Neutral || 0) 
+                  }}</h5>
+                  <pie-chart
+                    :chart-data="getSentimentChartData(analysisResult.nlp_analysis.sentiment, true)"
+                    :options="chartOptions"
+                  />
+                </div>
+              </template>
+              
+              <!-- LLM Sentiment View -->
+              <template v-else-if="activeTab === 'llm' && analysisResult?.llm_analysis">
+                <div class="chart-container">
+                  <h4>LLM Analysis</h4>
+                  <h5>Total Comments: {{ 
+                    (analysisResult.llm_analysis.sentiment?.Positive || 0) + 
+                    (analysisResult.llm_analysis.sentiment?.Negative || 0) + 
+                    (analysisResult.llm_analysis.sentiment?.Neutral || 0) 
+                  }}</h5>
+                  <pie-chart
+                    :chart-data="getSentimentChartData(analysisResult.llm_analysis.sentiment, true)"
+                    :options="chartOptions"
+                  />
+                </div>
+              </template>
+            </div>
+          </div>
+          
+          <!-- Toxicity Analysis Section -->
+          <div v-if="activeTab === 'combined' && analysisResult?.analysis?.toxicity?.toxic_types" class="toxicity-section">
+            <h3>Toxicity Breakdown</h3>
+            <div class="toxicity-header">
+              <h4>{{ 
+                analysisResult.analysis.toxicity.toxic_count || 0 
+              }} toxic comment{{ analysisResult.analysis.toxicity.toxic_count === 1 ? '' : 's' }}</h4>
+              <h5>{{ analysisResult.analysis.toxicity.toxic_percentage.toFixed(1) }}% of all comments</h5>
+            </div>
+            <div class="toxicity-charts">
+              <div 
+                v-for="(count, type) in analysisResult.analysis.toxicity.toxic_types" 
+                :key="type" 
+                class="toxicity-chart"
+                v-show="count > 0"
+              >
+                <donut-chart 
+                  :chart-data="getDonutChartData(count, type)" 
+                  :options="donutOptions" 
+                />
+                <div class="toxicity-label">
+                  <span class="toxicity-type">{{ formatToxicityType(type) }}</span>
+                  <span class="toxicity-count">{{ count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NLP Toxicity View -->
+          <div v-else-if="activeTab === 'nlp' && analysisResult?.nlp_analysis?.toxicity" class="toxicity-section">
+            <h3>NLP Toxicity Analysis</h3>
+            <div class="toxicity-header">
+              <h4>{{ getToxicCount(analysisResult.nlp_analysis.toxicity) }} toxic comment(s)</h4>
+              <h5>{{ getToxicPercentage(analysisResult.nlp_analysis) }}% of all comments</h5>
+            </div>
+            <div class="toxicity-charts">
+              <div 
+                v-for="(count, type) in getToxicTypes(analysisResult.nlp_analysis.toxicity)" 
+                :key="type" 
+                class="toxicity-chart"
+                v-show="count > 0"
+              >
+                <donut-chart 
+                  :chart-data="getDonutChartData(count, type)" 
+                  :options="donutOptions" 
+                />
+                <div class="toxicity-label">
+                  <span class="toxicity-type">{{ formatToxicityType(type) }}</span>
+                  <span class="toxicity-count">{{ count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LLM Toxicity View -->
+          <div v-else-if="activeTab === 'llm' && analysisResult?.llm_analysis?.toxicity" class="toxicity-section">
+            <h3>LLM Toxicity Analysis</h3>
+            <div class="toxicity-header">
+              <h4>{{ getToxicCount(analysisResult.llm_analysis.toxicity) }} toxic comment(s)</h4>
+              <h5>{{ getToxicPercentage(analysisResult.llm_analysis) }}% of all comments</h5>
+            </div>
+            <div class="toxicity-charts">
+              <div 
+                v-for="(count, type) in getToxicTypes(analysisResult.llm_analysis.toxicity)" 
+                :key="type" 
+                class="toxicity-chart"
+                v-show="count > 0"
+              >
+                <donut-chart 
+                  :chart-data="getDonutChartData(count, type)" 
+                  :options="donutOptions" 
+                />
+                <div class="toxicity-label">
+                  <span class="toxicity-type">{{ formatToxicityType(type) }}</span>
+                  <span class="toxicity-count">{{ count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategies Section - Always visible regardless of tab -->
+          <div class="strategies-section">
+            <h3>Response Strategies</h3>
+            <div class="strategies-content">
+              <p v-for="(strategy, index) in strategiesList" :key="index">{{ strategy }}</p>
+            </div>
+          </div>
+
+          <!-- Example Comments Section - Always visible regardless of tab -->
+          <div v-if="analysisResult?.example_comments?.length" class="examples-section">
+            <h3>Example Comments & Responses</h3>
+            <div class="examples-container">
+              <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="example-card">
+                <div class="comment">
+                  <h4>Comment:</h4>
+                  <p>{{ example.comment }}</p>
+                </div>
+                <div class="response">
+                  <h4>Suggested Response:</h4>
+                  <p>{{ example.response }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -511,12 +695,39 @@
       console.log('API response received', data)
       
       // Process the returned data
-      if (data.success && data.analysis) {
-        // If we received a complete analysis result
-        console.log('Received complete analysis result:', data)
+      if (data.success) {
+        // If we received a successful response
+        console.log('Received API response:', data)
         
-        // Adapt to the backend data structure
-        const sentiment = data.analysis.sentiment || {};
+        // Get sentiment data from NLP or LLM analysis
+        let sentiment = {};
+        let toxicity = {};
+        
+        // 优先使用NLP分析结果，如果可用的话
+        if (data.nlp_analysis && data.nlp_analysis.sentiment) {
+          console.log('Using NLP analysis for sentiment and toxicity data')
+          sentiment = data.nlp_analysis.sentiment;
+          if (data.nlp_analysis.toxicity) {
+            toxicity = data.nlp_analysis.toxicity;
+          }
+        }
+        // 如果没有NLP分析结果，尝试从LLM分析获取
+        else if (data.llm_analysis && data.llm_analysis.sentiment) {
+          console.log('Using LLM analysis for sentiment and toxicity data')
+          sentiment = data.llm_analysis.sentiment;
+          if (data.llm_analysis.toxicity) {
+            toxicity = data.llm_analysis.toxicity;
+          }
+        }
+        // 兼容旧版API结构
+        else if (data.analysis) {
+          console.log('Using legacy analysis structure')
+          sentiment = data.analysis.sentiment || {};
+          if (data.analysis.toxicity) {
+            toxicity = data.analysis.toxicity;
+          }
+        }
+        
         // Handle both capitalized and lowercase sentiment keys
         const positiveCount = sentiment.Positive || sentiment.positive_count || 0;
         const neutralCount = sentiment.Neutral || sentiment.neutral_count || 0;
@@ -526,17 +737,17 @@
         let toxicityCounts = {};
         let toxicTotal = 0;
         
-        if (data.analysis.toxicity) {
+        if (toxicity) {
           // Handle different toxicity data structures
-          if (data.analysis.toxicity.counts) {
+          if (toxicity.counts) {
             // New format from backend
-            toxicityCounts = data.analysis.toxicity.counts;
-            toxicTotal = data.analysis.toxicity.total_toxic_comments || 
+            toxicityCounts = toxicity.counts;
+            toxicTotal = toxicity.total_toxic_comments || 
                         Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
-          } else if (data.analysis.toxicity.toxic_types) {
+          } else if (toxicity.toxic_types) {
             // Old expected format
-            toxicityCounts = data.analysis.toxicity.toxic_types;
-            toxicTotal = data.analysis.toxicity.toxic_count || 0;
+            toxicityCounts = toxicity.toxic_types;
+            toxicTotal = toxicity.toxic_count || 0;
           }
         }
         
@@ -565,21 +776,36 @@
             }
             
             // Check if this is an OpenRouter response with JSON wrapped in markdown
-            if (typeof example.response === 'string' && example.response.includes('```json')) {
+            if (typeof example.response === 'string' && example.response.includes('```')) {
               try {
-                // Extract the JSON string from markdown code block
-                const jsonStr = example.response.replace(/```json\n|\n```/g, '');
-                // Try to parse it
-                const parsedResponse = JSON.parse(jsonStr);
-                // Use the response_suggestion field if available
-                if (parsedResponse.response_suggestion) {
-                  return {
-                    ...example,
-                    response: parsedResponse.response_suggestion
-                  };
+                // Check if response is markdown code block
+                let cleanResponse = example.response;
+                
+                // Remove markdown code blocks (both json and other formats)
+                if (cleanResponse.includes('```json')) {
+                  // Extract JSON from code block
+                  const jsonMatch = cleanResponse.match(/```json\n([\s\S]*?)\n```/);
+                  if (jsonMatch && jsonMatch[1]) {
+                    try {
+                      const parsedJson = JSON.parse(jsonMatch[1]);
+                      if (parsedJson.response_suggestion) {
+                        cleanResponse = parsedJson.response_suggestion;
+                      }
+                    } catch (e) {
+                      console.warn('Failed to parse JSON in code block:', e);
+                    }
+                  }
+                } else if (cleanResponse.includes('```')) {
+                  // Remove any other code blocks
+                  cleanResponse = cleanResponse.replace(/```[\w]*\n[\s\S]*?\n```/g, '').trim();
                 }
+                
+                return {
+                  ...example,
+                  response: cleanResponse
+                };
               } catch (e) {
-                console.warn('Failed to parse JSON in example response', e);
+                console.warn('Failed to process response with markdown:', e);
               }
             }
             return example;
@@ -589,9 +815,27 @@
           console.log('Processed example_comments:', JSON.stringify(processedExampleComments));
         }
         
+        // 默认示例评论
+        const defaultExamples = [
+          {
+            comment: "I absolutely love your content! Your videos always make my day better!",
+            response: "Thanks for your kind words! I'm so glad my videos bring you joy. Comments like yours really motivate me to keep creating!"
+          },
+          {
+            comment: "This video was really disappointing. The content feels rushed and not well researched.",
+            response: "I appreciate your honest feedback. I'm always looking to improve my content, and I'll take your comments on board for future videos. If you have specific suggestions, I'd love to hear them."
+          },
+          {
+            comment: "I've been watching your channel for years and the quality has been going downhill lately.",
+            response: "Thank you for being a long-time viewer. I value your perspective and would love to know what specific aspects you feel have declined so I can address them in future content. Your continued support means a lot to me."
+          }
+        ];
+        
         // Build consistent analysis result object
         analysisResult.value = {
           total_comments: positiveCount + neutralCount + negativeCount,
+          nlp_analysis: data.nlp_analysis,  // 保存完整的NLP分析结果
+          llm_analysis: data.llm_analysis,  // 保存完整的LLM分析结果
           analysis: {
             sentiment: {
               positive_count: positiveCount,
@@ -607,20 +851,7 @@
           },
           strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
           example_comments: processedExampleComments.length > 0 ? processedExampleComments : 
-            (data.example_comments && data.example_comments.length > 0 ? data.example_comments : [
-              {
-                comment: "I absolutely love your content! Your videos always make my day better!",
-                response: "Thanks for your kind words! I'm so glad my videos bring you joy. Comments like yours really motivate me to keep creating!"
-              },
-              {
-                comment: "This video was really disappointing. The content feels rushed and not well researched.",
-                response: "I appreciate your honest feedback. I'm always looking to improve my content, and I'll take your comments on board for future videos. If you have specific suggestions, I'd love to hear them."
-              },
-              {
-                comment: "I've been watching your channel for years and the quality has been going downhill lately.",
-                response: "Thank you for being a long-time viewer. I value your perspective and would love to know what specific aspects you feel have declined so I can address them in future content. Your continued support means a lot to me."
-              }
-            ])
+            (data.example_comments && data.example_comments.length > 0 ? data.example_comments : defaultExamples)
         }
         
         // Debug log the processed result
@@ -636,9 +867,6 @@
           'example_comments_sample': Array.isArray(data.example_comments) && data.example_comments.length > 0 ? 
             JSON.stringify(data.example_comments[0]) : 'none'
         });
-        
-        // Do NOT overwrite our processed result with raw data
-        // analysisResult.value = data
         
         showResultsModal.value = true;
         isLoading.value = false;
@@ -946,6 +1174,78 @@
   const retryAnalysis = () => {
     if (youtubeUrl.value) {
       analyzeYoutubeComments()
+    }
+  }
+
+  const showResults = ref(false)
+  const activeTab = ref('combined')  // 新增：当前激活的标签页
+
+  // 新增辅助函数，用于从不同格式的毒性数据中获取统计信息
+  function getToxicTypes(toxicity) {
+    if (!toxicity) return {};
+    if (toxicity.toxic_types) return toxicity.toxic_types;
+    if (toxicity.counts) return toxicity.counts;
+    return {};
+  }
+
+  function getToxicCount(toxicity) {
+    if (!toxicity) return 0;
+    if (toxicity.toxic_count !== undefined) return toxicity.toxic_count;
+    if (toxicity.total_toxic_comments !== undefined) return toxicity.total_toxic_comments;
+    
+    // 尝试从类型统计中计算总数
+    const types = getToxicTypes(toxicity);
+    return Object.values(types).reduce((sum, val) => sum + (val || 0), 0);
+  }
+
+  function getToxicPercentage(analysis) {
+    if (!analysis || !analysis.sentiment) return 0;
+    
+    const toxicCount = getToxicCount(analysis.toxicity || {});
+    const totalComments = 
+      (analysis.sentiment.Positive || 0) + 
+      (analysis.sentiment.Negative || 0) + 
+      (analysis.sentiment.Neutral || 0);
+    
+    if (totalComments === 0) return 0;
+    return ((toxicCount / totalComments) * 100).toFixed(1);
+  }
+
+  // 调整现有的getSentimentChartData函数，增加一个参数用于处理直接的API格式
+  function getSentimentChartData(sentiment, isDirectApiFormat = false) {
+    if (!sentiment) {
+      return {
+        labels: ['Positive', 'Neutral', 'Negative'],
+        datasets: [{ data: [0, 0, 0], backgroundColor: ['#4CAF50', '#FFC107', '#F44336'] }]
+      }
+    }
+    
+    // 如果是直接从API获取的格式（有大写键名）
+    if (isDirectApiFormat) {
+      return {
+        labels: ['Positive', 'Neutral', 'Negative'],
+        datasets: [{
+          data: [
+            sentiment.Positive || 0,
+            sentiment.Neutral || 0,
+            sentiment.Negative || 0
+          ],
+          backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+        }]
+      }
+    }
+    
+    // 标准前端格式（小写键名加下划线）
+    return {
+      labels: ['Positive', 'Neutral', 'Negative'],
+      datasets: [{
+        data: [
+          sentiment.positive_count || 0,
+          sentiment.neutral_count || 0,
+          sentiment.negative_count || 0
+        ],
+        backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+      }]
     }
   }
   </script>
@@ -2669,5 +2969,167 @@
     font-size: 0.9rem;
     font-style: italic;
     margin-top: 0.5rem;
+  }
+
+  .results-container {
+    margin-top: 2rem;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .analysis-source-tabs {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .tab-button.active {
+    background-color: #6c63ff;
+    color: white;
+  }
+
+  .analysis-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .sentiment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sentiment-charts {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+  }
+
+  .chart-container {
+    text-align: center;
+  }
+
+  .chart-container h4 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .chart-container h5 {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  .toxicity-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .toxicity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toxicity-charts {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+  }
+
+  .toxicity-chart {
+    text-align: center;
+  }
+
+  .toxicity-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  .toxicity-type {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .toxicity-count {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .strategies-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .strategies-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .examples-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .examples-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .example-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .example-comment,
+  .example-response {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .example-comment h4,
+  .example-response h4 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    color: #333;
+  }
+
+  .example-comment p,
+  .example-response p {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
   }
   </style>
