@@ -5,7 +5,13 @@ import traceback
 from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse, parse_qs
 import concurrent.futures
-import httpx
+# Make httpx import optional
+try:
+    import httpx
+    HTTPX_AVAILABLE = True
+except ImportError:
+    HTTPX_AVAILABLE = False
+    logging.warning("httpx module not available. Some functionality may be limited.")
 import asyncio
 
 from fastapi import Request
