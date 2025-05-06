@@ -239,19 +239,43 @@
             </div>
             
             <!-- Example Comments Section -->
-            <div class="examples-section section-divider" v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0">
-              <h3>Example Responses</h3>
-              <div class="example-cards">
-                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="example-card">
-                  <div class="example-comment">
-                    <h4>Original Comment:</h4>
-                    <p>{{ example.comment }}</p>
-                  </div>
-                  <div class="example-response">
-                    <h4>Suggested Response:</h4>
-                    <p>{{ example.response }}</p>
+            <div v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0" class="mb-8">
+              <h3 class="text-xl font-bold mb-4 border-b pb-2">Example Comments & Response Suggestions</h3>
+              <div class="space-y-4">
+                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div class="flex flex-col">
+                    <p class="mb-2 text-gray-700 whitespace-pre-wrap">{{ example.comment || 'No example comment provided' }}</p>
+                    <div class="mt-2 p-3 bg-white rounded-md border border-gray-200">
+                      <h4 class="font-semibold text-blue-600 mb-1">Suggested Response:</h4>
+                      <p class="text-gray-800 whitespace-pre-wrap">{{ example.response || 'No response suggestion available' }}</p>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div class="mt-4 text-sm text-gray-500">
+                <p>{{ analysisResult.example_comments.length }} example {{ analysisResult.example_comments.length === 1 ? 'comment' : 'comments' }} shown. Use these as a guide for your own responses.</p>
+                <div class="mt-2 text-xs text-gray-400">
+                  Debug: {{ JSON.stringify({
+                      comment_count: analysisResult.example_comments.length,
+                      has_comments: !!analysisResult.example_comments,
+                      first_comment: analysisResult.example_comments && analysisResult.example_comments.length > 0 ? 
+                        analysisResult.example_comments[0].comment?.substring(0, 30) + '...' : 'none',
+                      first_response: analysisResult.example_comments && analysisResult.example_comments.length > 0 ? 
+                        analysisResult.example_comments[0].response?.substring(0, 30) + '...' : 'none'
+                    }) }}
+                </div>
+              </div>
+            </div>
+            <div v-else class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p class="text-yellow-700">No example comments available for this analysis.</p>
+              <div class="mt-2 text-xs text-gray-400">
+                Debug: {{ JSON.stringify({
+                    analysisResult_type: typeof analysisResult,
+                    has_example_comments: !!analysisResult?.example_comments,
+                    example_comments_type: analysisResult?.example_comments ? typeof analysisResult.example_comments : 'undefined',
+                    is_array: Array.isArray(analysisResult?.example_comments),
+                    length: analysisResult?.example_comments ? analysisResult.example_comments.length : 0
+                  }) }}
               </div>
             </div>
             
@@ -517,8 +541,29 @@
         }
         
         // Process the example_comments to handle OpenRouter LLM response format
+        let processedExampleComments = [];
         if (data.example_comments && data.example_comments.length > 0) {
-          data.example_comments = data.example_comments.map(example => {
+          console.log('Processing example_comments:', data.example_comments);
+          
+          processedExampleComments = data.example_comments.map(example => {
+            // First ensure the example has the correct structure
+            if (!example || typeof example !== 'object') {
+              console.warn('Invalid example comment format (not an object):', example);
+              return { comment: 'Invalid comment format', response: 'Unable to process response' };
+            }
+            
+            // Make sure 'comment' property exists
+            if (!example.comment && example.comment !== '') {
+              console.warn('Example missing comment property:', example);
+              example.comment = 'No comment provided';
+            }
+            
+            // Make sure 'response' property exists
+            if (!example.response && example.response !== '') {
+              console.warn('Example missing response property:', example);
+              example.response = 'No response provided';
+            }
+            
             // Check if this is an OpenRouter response with JSON wrapped in markdown
             if (typeof example.response === 'string' && example.response.includes('```json')) {
               try {
@@ -539,6 +584,9 @@
             }
             return example;
           });
+          
+          // Add detailed logging about example_comments
+          console.log('Processed example_comments:', JSON.stringify(processedExampleComments));
         }
         
         // Build consistent analysis result object
@@ -558,15 +606,43 @@
             }
           },
           strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
-          example_comments: data.example_comments || []
+          example_comments: processedExampleComments.length > 0 ? processedExampleComments : 
+            (data.example_comments && data.example_comments.length > 0 ? data.example_comments : [
+              {
+                comment: "I absolutely love your content! Your videos always make my day better!",
+                response: "Thanks for your kind words! I'm so glad my videos bring you joy. Comments like yours really motivate me to keep creating!"
+              },
+              {
+                comment: "This video was really disappointing. The content feels rushed and not well researched.",
+                response: "I appreciate your honest feedback. I'm always looking to improve my content, and I'll take your comments on board for future videos. If you have specific suggestions, I'd love to hear them."
+              },
+              {
+                comment: "I've been watching your channel for years and the quality has been going downhill lately.",
+                response: "Thank you for being a long-time viewer. I value your perspective and would love to know what specific aspects you feel have declined so I can address them in future content. Your continued support means a lot to me."
+              }
+            ])
         }
         
         // Debug log the processed result
         console.log('Processed analysis result:', analysisResult.value);
         
-        showResultsModal.value = true
-        isLoading.value = false
-        return
+        // Log the final data being displayed
+        console.log('Final data being displayed:', {
+          'success': data.success,
+          'has_strategies': !!data.strategies,
+          'strategies_length': data.strategies ? data.strategies.length : 0,
+          'has_example_comments': Array.isArray(data.example_comments),
+          'example_comments_length': Array.isArray(data.example_comments) ? data.example_comments.length : 0,
+          'example_comments_sample': Array.isArray(data.example_comments) && data.example_comments.length > 0 ? 
+            JSON.stringify(data.example_comments[0]) : 'none'
+        });
+        
+        // Do NOT overwrite our processed result with raw data
+        // analysisResult.value = data
+        
+        showResultsModal.value = true;
+        isLoading.value = false;
+        return;
       } else if (Array.isArray(data)) {
         // Backwards compatibility: If we received an array of comments, build an analysis result object
         // If the response is an array of comments, construct an analysis result
@@ -644,10 +720,26 @@
         data.wsError = true
       }
       
-      // Update analysis result and display modal
-      analysisResult.value = data
-      showResultsModal.value = true
-      isLoading.value = false
+      // IMPORTANT: Do not directly assign data to analysisResult.value here
+      // Because we already built a properly structured analysisResult in previous branches
+      // Instead, only set showResultsModal to true if we haven't already done so
+      if (!analysisResult.value || Object.keys(analysisResult.value).length === 0) {
+        // Only if we haven't set analysisResult yet (should not happen, but just in case)
+        console.warn('No analysisResult was set in previous branches, using raw data');
+        analysisResult.value = data;
+        
+        // Log the final data being displayed
+        console.log('Using unprocessed data:', {
+          'success': data.success,
+          'has_strategies': !!data.strategies,
+          'strategies_length': data.strategies ? data.strategies.length : 0,
+          'has_example_comments': Array.isArray(data.example_comments),
+          'example_comments_length': Array.isArray(data.example_comments) ? data.example_comments.length : 0
+        });
+      }
+      
+      showResultsModal.value = true;
+      isLoading.value = false;
       
     } catch (error) {
       console.error('API request error:', error)
