@@ -4,6 +4,7 @@ import sys
 import logging
 from typing import List, Dict, Any, Optional
 import time
+import json
 
 # Ensure project root is on PYTHONPATH
 proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 # API Configuration
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 API_KEY = os.getenv('OPENROUTER_API_KEY')
-MODEL_NAME = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat-v3-0324:free')
+MODEL_NAME = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-prover-v2:free')
 
 # Log API configuration
 logger.info(f"OpenRouter API key configured: {bool(API_KEY)}")
@@ -36,8 +37,8 @@ if API_KEY:
     _session.headers.update({
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://mindful-creator.vercel.app/",  # Required by OpenRouter
-        "X-Title": "Mindful Creator"  # Optional for OpenRouter analytics
+        # "HTTP-Referer": "https://mindful-creator.vercel.app/",  # Required by OpenRouter
+        # "X-Title": "Mindful Creator"  # Optional for OpenRouter analytics
     })
     logger.info("OpenRouter session configured successfully")
 else:
@@ -201,7 +202,7 @@ ONLY return the raw comment text, exactly as provided in the input.
             "max_tokens": 1000
         }
         
-        resp = _session.post(API_URL, json=payload, timeout=300)
+        resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
         resp.raise_for_status()
         data = resp.json()
         
@@ -309,7 +310,7 @@ BE EXTREMELY CONCISE - focus on practical, actionable advice that's easy to impl
                 "temperature": 0.3  # Lower temperature for more focused, predictable responses
             }
             
-            resp = _session.post(API_URL, json=payload, timeout=300)
+            resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
             resp.raise_for_status()
             data = resp.json()
             
@@ -396,7 +397,7 @@ KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
                     "temperature": 0.4  # Slightly lower temperature for more focused responses
                 }
                 
-                resp = _session.post(API_URL, json=payload, timeout=300)
+                resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
                 resp.raise_for_status()
                 data = resp.json()
                 
