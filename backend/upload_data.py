@@ -1,4 +1,3 @@
-# upload_data.py
 import pandas as pd
 import psycopg2
 from database import get_connection
