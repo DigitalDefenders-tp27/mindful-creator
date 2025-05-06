@@ -1,0 +1,82 @@
+[
+  {
+    "comment": "This video was absolutely brilliant! I learned so much and the production quality was top-notch.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Positive\",\n  \"toxicity\": \"Non-toxic\",\n  \"response_suggestion\": \"Thank the commenter for their kind words and positive feedback. Consider asking if there are any specific topics they'd like to see covered in future videos.\"\n}\n```"
+    },
+    "api_response_time": "2.79s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "Love your content, mate! Been following for years and you just keep getting better.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Positive\",\n  \"toxicity\": \"Non-toxic\",\n  \"response_suggestion\": \"Thank the viewer for their long-term support and positive feedback. Consider acknowledging their loyalty and expressing appreciation for their kind words.\"\n}\n```"
+    },
+    "api_response_time": "2.47s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "I'm wondering if you could do a follow-up video on this topic? There's a lot more to explore.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Positive\",\n  \"toxicity\": \"Non-toxic\",\n  \"response_suggestion\": \"Acknowledge the request and express enthusiasm for the idea. Consider mentioning potential topics for the follow-up video or asking for specific areas of interest.\"\n}\n```"
+    },
+    "api_response_time": "12.47s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "What camera setup do you use for these videos? The quality seems really good.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Positive\",\n  \"toxicity\": \"Non-toxic\",\n  \"suggestion\": \"The content creator should respond by thanking the commenter for the compliment and providing details about their camera setup, possibly including specific equipment and settings used.\"\n}\n```"
+    },
+    "api_response_time": "3.47s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "Sorry, but this wasn't your best work. The sound quality was poor and the content felt rushed.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Negative\",\n  \"toxicity\": \"Mildly toxic\",\n  \"suggestion\": \"Acknowledge the feedback, apologize for the issues, and explain any extenuating circumstances. Promise to improve in future videos.\"\n}\n```"
+    },
+    "api_response_time": "91.55s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "Disappointed with this video. You usually provide more in-depth information.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Negative\",\n  \"toxicity\": \"Non-toxic\",\n  \"response_suggestion\": \"Acknowledge the viewer's disappointment and explain that you'll strive to provide more in-depth information in future videos. Consider asking for specific topics they'd like to see covered in more detail.\"\n}\n```"
+    },
+    "api_response_time": "2.98s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "This is absolute garbage! You clearly have no idea what you're talking about.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Negative\",\n  \"toxicity\": \"Very toxic\",\n  \"response_suggestion\": \"Acknowledge the criticism, but maintain professionalism. Offer to clarify points or provide additional information to address the viewer's concerns.\"\n}\n```"
+    },
+    "api_response_time": "4.29s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "You should just quit making videos. Nobody cares about your stupid opinions.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Negative\",\n  \"toxicity\": \"Very toxic\",\n  \"response_suggestion\": \"Ignore the comment and focus on constructive feedback. Consider enabling comment moderation to filter out toxic comments.\"\n}\n```"
+    },
+    "api_response_time": "2.56s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "Good points about the topic, but your presentation style is really annoying.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Neutral\",\n  \"toxicity\": \"Mildly toxic\",\n  \"suggestion\": \"Acknowledge the feedback on the presentation style and thank the viewer for their input on the content. Consider asking for specific suggestions to improve the presentation style.\"\n}\n```"
+    },
+    "api_response_time": "2.71s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  },
+  {
+    "comment": "The content is great as usual, but please fix the audio issues in your videos.",
+    "analysis": {
+      "raw_analysis": "```json\n{\n  \"sentiment\": \"Positive\",\n  \"toxicity\": \"Non-toxic\",\n  \"suggestion\": \"Thank the commenter for their feedback and acknowledge the audio issues. Let them know you're working on improving the audio quality in future videos.\"\n}\n```"
+    },
+    "api_response_time": "2.64s",
+    "model": "deepseek/deepseek-prover-v2:free"
+  }
+]
