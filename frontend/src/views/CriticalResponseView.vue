@@ -240,34 +240,46 @@
             
             <!-- Example Comments Section -->
             <div v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0" class="mb-8">
-              <h3 class="text-xl font-bold mb-4 border-b pb-2">Example Comments & Response Suggestions</h3>
-              <div class="space-y-4">
-                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h3 class="text-xl font-bold mb-4 border-b pb-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded-t-lg">Toxic Comments & Response Suggestions</h3>
+              <div class="space-y-6">
+                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-white rounded-lg shadow-md border-l-4 border-red-500 overflow-hidden">
                   <div class="flex flex-col">
-                    <p class="mb-2 text-gray-700 whitespace-pre-wrap">{{ example.comment || 'No example comment provided' }}</p>
-                    <div class="mt-2 p-3 bg-white rounded-md border border-gray-200">
-                      <h4 class="font-semibold text-blue-600 mb-1">Suggested Response:</h4>
-                      <p class="text-gray-800 whitespace-pre-wrap">{{ example.response || 'No response suggestion available' }}</p>
+                    <div class="bg-red-50 p-4 border-b border-red-100">
+                      <h4 class="font-bold text-red-600 mb-2 flex items-center">
+                        <span class="mr-2">⚠️</span> 
+                        Toxic Comment:
+                      </h4>
+                      <p class="mb-0 text-gray-800 whitespace-pre-wrap font-medium">{{ example.comment || 'No example comment provided' }}</p>
+                    </div>
+                    <div class="p-4 bg-green-50">
+                      <h4 class="font-bold text-green-600 mb-2 flex items-center">
+                        <span class="mr-2">✅</span>
+                        Suggested Professional Response:
+                      </h4>
+                      <p class="text-gray-800 whitespace-pre-wrap bg-white p-3 rounded-md border border-green-100 shadow-sm">{{ example.response || 'No response suggestion available' }}</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="mt-4 text-sm text-gray-500">
-                <p>{{ analysisResult.example_comments.length }} example {{ analysisResult.example_comments.length === 1 ? 'comment' : 'comments' }} shown. Use these as a guide for your own responses.</p>
-                <div class="mt-2 text-xs text-gray-400">
-                  Debug: {{ JSON.stringify({
-                      comment_count: analysisResult.example_comments.length,
-                      has_comments: !!analysisResult.example_comments,
-                      first_comment: analysisResult.example_comments && analysisResult.example_comments.length > 0 ? 
-                        analysisResult.example_comments[0].comment?.substring(0, 30) + '...' : 'none',
-                      first_response: analysisResult.example_comments && analysisResult.example_comments.length > 0 ? 
-                        analysisResult.example_comments[0].response?.substring(0, 30) + '...' : 'none'
-                    }) }}
+              <div class="mt-6 px-4 py-3 bg-gray-50 rounded-md border border-gray-200 flex items-center justify-between">
+                <p class="text-sm text-gray-600">
+                  <span class="font-semibold">{{ analysisResult.example_comments.length }}</span> most toxic {{ analysisResult.example_comments.length === 1 ? 'comment' : 'comments' }} shown with professional response examples.
+                </p>
+                <div class="text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                  Use these as templates for your own responses
                 </div>
               </div>
             </div>
-            <div v-else class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p class="text-yellow-700">No example comments available for this analysis.</p>
+            <div v-else class="mb-8 p-6 bg-yellow-50 border-l-4 border-yellow-400 rounded-md shadow-sm">
+              <div class="flex items-center">
+                <div class="text-yellow-500 mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-yellow-700">No toxic comments found</h4>
+                  <p class="text-yellow-600">Your video comments appear to be positive or neutral. Great job engaging your audience!</p>
+                </div>
+              </div>
               <div class="mt-2 text-xs text-gray-400">
                 Debug: {{ JSON.stringify({
                     analysisResult_type: typeof analysisResult,

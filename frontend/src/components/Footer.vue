@@ -74,7 +74,7 @@ const currentYear = ref(new Date().getFullYear());
   display: flex;
   justify-content: center;
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 6rem;
   margin-bottom: 0.5rem;
   padding: 0.5rem 1rem;
   background: transparent;
@@ -106,6 +106,7 @@ const currentYear = ref(new Date().getFullYear());
 
 .acknowledgment {
   text-align: center;
+  margin-top: 4rem;
   margin-bottom: 2rem;
   max-width: 800px;
   margin-left: auto;
@@ -202,11 +203,16 @@ const currentYear = ref(new Date().getFullYear());
   .flags-container {
     flex-wrap: wrap;
     gap: 1.5rem;
+    margin-top: 3rem;
   }
   
   .flag-wrapper {
     width: 50px;
     height: 33px;
+  }
+  
+  .acknowledgment {
+    margin-top: 1.5rem;
   }
   
   .acknowledgment p {
@@ -221,6 +227,7 @@ const currentYear = ref(new Date().getFullYear());
 @media (max-width: 480px) {
   .flags-container {
     gap: 1rem;
+    margin-top: 2.5rem;
   }
   
   .flag-wrapper {
