@@ -129,32 +129,44 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
             try:
                 logger.debug(f"Processing comment {i}/{len(comments_to_analyze)}")
                 
-                # Sentiment analysis
-                sentiment_scores = sentiment_model(comment)[0]
-                sentiment_label = sentiment_scores['label']
-                sentiment_score = sentiment_scores['score']
+                # Tokenize comment for sentiment analysis
+                sentiment_inputs = sentiment_tokenizer(comment, return_tensors="pt", truncation=True, padding=True)
+                with torch.no_grad():
+                    sentiment_outputs = sentiment_model(**sentiment_inputs)
+                    sentiment_scores = torch.softmax(sentiment_outputs.logits, dim=1)[0]
+                
+                # Get sentiment label and score
+                sentiment_label = "positive" if sentiment_scores[1] > sentiment_scores[0] else "negative"
+                sentiment_score = float(sentiment_scores[1] if sentiment_label == "positive" else sentiment_scores[0])
                 
                 logger.debug(f"Comment {i} sentiment: {sentiment_label} (score: {sentiment_score:.3f})")
                 
-                if sentiment_score >= SENTIMENT_THRESHOLD:
-                    sentiment_counts[sentiment_label.lower()] += 1
-                    logger.debug(f"Incremented {sentiment_label.lower()} count to {sentiment_counts[sentiment_label.lower()]}")
+                # Update sentiment counts with more precise thresholds
+                if sentiment_score >= 0.8:  # Strong positive
+                    sentiment_counts["positive"] += 1
+                elif sentiment_score <= 0.2:  # Strong negative
+                    sentiment_counts["negative"] += 1
+                else:  # Neutral
+                    sentiment_counts["neutral"] += 1
                 
-                # Toxicity analysis
-                toxicity_scores = toxicity_model(comment)[0]
+                # Tokenize comment for toxicity analysis
+                toxicity_inputs = toxicity_tokenizer(comment, return_tensors="pt", truncation=True, padding=True)
+                with torch.no_grad():
+                    toxicity_outputs = toxicity_model(**toxicity_inputs)
+                    toxicity_scores = torch.sigmoid(toxicity_outputs.logits)[0]
                 
-                # Log toxicity scores for debugging
-                logger.debug(f"Comment {i} toxicity scores: {toxicity_scores}")
+                # Check each toxicity category with more precise thresholds
+                is_toxic = False
+                for idx, category in enumerate(toxicity_counts.keys()):
+                    score = float(toxicity_scores[idx])
+                    if score >= 0.7:  # Higher threshold for toxicity
+                        toxicity_counts[category] += 1
+                        is_toxic = True
+                        logger.debug(f"Incremented {category} count to {toxicity_counts[category]} (score: {score:.3f})")
                 
-                # Check each toxicity category
-                for category, score in toxicity_scores.items():
-                    if score >= TOXICITY_THRESHOLD:
-                        category_key = category.lower().replace(" ", "_")
-                        toxicity_counts[category_key] += 1
-                        logger.debug(f"Incremented {category_key} count to {toxicity_counts[category_key]}")
-                        if category == "Toxic":
-                            total_toxic += 1
-                            logger.debug(f"Incremented total toxic count to {total_toxic}")
+                if is_toxic:
+                    total_toxic += 1
+                    logger.debug(f"Incremented total toxic count to {total_toxic}")
                 
             except Exception as e:
                 logger.error(f"Error processing comment {i}: {str(e)}", exc_info=True)
@@ -170,19 +182,23 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
         logger.info(f"- Toxicity breakdown: {toxicity_counts}")
         logger.info(f"- Total toxic comments: {total_toxic} ({toxic_percentage:.1f}%)")
         
-        # Create response
+        # Create response matching frontend expectations
         result = {
-            "sentiment": {
-                "positive": sentiment_counts["positive"],
-                "neutral": sentiment_counts["neutral"],
-                "negative": sentiment_counts["negative"]
+            "total_comments": total_comments,
+            "analysis": {
+                "sentiment": {
+                    "positive_count": sentiment_counts["positive"],
+                    "neutral_count": sentiment_counts["neutral"],
+                    "negative_count": sentiment_counts["negative"]
+                },
+                "toxicity": {
+                    "toxic_count": total_toxic,
+                    "toxic_percentage": toxic_percentage,
+                    "toxic_types": toxicity_counts
+                }
             },
-            "toxicity": {
-                "total": total_toxic,
-                "types": toxicity_counts,
-                "percentage": toxic_percentage
-            },
-            "total_comments": total_comments
+            "strategies": "",  # This will be populated by the LLM service
+            "example_comments": []  # This will be populated by the LLM service
         }
         
         logger.info("=== Analysis completed successfully ===")
