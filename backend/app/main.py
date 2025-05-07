@@ -205,7 +205,8 @@ logger.info(f"Model loaded status: {model_loaded}")
 ADDITIONAL_ROUTES = [
     ("app.api.relaxation.routes", "/api/relaxation"),
     ("app.api.notes.routes", "/api/notes"),
-    ("app.api.youtube.routes", "/api/youtube")
+    ("app.api.youtube.routes", "/api/youtube"),
+    ("app.api.copyright.routes", "/api/copyright")  # Add copyright routes
 ]
 
 logger.info("Loading additional routes...")
