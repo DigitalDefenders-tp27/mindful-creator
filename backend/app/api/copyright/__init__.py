@@ -1,0 +1,1 @@
+"""Copyright functionality module for watermarking images.""" 
