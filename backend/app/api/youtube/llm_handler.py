@@ -245,14 +245,14 @@ DO NOT add any explanation, introductory text, or other formatting.
 
 async def identify_critical_comments(comments: List[str], max_comments: int = 3) -> List[str]:
     """
-    Identify the most critical or negative comments that need addressing.
+    Identify the most toxic and harmful comments that need addressing.
     
     Args:
         comments: List of comment strings
         max_comments: Maximum number of critical comments to return
         
     Returns:
-        List of the most critical comments
+        List of the most toxic/harmful comments
     """
     if not API_KEY:
         logger.error("Cannot identify critical comments: API key missing")
@@ -260,21 +260,35 @@ async def identify_critical_comments(comments: List[str], max_comments: int = 3)
     
     # Prepare prompt for the LLM
     comments_text = "\n".join([f"- {comment}" for comment in comments])
-    prompt = f"""Analyse these YouTube comments and identify the {max_comments} most critical or negative ones that would require careful response:
+    prompt = f"""Analyse these YouTube comments and identify the {max_comments} most toxic, offensive or harmful ones:
 
 {comments_text}
 
-IMPORTANT: Return ONLY the exact text of the {max_comments} most critical comments, one per line.
-DO NOT add any introductory text, summaries, or phrases like "The most critical comments are:".
+PRIORITISE comments that contain:
+1. Personal attacks or insults
+2. Hate speech, slurs, or discriminatory language
+3. Severe negativity or hostility
+4. Threatening or intimidating language
+5. Harmful misinformation
+
+IMPORTANT: Return ONLY the exact text of the {max_comments} most toxic comments, one per line.
+DO NOT add any introductory text, summaries, or phrases like "The most toxic comments are:".
 DO NOT number the comments or add any formatting.
 ONLY return the raw comment text, exactly as provided in the input.
 """
     
-    system_message = """You are an expert content moderation assistant. Your task is to identify comments 
-    that are negative, critical, or potentially harmful. Focus on comments that have personal attacks, 
-    offensive language, or harsh criticism rather than constructive feedback.
+    system_message = """You are an expert content moderation assistant specialising in identifying toxic content.
     
-    When presenting your findings, NEVER add introductory phrases like "The most critical or negative comments are:".
+    Your primary task is to identify comments that are harmful, toxic, or potentially dangerous. Focus on comments that:
+    - Contain personal attacks or abusive language
+    - Include hate speech, slurs, or discriminatory content
+    - Feature extreme negativity or hostility
+    - Contain threatening language or intimidation
+    - Spread harmful misinformation
+    
+    PRIORITISE the most toxic comments first, rather than merely critical ones.
+    
+    When presenting your findings, NEVER add introductory phrases or explanations.
     ONLY present the exact comment text, one comment per line, with no additional text or formatting."""
     
     try:
@@ -324,8 +338,8 @@ ONLY return the raw comment text, exactly as provided in the input.
             for comment in critical_comments:
                 # Skip lines that appear to be introductory text rather than comments
                 if any(phrase in comment.lower() for phrase in [
-                    "the most critical", "here are", "these are", "critical comments", 
-                    "negative comments", "comments are", "identified", "response", "would require"
+                    "the most", "here are", "these are", "comments are", "identified", "response", 
+                    "would require", "toxic", "critical", "negative", "harmful"
                 ]):
                     continue
                 filtered_comments.append(comment)
