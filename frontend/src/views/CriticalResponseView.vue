@@ -536,11 +536,22 @@
   const formatStrategies = (strategies) => {
     if (!strategies) return '';
     
-    // Replace line breaks with <br> and convert bullet points to HTML
-    return strategies
-      .replace(/\n/g, '<br>')
-      .replace(/•/g, '&bull;')
-      .replace(/- /g, '&bull; ');
+    // Remove markdown code block markers
+    let cleanedStrategies = strategies.replace(/```markdown\n?/g, '').replace(/```/g, '');
+    
+    // Remove extra bullet points and clean up formatting
+    cleanedStrategies = cleanedStrategies
+      .replace(/•\s*•\s*/g, '• ')  // Replace double bullets with single
+      .replace(/^\s*•\s*/gm, '• ')  // Ensure consistent bullet point format
+      .replace(/\n\s*\n/g, '\n')    // Remove extra newlines
+      .trim();
+    
+    // Convert to HTML
+    return cleanedStrategies
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .join('<br>');
   }
   
   // Calculate percentage for toxicity types
@@ -700,274 +711,40 @@
         // If we received a successful response
         console.log('Received API response:', data)
         
-        // Get sentiment data from NLP or LLM analysis
-        let sentiment = {};
-        let toxicity = {};
-        let strategies = data.strategies || "";
-        let exampleComments = data.example_comments || [];
-        
-        // Check if we have sentiment directly in the root object
-        if (data.sentiment) {
-          console.log('Using sentiment data from root object');
-          sentiment = data.sentiment;
-        }
-        // Otherwise try other sources
-        else if (data.analysis && data.analysis.sentiment) {
-          console.log('Using pre-processed analysis data')
-          sentiment = data.analysis.sentiment;
-        }
-        // Try NLP analysis next
-        else if (data.nlp_analysis && data.nlp_analysis.sentiment) {
-          console.log('Using NLP analysis for sentiment data')
-          sentiment = data.nlp_analysis.sentiment;
-        }
-        // Finally, try LLM analysis
-        else if (data.llm_analysis && data.llm_analysis.sentiment) {
-          console.log('Using LLM analysis for sentiment data')
-          sentiment = data.llm_analysis.sentiment;
-        }
-        
-        // Similar approach for toxicity data
-        if (data.toxicity) {
-          console.log('Using toxicity data from root object');
-          toxicity = data.toxicity;
-        }
-        else if (data.analysis && data.analysis.toxicity) {
-          toxicity = data.analysis.toxicity;
-        }
-        else if (data.nlp_analysis && data.nlp_analysis.toxicity) {
-          toxicity = data.nlp_analysis.toxicity;
-        }
-        else if (data.llm_analysis && data.llm_analysis.toxicity) {
-          toxicity = data.llm_analysis.toxicity;
-        }
-        
-        // Handle both capitalized and lowercase sentiment keys
-        const positiveCount = sentiment.Positive || sentiment.positive_count || 0;
-        const neutralCount = sentiment.Neutral || sentiment.neutral_count || 0;
-        const negativeCount = sentiment.Negative || sentiment.negative_count || 0;
-        
-        // Extract toxicity data from various possible formats
-        let toxicityCounts = {};
-        let toxicTotal = 0;
-        
-        if (toxicity) {
-          // Handle different toxicity data structures
-          if (toxicity.toxic !== undefined) {
-            // New API format with direct keys
-            toxicityCounts = {
-              "Toxic": toxicity.toxic || 0,
-              "Severe Toxic": toxicity.severe_toxic || 0,
-              "Obscene": toxicity.obscene || 0,
-              "Threat": toxicity.threat || 0,
-              "Insult": toxicity.insult || 0,
-              "Identity Hate": toxicity.identity_hate || 0
-            };
-            toxicTotal = toxicity.toxic || 0;
-          }
-          else if (toxicity.counts) {
-            // Older format from backend
-            toxicityCounts = toxicity.counts;
-            toxicTotal = toxicity.total_toxic_comments || 
-                        Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
-          } else if (toxicity.toxic_types) {
-            // Old expected format
-            toxicityCounts = toxicity.toxic_types;
-            toxicTotal = toxicity.toxic_count || 0;
-          }
-        }
-        
-        // Process the example_comments to handle OpenRouter LLM response format
-        let processedExampleComments = [];
-        
-        // Log the example comments to help with debugging
-        console.log('Example comments before processing:', data.example_comments);
-        
-        if (data.example_comments && data.example_comments.length > 0) {
-          console.log('Processing example_comments:', data.example_comments);
-          
-          processedExampleComments = data.example_comments.map(example => {
-            // First ensure the example has the correct structure
-            if (!example || typeof example !== 'object') {
-              console.warn('Invalid example comment format (not an object):', example);
-              return { comment: 'Invalid comment format', response: 'Unable to process response' };
-            }
-            
-            // Make sure 'comment' property exists
-            if (!example.comment && example.comment !== '') {
-              console.warn('Example missing comment property:', example);
-              example.comment = 'No comment provided';
-            }
-            
-            // Make sure 'response' property exists
-            if (!example.response && example.response !== '') {
-              console.warn('Example missing response property:', example);
-              example.response = 'No response provided';
-            }
-            
-            // Check if this is an OpenRouter response with JSON wrapped in markdown
-            if (typeof example.response === 'string' && example.response.includes('```')) {
-              try {
-                // Check if response is markdown code block
-                let cleanResponse = example.response;
-                
-                // Remove markdown code blocks (both json and other formats)
-                if (cleanResponse.includes('```json')) {
-                  // Extract JSON from code block
-                  const jsonMatch = cleanResponse.match(/```json\n([\s\S]*?)\n```/);
-                  if (jsonMatch && jsonMatch[1]) {
-                    try {
-                      const parsedJson = JSON.parse(jsonMatch[1]);
-                      if (parsedJson.response_suggestion) {
-                        cleanResponse = parsedJson.response_suggestion;
-                      }
-                    } catch (e) {
-                      console.warn('Failed to parse JSON in code block:', e);
-                    }
-                  }
-                } else if (cleanResponse.includes('```')) {
-                  // Extract content from any code block
-                  const codeMatch = cleanResponse.match(/```(?:\w+)?\n([\s\S]*?)\n```/);
-                  if (codeMatch && codeMatch[1]) {
-                    cleanResponse = codeMatch[1];
-                  }
-                  
-                  // If that didn't work, just remove all code block markers
-                  cleanResponse = cleanResponse.replace(/```\w+\n/g, '').replace(/```/g, '');
-                }
-                
-                // Update the response with cleaned version
-                example.response = cleanResponse.trim();
-              } catch (e) {
-                console.warn('Error processing markdown in response:', e);
-              }
-            }
-            
-            return example;
-          });
-        }
-        
-        console.log('Processed example comments:', processedExampleComments);
-        
         // Build the analysis result with the processed data
         analysisResult.value = {
-          totalComments: (positiveCount + neutralCount + negativeCount) || 0,
-          sentiment: {
-            positive: positiveCount,
-            neutral: neutralCount,
-            negative: negativeCount
-          },
-          toxicity: {
-            total: toxicTotal,
-            types: toxicityCounts
-          },
-          strategies: data.strategies || (data.llm_analysis && data.llm_analysis.strategies) || "",
-          example_comments: processedExampleComments
+            totalComments: data.totalComments || 0,
+            sentiment: data.sentiment || {
+                positive: 0,
+                neutral: 0,
+                negative: 0
+            },
+            toxicity: data.toxicity || {
+                total: 0,
+                types: {
+                    "Toxic": 0,
+                    "Severe Toxic": 0,
+                    "Obscene": 0,
+                    "Threat": 0,
+                    "Insult": 0,
+                    "Identity Hate": 0
+                }
+            },
+            strategies: data.strategies || "",
+            example_comments: data.example_comments || []
         };
         
         console.log('Final analysis result to display:', analysisResult.value);
         
         // Show the results modal
         showResultsModal.value = true;
-        showResults.value = true;  // Add this line to show the results container
+        showResults.value = true;
         isLoading.value = false;
-      } else if (Array.isArray(data)) {
-        // Backwards compatibility: If we received an array of comments, build an analysis result object
-        // If the response is an array of comments, construct an analysis result
-        const comments = data
-        // Simple sentiment analysis
-        const positiveWords = ["good", "great", "awesome", "amazing", "love", "best", "excellent", "fantastic", "brilliant"]
-        const negativeWords = ["bad", "terrible", "awful", "hate", "worst", "poor", "horrible", "disappointing"]
-        
-        let positiveCount = 0
-        let negativeCount = 0
-        let neutralCount = 0
-        
-        // Perform basic sentiment analysis on each comment
-        comments.forEach(comment => {
-          const commentLower = comment.toLowerCase()
-          const positiveMatches = positiveWords.filter(word => commentLower.includes(word)).length
-          const negativeMatches = negativeWords.filter(word => commentLower.includes(word)).length
-          
-          if (positiveMatches > negativeMatches) positiveCount++
-          else if (negativeMatches > positiveMatches) negativeCount++
-          else neutralCount++
-        })
-        
-        // Construct the analysis result object
-        analysisResult.value = {
-          total_comments: comments.length,
-          raw_comments: comments,
-          analysis: {
-            sentiment: {
-              positive_count: positiveCount,
-              negative_count: negativeCount,
-              neutral_count: neutralCount,
-              positive_percentage: (positiveCount / comments.length * 100).toFixed(1),
-              negative_percentage: (negativeCount / comments.length * 100).toFixed(1),
-              neutral_percentage: (neutralCount / comments.length * 100).toFixed(1)
-            },
-            toxicity: {
-              toxic_count: negativeCount, // For simplicity, using negative comments as toxic comments
-              non_toxic_count: positiveCount + neutralCount,
-              toxic_percentage: (negativeCount / comments.length * 100).toFixed(1)
-            }
-          },
-          // Generate some example response strategies
-          strategies: "• Thanks to viewers for taking time to watch your video and leave comments\n• Keep a positive attitude, even when facing negative feedback\n• Accept constructive criticism with grace and thank your audience\n• Avoid getting into arguments, stay professional and friendly",
-          example_comments: [
-            {
-              comment: comments.find(c => c.toLowerCase().includes("love") || c.toLowerCase().includes("good")) || "I love this video!",
-              response: "Thanks for your support! Really glad you enjoyed the video."
-            },
-            {
-              comment: comments.find(c => c.toLowerCase().includes("hate") || c.toLowerCase().includes("bad")) || "I didn't like this content.",
-              response: "Thanks for your feedback. I'll keep working to improve my content. Any specific suggestions?"
-            }
-          ]
-        }
-        
-        showResultsModal.value = true
-        isLoading.value = false
-        return
-      }
-      
-      // If the response is not an array or analysis object, check API response status
-      if (data.status === 'error') {
+      } else {
         console.error('API returned error:', data.message)
         analysisError.value = data.message || 'Analysis failed, please try again later'
         isLoading.value = false
-        return
       }
-      
-      // Check for WebSocket error cases
-      if (data.analysis && data.analysis.note && data.analysis.note.includes('API Error: server rejected WebSocket connection')) {
-        console.warn('Detected WebSocket connection issue, but we still received analysis data')
-        
-        // Add a note to the displayed result about the partial analysis
-        data.wsError = true
-      }
-      
-      // IMPORTANT: Do not directly assign data to analysisResult.value here
-      // Because we already built a properly structured analysisResult in previous branches
-      // Instead, only set showResultsModal to true if we haven't already done so
-      if (!analysisResult.value || Object.keys(analysisResult.value).length === 0) {
-        // Only if we haven't set analysisResult yet (should not happen, but just in case)
-        console.warn('No analysisResult was set in previous branches, using raw data');
-        analysisResult.value = data;
-        
-        // Log the final data being displayed
-        console.log('Using unprocessed data:', {
-          'success': data.success,
-          'has_strategies': !!data.strategies,
-          'strategies_length': data.strategies ? data.strategies.length : 0,
-          'has_example_comments': Array.isArray(data.example_comments),
-          'example_comments_length': Array.isArray(data.example_comments) ? data.example_comments.length : 0
-        });
-      }
-      
-      showResultsModal.value = true;
-      isLoading.value = false;
       
     } catch (error) {
       console.error('API request error:', error)
@@ -2725,9 +2502,16 @@
 
   .strategy-content {
     color: #555;
-    line-height: 2;
+    line-height: 1.8;
     text-align: left;
     font-size: 1.05rem;
+    padding: 1rem;
+  }
+
+  .strategy-content br {
+    margin-bottom: 0.5rem;
+    display: block;
+    content: "";
   }
 
   /* Example Comments Section */
