@@ -3,7 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import EthicInfluencerView from '../views/EthicInfluencerView.vue'
 import CriticalResponseView from '../views/CriticalResponseView.vue'
 import RelaxationView from '../views/RelaxationView.vue'
-import PasswordPage from '../components/PasswordPage.vue'
+// import PasswordPage from '../components/PasswordPage.vue'
 import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
 import PrivacyView from '../views/PrivacyView.vue'
 import TestWebSocketView from '../views/TestWebSocketView.vue'
@@ -15,31 +15,31 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: { requiresAuth: true }  // Protected route
+      meta: { requiresAuth: false }  // Temporarily disabled auth
     },
     {
       path: '/ethic-influencer',
       name: 'ethic-influencer',
       component: EthicInfluencerView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }  // Temporarily disabled auth
     },
     {
       path: '/critical-response',
       name: 'critical-response',
       component: CriticalResponseView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }  // Temporarily disabled auth
     },
     {
       path: '/relaxation',
       name: 'relaxation',
       component: RelaxationView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }  // Temporarily disabled auth
     },
     {
       path: '/creator-wellbeing',
       name: 'creator-wellbeing',
       component: CreatorWellbeingView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }  // Temporarily disabled auth
     },
     {
       path: '/privacy',
@@ -47,16 +47,16 @@ const router = createRouter({
       component: PrivacyView,
       meta: { requiresAuth: false } 
     },
-    {
-      path: '/password',
-      name: 'password',
-      component: PasswordPage  // Password page route
-    },
+    // {
+    //   path: '/password',
+    //   name: 'password',
+    //   component: PasswordPage  // Password page route
+    // },
     {
       path: '/websocket-test',
       name: 'websocket-test',
       component: TestWebSocketView,
-      meta: { requiresAuth: false }  // 不需要密码认证，方便测试
+      meta: { requiresAuth: false }
     }
   ],
   scrollBehavior() {
@@ -65,6 +65,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  // Temporarily disabled authentication
+  next()
+  
+  // Original authentication logic (commented out)
+  /*
   const isAuthenticated = sessionStorage.getItem('authenticated');
   console.log(isAuthenticated);
 
@@ -74,6 +79,7 @@ router.beforeEach((to, from, next) => {
   } else {
     next()  // Allow access if authenticated
   }
+  */
 })
 
 export default router
