@@ -638,10 +638,10 @@
         let fetchError = null
         for (let i = 0; i < apiUrls.length; i++) {
           try {
-            console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i].replace('/analyse', '/analyse_full')}`)
+            console.log(`Attempt ${i+1}/${apiUrls.length} with URL: ${apiUrls[i]}`)
             
             // Send request to API endpoint
-            response = await fetch(apiUrls[i].replace('/analyse', '/analyse_full'), {
+            response = await fetch(apiUrls[i], {
               method: 'POST',
               mode: 'cors',
               credentials: 'omit',
@@ -651,7 +651,7 @@
               },
               body: JSON.stringify({
                 url: youtubeUrl.value,
-                youtube_url: youtubeUrl.value,  // 同时包含两种格式，确保兼容性
+                youtube_url: youtubeUrl.value,  // Include both formats for compatibility
                 limit: 100
               }),
               signal: controller.signal
@@ -716,25 +716,33 @@
         
         // Build the analysis result with the processed data
         analysisResult.value = {
-            totalComments: data.totalComments || 0,
-            sentiment: data.sentiment || {
-                positive: 0,
-                neutral: 0,
-                negative: 0
+          total_comments: data.totalComments || 0,
+          analysis: {
+            sentiment: {
+              positive_count: data.sentiment?.positive || 0,
+              neutral_count: data.sentiment?.neutral || 0,
+              negative_count: data.sentiment?.negative || 0
             },
-            toxicity: data.toxicity || {
-                total: 0,
-                types: {
-                    "Toxic": 0,
-                    "Severe Toxic": 0,
-                    "Obscene": 0,
-                    "Threat": 0,
-                    "Insult": 0,
-                    "Identity Hate": 0
-                }
-            },
-            strategies: data.strategies || "",
-            example_comments: data.example_comments || []
+            toxicity: {
+              toxic_count: data.toxicity?.total || 0,
+              severe_toxic_count: data.toxicity?.types?.["Severe Toxic"] || 0,
+              obscene_count: data.toxicity?.types?.["Obscene"] || 0,
+              threat_count: data.toxicity?.types?.["Threat"] || 0,
+              insult_count: data.toxicity?.types?.["Insult"] || 0,
+              identity_hate_count: data.toxicity?.types?.["Identity Hate"] || 0,
+              toxic_percentage: (data.toxicity?.total / data.totalComments * 100) || 0,
+              toxic_types: {
+                toxic: data.toxicity?.types?.["Toxic"] || 0,
+                severe_toxic: data.toxicity?.types?.["Severe Toxic"] || 0,
+                obscene: data.toxicity?.types?.["Obscene"] || 0,
+                threat: data.toxicity?.types?.["Threat"] || 0,
+                insult: data.toxicity?.types?.["Insult"] || 0,
+                identity_hate: data.toxicity?.types?.["Identity Hate"] || 0
+              }
+            }
+          },
+          strategies: data.strategies || "",
+          example_comments: data.example_comments || []
         };
         
         console.log('Final analysis result to display:', analysisResult.value);

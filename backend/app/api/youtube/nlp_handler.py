@@ -54,164 +54,123 @@ def load_models() -> bool:
         logger.error(f"Error loading NLP models: {str(e)}", exc_info=True)
         return False
 
-def analyze_comments(comments: List[str], limit: int = 5) -> Optional[Dict[str, Any]]:
+def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
     """
-    Analyze comments using local NLP models for sentiment and toxicity.
+    Analyze comments for sentiment and toxicity.
     
     Args:
-        comments: List of comment strings
+        comments: List of comments to analyze
         limit: Maximum number of comments to analyze
         
     Returns:
-        Dictionary containing sentiment and toxicity analysis, or None if analysis fails
+        Dict containing analysis results or None if analysis fails
     """
-    global sentiment_model, sentiment_tokenizer, toxicity_model, toxicity_tokenizer
-    
-    # Input validation
-    if not isinstance(comments, list):
-        logger.error("Comments must be a list")
-        return None
-        
-    if not isinstance(limit, int) or limit < 1:
-        logger.error("Limit must be a positive integer")
-        return None
-    
     if not comments:
         logger.warning("No comments provided for analysis")
-        return {
-            "sentiment": {
-                "positive_count": 0,
-                "neutral_count": 0,
-                "negative_count": 0
-            },
-            "toxicity": {
-                "toxic_count": 0,
-                "severe_toxic_count": 0,
-                "obscene_count": 0,
-                "threat_count": 0,
-                "insult_count": 0,
-                "identity_hate_count": 0,
-                "toxic_percentage": 0.0,
-                "toxic_types": {
-                    "toxic": 0,
-                    "severe_toxic": 0,
-                    "obscene": 0,
-                    "threat": 0,
-                    "insult": 0,
-                    "identity_hate": 0
-                }
-            }
-        }
+        return None
+        
+    if not isinstance(comments, list):
+        logger.error(f"Invalid comments type: {type(comments)}")
+        return None
+        
+    if not isinstance(limit, int) or limit <= 0:
+        logger.warning(f"Invalid limit value: {limit}, using default of 100")
+        limit = 100
     
-    # Try to load models if not already loaded
-    if sentiment_model is None or toxicity_model is None:
-        logger.info("Models not loaded, attempting to load now...")
-        if not load_models():
-            logger.error("Failed to load NLP models")
-            return None
+    # Initialize models if not already loaded
+    if not load_models():
+        logger.error("Failed to load models")
+        return None
     
     try:
+        # Filter and clean comments
+        valid_comments = []
+        for comment in comments:
+            if isinstance(comment, str) and comment.strip():
+                valid_comments.append(comment.strip())
+            else:
+                logger.warning(f"Skipping invalid comment: {comment}")
+        
+        if not valid_comments:
+            logger.warning("No valid comments to analyze")
+            return None
+            
+        # Limit number of comments
+        comments_to_analyze = valid_comments[:limit]
+        logger.info(f"Analyzing {len(comments_to_analyze)} comments")
+        
         # Initialize counters
         sentiment_counts = {
-            "positive_count": 0,
-            "neutral_count": 0,
-            "negative_count": 0
+            "positive": 0,
+            "neutral": 0,
+            "negative": 0
         }
+        
         toxicity_counts = {
-            "toxic_count": 0,
-            "severe_toxic_count": 0,
-            "obscene_count": 0,
-            "threat_count": 0,
-            "insult_count": 0,
-            "identity_hate_count": 0
-        }
-        toxic_types = {
-            "toxic": 0,
-            "severe_toxic": 0,
-            "obscene": 0,
-            "threat": 0,
-            "insult": 0,
-            "identity_hate": 0
+            "Toxic": 0,
+            "Severe Toxic": 0,
+            "Obscene": 0,
+            "Threat": 0,
+            "Insult": 0,
+            "Identity Hate": 0
         }
         
-        # Filter and clean comments
-        valid_comments = [
-            comment.strip() 
-            for comment in comments[:limit] 
-            if isinstance(comment, str) and comment.strip()
-        ]
-        
-        logger.info(f"Starting analysis of {len(valid_comments)} valid comments")
+        total_toxic = 0
         
         # Process each comment
-        for i, comment in enumerate(valid_comments):
-            logger.debug(f"Processing comment {i+1}: {comment[:50]}...")
-            
+        for comment in comments_to_analyze:
             try:
-                # Analyze sentiment
-                sentiment_inputs = sentiment_tokenizer(comment, return_tensors="pt", truncation=True, padding=True)
-                with torch.no_grad():
-                    sentiment_outputs = sentiment_model(**sentiment_inputs)
-                    sentiment_scores = torch.softmax(sentiment_outputs.logits, dim=1)
-                    
-                    # Get sentiment scores
-                    positive_score = sentiment_scores[0][1].item()
-                    negative_score = sentiment_scores[0][0].item()
-                    
-                    logger.debug(f"Comment {i+1} sentiment scores - Positive: {positive_score:.2f}, Negative: {negative_score:.2f}")
-                    
-                    # Determine sentiment category with neutral threshold
-                    if positive_score > SENTIMENT_THRESHOLD:
-                        sentiment_counts["positive_count"] += 1
-                    elif negative_score > SENTIMENT_THRESHOLD:
-                        sentiment_counts["negative_count"] += 1
-                    else:
-                        sentiment_counts["neutral_count"] += 1
+                # Sentiment analysis
+                sentiment_scores = sentiment_model(comment)[0]
+                sentiment_label = sentiment_scores['label']
+                sentiment_score = sentiment_scores['score']
                 
-                # Analyze toxicity
-                toxicity_inputs = toxicity_tokenizer(comment, return_tensors="pt", truncation=True, padding=True)
-                with torch.no_grad():
-                    toxicity_outputs = toxicity_model(**toxicity_inputs)
-                    toxicity_scores = torch.sigmoid(toxicity_outputs.logits)
-                    
-                    # Check each toxicity category
-                    toxicity_labels = ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
-                    for j, label in enumerate(toxicity_labels):
-                        score = toxicity_scores[0][j].item()
-                        if score > TOXICITY_THRESHOLD:
-                            toxicity_counts[f"{label}_count"] += 1
-                            toxic_types[label] += 1
-                            if label == "toxic" and score > SEVERE_TOXICITY_THRESHOLD:
-                                toxicity_counts["severe_toxic_count"] += 1
-                                toxic_types["severe_toxic"] += 1
-                            logger.debug(f"Found {label} in comment {i+1} with score {score:.2f}")
-            
+                logger.debug(f"Comment sentiment: {sentiment_label} (score: {sentiment_score:.3f})")
+                
+                if sentiment_score >= SENTIMENT_THRESHOLD:
+                    sentiment_counts[sentiment_label.lower()] += 1
+                
+                # Toxicity analysis
+                toxicity_scores = toxicity_model(comment)[0]
+                
+                # Log toxicity scores for debugging
+                logger.debug(f"Toxicity scores for comment: {toxicity_scores}")
+                
+                # Check each toxicity category
+                for category, score in toxicity_scores.items():
+                    if score >= TOXICITY_THRESHOLD:
+                        toxicity_counts[category] += 1
+                        if category == "Toxic":
+                            total_toxic += 1
+                
             except Exception as e:
-                logger.error(f"Error processing comment {i+1}: {str(e)}", exc_info=True)
+                logger.error(f"Error processing comment: {str(e)}")
                 continue
         
-        # Calculate total toxic comments and percentage
-        # Exclude severe_toxic from total as it's a subset of toxic
-        total_toxic = sum(
-            count for key, count in toxicity_counts.items() 
-            if key != "severe_toxic_count" and key != "toxic_percentage"
-        )
-        total_comments = len(valid_comments)
-        toxic_percentage = (total_toxic / total_comments * 100) if total_comments > 0 else 0.0
+        # Calculate percentages
+        total_comments = len(comments_to_analyze)
+        toxic_percentage = (total_toxic / total_comments * 100) if total_comments > 0 else 0
         
-        # Add toxic percentage to toxicity counts
-        toxicity_counts["toxic_percentage"] = toxic_percentage
-        toxicity_counts["toxic_types"] = toxic_types
-        
-        # Create response with the expected format
+        # Create response
         result = {
-            "sentiment": sentiment_counts,
-            "toxicity": toxicity_counts
+            "sentiment": {
+                "positive": sentiment_counts["positive"],
+                "neutral": sentiment_counts["neutral"],
+                "negative": sentiment_counts["negative"]
+            },
+            "toxicity": {
+                "total": total_toxic,
+                "types": toxicity_counts,
+                "percentage": toxic_percentage
+            },
+            "total_comments": total_comments
         }
         
-        logger.info(f"NLP analysis complete. Results: {result}")
+        logger.info(f"NLP analysis completed. Found {total_toxic} toxic comments ({toxic_percentage:.1f}%)")
+        logger.debug(f"Final result format: {result}")
+        
         return result
         
     except Exception as e:
-        logger.error(f"Error in NLP analysis: {str(e)}", exc_info=True)
+        logger.error(f"Error in analyze_comments: {str(e)}")
         return None 
