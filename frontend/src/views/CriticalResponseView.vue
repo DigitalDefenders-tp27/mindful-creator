@@ -536,8 +536,11 @@
   const formatStrategies = (strategies) => {
     if (!strategies) return '';
     
-    // Remove markdown code block markers
-    let cleanedStrategies = strategies.replace(/```markdown\n?/g, '').replace(/```/g, '');
+    // Remove markdown code block markers and bold markers
+    let cleanedStrategies = strategies
+      .replace(/```markdown\n?/g, '')
+      .replace(/```/g, '')
+      .replace(/\*\*/g, '');  // Remove bold markers
     
     // Remove extra bullet points and clean up formatting
     cleanedStrategies = cleanedStrategies
