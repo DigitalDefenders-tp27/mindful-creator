@@ -703,30 +703,43 @@
         // Get sentiment data from NLP or LLM analysis
         let sentiment = {};
         let toxicity = {};
+        let strategies = data.strategies || "";
+        let exampleComments = data.example_comments || [];
         
-        // 优先使用NLP分析结果，如果可用的话
-        if (data.nlp_analysis && data.nlp_analysis.sentiment) {
-          console.log('Using NLP analysis for sentiment and toxicity data')
+        // Check if we have sentiment directly in the root object
+        if (data.sentiment) {
+          console.log('Using sentiment data from root object');
+          sentiment = data.sentiment;
+        }
+        // Otherwise try other sources
+        else if (data.analysis && data.analysis.sentiment) {
+          console.log('Using pre-processed analysis data')
+          sentiment = data.analysis.sentiment;
+        }
+        // Try NLP analysis next
+        else if (data.nlp_analysis && data.nlp_analysis.sentiment) {
+          console.log('Using NLP analysis for sentiment data')
           sentiment = data.nlp_analysis.sentiment;
-          if (data.nlp_analysis.toxicity) {
-            toxicity = data.nlp_analysis.toxicity;
-          }
         }
-        // 如果没有NLP分析结果，尝试从LLM分析获取
+        // Finally, try LLM analysis
         else if (data.llm_analysis && data.llm_analysis.sentiment) {
-          console.log('Using LLM analysis for sentiment and toxicity data')
+          console.log('Using LLM analysis for sentiment data')
           sentiment = data.llm_analysis.sentiment;
-          if (data.llm_analysis.toxicity) {
-            toxicity = data.llm_analysis.toxicity;
-          }
         }
-        // 兼容旧版API结构
-        else if (data.analysis) {
-          console.log('Using legacy analysis structure')
-          sentiment = data.analysis.sentiment || {};
-          if (data.analysis.toxicity) {
-            toxicity = data.analysis.toxicity;
-          }
+        
+        // Similar approach for toxicity data
+        if (data.toxicity) {
+          console.log('Using toxicity data from root object');
+          toxicity = data.toxicity;
+        }
+        else if (data.analysis && data.analysis.toxicity) {
+          toxicity = data.analysis.toxicity;
+        }
+        else if (data.nlp_analysis && data.nlp_analysis.toxicity) {
+          toxicity = data.nlp_analysis.toxicity;
+        }
+        else if (data.llm_analysis && data.llm_analysis.toxicity) {
+          toxicity = data.llm_analysis.toxicity;
         }
         
         // Handle both capitalized and lowercase sentiment keys
@@ -734,14 +747,26 @@
         const neutralCount = sentiment.Neutral || sentiment.neutral_count || 0;
         const negativeCount = sentiment.Negative || sentiment.negative_count || 0;
         
-        // Extract toxicity data - could be in different formats
+        // Extract toxicity data from various possible formats
         let toxicityCounts = {};
         let toxicTotal = 0;
         
         if (toxicity) {
           // Handle different toxicity data structures
-          if (toxicity.counts) {
-            // New format from backend
+          if (toxicity.toxic !== undefined) {
+            // New API format with direct keys
+            toxicityCounts = {
+              "Toxic": toxicity.toxic || 0,
+              "Severe Toxic": toxicity.severe_toxic || 0,
+              "Obscene": toxicity.obscene || 0,
+              "Threat": toxicity.threat || 0,
+              "Insult": toxicity.insult || 0,
+              "Identity Hate": toxicity.identity_hate || 0
+            };
+            toxicTotal = toxicity.toxic || 0;
+          }
+          else if (toxicity.counts) {
+            // Older format from backend
             toxicityCounts = toxicity.counts;
             toxicTotal = toxicity.total_toxic_comments || 
                         Object.values(toxicityCounts).reduce((sum, val) => sum + (val || 0), 0);
@@ -754,6 +779,10 @@
         
         // Process the example_comments to handle OpenRouter LLM response format
         let processedExampleComments = [];
+        
+        // Log the example comments to help with debugging
+        console.log('Example comments before processing:', data.example_comments);
+        
         if (data.example_comments && data.example_comments.length > 0) {
           console.log('Processing example_comments:', data.example_comments);
           
@@ -797,81 +826,50 @@
                     }
                   }
                 } else if (cleanResponse.includes('```')) {
-                  // Remove any other code blocks
-                  cleanResponse = cleanResponse.replace(/```[\w]*\n[\s\S]*?\n```/g, '').trim();
+                  // Extract content from any code block
+                  const codeMatch = cleanResponse.match(/```(?:\w+)?\n([\s\S]*?)\n```/);
+                  if (codeMatch && codeMatch[1]) {
+                    cleanResponse = codeMatch[1];
+                  }
+                  
+                  // If that didn't work, just remove all code block markers
+                  cleanResponse = cleanResponse.replace(/```\w+\n/g, '').replace(/```/g, '');
                 }
                 
-                return {
-                  ...example,
-                  response: cleanResponse
-                };
+                // Update the response with cleaned version
+                example.response = cleanResponse.trim();
               } catch (e) {
-                console.warn('Failed to process response with markdown:', e);
+                console.warn('Error processing markdown in response:', e);
               }
             }
+            
             return example;
           });
-          
-          // Add detailed logging about example_comments
-          console.log('Processed example_comments:', JSON.stringify(processedExampleComments));
         }
         
-        // 默认示例评论
-        const defaultExamples = [
-          {
-            comment: "I absolutely love your content! Your videos always make my day better!",
-            response: "Thanks for your kind words! I'm so glad my videos bring you joy. Comments like yours really motivate me to keep creating!"
-          },
-          {
-            comment: "This video was really disappointing. The content feels rushed and not well researched.",
-            response: "I appreciate your honest feedback. I'm always looking to improve my content, and I'll take your comments on board for future videos. If you have specific suggestions, I'd love to hear them."
-          },
-          {
-            comment: "I've been watching your channel for years and the quality has been going downhill lately.",
-            response: "Thank you for being a long-time viewer. I value your perspective and would love to know what specific aspects you feel have declined so I can address them in future content. Your continued support means a lot to me."
-          }
-        ];
+        console.log('Processed example comments:', processedExampleComments);
         
-        // Build consistent analysis result object
+        // Build the analysis result with the processed data
         analysisResult.value = {
-          total_comments: positiveCount + neutralCount + negativeCount,
-          nlp_analysis: data.nlp_analysis,  // 保存完整的NLP分析结果
-          llm_analysis: data.llm_analysis,  // 保存完整的LLM分析结果
-          analysis: {
-            sentiment: {
-              positive_count: positiveCount,
-              negative_count: negativeCount,
-              neutral_count: neutralCount
-            },
-            toxicity: {
-              toxic_count: toxicTotal,
-              toxic_types: toxicityCounts,
-              toxic_percentage: (positiveCount + neutralCount + negativeCount) > 0 ? 
-                (toxicTotal / (positiveCount + neutralCount + negativeCount) * 100) : 0
-            }
+          totalComments: (positiveCount + neutralCount + negativeCount) || 0,
+          sentiment: {
+            positive: positiveCount,
+            neutral: neutralCount,
+            negative: negativeCount
           },
-          strategies: data.strategies || "• Thank users for taking time to watch your video\n• Stay positive even when facing negative comments\n• Accept constructive criticism graciously\n• Avoid getting into arguments",
-          example_comments: processedExampleComments.length > 0 ? processedExampleComments : 
-            (data.example_comments && data.example_comments.length > 0 ? data.example_comments : defaultExamples)
-        }
+          toxicity: {
+            total: toxicTotal,
+            types: toxicityCounts
+          },
+          strategies: data.strategies || (data.llm_analysis && data.llm_analysis.strategies) || "",
+          example_comments: processedExampleComments
+        };
         
-        // Debug log the processed result
-        console.log('Processed analysis result:', analysisResult.value);
+        console.log('Final analysis result to display:', analysisResult.value);
         
-        // Log the final data being displayed
-        console.log('Final data being displayed:', {
-          'success': data.success,
-          'has_strategies': !!data.strategies,
-          'strategies_length': data.strategies ? data.strategies.length : 0,
-          'has_example_comments': Array.isArray(data.example_comments),
-          'example_comments_length': Array.isArray(data.example_comments) ? data.example_comments.length : 0,
-          'example_comments_sample': Array.isArray(data.example_comments) && data.example_comments.length > 0 ? 
-            JSON.stringify(data.example_comments[0]) : 'none'
-        });
-        
+        // Show the results modal
         showResultsModal.value = true;
         isLoading.value = false;
-        return;
       } else if (Array.isArray(data)) {
         // Backwards compatibility: If we received an array of comments, build an analysis result object
         // If the response is an array of comments, construct an analysis result

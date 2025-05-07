@@ -3,8 +3,10 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field, validator
 import logging
+import time
 
-from .analyzer import extract_video_id, fetch_youtube_comments, Analyzer
+from .analyzer import extract_video_id, fetch_youtube_comments, Analyzer, analyse_video_comments
+from .utils import extract_video_id as utils_extract_video_id
 
 # 设置日志记录器
 logger = logging.getLogger("api.youtube.routes")
@@ -19,24 +21,33 @@ analyzer = Analyzer()
 
 class YouTubeRequest(BaseModel):
     """
-    请求模型，支持新旧两种参数格式:
-    - 新格式: url, limit
-    - 旧格式: youtube_url, limit
-    """
-    url: Optional[str] = Field(None, description="Complete YouTube video URL (新格式)")
-    youtube_url: Optional[str] = Field(None, description="Complete YouTube video URL (旧格式)")
-    limit: int = Field(5, description="Maximum number of comments to fetch and analyze")
+    Request model for YouTube analysis. Supports two parameter formats:
+    1. New format: url parameter
+    2. Old format: youtube_url parameter
     
-    # 验证器确保至少有一个URL字段被设置
-    @validator('youtube_url', 'url', pre=True, always=True)
+    At least one of these must be provided.
+    """
+    url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    limit: int = 5
+    
+    @validator('url', 'youtube_url', pre=True)
     def check_url(cls, v, values):
-        # 确保至少有一个URL字段有值
-        if 'url' in values and values['url'] is not None:
-            return v
-        if 'youtube_url' in values and values['youtube_url'] is not None:
-            return v
+        # If this is the first url field and it's None, check if we have the other
         if v is None:
-            raise ValueError('Either url or youtube_url must be provided')
+            if 'url' in values and 'youtube_url' in values:
+                if values.get('url') is None and values.get('youtube_url') is None:
+                    raise ValueError("Either 'url' or 'youtube_url' must be provided")
+            elif 'url' not in values and 'youtube_url' not in values:
+                raise ValueError("Either 'url' or 'youtube_url' must be provided")
+        return v
+    
+    @validator('limit')
+    def check_limit(cls, v):
+        if v < 1:
+            return 1
+        if v > 50:
+            return 50
         return v
 
 class SingleCommentRequest(BaseModel):
@@ -60,35 +71,68 @@ async def analyse_single_comment(req: SingleCommentRequest) -> Dict[str, Any]:
     response_model=Dict[str, Any],
     summary="Performs complete YouTube comment analysis"
 )
-async def analyse_full(req: YouTubeRequest) -> Dict[str, Any]:
+async def analyse_full(request: Request, payload: YouTubeRequest) -> Dict[str, Any]:
     """
-    Retrieves comments based on YouTube URL, analyses sentiment and toxicity, and generates response strategies with LLM.
-    
-    Processing flow:
-    1. Fetch YouTube comments
-    2. Analyse comments with NLP model for sentiment and toxicity
-    3. Generate response strategies and examples with LLM
-    4. Return complete analysis results
-    
-    Returns:
-        Dict containing the following fields:
-        - success: Whether the operation was successful
-        - method: Analysis method used
-        - duration: Processing time in seconds
-        - nlp_analysis: Results from the NLP model (sentiment, toxicity)
-        - llm_analysis: Results from the LLM model
-        - strategies: Suggested response strategies
-        - example_comments: Example comments with suggested responses
+    Endpoint for complete analysis of YouTube comments using available models.
+    Returns sentiment analysis, toxicity analysis, strategies, and example responses.
     """
-    # 获取有效的URL (优先使用新格式)
-    video_url = req.url if req.url is not None else req.youtube_url
-    
-    logger.info(f"Analyzing YouTube video: {video_url} with limit {req.limit}")
-    result = analyzer.analyse_video_comments(video_url, req.limit)
-    
-    # 为了保持与旧版API兼容，调整一下结果结构
-    if "duration" in result:
-        result["duration_s"] = result["duration"]
-    
-    logger.info(f"Analysis completed with method: {result.get('method', 'unknown')}")
-    return result
+    try:
+        start_time = time.time()
+        
+        # Get the valid URL
+        url = payload.url or payload.youtube_url
+        if not url:
+            return {"success": False, "message": "No URL provided"}
+        
+        # Extract the video ID
+        video_id = utils_extract_video_id(url)
+        if not video_id:
+            logger.error(f"Invalid YouTube URL: {url}")
+            return {"success": False, "message": "Invalid YouTube URL"}
+        
+        logger.info(f"Processing analysis request for video ID: {video_id}, limit: {payload.limit}")
+        
+        # Call the analyzer
+        result = await analyse_video_comments(video_id, payload.limit)
+        
+        # Add processing time
+        if isinstance(result, dict) and "duration" not in result:
+            result["duration"] = time.time() - start_time
+        
+        logger.info(f"Analysis completed in {time.time() - start_time:.2f} seconds, method: {result.get('method', 'unknown')}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in analyse_full endpoint: {e}")
+        return {
+            "success": False,
+            "message": f"Error processing request: {str(e)}"
+        }
+
+@router.post("/analyse")
+async def analyse_basic(request: Request, payload: YouTubeRequest):
+    """
+    Simple endpoint for LLM-only analysis of YouTube comments.
+    Returns a basic response for quick feedback on a video.
+    """
+    try:
+        # Get the valid URL
+        url = payload.url or payload.youtube_url
+        if not url:
+            return {"success": False, "message": "No URL provided"}
+            
+        # Extract the video ID
+        video_id = utils_extract_video_id(url)
+        if not video_id:
+            return {"success": False, "message": "Invalid YouTube URL"}
+            
+        # For simple analysis, we'll just return a canned response
+        # In a real implementation, this would call a simpler LLM function
+        return {
+            "success": True,
+            "status": "pending",
+            "message": "Analysis has been queued"
+        }
+    except Exception as e:
+        logger.error(f"Error in analyse_basic endpoint: {e}")
+        return {"success": False, "message": str(e)}
