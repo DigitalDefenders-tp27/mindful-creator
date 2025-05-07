@@ -65,6 +65,9 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
     Returns:
         Dict containing analysis results or None if analysis fails
     """
+    logger.info("=== Starting comment analysis ===")
+    logger.info(f"Received {len(comments) if comments else 0} comments with limit {limit}")
+    
     if not comments:
         logger.warning("No comments provided for analysis")
         return None
@@ -78,6 +81,7 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
         limit = 100
     
     # Initialize models if not already loaded
+    logger.info("Checking if models are loaded...")
     if not load_models():
         logger.error("Failed to load models")
         return None
@@ -91,13 +95,15 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
             else:
                 logger.warning(f"Skipping invalid comment: {comment}")
         
+        logger.info(f"Found {len(valid_comments)} valid comments out of {len(comments)} total")
+        
         if not valid_comments:
             logger.warning("No valid comments to analyze")
             return None
             
         # Limit number of comments
         comments_to_analyze = valid_comments[:limit]
-        logger.info(f"Analyzing {len(comments_to_analyze)} comments")
+        logger.info(f"Analyzing {len(comments_to_analyze)} comments (limited from {len(valid_comments)})")
         
         # Initialize counters
         sentiment_counts = {
@@ -107,49 +113,62 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
         }
         
         toxicity_counts = {
-            "Toxic": 0,
-            "Severe Toxic": 0,
-            "Obscene": 0,
-            "Threat": 0,
-            "Insult": 0,
-            "Identity Hate": 0
+            "toxic": 0,
+            "severe_toxic": 0,
+            "obscene": 0,
+            "threat": 0,
+            "insult": 0,
+            "identity_hate": 0
         }
         
         total_toxic = 0
         
         # Process each comment
-        for comment in comments_to_analyze:
+        logger.info("Starting sentiment and toxicity analysis...")
+        for i, comment in enumerate(comments_to_analyze, 1):
             try:
+                logger.debug(f"Processing comment {i}/{len(comments_to_analyze)}")
+                
                 # Sentiment analysis
                 sentiment_scores = sentiment_model(comment)[0]
                 sentiment_label = sentiment_scores['label']
                 sentiment_score = sentiment_scores['score']
                 
-                logger.debug(f"Comment sentiment: {sentiment_label} (score: {sentiment_score:.3f})")
+                logger.debug(f"Comment {i} sentiment: {sentiment_label} (score: {sentiment_score:.3f})")
                 
                 if sentiment_score >= SENTIMENT_THRESHOLD:
                     sentiment_counts[sentiment_label.lower()] += 1
+                    logger.debug(f"Incremented {sentiment_label.lower()} count to {sentiment_counts[sentiment_label.lower()]}")
                 
                 # Toxicity analysis
                 toxicity_scores = toxicity_model(comment)[0]
                 
                 # Log toxicity scores for debugging
-                logger.debug(f"Toxicity scores for comment: {toxicity_scores}")
+                logger.debug(f"Comment {i} toxicity scores: {toxicity_scores}")
                 
                 # Check each toxicity category
                 for category, score in toxicity_scores.items():
                     if score >= TOXICITY_THRESHOLD:
-                        toxicity_counts[category] += 1
+                        category_key = category.lower().replace(" ", "_")
+                        toxicity_counts[category_key] += 1
+                        logger.debug(f"Incremented {category_key} count to {toxicity_counts[category_key]}")
                         if category == "Toxic":
                             total_toxic += 1
+                            logger.debug(f"Incremented total toxic count to {total_toxic}")
                 
             except Exception as e:
-                logger.error(f"Error processing comment: {str(e)}")
+                logger.error(f"Error processing comment {i}: {str(e)}", exc_info=True)
                 continue
         
         # Calculate percentages
         total_comments = len(comments_to_analyze)
         toxic_percentage = (total_toxic / total_comments * 100) if total_comments > 0 else 0
+        
+        logger.info(f"Analysis complete. Results:")
+        logger.info(f"- Total comments analyzed: {total_comments}")
+        logger.info(f"- Sentiment breakdown: {sentiment_counts}")
+        logger.info(f"- Toxicity breakdown: {toxicity_counts}")
+        logger.info(f"- Total toxic comments: {total_toxic} ({toxic_percentage:.1f}%)")
         
         # Create response
         result = {
@@ -166,11 +185,12 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
             "total_comments": total_comments
         }
         
-        logger.info(f"NLP analysis completed. Found {total_toxic} toxic comments ({toxic_percentage:.1f}%)")
+        logger.info("=== Analysis completed successfully ===")
         logger.debug(f"Final result format: {result}")
         
         return result
         
     except Exception as e:
+        logger.error("=== Analysis failed with error ===", exc_info=True)
         logger.error(f"Error in analyze_comments: {str(e)}")
         return None 

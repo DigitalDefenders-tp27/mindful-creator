@@ -576,13 +576,55 @@
     return colorMap[type.toLowerCase()] || '#888888'
   }
 
+  // Add these functions before the script setup section
+  const getDonutChartData = (count, type) => {
+    return {
+      labels: [formatToxicityType(type)],
+      datasets: [{
+        data: [count],
+        backgroundColor: [getToxicityColor(type.toLowerCase())],
+        borderWidth: 0
+      }]
+    }
+  }
+
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: {
+        display: false
+      }
+    }
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 20,
+          font: {
+            size: 14
+          }
+        }
+      }
+    }
+  }
+
   // Analyse YouTube comments
   const analyzeYoutubeComments = async () => {
+    console.log('=== Starting YouTube analysis process ===')
+    
     // Reset state
     analysisError.value = null
     
     // Validate URL
     if (!youtubeUrl.value) {
+      console.warn('No YouTube URL provided')
       analysisError.value = 'Please enter a YouTube video URL, mate'
       return
     }
@@ -590,9 +632,12 @@
     // Validate URL format
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
     if (!youtubeRegex.test(youtubeUrl.value)) {
+      console.warn('Invalid YouTube URL format:', youtubeUrl.value)
       analysisError.value = 'Please enter a valid YouTube URL, that one\'s not right'
       return
     }
+    
+    console.log('URL validation passed:', youtubeUrl.value)
     
     // Set loading state
     isLoading.value = true
@@ -604,7 +649,7 @@
     let primaryApiUrl = apiUrls[0]
     
     try {
-      console.log('Starting YouTube analysis process...')
+      console.log('Starting API request process...')
       console.log('Using API URL:', primaryApiUrl)
       
       // Create AbortController for the request with timeout
@@ -620,7 +665,11 @@
           signal: AbortSignal.timeout(5000)
         })
         
-        console.log('Basic connectivity check response:', healthCheck.status, healthCheck.statusText)
+        console.log('Health check response:', {
+          status: healthCheck.status,
+          statusText: healthCheck.statusText,
+          ok: healthCheck.ok
+        })
         serverAvailable = true
       } catch (healthError) {
         console.warn('Server health check failed:', healthError.message)
@@ -632,7 +681,10 @@
       let response
       try {
         // Send request to backend API with improved error handling
-        console.log('Sending POST request to API endpoint...')
+        console.log('Preparing POST request with data:', {
+          url: youtubeUrl.value,
+          limit: 100
+        })
         
         // Try multiple URL formats if needed
         let fetchError = null
@@ -657,7 +709,11 @@
               signal: controller.signal
             })
             
-            console.log(`Response from attempt ${i+1}:`, response.status, response.statusText)
+            console.log(`Response from attempt ${i+1}:`, {
+              status: response.status,
+              statusText: response.statusText,
+              ok: response.ok
+            })
             
             // If we got a successful response, break the loop
             if (response.ok) {
@@ -695,7 +751,10 @@
       
       // Check for HTTP errors
       if (!response.ok) {
-        console.error('API error status:', response.status, response.statusText)
+        console.error('API error status:', {
+          status: response.status,
+          statusText: response.statusText
+        })
         
         if (response.status === 502 || response.status === 503 || response.status === 504) {
           // These are gateway/availability errors - server is likely down
@@ -707,12 +766,11 @@
       
       // Parse response
       const data = await response.json()
-      console.log('API response received', data)
+      console.log('API response received:', data)
       
       // Process the returned data
       if (data.success) {
-        // If we received a successful response
-        console.log('Received API response:', data)
+        console.log('Processing successful API response...')
         
         // Build the analysis result with the processed data
         analysisResult.value = {
@@ -725,32 +783,21 @@
             },
             toxicity: {
               toxic_count: data.toxicity?.total || 0,
-              severe_toxic_count: data.toxicity?.types?.["Severe Toxic"] || 0,
-              obscene_count: data.toxicity?.types?.["Obscene"] || 0,
-              threat_count: data.toxicity?.types?.["Threat"] || 0,
-              insult_count: data.toxicity?.types?.["Insult"] || 0,
-              identity_hate_count: data.toxicity?.types?.["Identity Hate"] || 0,
-              toxic_percentage: (data.toxicity?.total / data.totalComments * 100) || 0,
-              toxic_types: {
-                toxic: data.toxicity?.types?.["Toxic"] || 0,
-                severe_toxic: data.toxicity?.types?.["Severe Toxic"] || 0,
-                obscene: data.toxicity?.types?.["Obscene"] || 0,
-                threat: data.toxicity?.types?.["Threat"] || 0,
-                insult: data.toxicity?.types?.["Insult"] || 0,
-                identity_hate: data.toxicity?.types?.["Identity Hate"] || 0
-              }
+              toxic_percentage: data.toxicity?.percentage || 0,
+              toxic_types: data.toxicity?.types || {}
             }
           },
           strategies: data.strategies || "",
           example_comments: data.example_comments || []
-        };
+        }
         
-        console.log('Final analysis result to display:', analysisResult.value);
+        console.log('Final analysis result:', analysisResult.value)
         
         // Show the results modal
-        showResultsModal.value = true;
-        showResults.value = true;
-        isLoading.value = false;
+        showResultsModal.value = true
+        showResults.value = true
+        isLoading.value = false
+        console.log('=== Analysis process completed successfully ===')
       } else {
         console.error('API returned error:', data.message)
         analysisError.value = data.message || 'Analysis failed, please try again later'
@@ -758,16 +805,13 @@
       }
       
     } catch (error) {
-      console.error('API request error:', error)
-      
-      // Add a direct error object for troubleshooting
-      const errorDetails = {
+      console.error('=== Analysis process failed ===')
+      console.error('Error details:', {
         message: error.message,
         name: error.name,
         stack: error.stack,
         time: new Date().toISOString()
-      }
-      console.log('Full error details:', errorDetails)
+      })
       
       // Handle specific errors with user-friendly messages
       if (error.message.includes('NetworkError') || 
