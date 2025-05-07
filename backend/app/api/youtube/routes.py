@@ -5,19 +5,16 @@ from pydantic import BaseModel, Field, validator
 import logging
 import time
 
-from .analyzer import extract_video_id, fetch_youtube_comments, Analyzer, analyse_video_comments
-from .utils import extract_video_id as utils_extract_video_id
+from .analyzer import analyse_video_comments
+from .utils import extract_video_id
 
-# 设置日志记录器
+# Configure logger
 logger = logging.getLogger("api.youtube.routes")
 
 router = APIRouter(
     prefix="/youtube",
     tags=["youtube"]
 )
-
-# 创建Analyzer实例
-analyzer = Analyzer()
 
 class YouTubeRequest(BaseModel):
     """
@@ -50,22 +47,6 @@ class YouTubeRequest(BaseModel):
             return 50
         return v
 
-class SingleCommentRequest(BaseModel):
-    comment: str = Field(..., description="YouTube comment to analyze")
-
-@router.post(
-    "/analyse",
-    response_model=Dict[str, Any],
-    summary="Analyzes a single comment using the OpenRouter LLM"
-)
-async def analyse_single_comment(req: SingleCommentRequest) -> Dict[str, Any]:
-    """
-    Analyzes a single comment and returns a suggested response.
-    Uses only the OpenRouter LLM for analysis.
-    """
-    response = analyzer.analyze_single_comment(req.comment)
-    return {"success": True, "response": response}
-
 @router.post(
     "/analyse_full",
     response_model=Dict[str, Any],
@@ -85,7 +66,7 @@ async def analyse_full(request: Request, payload: YouTubeRequest) -> Dict[str, A
             return {"success": False, "message": "No URL provided"}
         
         # Extract the video ID
-        video_id = utils_extract_video_id(url)
+        video_id = extract_video_id(url)
         if not video_id:
             logger.error(f"Invalid YouTube URL: {url}")
             return {"success": False, "message": "Invalid YouTube URL"}
@@ -122,7 +103,7 @@ async def analyse_basic(request: Request, payload: YouTubeRequest):
             return {"success": False, "message": "No URL provided"}
             
         # Extract the video ID
-        video_id = utils_extract_video_id(url)
+        video_id = extract_video_id(url)
         if not video_id:
             return {"success": False, "message": "Invalid YouTube URL"}
             
