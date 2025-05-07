@@ -1,6 +1,7 @@
 """Client for interacting with the YouTube API to fetch video comments."""
 import os
 import logging
+import asyncio
 from typing import List, Optional
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
@@ -24,7 +25,7 @@ class YouTubeClient:
         )
         logger.info("YouTube client initialized successfully")
     
-    def get_video_comments(self, video_id: str, max_comments: int = 100) -> List[str]:
+    async def get_video_comments(self, video_id: str, max_comments: int = 100) -> List[str]:
         """
         Fetch comments from a YouTube video.
         
@@ -44,9 +45,9 @@ class YouTubeClient:
             next_page = None
             
             while len(comments) < max_comments:
-                # Request comments from YouTube API
-                resp = (
-                    self.youtube.commentThreads()
+                # Request comments from YouTube API using asyncio.to_thread
+                resp = await asyncio.to_thread(
+                    lambda: self.youtube.commentThreads()
                     .list(
                         part="snippet",
                         videoId=video_id,
