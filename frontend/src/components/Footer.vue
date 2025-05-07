@@ -74,7 +74,7 @@ const currentYear = ref(new Date().getFullYear());
   display: flex;
   justify-content: center;
   gap: 2rem;
-  margin-top: 6rem;
+  margin-top: 8rem;
   margin-bottom: 0.5rem;
   padding: 0.5rem 1rem;
   background: transparent;
@@ -106,7 +106,7 @@ const currentYear = ref(new Date().getFullYear());
 
 .acknowledgment {
   text-align: center;
-  margin-top: 4rem;
+  margin-top: 0rem;
   margin-bottom: 2rem;
   max-width: 800px;
   margin-left: auto;
