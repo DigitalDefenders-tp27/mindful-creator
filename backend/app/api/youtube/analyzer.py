@@ -31,6 +31,7 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
         },
         "toxicity": {
             "total": 0,
+            "percentage": 0,
             "types": {
                 "Toxic": 0,
                 "Severe Toxic": 0,
@@ -67,23 +68,33 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
             # Run NLP analysis in a thread pool to avoid blocking
             nlp_result = await asyncio.to_thread(analyze_comments, comments)
             if nlp_result:
+                # Map sentiment data using proper structure
+                # Good on ya, mate! Converting local NLP results to API format
                 response["sentiment"] = {
-                    "positive": nlp_result["sentiment"]["positive_count"],
-                    "neutral": nlp_result["sentiment"]["neutral_count"],
-                    "negative": nlp_result["sentiment"]["negative_count"]
+                    "positive": nlp_result["analysis"]["sentiment"]["positive_count"],
+                    "neutral": nlp_result["analysis"]["sentiment"]["neutral_count"],
+                    "negative": nlp_result["analysis"]["sentiment"]["negative_count"]
                 }
+                
+                # Fair dinkum! Make sure we properly map the toxicity data
                 response["toxicity"] = {
-                    "total": nlp_result["toxicity"]["toxic_count"],
+                    "total": nlp_result["analysis"]["toxicity"]["toxic_count"],
+                    "percentage": nlp_result["analysis"]["toxicity"]["toxic_percentage"],  # Crikey! We forgot this one before
                     "types": {
-                        "Toxic": nlp_result["toxicity"]["toxic_types"]["toxic"],
-                        "Severe Toxic": nlp_result["toxicity"]["toxic_types"]["severe_toxic"],
-                        "Obscene": nlp_result["toxicity"]["toxic_types"]["obscene"],
-                        "Threat": nlp_result["toxicity"]["toxic_types"]["threat"],
-                        "Insult": nlp_result["toxicity"]["toxic_types"]["insult"],
-                        "Identity Hate": nlp_result["toxicity"]["toxic_types"]["identity_hate"]
+                        "Toxic": nlp_result["analysis"]["toxicity"]["toxic_types"]["toxic"],
+                        "Severe Toxic": nlp_result["analysis"]["toxicity"]["toxic_types"]["severe_toxic"],
+                        "Obscene": nlp_result["analysis"]["toxicity"]["toxic_types"]["obscene"],
+                        "Threat": nlp_result["analysis"]["toxicity"]["toxic_types"]["threat"],
+                        "Insult": nlp_result["analysis"]["toxicity"]["toxic_types"]["insult"],
+                        "Identity Hate": nlp_result["analysis"]["toxicity"]["toxic_types"]["identity_hate"]
                     }
                 }
                 logger.info("NLP analysis completed successfully")
+                
+                # Add debug info to help spot any dramas with the data structure
+                logger.debug(f"NLP sentiment data: {nlp_result['analysis']['sentiment']}")
+                logger.debug(f"NLP toxicity data: {nlp_result['analysis']['toxicity']}")
+                logger.debug(f"Mapped API response: {response['sentiment']} and {response['toxicity']}")
         except Exception as e:
             logger.error(f"NLP analysis failed: {str(e)}")
             logger.error(traceback.format_exc())
