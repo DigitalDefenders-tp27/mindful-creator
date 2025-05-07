@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copyright Watermark Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            margin-bottom: 15px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            background-color: white;
+            min-height: 100px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Copyright Watermark Test</h1>
+    
+    <div class="section">
+        <h2>1. Apply Watermark to Image</h2>
+        <form id="watermarkImageForm">
+            <label for="image">Select Image:</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+            
+            <label for="watermarkText">Watermark Text:</label>
+            <input type="text" id="watermarkText" name="text" value="© 2025 Your Name. All rights reserved." required>
+            
+            <label for="position">Position:</label>
+            <select id="position" name="position">
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-center">Bottom Center</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-center">Top Center</option>
+                <option value="middle-right">Middle Right</option>
+                <option value="middle-left">Middle Left</option>
+                <option value="middle-center">Middle Center</option>
+            </select>
+            
+            <label for="opacity">Opacity:</label>
+            <input type="range" id="opacity" name="opacity" min="0.1" max="1.0" step="0.1" value="0.7">
+            <span id="opacityValue">0.7</span>
+            
+            <label for="size">Font Size:</label>
+            <input type="range" id="size" name="size" min="8" max="72" step="1" value="24">
+            <span id="sizeValue">24</span>
+            
+            <button type="submit">Apply Watermark</button>
+        </form>
+        
+        <div class="result" id="watermarkedImageResult">
+            <p>Watermarked image will appear here...</p>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Create SVG Watermark</h2>
+        <form id="svgWatermarkForm">
+            <label for="svgText">Watermark Text:</label>
+            <input type="text" id="svgText" name="text" value="© 2025 Your Name. All rights reserved." required>
+            
+            <label for="svgWidth">Width:</label>
+            <input type="number" id="svgWidth" name="width" value="800" min="100" max="3000">
+            
+            <label for="svgHeight">Height:</label>
+            <input type="number" id="svgHeight" name="height" value="600" min="100" max="3000">
+            
+            <label for="svgPosition">Position:</label>
+            <select id="svgPosition" name="position">
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-center">Bottom Center</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-center">Top Center</option>
+                <option value="middle-right">Middle Right</option>
+                <option value="middle-left">Middle Left</option>
+                <option value="middle-center">Middle Center</option>
+            </select>
+            
+            <label for="svgSize">Font Size:</label>
+            <input type="range" id="svgSize" name="size" min="8" max="72" step="1" value="24">
+            <span id="svgSizeValue">24</span>
+            
+            <button type="submit">Create SVG Watermark</button>
+        </form>
+        
+        <div class="result" id="svgWatermarkResult">
+            <p>SVG watermark will appear here...</p>
+        </div>
+        
+        <div>
+            <a id="downloadSvgLink" style="display: none;">Download SVG</a>
+        </div>
+    </div>
+    
+    <script>
+        // Update opacity and size value displays
+        document.getElementById('opacity').addEventListener('input', function() {
+            document.getElementById('opacityValue').textContent = this.value;
+        });
+        
+        document.getElementById('size').addEventListener('input', function() {
+            document.getElementById('sizeValue').textContent = this.value;
+        });
+        
+        document.getElementById('svgSize').addEventListener('input', function() {
+            document.getElementById('svgSizeValue').textContent = this.value;
+        });
+        
+        // Handle image watermark form submission
+        document.getElementById('watermarkImageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('watermarkedImageResult');
+            
+            resultDiv.innerHTML = '<p>Processing...</p>';
+            
+            try {
+                const response = await fetch('/api/copyright/apply-watermark', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to apply watermark');
+                }
+                
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                
+                resultDiv.innerHTML = `
+                    <p>Watermark applied successfully!</p>
+                    <img src="${imageUrl}" alt="Watermarked Image">
+                    <p><a href="${imageUrl}" download="watermarked-image.png">Download Image</a></p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        });
+        
+        // Handle SVG watermark form submission
+        document.getElementById('svgWatermarkForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('svgWatermarkResult');
+            const downloadLink = document.getElementById('downloadSvgLink');
+            
+            resultDiv.innerHTML = '<p>Processing...</p>';
+            downloadLink.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/copyright/create-watermark-svg', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to create SVG watermark');
+                }
+                
+                const svgText = await response.text();
+                const blob = new Blob([svgText], { type: 'image/svg+xml' });
+                const svgUrl = URL.createObjectURL(blob);
+                
+                resultDiv.innerHTML = `
+                    <p>SVG watermark created successfully!</p>
+                    <div>${svgText}</div>
+                `;
+                
+                downloadLink.href = svgUrl;
+                downloadLink.download = 'watermark.svg';
+                downloadLink.textContent = 'Download SVG Watermark';
+                downloadLink.style.display = 'inline-block';
+                downloadLink.className = 'button';
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html> 

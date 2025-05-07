@@ -18,3 +18,4 @@ psutil>=5.9.0
 httpx>=0.24.0  # HTTP client with async support
 Pillow>=9.5.0
 svgwrite>=1.4.3
+python-multipart>=0.0.6  # Required for file uploads in FastAPI
