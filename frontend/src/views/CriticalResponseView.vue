@@ -644,7 +644,7 @@
     
     // API URL options - will try alternatives if primary fails
     const apiUrls = [
-      'https://api.tiezhu.org/api/youtube/analyse',  // Primary URL
+      'https://api.tiezhu.org/api/youtube/analyse_full',  // Use the full analysis endpoint
     ]
     let primaryApiUrl = apiUrls[0]
     
