@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict, Any, Optional
 import time
 import json
+import re
 
 # Ensure project root is on PYTHONPATH
 proj_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -384,7 +385,7 @@ async def generate_response_strategies(critical_comments: List[str]) -> str:
         critical_comments: List of the most critical comments to address
         
     Returns:
-        String with numbered strategies
+        String with response strategies in plain text
     """
     if not API_KEY:
         logger.error("Cannot generate response strategies: API key missing")
@@ -398,32 +399,30 @@ async def generate_response_strategies(critical_comments: List[str]) -> str:
     comments_text = "\n".join([f"- {comment}" for comment in critical_comments])
     
     # Create prompt for strategies
-    prompt = f"""Based on these challenging YouTube comments, create a bulleted list of strategies for the content creator to effectively respond:
+    prompt = f"""Based on these challenging YouTube comments, create 4-6 effective response strategies for the content creator:
 
 {comments_text}
 
-Create 4-6 bullet points of specific strategies.
-Format each strategy as a short, actionable point that begins with "• " (bullet point).
-DO NOT number the bullet points.
+Create 4-6 specific strategies, each with a descriptive title followed by a brief explanation.
+Format each strategy as: "Strategy Title: Brief explanation of the strategy."
+Do NOT use bullet points, asterisks, dashes or any other list markers.
 Focus on professional, positive, and constructive ways to engage with the comments.
-Keep strategies concise and easy to apply.
+Return ONLY the strategies with no introduction or conclusion.
 """
     
     system_message = """You are an expert in online community management and content creation.
     
-    Your task is to help content creators respond effectively to critical or negative comments.
+    Your task is to help content creators respond effectively to comments.
     
-    Format your response as a simple bulleted list of strategies, with each line beginning with "• ".
-    Keep each strategy brief and actionable.
-    
+    Format your response as plain text strategies with no bullet points or special characters.
+    Each strategy should have a clear title followed by a brief explanation.
     For example:
-    • Thank the viewer for their feedback
-    • Address specific points without being defensive
-    • Offer additional information or context
-    • End on a positive note
-    • Consider if changes are needed based on feedback
+    Acknowledge Positive Feedback: Thank viewers for their kind words and show appreciation for their support.
+    Address Specific Points: Respond to individual comments that mention specific aspects of your content.
     
-    DO NOT include any introduction or conclusion text. ONLY provide the bulleted list."""
+    DO NOT include any introduction, conclusion, bullet points, or special formatting.
+    DO NOT use asterisks, dashes, or any list markers.
+    ONLY provide the strategies as plain text, one per paragraph."""
     
     try:
         payload = {
@@ -443,26 +442,18 @@ Keep strategies concise and easy to apply.
         if 'choices' in data and data['choices'] and 'message' in data['choices'][0]:
             content = data['choices'][0]['message'].get('content', '')
             if content:
-                # Clean up the response to ensure proper formatting
-                # Remove any headers or extra explanations
-                if "•" in content:
-                    # Extract only bulleted items
-                    strategies_lines = []
-                    for line in content.split('\n'):
-                        line = line.strip()
-                        if line.startswith("•"):
-                            strategies_lines.append(line)
-                    
-                    if strategies_lines:
-                        return "\n".join(strategies_lines)
-                else:
-                    # If no bullet points found, try to format it
-                    lines = [line.strip() for line in content.split('\n') if line.strip()]
-                    # Remove lines that look like headers or explanations
-                    lines = [line for line in lines if not line.endswith(':') and not line.startswith('Here') and not "strategy" in line.lower() and not "strateg" in line.lower()]
-                    if lines:
-                        formatted_lines = [f"• {line}" for line in lines]
-                        return "\n".join(formatted_lines[:6])  # Limit to 6 strategies
+                # Clean up the response to remove any bullet points or formatting
+                cleaned_content = content
+                
+                # Remove any bullet points or list markers
+                cleaned_content = re.sub(r'^\s*[-•*]\s*', '', cleaned_content, flags=re.MULTILINE)
+                
+                # Remove numbers at the beginning of lines
+                cleaned_content = re.sub(r'^\s*\d+\.\s*', '', cleaned_content, flags=re.MULTILINE)
+                
+                # If we have valid content after cleaning, return it
+                if cleaned_content.strip():
+                    return cleaned_content.strip()
         
         # If we couldn't parse a valid response, use fallback
         logger.warning("Failed to generate valid response strategies from LLM, using fallback")
@@ -577,14 +568,18 @@ Return ONLY the JSON object with no other text."""
     logger.warning("Failed to generate any valid examples, using fallback")
     return generate_fallback_examples(critical_comments)
 
-# 添加降级函数
+# 修改降级函数，返回无格式的纯文本
 def generate_fallback_strategies(comments: List[str]) -> str:
-    """Generate predefined response strategies"""
-    return """• Acknowledge the feedback without defensiveness - thank viewers for taking time to comment
-• Focus on constructive elements while politely ignoring personal attacks
-• Keep responses brief and positive, maintaining a professional tone
-• Use critical feedback as opportunity for improvement in future content
-• Remember it's okay to not engage with purely toxic comments that offer no value"""
+    """Generate predefined response strategies in plain text"""
+    return """Acknowledge the feedback without defensiveness: Thank viewers for taking time to comment and show appreciation for their engagement.
+
+Focus on constructive elements: Address specific points made in comments while politely ignoring personal attacks or negativity.
+
+Keep responses brief and positive: Maintain a professional tone and focus on being helpful rather than defensive.
+
+Use feedback as opportunity for improvement: Mention how you'll consider their suggestions in future content.
+
+Remember selective engagement is okay: Not every comment requires a response, especially purely negative ones that offer no constructive value."""
 
 def generate_fallback_examples(comments: List[str]) -> List[Dict[str, str]]:
     """Generate predefined example responses in Australian English"""
