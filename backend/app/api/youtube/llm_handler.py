@@ -44,127 +44,206 @@ if API_KEY:
 else:
     logger.error("OpenRouter API key not found in environment variables")
 
-def analyse_youtube_comments(comments: List[str]) -> Dict[str, Any]:
+async def analyse_youtube_comments(comments: List[str], limit: int = 5) -> Dict[str, Any]:
     """
-    Analyse a list of YouTube comments using LLM.
+    Analyze YouTube comments and generate response strategies and examples.
     
     Args:
-        comments: List of comment strings from YouTube
+        comments: List of YouTube comment strings
+        limit: Maximum number of comments to analyze
         
     Returns:
-        Dictionary with analysis results including strategies and example responses
+        Dictionary with sentiment analysis, strategies, and example responses
     """
     if not comments:
+        logger.warning("No comments provided for analysis")
         return {
-            "status": "error",
-            "message": "No comments provided for analysis"
+            "sentiment": {"Positive": 0, "Neutral": 0, "Negative": 0},
+            "toxicity": {"toxic": 0, "severe_toxic": 0, "obscene": 0, "threat": 0, "insult": 0, "identity_hate": 0},
+            "strategies": generate_fallback_strategies([]),
+            "example_comments": generate_fallback_examples([])
         }
     
-    if not API_KEY:
-        logger.warning("OpenRouter API key not configured, using fallback response")
-        return {
-            "status": "partial",
-            "strategies": "No specific strategies could be generated. OpenRouter API key is missing.",
-            "example_comments": generate_fallback_examples([])  # 确保有默认示例
-        }
+    logger.info(f"Analyzing {len(comments)} YouTube comments with LLM")
     
-    logger.info(f"Analyzing {len(comments)} comments with OpenRouter")
+    # 1. First analyze sentiment if we have an API key
+    sentiment_result = await analyze_sentiment(comments)
     
-    # 记录API配置，确保我们确实使用正确的API密钥
-    logger.info(f"Using API_URL: {API_URL}")
-    logger.info(f"Using MODEL_NAME: {MODEL_NAME}")
-    logger.info(f"API key configured: {bool(API_KEY)}")
-    logger.info(f"API key first 8 chars: {API_KEY[:8]}...")
-    
-    # Set timeout and retry parameters
-    max_retries = 2
-    timeout_seconds = 300  # Increased to 5 minutes to allow for model loading and processing
-    
-    # Use exception handling and fallback modes to ensure useful results even if LLM calls fail
-    try:
-        # Identify most critical comments
-        toxic_comments = []
+    # 2. Identify the most critical comments
+    filtered_comments = comments
+    if len(comments) > limit:
         try:
-            # Set timeout, if it times out, use a small sample
-            for attempt in range(max_retries):
-                try:
-                    logger.info(f"Identifying critical comments (attempt {attempt+1}/{max_retries})")
-                    toxic_comments = identify_critical_comments(comments)
-                    logger.info(f"Identified {len(toxic_comments)} critical comments: {toxic_comments}")
-                    break
-                except Exception as e:
-                    logger.error(f"Error identifying critical comments (attempt {attempt+1}): {e}")
-                    if attempt == max_retries - 1:  # Last attempt failed
-                        # Fallback: select a sample from original comments
-                        logger.warning("Failed to identify critical comments, using sample of original comments")
-                        toxic_comments = comments[:min(3, len(comments))]
+            # Try to identify the most critical comments
+            critical_comments = await identify_critical_comments(comments, max_comments=limit)
+            if critical_comments and len(critical_comments) > 0:
+                filtered_comments = critical_comments
+                logger.info(f"Identified {len(filtered_comments)} critical comments from {len(comments)} total")
+            else:
+                # If failed to identify, use the first 'limit' comments
+                filtered_comments = comments[:limit]
+                logger.warning(f"Failed to identify critical comments, using first {limit} comments")
         except Exception as e:
-            logger.error(f"Failed to identify critical comments: {e}")
-            toxic_comments = comments[:min(3, len(comments))]
-        
-        # Make sure we have comments to analyse
-        if not toxic_comments and comments:
-            toxic_comments = comments[:min(3, len(comments))]
-            logger.info(f"Using sample of {len(toxic_comments)} comments as fallback")
-        
-        # Generate strategies with timeout and retry
-        strategies = ""
-        for attempt in range(max_retries):
-            try:
-                logger.info(f"Generating response strategies (attempt {attempt+1}/{max_retries})")
-                strategies = generate_response_strategies(toxic_comments)
-                if strategies and not "API key is missing" in strategies:
-                    break
-            except Exception as e:
-                logger.error(f"Error generating strategies (attempt {attempt+1}): {e}")
-                if attempt == max_retries - 1:  # Last attempt failed
-                    strategies = generate_fallback_strategies(toxic_comments)
-        
-        # Generate example responses with timeout and retry
-        example_responses = []
-        for attempt in range(max_retries):
-            try:
-                logger.info(f"Generating example responses (attempt {attempt+1}/{max_retries})")
-                example_responses = generate_example_responses(toxic_comments)
-                logger.info(f"Generated {len(example_responses)} example responses")
-                if example_responses:
-                    break
-            except Exception as e:
-                logger.error(f"Error generating example responses (attempt {attempt+1}): {e}")
-                if attempt == max_retries - 1:  # Last attempt failed
-                    example_responses = generate_fallback_examples(toxic_comments)
-        
-        # Ensure we always return valid strategies and examples
-        if not strategies:
-            strategies = generate_fallback_strategies(toxic_comments)
-        
-        if not example_responses:
-            logger.warning("No example responses generated - using fallback examples")
-            example_responses = generate_fallback_examples(toxic_comments)
-            
-        # 增加日志确认返回数据
-        logger.info(f"Returning analysis with {len(example_responses)} example comments")
-        
-        result = {
-            "status": "success",
-            "strategies": strategies,
-            "example_comments": example_responses
-        }
-        
-        return result
-    except Exception as e:
-        logger.error(f"Error in LLM analysis: {e}")
-        # 确保使用fallback，而不是返回错误
-        fallback_examples = generate_fallback_examples(comments[:min(3, len(comments))])
-        logger.info(f"Returning fallback with {len(fallback_examples)} example comments")
-        
-        return {
-            "status": "partial",
-            "strategies": generate_fallback_strategies(comments[:min(3, len(comments))]),
-            "example_comments": fallback_examples
-        }
+            logger.error(f"Error identifying critical comments: {e}")
+            filtered_comments = comments[:limit]
+    
+    # 3. Generate response strategies
+    strategies = await generate_response_strategies(filtered_comments)
+    
+    # 4. Generate example responses
+    examples = await generate_example_responses(filtered_comments)
+    
+    # Create a comprehensive response
+    result = {
+        "sentiment": sentiment_result,
+        "toxicity": {"toxic": 0, "severe_toxic": 0, "obscene": 0, "threat": 0, "insult": 0, "identity_hate": 0},
+        "strategies": strategies,
+        "example_comments": examples
+    }
+    
+    logger.info(f"LLM analysis complete. Sentiment: {sentiment_result}, Strategies: {len(strategies) if isinstance(strategies, list) else 'text'}, Examples: {len(examples)}")
+    
+    return result
 
-def identify_critical_comments(comments: List[str], max_comments: int = 3) -> List[str]:
+async def analyze_sentiment(comments: List[str]) -> Dict[str, int]:
+    """
+    Analyze sentiment of comments using LLM API
+    
+    Args:
+        comments: List of comment strings
+        
+    Returns:
+        Dictionary with counts of positive, neutral, and negative comments
+    """
+    if not API_KEY:
+        logger.error("Cannot analyze sentiment: API key missing")
+        return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+    
+    # 如果评论过多，只选择一部分进行分析
+    sample_size = min(50, len(comments))
+    if len(comments) > sample_size:
+        import random
+        # 随机选择评论，确保代表性
+        sampled_comments = random.sample(comments, sample_size)
+    else:
+        sampled_comments = comments
+    
+    # 准备提示词
+    comments_text = "\n".join([f"- {comment}" for comment in sampled_comments])
+    prompt = f"""Analyze these YouTube comments and classify each one as Positive, Neutral, or Negative:
+
+{comments_text}
+
+Count the number of comments in each category and return ONLY a JSON object in this format:
+{{
+  "Positive": [number of positive comments],
+  "Neutral": [number of neutral comments],
+  "Negative": [number of negative comments]
+}}
+
+DO NOT add any explanation, introductory text, or other formatting.
+"""
+    
+    system_message = """You are an expert sentiment analysis assistant. Classify comments based on these guidelines:
+    
+    - Positive: Contains praise, appreciation, excitement, or other positive sentiments.
+    - Negative: Contains criticism, disappointment, anger, or other negative sentiments.
+    - Neutral: Factual, questioning, or lacks clear positive or negative sentiment.
+    
+    Return ONLY a JSON object with the count in each category.
+    """
+    
+    try:
+        payload = {
+            "model": MODEL_NAME,
+            "messages": [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"},
+            "max_tokens": 500
+        }
+        
+        resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        # 检查响应结构
+        if 'choices' not in data:
+            logger.error(f"API response missing 'choices' key: {data}")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+        choices = data.get('choices', [])
+        if not choices or len(choices) == 0:
+            logger.error("API response choices list is empty")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+        first_choice = choices[0]
+        if not isinstance(first_choice, dict):
+            logger.error(f"choices[0] is not a dictionary type: {type(first_choice)}")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+        message = first_choice.get('message', {})
+        if not isinstance(message, dict):
+            logger.error(f"message is not a dictionary type: {type(message)}")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+        content = message.get('content', '')
+        if not content:
+            logger.error("No content in API response")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+        # 尝试解析JSON
+        try:
+            sentiment_data = json.loads(content)
+            # 确保我们有所有需要的键
+            if "Positive" not in sentiment_data or "Neutral" not in sentiment_data or "Negative" not in sentiment_data:
+                logger.error(f"JSON response missing required keys: {sentiment_data}")
+                return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+                
+            # 数值有效性检查
+            if not all(isinstance(sentiment_data[key], int) for key in ["Positive", "Neutral", "Negative"]):
+                logger.error(f"JSON response contains non-integer values: {sentiment_data}")
+                return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+                
+            # 确保总数不超过样本大小
+            total = sentiment_data["Positive"] + sentiment_data["Neutral"] + sentiment_data["Negative"]
+            if total > sample_size:
+                logger.error(f"Total sentiment count {total} exceeds sample size {sample_size}")
+                # 调整数值以确保总和正确
+                scale_factor = sample_size / total
+                sentiment_data = {
+                    "Positive": int(sentiment_data["Positive"] * scale_factor),
+                    "Neutral": int(sentiment_data["Neutral"] * scale_factor),
+                    "Negative": int(sentiment_data["Negative"] * scale_factor)
+                }
+                # 确保总和等于样本大小
+                diff = sample_size - sum(sentiment_data.values())
+                sentiment_data["Neutral"] += diff  # 将差值添加到Neutral类别
+                
+            # 如果分析的是样本，根据比例扩展到整个评论集
+            if len(comments) > sample_size:
+                scale_factor = len(comments) / sample_size
+                sentiment_data = {
+                    "Positive": int(sentiment_data["Positive"] * scale_factor),
+                    "Neutral": int(sentiment_data["Neutral"] * scale_factor),
+                    "Negative": int(sentiment_data["Negative"] * scale_factor)
+                }
+                # 确保总和等于评论总数
+                diff = len(comments) - sum(sentiment_data.values())
+                sentiment_data["Neutral"] += diff  # 将差值添加到Neutral类别
+                
+            return sentiment_data
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON from API response: {e}")
+            logger.error(f"Content was: {content}")
+            return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+            
+    except Exception as e:
+        logger.error(f"Error in sentiment analysis: {e}")
+        return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
+
+async def identify_critical_comments(comments: List[str], max_comments: int = 3) -> List[str]:
     """
     Identify the most critical or negative comments that need addressing.
     
@@ -248,63 +327,188 @@ ONLY return the raw comment text, exactly as provided in the input.
                     "the most critical", "here are", "these are", "critical comments", 
                     "negative comments", "comments are", "identified", "response", "would require"
                 ]):
-                    logger.warning(f"Filtered out possible introductory text: {comment}")
                     continue
                 filtered_comments.append(comment)
             
-            logger.info(f"Extracted {len(filtered_comments)} comments from LLM response")
-            return filtered_comments[:max_comments]  # Ensure we don't exceed max_comments
+            # If filtering removed too much, use the original list
+            if len(filtered_comments) < 1 and critical_comments:
+                logger.warning("Filtering removed too many comments, using original list")
+                filtered_comments = critical_comments
             
-        logger.warning("No content returned from LLM")
+            if filtered_comments:
+                # Validate that each returned comment appears in the original comments
+                # This prevents hallucinated comments from being included
+                valid_comments = []
+                for comment in filtered_comments:
+                    found = False
+                    for original in comments:
+                        if comment.strip() in original:
+                            valid_comments.append(original)
+                            found = True
+                            break
+                    if not found:
+                        logger.warning(f"Comment not found in original list, possible hallucination: {comment}")
+                
+                if valid_comments:
+                    # Limit to requested number
+                    valid_comments = valid_comments[:max_comments]
+                    return valid_comments
+        
+        # Fallback if failed to extract valid comments
+        logger.warning("Failed to extract valid critical comments from LLM response")
+        return comments[:min(max_comments, len(comments))]
+    
     except Exception as e:
         logger.error(f"Error identifying critical comments: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-    
-    # Fallback to a simple approach if LLM fails
-    # Just return a subset of the original comments (first few)
-    return comments[:min(max_comments, len(comments))]
+        return comments[:min(max_comments, len(comments))]
 
-def generate_response_strategies(critical_comments: List[str]) -> str:
+async def generate_response_strategies(critical_comments: List[str]) -> str:
     """
-    Generate overall strategies for handling critical comments.
+    Generate response strategies for YouTube comments based on the most critical comments.
     
     Args:
-        critical_comments: List of critical comments to address
+        critical_comments: List of the most critical comments to address
         
     Returns:
-        String with general strategies for handling these types of comments
+        String with numbered strategies
     """
     if not API_KEY:
-        logger.error("API_KEY is not set - cannot generate strategies")
-        return "No specific strategies could be generated. API key is missing."
-        
+        logger.error("Cannot generate response strategies: API key missing")
+        return "API key is missing, cannot generate response strategies."
+    
     if not critical_comments:
         logger.warning("No critical comments provided to generate strategies")
-        return "No specific strategies could be generated. No critical comments found."
+        return generate_fallback_strategies([])
     
+    # Format comments for prompt
     comments_text = "\n".join([f"- {comment}" for comment in critical_comments])
-    prompt = f"""Based on these critical YouTube comments:
+    
+    # Create prompt for strategies
+    prompt = f"""Based on these challenging YouTube comments, create a bulleted list of strategies for the content creator to effectively respond:
 
 {comments_text}
 
-Provide 4-5 brief, professional strategies for responding to these types of comments.
-Each strategy should be a single concise point (1-2 sentences maximum).
-Format as bullet points starting with "•" (bullet symbol).
-
-BE EXTREMELY CONCISE - focus on practical, actionable advice that's easy to implement.
+Create 4-6 bullet points of specific strategies.
+Format each strategy as a short, actionable point that begins with "• " (bullet point).
+DO NOT number the bullet points.
+Focus on professional, positive, and constructive ways to engage with the comments.
+Keep strategies concise and easy to apply.
 """
     
-    system_message = """You are a digital wellbeing expert who specializes in helping content creators respond to feedback.
-    Your advice is extremely concise, practical and straightforward. 
-    You avoid lengthy explanations and focus on simple, actionable points that can be expressed in 1-2 sentences maximum.
-    You format all advice as bullet points using the "•" symbol."""
+    system_message = """You are an expert in online community management and content creation.
     
-    # Try up to 2 times with a small delay
-    max_attempts = 2
-    for attempt in range(max_attempts):
+    Your task is to help content creators respond effectively to critical or negative comments.
+    
+    Format your response as a simple bulleted list of strategies, with each line beginning with "• ".
+    Keep each strategy brief and actionable.
+    
+    For example:
+    • Thank the viewer for their feedback
+    • Address specific points without being defensive
+    • Offer additional information or context
+    • End on a positive note
+    • Consider if changes are needed based on feedback
+    
+    DO NOT include any introduction or conclusion text. ONLY provide the bulleted list."""
+    
+    try:
+        payload = {
+            "model": MODEL_NAME,
+            "messages": [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 800
+        }
+        
+        resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        # Check if we have a valid response
+        if 'choices' in data and data['choices'] and 'message' in data['choices'][0]:
+            content = data['choices'][0]['message'].get('content', '')
+            if content:
+                # Clean up the response to ensure proper formatting
+                # Remove any headers or extra explanations
+                if "•" in content:
+                    # Extract only bulleted items
+                    strategies_lines = []
+                    for line in content.split('\n'):
+                        line = line.strip()
+                        if line.startswith("•"):
+                            strategies_lines.append(line)
+                    
+                    if strategies_lines:
+                        return "\n".join(strategies_lines)
+                else:
+                    # If no bullet points found, try to format it
+                    lines = [line.strip() for line in content.split('\n') if line.strip()]
+                    # Remove lines that look like headers or explanations
+                    lines = [line for line in lines if not line.endswith(':') and not line.startswith('Here') and not "strategy" in line.lower() and not "strateg" in line.lower()]
+                    if lines:
+                        formatted_lines = [f"• {line}" for line in lines]
+                        return "\n".join(formatted_lines[:6])  # Limit to 6 strategies
+        
+        # If we couldn't parse a valid response, use fallback
+        logger.warning("Failed to generate valid response strategies from LLM, using fallback")
+        return generate_fallback_strategies(critical_comments)
+        
+    except Exception as e:
+        logger.error(f"Error generating response strategies: {e}")
+        return generate_fallback_strategies(critical_comments)
+
+async def generate_example_responses(critical_comments: List[str]) -> List[Dict[str, str]]:
+    """
+    Generate example responses to critical YouTube comments.
+    
+    Args:
+        critical_comments: List of critical comments to respond to
+        
+    Returns:
+        List of dictionaries with 'comment' and 'response' keys
+    """
+    if not API_KEY:
+        logger.error("Cannot generate example responses: API key missing")
+        return generate_fallback_examples([])
+    
+    if not critical_comments:
+        logger.warning("No critical comments provided to generate responses")
+        return generate_fallback_examples([])
+    
+    # Create prompt for response examples
+    examples = []
+    for comment in critical_comments[:3]:  # Limit to 3 to avoid too large requests
         try:
-            logger.info(f"Generating strategies - attempt {attempt+1}/{max_attempts}")
+            # Individual prompt for each comment to keep responses focused
+            prompt = f"""As a YouTube content creator, draft a thoughtful, professional response to this comment:
+
+"{comment}"
+
+Your response should:
+1. Be genuinely helpful and courteous
+2. Address the specific concerns raised
+3. Be conversational but professional
+4. Avoid being defensive
+5. Be 2-4 sentences maximum
+
+Format your response as a JSON object with this structure:
+{{
+  "comment": "THE ORIGINAL COMMENT",
+  "response": "YOUR SUGGESTED RESPONSE"
+}}
+
+Return ONLY the JSON object with no other text."""
+            
+            system_message = """You are an expert community manager for a professional content creator.
+            
+            Your task is to craft thoughtful, professional responses to YouTube comments that will:
+            - Acknowledge the viewer's feedback
+            - Address their concerns constructively
+            - Maintain a positive brand image
+            - Encourage continued engagement
+            
+            Return your response as a JSON object containing both the original comment and your proposed response."""
             
             payload = {
                 "model": MODEL_NAME,
@@ -312,143 +516,52 @@ BE EXTREMELY CONCISE - focus on practical, actionable advice that's easy to impl
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
-                "max_tokens": 500,  # Reduced token limit to encourage brevity
-                "temperature": 0.3  # Lower temperature for more focused, predictable responses
+                "response_format": {"type": "json_object"},
+                "max_tokens": 500
             }
             
             resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
             resp.raise_for_status()
             data = resp.json()
             
-            # Log the API response for debugging
-            logger.debug(f"OpenRouter API response for strategies: {data}")
+            # Process response
+            if 'choices' in data and data['choices'] and 'message' in data['choices'][0]:
+                content = data['choices'][0]['message'].get('content', '')
+                if content:
+                    try:
+                        # Parse JSON response
+                        response_data = json.loads(content)
+                        
+                        # Validate the returned object has the correct structure
+                        if 'comment' in response_data and 'response' in response_data:
+                            # Ensure the original comment is preserved
+                            response_data['comment'] = comment
+                            examples.append(response_data)
+                        else:
+                            logger.warning(f"Invalid JSON structure in response: {response_data}")
+                    except json.JSONDecodeError:
+                        logger.warning(f"Failed to parse JSON from response: {content}")
+                        # Attempt to extract response from non-JSON content
+                        if "Response:" in content:
+                            try:
+                                response_part = content.split("Response:", 1)[1].strip()
+                                examples.append({
+                                    "comment": comment,
+                                    "response": response_part
+                                })
+                            except:
+                                logger.warning("Failed to extract response from non-JSON content")
             
-            content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
-            if content and len(content.strip()) > 0:
-                return content.strip()
-            
-            logger.warning(f"No content returned from LLM for strategies on attempt {attempt+1}")
-            
-            # Wait a bit before retrying
-            if attempt < max_attempts - 1:
-                time.sleep(1)  # Sleep for 1 second before retrying
-                
         except Exception as e:
-            logger.error(f"Error generating strategies on attempt {attempt+1}: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            
-            # Wait a bit before retrying
-            if attempt < max_attempts - 1:
-                time.sleep(1)  # Sleep for 1 second before retrying
+            logger.error(f"Error generating response for comment '{comment[:30]}...': {e}")
     
-    # 修改这里，不再使用预设内容，而是返回错误消息
-    logger.warning("All attempts to generate strategies failed")
-    return "Could not generate specific strategies at this time."
-
-def generate_example_responses(critical_comments: List[str]) -> List[Dict[str, str]]:
-    """
-    Generate example responses for each critical comment.
+    # If we got at least one valid example, return them
+    if examples:
+        return examples
     
-    Args:
-        critical_comments: List of critical comments to respond to
-        
-    Returns:
-        List of dictionaries with original comments and suggested responses
-    """
-    if not API_KEY:
-        logger.error("API_KEY is not set - cannot generate example responses")
-        return []
-        
-    if not critical_comments:
-        logger.warning("No critical comments provided to generate example responses")
-        return []
-    
-    responses = []
-    
-    for comment in critical_comments:
-        # Create a prompt specific to this comment
-        prompt = f"""This is a critical comment on my YouTube video:
-
-"{comment}"
-
-Write a thoughtful, professional response that:
-1. Acknowledges the comment without being defensive
-2. Maintains a positive tone
-3. Provides minimal clarification if needed
-4. Ends with a forward-looking statement
-
-KEEP IT EXTREMELY BRIEF. Maximum 50 words total. Be direct and to the point.
-Use Australian English phrasing where appropriate.
-"""
-        
-        system_message = """You are a professional community manager who specialises in crafting 
-        extremely concise responses to difficult social media comments. Your responses are authentic and clear,
-        but prioritize brevity above all else. Keep responses under 50 words. Use Australian English phrasing 
-        where appropriate."""
-        
-        response_text = None
-        # Try up to 2 times with a small delay
-        max_attempts = 2
-        
-        for attempt in range(max_attempts):
-            try:
-                logger.info(f"Generating response for comment (attempt {attempt+1}/{max_attempts}): {comment[:50]}...")
-                
-                payload = {
-                    "model": MODEL_NAME,
-                    "messages": [
-                        {"role": "system", "content": system_message},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 250,  # Reduced from 500
-                    "temperature": 0.4  # Slightly lower temperature for more focused responses
-                }
-                
-                resp = _session.post(url=API_URL, data=json.dumps(payload), timeout=300)
-                resp.raise_for_status()
-                data = resp.json()
-                
-                # Get the model's response
-                content = data.get('choices', [{}])[0].get('message', {}).get('content', '')
-                logger.info(f"Raw response from model: {content[:100]}...")
-                
-                # If we have content, use it directly
-                if content and len(content.strip()) > 0:
-                    response_text = content.strip()
-                    logger.info(f"Response generated: {response_text[:50]}...")
-                    break
-                
-                logger.warning(f"No content returned for comment on attempt {attempt+1}: {comment[:50]}...")
-                
-                # Wait a bit before retrying
-                if attempt < max_attempts - 1:
-                    time.sleep(1)
-                    
-            except Exception as e:
-                logger.error(f"Error generating response on attempt {attempt+1}: {e}")
-                
-                # Wait a bit before retrying
-                if attempt < max_attempts - 1:
-                    time.sleep(1)
-        
-        # If we still don't have a response_text, skip this comment
-        if not response_text:
-            logger.warning(f"Could not generate response for comment: {comment[:50]}... - skipping")
-            continue
-        
-        # Add to our responses list
-        responses.append({
-            "comment": comment,
-            "response": response_text
-        })
-    
-    # If we couldn't generate any responses, return fallback
-    if not responses:
-        logger.warning("No responses could be generated, using fallback examples")
-        return generate_fallback_examples(critical_comments)
-        
-    return responses
+    # Otherwise, use fallback examples
+    logger.warning("Failed to generate any valid examples, using fallback")
+    return generate_fallback_examples(critical_comments)
 
 # 添加降级函数
 def generate_fallback_strategies(comments: List[str]) -> str:
