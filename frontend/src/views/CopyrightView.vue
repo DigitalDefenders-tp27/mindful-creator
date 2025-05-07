@@ -164,6 +164,16 @@
           <div class="copyright-preview" :style="{ fontFamily: selectedFont }">
             {{ copyrightText }}
           </div>
+          
+          <!-- Status Messages -->
+          <div v-if="statusMessage || errorMessage" class="status-messages">
+            <div v-if="statusMessage" class="status-message" :class="{ 'success': isSuccess }">
+              {{ statusMessage }}
+            </div>
+            <div v-if="errorMessage" class="error-message">
+              {{ errorMessage }}
+            </div>
+          </div>
         </div>
         
         <div class="controls-section">
@@ -264,13 +274,21 @@
               Download to local
             </button>
             <div v-else class="action-buttons-group">
-              <button class="action-button" @click="downloadWatermarkedImage">
+              <button 
+                class="action-button" 
+                @click="downloadWatermarkedImage" 
+                :disabled="isApplyingWatermark"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download with Watermark
+                {{ isApplyingWatermark ? 'Processing...' : 'Download with Watermark' }}
               </button>
-              <button class="action-button" @click="downloadTransparentWatermark">
+              <button 
+                class="action-button" 
+                @click="downloadTransparentWatermark"
+                :disabled="isCreatingSvg"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                Download Transparent Watermark
+                {{ isCreatingSvg ? 'Processing...' : 'Download Transparent Watermark' }}
               </button>
               <button class="action-button secondary-button" @click="resetImage">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path></svg>
@@ -364,6 +382,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue';
+import { applyWatermark, createSvgWatermark } from '../services/CopyrightService';
 
 // License card data
 const licenseOptions = [
@@ -399,6 +418,13 @@ const watermarkSize = ref(24);
 const watermarkPosition = ref('bottom-right');
 const fileInput = ref(null);
 const previewCanvas = ref(null);
+
+// Add state for status messages and loading indicators
+const isApplyingWatermark = ref(false);
+const isCreatingSvg = ref(false);
+const statusMessage = ref('');
+const errorMessage = ref('');
+const isSuccess = ref(false);
 
 // Canvas for creating transparent watermark
 const transparentCanvas = ref(null);
@@ -438,7 +464,8 @@ const handleFileUpload = (event) => {
   
   // Only process image files
   if (!file.type.match('image.*')) {
-    alert('Please select an image file.');
+    errorMessage.value = 'Please select an image file.';
+    isSuccess.value = false;
     return;
   }
   
@@ -458,6 +485,11 @@ const handleFileUpload = (event) => {
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+  
+  // Clear any previous error messages
+  errorMessage.value = '';
+  statusMessage.value = 'Image uploaded successfully';
+  isSuccess.value = true;
 };
 
 // Update watermark on canvas
@@ -522,64 +554,34 @@ const updateWatermark = () => {
   ctx.restore();
 };
 
-// Create transparent watermark
-const createTransparentWatermark = () => {
+// Create transparent watermark using the API
+const createTransparentWatermark = async () => {
   if (!originalImage.value) return null;
   
-  // Create canvas for transparent watermark
-  const canvas = transparentCanvas.value;
-  const ctx = transparentCtx.value;
-  
-  // Set canvas size to match original image
-  canvas.width = originalImage.value.width;
-  canvas.height = originalImage.value.height;
-  
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Set watermark style
-  ctx.font = `${watermarkSize.value}px ${selectedFont.value}`;
-  ctx.fillStyle = 'white';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-  ctx.shadowBlur = 4;
-  
-  // Calculate text metrics
-  const text = copyrightText.value;
-  const metrics = ctx.measureText(text);
-  const textWidth = metrics.width;
-  const textHeight = watermarkSize.value;
-  
-  // Calculate position based on selected position
-  let x, y;
-  
-  // Get canvas dimensions
-  const width = canvas.width;
-  const height = canvas.height;
-  
-  // Determine x position
-  if (watermarkPosition.value.includes('left')) {
-    x = 20;
-  } else if (watermarkPosition.value.includes('right')) {
-    x = width - textWidth - 20;
-  } else {
-    // Center
-    x = (width - textWidth) / 2;
+  try {
+    isCreatingSvg.value = true;
+    statusMessage.value = 'Creating SVG watermark...';
+    isSuccess.value = true;
+    errorMessage.value = '';
+    
+    const svgContent = await createSvgWatermark(
+      copyrightText.value,
+      originalImage.value.width,
+      originalImage.value.height,
+      watermarkPosition.value,
+      watermarkSize.value
+    );
+    
+    statusMessage.value = 'SVG watermark created successfully!';
+    return svgContent;
+  } catch (error) {
+    console.error('Error creating transparent watermark:', error);
+    errorMessage.value = `Error creating watermark: ${error.message}`;
+    isSuccess.value = false;
+    return null;
+  } finally {
+    isCreatingSvg.value = false;
   }
-  
-  // Determine y position
-  if (watermarkPosition.value.includes('top')) {
-    y = textHeight + 20;
-  } else if (watermarkPosition.value.includes('bottom')) {
-    y = height - 20;
-  } else {
-    // Middle
-    y = height / 2;
-  }
-  
-  // Draw watermark text on transparent canvas
-  ctx.fillText(text, x, y);
-  
-  return canvas;
 };
 
 // Select license function
@@ -606,39 +608,94 @@ const downloadNotice = () => {
   document.body.appendChild(element);
   element.click();
   document.body.removeChild(element);
+  
+  statusMessage.value = 'Copyright notice downloaded successfully';
+  isSuccess.value = true;
+  errorMessage.value = '';
 };
 
-// Download watermarked image
-const downloadWatermarkedImage = () => {
-  if (!previewCanvas.value) return;
+// Download watermarked image using the API
+const downloadWatermarkedImage = async () => {
+  if (!originalImage.value) return;
   
-  // Convert canvas to data URL
-  const dataUrl = previewCanvas.value.toDataURL('image/png');
-  
-  // Create download link
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = `watermarked-image-${creatorName.value.replace(/\s+/g, '-')}.png`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    isApplyingWatermark.value = true;
+    statusMessage.value = 'Applying watermark...';
+    isSuccess.value = true;
+    errorMessage.value = '';
+    
+    // Convert canvas to Blob
+    const canvas = previewCanvas.value;
+    const blob = await new Promise(resolve => canvas.toBlob(resolve));
+    
+    // Create File object from Blob
+    const imageFile = new File([blob], 'image.png', { type: 'image/png' });
+    
+    // Call API to apply watermark
+    const watermarkedBlob = await applyWatermark(
+      imageFile,
+      copyrightText.value,
+      watermarkPosition.value,
+      watermarkOpacity.value,
+      watermarkSize.value
+    );
+    
+    // Create download link
+    const url = URL.createObjectURL(watermarkedBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `watermarked-image-${creatorName.value.replace(/\s+/g, '-')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    statusMessage.value = 'Watermarked image downloaded successfully';
+    isSuccess.value = true;
+  } catch (error) {
+    console.error('Error downloading watermarked image:', error);
+    errorMessage.value = `Error: ${error.message}`;
+    isSuccess.value = false;
+  } finally {
+    isApplyingWatermark.value = false;
+  }
 };
 
-// Download transparent watermark
-const downloadTransparentWatermark = () => {
-  const watermarkCanvas = createTransparentWatermark();
-  if (!watermarkCanvas) return;
-  
-  // Convert canvas to data URL
-  const dataUrl = watermarkCanvas.toDataURL('image/png');
-  
-  // Create download link
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = `transparent-watermark-${creatorName.value.replace(/\s+/g, '-')}.png`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+// Download transparent watermark as SVG
+const downloadTransparentWatermark = async () => {
+  try {
+    isCreatingSvg.value = true;
+    statusMessage.value = 'Creating SVG watermark...';
+    isSuccess.value = true;
+    errorMessage.value = '';
+    
+    // Get SVG content from API
+    const svgContent = await createSvgWatermark(
+      copyrightText.value,
+      originalImage.value ? originalImage.value.width : 800,
+      originalImage.value ? originalImage.value.height : 600,
+      watermarkPosition.value,
+      watermarkSize.value
+    );
+    
+    // Create download link
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transparent-watermark-${creatorName.value.replace(/\s+/g, '-')}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    statusMessage.value = 'SVG watermark downloaded successfully';
+    isSuccess.value = true;
+  } catch (error) {
+    console.error('Error downloading transparent watermark:', error);
+    errorMessage.value = `Error: ${error.message}`;
+    isSuccess.value = false;
+  } finally {
+    isCreatingSvg.value = false;
+  }
 };
 
 // Reset image
@@ -646,6 +703,9 @@ const resetImage = () => {
   uploadedImage.value = null;
   originalImage.value = null;
   fileInput.value.value = '';
+  statusMessage.value = 'Image reset';
+  isSuccess.value = true;
+  errorMessage.value = '';
 };
 </script>
 
@@ -1493,5 +1553,35 @@ input[type="text"] {
 
 .action-button.secondary-button:hover {
   background-color: #e9ecef;
+}
+
+.status-messages {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.status-message {
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  margin-bottom: 0.5rem;
+}
+
+.status-message.success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.error-message {
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: #f8d7da;
+  color: #842029;
+  margin-bottom: 0.5rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style> 
