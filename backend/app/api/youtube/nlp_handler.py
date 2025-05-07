@@ -91,7 +91,15 @@ def analyze_comments(comments: List[str], limit: int = 5) -> Optional[Dict[str, 
                 "threat_count": 0,
                 "insult_count": 0,
                 "identity_hate_count": 0,
-                "toxic_percentage": 0.0
+                "toxic_percentage": 0.0,
+                "toxic_types": {
+                    "toxic": 0,
+                    "severe_toxic": 0,
+                    "obscene": 0,
+                    "threat": 0,
+                    "insult": 0,
+                    "identity_hate": 0
+                }
             }
         }
     
@@ -116,6 +124,14 @@ def analyze_comments(comments: List[str], limit: int = 5) -> Optional[Dict[str, 
             "threat_count": 0,
             "insult_count": 0,
             "identity_hate_count": 0
+        }
+        toxic_types = {
+            "toxic": 0,
+            "severe_toxic": 0,
+            "obscene": 0,
+            "threat": 0,
+            "insult": 0,
+            "identity_hate": 0
         }
         
         # Filter and clean comments
@@ -164,8 +180,10 @@ def analyze_comments(comments: List[str], limit: int = 5) -> Optional[Dict[str, 
                         score = toxicity_scores[0][j].item()
                         if score > TOXICITY_THRESHOLD:
                             toxicity_counts[f"{label}_count"] += 1
+                            toxic_types[label] += 1
                             if label == "toxic" and score > SEVERE_TOXICITY_THRESHOLD:
                                 toxicity_counts["severe_toxic_count"] += 1
+                                toxic_types["severe_toxic"] += 1
                             logger.debug(f"Found {label} in comment {i+1} with score {score:.2f}")
             
             except Exception as e:
@@ -183,6 +201,7 @@ def analyze_comments(comments: List[str], limit: int = 5) -> Optional[Dict[str, 
         
         # Add toxic percentage to toxicity counts
         toxicity_counts["toxic_percentage"] = toxic_percentage
+        toxicity_counts["toxic_types"] = toxic_types
         
         # Create response with the expected format
         result = {
