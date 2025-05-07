@@ -64,7 +64,8 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
         try:
             logger.info("Attempting NLP analysis...")
             from .nlp_handler import analyze_comments
-            nlp_result = analyze_comments(comments)
+            # Run NLP analysis in a thread pool to avoid blocking
+            nlp_result = await asyncio.to_thread(analyze_comments, comments)
             if nlp_result:
                 response["sentiment"] = {
                     "positive": nlp_result["sentiment"]["positive_count"],
@@ -85,6 +86,7 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
                 logger.info("NLP analysis completed successfully")
         except Exception as e:
             logger.error(f"NLP analysis failed: {str(e)}")
+            logger.error(traceback.format_exc())
         
         # Always use LLM for strategies and examples
         try:
@@ -97,6 +99,7 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
                 logger.info("LLM analysis completed successfully")
         except Exception as e:
             logger.error(f"LLM analysis failed: {str(e)}")
+            logger.error(traceback.format_exc())
             # Provide fallback strategies and examples
             response["strategies"] = "• Thank viewers for their feedback\n• Address concerns professionally\n• Acknowledge different perspectives\n• Use feedback to improve future content"
             response["example_comments"] = [
@@ -123,5 +126,6 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
         
     except Exception as e:
         logger.error(f"Error in analyse_video_comments: {str(e)}")
+        logger.error(traceback.format_exc())
         response["success"] = False
         return response 
