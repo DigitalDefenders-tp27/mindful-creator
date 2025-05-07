@@ -112,15 +112,16 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
             "negative": 0
         }
         
-        toxicity_counts = {
-            "toxic": 0,
-            "severe_toxic": 0,
-            "obscene": 0,
-            "threat": 0,
-            "insult": 0,
-            "identity_hate": 0
-        }
-        
+        # Explicitly define toxicity categories in correct order
+        toxicity_categories = [
+            "toxic",
+            "severe_toxic",
+            "obscene",
+            "threat",
+            "insult",
+            "identity_hate"
+        ]
+        toxicity_counts = {cat: 0 for cat in toxicity_categories}
         total_toxic = 0
         
         # Process each comment
@@ -155,11 +156,14 @@ def analyze_comments(comments: List[str], limit: int = 100) -> Optional[Dict]:
                     toxicity_outputs = toxicity_model(**toxicity_inputs)
                     toxicity_scores = torch.sigmoid(toxicity_outputs.logits)[0]
                 
-                # Check each toxicity category with more precise thresholds
+                # Debug: print toxicity scores for this comment
+                logger.debug(f"Toxicity scores for comment {i}: {[float(s) for s in toxicity_scores]}")
+                
+                # Check each toxicity category with lower threshold
                 is_toxic = False
-                for idx, category in enumerate(toxicity_counts.keys()):
+                for idx, category in enumerate(toxicity_categories):
                     score = float(toxicity_scores[idx])
-                    if score >= 0.7:  # Higher threshold for toxicity
+                    if score >= 0.5:  # Lower threshold for toxicity
                         toxicity_counts[category] += 1
                         is_toxic = True
                         logger.debug(f"Incremented {category} count to {toxicity_counts[category]} (score: {score:.3f})")
