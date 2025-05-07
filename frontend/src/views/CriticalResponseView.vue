@@ -869,6 +869,7 @@
         
         // Show the results modal
         showResultsModal.value = true;
+        showResults.value = true;  // Add this line to show the results container
         isLoading.value = false;
       } else if (Array.isArray(data)) {
         // Backwards compatibility: If we received an array of comments, build an analysis result object
@@ -1001,7 +1002,8 @@
 
   // Close the modal
   const closeModal = () => {
-    showResultsModal.value = false
+    showResultsModal.value = false;
+    showResults.value = false;  // Add this line to close the results container
   }
 
   const closePopup = () => (showCheckIn.value = false)
