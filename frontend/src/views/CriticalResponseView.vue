@@ -636,7 +636,8 @@
                 'Accept': 'application/json'
               },
               body: JSON.stringify({
-                youtube_url: youtubeUrl.value,
+                url: youtubeUrl.value,
+                youtube_url: youtubeUrl.value,  // 同时包含两种格式，确保兼容性
                 limit: 100
               }),
               signal: controller.signal
