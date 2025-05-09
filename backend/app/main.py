@@ -8,11 +8,15 @@ import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.routing import APIRouter
 import datetime
 import uvicorn
 import platform
+from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from app.routers import affirmations, breaths, journals, memes
 
 
 # First import only the base router to ensure health check endpoint is available
@@ -206,7 +210,11 @@ ADDITIONAL_ROUTES = [
     ("app.api.relaxation.routes", "/api/relaxation"),
     ("app.api.notes.routes", "/api/notes"),
     ("app.api.youtube.routes", "/api/youtube"),
-    ("app.api.copyright.routes", "/api/copyright")  # Add copyright routes
+    ("app.api.copyright.routes", "/api/copyright"),  # Add copyright routes
+    ("app.routers.affirmations", "/api/affirmations"),
+    ("app.routers.breaths", "/api/breaths"),
+    ("app.routers.journals", "/api/journals"),
+    ("app.routers.memes", "/api/memes")
 ]
 
 logger.info("Loading additional routes...")
@@ -261,6 +269,28 @@ logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_time:.2f} secon
 port = int(os.environ.get("PORT", 8000))
 logger.info(f"API available at http://0.0.0.0:{port}")
 log_system_resources()
+
+# Mount static files if directories exist
+# Mount meme images directory if it exists
+meme_dir = os.path.abspath("backend/datasets/meme")
+if os.path.exists(meme_dir):
+    app.mount("/memes", StaticFiles(directory=meme_dir), name="memes")
+
+# Simple root endpoint
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <head>
+            <title>Inflowence API</title>
+        </head>
+        <body>
+            <h1>Welcome to the Inflowence API</h1>
+            <p>API is up and running!</p>
+            <p>Visit <a href="/docs">/docs</a> for the API documentation.</p>
+        </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")

@@ -50,16 +50,17 @@
 
     <!-- Game Modal -->
     <div v-if="showGameModal" class="modal">
-      <div class="modal-content game-modal">
-        <span class="close" @click="closeModal">&times;</span>
+      <div class="modal-content game-modal" :class="{ 'fullscreen': isFullscreenGame }">
+        <span v-if="!isFullscreenGame" class="close" @click="closeModal">&times;</span>
         
         <!-- Game Content -->
         <div class="game-content">
-          <component 
-            :is="currentGameComponent" 
-            v-if="currentGameComponent"
-            @game-completed="onGameCompleted"
-          />
+          <MemoryMatch v-if="currentGame === 'memory'" @game-completed="onGameCompleted" />
+          <div v-else class="coming-soon">
+            <h2>Coming Soon!</h2>
+            <p>This game is under development. Please try again later.</p>
+            <button class="cta-button" @click="closeModal">Return to Games</button>
+          </div>
         </div>
         
         <!-- Rating Section -->
@@ -107,6 +108,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
 import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
+import MemoryMatch from '@/components/Games/MemoryMatch.vue'
 
 // Star Icons
 import starFilledIcon from '../assets/star-filled.svg'
@@ -116,27 +118,31 @@ import starEmptyIcon from '../assets/star-empty.svg'
 const games = [
   {
     title: 'Memory Match',
-    description: 'Test your memory with a classic card matching game.',
+    description: 'Test your memory with a classic card matching game using trending memes.',
     type: 'memory',
-    image: 'BreathingExercise.png'  // Placeholder image
+    image: 'BreathingExercise.png',  // Placeholder image
+    fullscreen: true
   },
   {
     title: 'Word Scramble',
     description: 'Unscramble words related to digital wellbeing.',
     type: 'word-scramble',
-    image: 'Meditation.png'  // Placeholder image
+    image: 'Meditation.png',  // Placeholder image
+    fullscreen: false
   },
   {
     title: 'Quick Quiz',
     description: 'Test your knowledge with a short quiz on digital wellness.',
     type: 'quiz',
-    image: 'SensoryGrounding.png'  // Placeholder image
+    image: 'SensoryGrounding.png',  // Placeholder image
+    fullscreen: false
   },
   {
     title: 'Bubble Pop',
     description: 'Pop bubbles to release stress and have fun.',
     type: 'bubble-pop',
-    image: 'NatureSounds.jpg'  // Placeholder image
+    image: 'NatureSounds.jpg',  // Placeholder image
+    fullscreen: false
   }
 ]
 
@@ -166,9 +172,14 @@ const rating = ref(0)
 const hoverRating = ref(0)
 const submitted = ref(false)
 const currentGame = ref(null)
-const currentGameComponent = ref(null)
-const totalRatings = ref(0)
 const gameCompleted = ref(false)
+const totalRatings = ref(0)
+
+// Check if current game should be displayed fullscreen
+const isFullscreenGame = computed(() => {
+  const game = games.find(g => g.type === currentGame.value);
+  return game ? game.fullscreen : false;
+});
 
 // Start a game
 const startGame = (gameType) => {
@@ -178,24 +189,6 @@ const startGame = (gameType) => {
   rating.value = 0
   submitted.value = false
   gameCompleted.value = false
-  
-  // Set component based on game type
-  switch(gameType) {
-    case 'memory':
-      // currentGameComponent.value = MemoryMatch
-      break
-    case 'word-scramble':
-      // currentGameComponent.value = WordScramble
-      break
-    case 'quiz':
-      // currentGameComponent.value = QuickQuiz
-      break
-    case 'bubble-pop':
-      // currentGameComponent.value = BubblePop
-      break
-    default:
-      currentGameComponent.value = null
-  }
   
   // Show modal
   showGameModal.value = true
@@ -208,7 +201,6 @@ const startGame = (gameType) => {
 const closeModal = () => {
   showGameModal.value = false
   currentGame.value = null
-  currentGameComponent.value = null
 }
 
 // Handle game completion
@@ -384,6 +376,16 @@ onMounted(() => {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
+.modal-content.fullscreen {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .game-modal {
   min-height: 500px;
   display: flex;
@@ -408,6 +410,7 @@ onMounted(() => {
 .game-content {
   flex: 1;
   margin-bottom: 2rem;
+  height: 100%;
 }
 
 .feedback {
@@ -522,6 +525,45 @@ onMounted(() => {
 
 .wellbeing-btn:hover {
   background-color: #4d8cd5;
+}
+
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.coming-soon h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #e75a97;
+}
+
+.coming-soon p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+.cta-button {
+  background: linear-gradient(to right, #e75a97, #4d8cd5);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes fadeIn {
