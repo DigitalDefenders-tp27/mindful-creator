@@ -24,12 +24,12 @@ async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any
     response = {
         "success": False,
         "totalComments": 0,
-        "sentiment": {
+            "sentiment": {
             "positive": 0,
             "neutral": 0,
             "negative": 0
-        },
-        "toxicity": {
+            },
+            "toxicity": {
             "total": 0,
             "percentage": 0,
             "types": {
