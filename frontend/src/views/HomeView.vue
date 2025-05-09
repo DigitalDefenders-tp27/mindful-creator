@@ -174,6 +174,27 @@
                 </template>
               </FlipCard>
             </router-link>
+            
+            <router-link to="/relaxation" class="journey-link">
+              <FlipCard class="journey-card pink">
+                <div class="card-content">
+                  <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower Pink" class="card-icon white-filter">
+                  <div class="card-text">
+                    <h3>Relaxation</h3>
+                    <h3>Zone</h3>
+                  </div>
+                </div>
+                <template #back>
+                  <div class="card-content">
+                    <ul class="feature-list">
+                      <li>Take mindful breaks to reset your creative energy.</li>
+                      <li>Learn techniques to manage digital stress and anxiety.</li>
+                      <li>Discover activities designed for creators' mental wellbeing.</li>
+                    </ul>
+                  </div>
+                </template>
+              </FlipCard>
+            </router-link>
           </div>
         </div>
       </div>
@@ -946,6 +967,24 @@ const scrollToTop = () => {
   font-weight: 700;
 }
 
+.journey-card.pink { 
+  background-color: rgb(232, 162, 184);
+  border-color: rgba(232, 162, 184, 0.8);
+}
+.journey-card.pink .card-icon {
+  opacity: 1;
+}
+.journey-card.pink h3 {
+  color: rgb(255, 255, 255);
+}
+.journey-card.pink :deep(.flip-card-back) {
+  background-color: rgb(232, 162, 184);
+}
+.journey-card.pink :deep(.feature-list) {
+  color: rgb(255, 255, 255);
+  font-weight: 700;
+}
+
 .card-content {
   width: 100%;
   height: 100%;
@@ -1466,198 +1505,36 @@ p {
 :deep(.journey-card.beige:hover .flip-card-back h3) {
   color: rgb(85, 85, 85) !important;
 }
-</style>
 
-<!-- Add a separate style block with highest specificity to override green headings -->
-<style>
-/* Force override any green text on hover */
-.journey-section .journey-card:hover h3,
-.journey-section .journey-card:hover .card-text h3,
-.journey-section .journey-link:hover .card-text h3,
-.journey-section .journey-link:hover .journey-card h3,
-.journey-section .journey-card:hover .card-text *,
-.journey-section .flip-card:hover h3,
-.journey-section .flip-card:hover .card-text h3 {
-  color: inherit !important;
-}
-
-/* Target the specific green color */
-.journey-section *[style*="#1E6A42"],
-.journey-section *[style*="color: #1E6A42"],
-.journey-section *:hover[style*="#1E6A42"],
-.journey-section *:hover[style*="color: #1E6A42"] {
-  color: inherit !important;
-}
-
-/* Specific card text color overrides with extremely high specificity */
-.journey-section .journey-card.purple h3,
-.journey-section .journey-card.purple .card-text h3,
-.journey-section .journey-card.purple:hover h3,
-.journey-section .journey-card.purple:hover .card-text h3,
-.journey-section .journey-card.purple:active h3,
-.journey-section .journey-card.purple:active .card-text h3,
-.journey-section .journey-card.purple:focus h3,
-.journey-section .journey-card.purple:focus .card-text h3,
-.journey-section .journey-card.purple .card-text h3[style],
-.journey-section .journey-card.purple:hover .card-text h3[style],
-.journey-section .journey-link:hover .journey-card.purple h3,
-.journey-section .journey-link:hover .journey-card.purple .card-text h3,
-.journey-section .journey-link:active .journey-card.purple h3,
-.journey-section .journey-link:active .journey-card.purple .card-text h3 {
+/* Pink card text overrides */
+.journey-section .journey-card.pink h3[style],
+.journey-section .journey-card.pink .card-text h3[style],
+.journey-section .journey-card.pink:hover h3[style],
+.journey-section .journey-card.pink:hover .card-text h3[style],
+.journey-section .journey-card.pink :deep(.flip-card-front) h3[style],
+.journey-section .journey-card.pink :deep(.flip-card-back) h3[style] {
   color: rgb(255, 255, 255) !important;
 }
 
-.journey-section .journey-card.orange h3,
-.journey-section .journey-card.orange .card-text h3,
-.journey-section .journey-card.orange:hover h3,
-.journey-section .journey-card.orange:hover .card-text h3,
-.journey-section .journey-card.orange:active h3,
-.journey-section .journey-card.orange:active .card-text h3,
-.journey-section .journey-card.orange:focus h3,
-.journey-section .journey-card.orange:focus .card-text h3,
-.journey-section .journey-card.orange .card-text h3[style],
-.journey-section .journey-card.orange:hover .card-text h3[style],
-.journey-section .journey-link:hover .journey-card.orange h3,
-.journey-section .journey-link:hover .journey-card.orange .card-text h3,
-.journey-section .journey-link:active .journey-card.orange h3,
-.journey-section .journey-link:active .journey-card.orange .card-text h3 {
+/* Pink card deep selector overrides */
+.journey-section .journey-card.pink h3,
+.journey-section .journey-card.pink .card-text h3,
+.journey-section .journey-card.pink:hover h3,
+.journey-section .journey-card.pink:hover .card-text h3,
+.journey-section .journey-card.pink:active h3,
+.journey-section .journey-card.pink:active .card-text h3,
+.journey-section .journey-link:hover .journey-card.pink h3,
+.journey-section .journey-link:hover .journey-card.pink .card-text h3,
+.journey-section .journey-card.pink :deep(.flip-card-front) h3,
+.journey-section .journey-card.pink :deep(.flip-card-back) h3,
+.journey-section .journey-card.pink:hover :deep(.flip-card-front) h3,
+.journey-section .journey-card.pink:hover :deep(.flip-card-back) h3 {
   color: rgb(255, 255, 255) !important;
 }
 
-.journey-section .journey-card.orange-light h3,
-.journey-section .journey-card.orange-light .card-text h3,
-.journey-section .journey-card.orange-light:hover h3,
-.journey-section .journey-card.orange-light:hover .card-text h3,
-.journey-section .journey-card.orange-light:active h3,
-.journey-section .journey-card.orange-light:active .card-text h3,
-.journey-section .journey-card.orange-light:focus h3,
-.journey-section .journey-card.orange-light:focus .card-text h3,
-.journey-section .journey-card.orange-light .card-text h3[style],
-.journey-section .journey-card.orange-light:hover .card-text h3[style],
-.journey-section .journey-link:hover .journey-card.orange-light h3,
-.journey-section .journey-link:hover .journey-card.orange-light .card-text h3,
-.journey-section .journey-link:active .journey-card.orange-light h3,
-.journey-section .journey-link:active .journey-card.orange-light .card-text h3 {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.blue-light h3,
-.journey-section .journey-card.blue-light .card-text h3,
-.journey-section .journey-card.blue-light:hover h3,
-.journey-section .journey-card.blue-light:hover .card-text h3,
-.journey-section .journey-card.blue-light:active h3,
-.journey-section .journey-card.blue-light:active .card-text h3,
-.journey-section .journey-card.blue-light:focus h3,
-.journey-section .journey-card.blue-light:focus .card-text h3,
-.journey-section .journey-card.blue-light .card-text h3[style],
-.journey-section .journey-card.blue-light:hover .card-text h3[style],
-.journey-section .journey-link:hover .journey-card.blue-light h3,
-.journey-section .journey-link:hover .journey-card.blue-light .card-text h3,
-.journey-section .journey-link:active .journey-card.blue-light h3,
-.journey-section .journey-link:active .journey-card.blue-light .card-text h3 {
-  color: rgb(171, 146, 191) !important;
-}
-
-.journey-section .journey-card.beige h3,
-.journey-section .journey-card.beige .card-text h3,
-.journey-section .journey-card.beige:hover h3,
-.journey-section .journey-card.beige:hover .card-text h3,
-.journey-section .journey-card.beige:active h3,
-.journey-section .journey-card.beige:active .card-text h3,
-.journey-section .journey-card.beige:focus h3,
-.journey-section .journey-card.beige:focus .card-text h3,
-.journey-section .journey-card.beige .card-text h3[style],
-.journey-section .journey-card.beige:hover .card-text h3[style],
-.journey-section .journey-link:hover .journey-card.beige h3,
-.journey-section .journey-link:hover .journey-card.beige .card-text h3,
-.journey-section .journey-link:active .journey-card.beige h3,
-.journey-section .journey-link:active .journey-card.beige .card-text h3 {
-  color: rgb(85, 85, 85) !important;
-}
-
-/* Target deep flip card elements with specific colors */
-.journey-section .journey-card.purple :deep(.flip-card-front) h3,
-.journey-section .journey-card.purple :deep(.flip-card-back) h3,
-.journey-section .journey-card.purple:hover :deep(.flip-card-front) h3,
-.journey-section .journey-card.purple:hover :deep(.flip-card-back) h3 {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.orange :deep(.flip-card-front) h3,
-.journey-section .journey-card.orange :deep(.flip-card-back) h3,
-.journey-section .journey-card.orange:hover :deep(.flip-card-front) h3,
-.journey-section .journey-card.orange:hover :deep(.flip-card-back) h3 {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.orange-light :deep(.flip-card-front) h3,
-.journey-section .journey-card.orange-light :deep(.flip-card-back) h3,
-.journey-section .journey-card.orange-light:hover :deep(.flip-card-front) h3,
-.journey-section .journey-card.orange-light:hover :deep(.flip-card-back) h3 {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.blue-light :deep(.flip-card-front) h3,
-.journey-section .journey-card.blue-light :deep(.flip-card-back) h3,
-.journey-section .journey-card.blue-light:hover :deep(.flip-card-front) h3,
-.journey-section .journey-card.blue-light:hover :deep(.flip-card-back) h3 {
-  color: rgb(171, 146, 191) !important;
-}
-
-.journey-section .journey-card.beige :deep(.flip-card-front) h3,
-.journey-section .journey-card.beige :deep(.flip-card-back) h3,
-.journey-section .journey-card.beige:hover :deep(.flip-card-front) h3,
-.journey-section .journey-card.beige:hover :deep(.flip-card-back) h3 {
-  color: rgb(85, 85, 85) !important;
-}
-</style>
-
-<!-- Add a separate style block with highest specificity to override green headings -->
-<style>
-/* Override any possible inline styles */
-.journey-section .journey-card.purple h3[style],
-.journey-section .journey-card.purple .card-text h3[style],
-.journey-section .journey-card.purple:hover h3[style],
-.journey-section .journey-card.purple:hover .card-text h3[style],
-.journey-section .journey-card.purple :deep(.flip-card-front) h3[style],
-.journey-section .journey-card.purple :deep(.flip-card-back) h3[style] {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.orange h3[style],
-.journey-section .journey-card.orange .card-text h3[style],
-.journey-section .journey-card.orange:hover h3[style],
-.journey-section .journey-card.orange:hover .card-text h3[style],
-.journey-section .journey-card.orange :deep(.flip-card-front) h3[style],
-.journey-section .journey-card.orange :deep(.flip-card-back) h3[style] {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.orange-light h3[style],
-.journey-section .journey-card.orange-light .card-text h3[style],
-.journey-section .journey-card.orange-light:hover h3[style],
-.journey-section .journey-card.orange-light:hover .card-text h3[style],
-.journey-section .journey-card.orange-light :deep(.flip-card-front) h3[style],
-.journey-section .journey-card.orange-light :deep(.flip-card-back) h3[style] {
-  color: rgb(255, 255, 255) !important;
-}
-
-.journey-section .journey-card.blue-light h3[style],
-.journey-section .journey-card.blue-light .card-text h3[style],
-.journey-section .journey-card.blue-light:hover h3[style],
-.journey-section .journey-card.blue-light:hover .card-text h3[style],
-.journey-section .journey-card.blue-light :deep(.flip-card-front) h3[style],
-.journey-section .journey-card.blue-light :deep(.flip-card-back) h3[style] {
-  color: rgb(171, 146, 191) !important;
-}
-
-.journey-section .journey-card.beige h3[style],
-.journey-section .journey-card.beige .card-text h3[style],
-.journey-section .journey-card.beige:hover h3[style],
-.journey-section .journey-card.beige:hover .card-text h3[style],
-.journey-section .journey-card.beige :deep(.flip-card-front) h3[style],
-.journey-section .journey-card.beige :deep(.flip-card-back) h3[style] {
-  color: rgb(85, 85, 85) !important;
+/* White filter for SVG images */
+.white-filter {
+  filter: brightness(0) invert(1);
 }
 </style>
 

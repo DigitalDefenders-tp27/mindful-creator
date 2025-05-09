@@ -1543,8 +1543,8 @@
   }
 
   .emoji-img {
-    width: 150px;
-    height: 150px;
+    width: 180px;
+    height: 180px;
     object-fit: contain;
     transition: 0.25s ease;
     cursor: pointer;
@@ -1566,8 +1566,8 @@
   }
 
   .emoji-option:last-child .emoji-img {
-    width: 160px;
-    height: 160px;
+    width: 190px;
+    height: 190px;
     margin-top: -12px;
   }
 
@@ -2983,6 +2983,93 @@
     margin: 0;
     color: #555;
     line-height: 1.5;
+  }
+
+  /* 响应式设计: 确保表情在各种屏幕尺寸下都有合适的大小 */
+  @media (max-width: 1200px) {
+    .emotions {
+      gap: 40px;
+    }
+    
+    .emoji-img {
+      width: 160px;
+      height: 160px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 170px;
+      height: 170px;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .emotions {
+      gap: 30px;
+    }
+    
+    .emoji-img {
+      width: 140px;
+      height: 140px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 150px;
+      height: 150px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .emotions {
+      gap: 20px;
+    }
+    
+    .emoji-img {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 130px;
+      height: 130px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .emoji-img {
+      width: 100px;
+      height: 100px;
+      padding: 4px;
+      border: 3px solid transparent;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 110px;
+      height: 110px;
+    }
+    
+    .emoji-img.selected {
+      border: 3px solid rgb(212, 238, 90);
+      box-shadow: 0 0 0 5px rgba(212, 238, 90, 0.4);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .emotions {
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .emoji-img {
+      width: 90px;
+      height: 90px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 100px;
+      height: 100px;
+      margin-top: 0;
+    }
   }
   </style>
 
