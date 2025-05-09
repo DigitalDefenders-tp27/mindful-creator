@@ -21,7 +21,7 @@
     
     <!-- 内容部分 / Content section -->
     <div class="relative z-10 p-6 text-left transform transition-transform duration-300 group-hover:translate-y-[-4px]">
-      <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-white">
+      <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-white" style="color: white !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
         {{ name }}
       </h3>
       <p class="text-sm text-white/80 mb-4 line-clamp-2 group-hover:text-white/90">

@@ -1555,7 +1555,8 @@
 
   .emoji-img:hover {
     transform: scale(1.15);
-    box-shadow: 0 0 20px rgba(212, 238, 90, 0.6);
+    /* 移除以下光圈效果 */
+    /* box-shadow: 0 0 20px rgba(212, 238, 90, 0.6); */
   }
 
   .emoji-img.selected {

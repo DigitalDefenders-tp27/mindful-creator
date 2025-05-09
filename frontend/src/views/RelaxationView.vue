@@ -540,14 +540,29 @@ section:not(:last-child)::after {
 }
 
 /* Ensure bento card titles are always pure white */
-:deep(.bento-grid-card h3) {
-  color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  font-weight: bold;
+:deep(.bento-grid-card h3),
+:deep(h3[class*="text-"]),
+:deep(.group:hover h3),
+:deep([role="button"] h3),
+:deep(.relative h3) {
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+  font-weight: bold !important;
 }
 
-:deep(.bento-grid-card:hover h3) {
-  color: #fff !important;
+/* Add additional selectors to override any possible parent styles */
+:deep([class*="bento"] *) h3,
+:deep([class*="card"] *) h3,
+:deep([class*="grid"] *) h3 {
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Override any hover states */
+:deep(*:hover h3),
+:deep(.group:hover h3),
+:deep([role="button"]:hover h3) {
+  color: white !important;
 }
 
 .modal {

@@ -714,6 +714,52 @@ const getMyPosition = () => {
           lng: position.coords.longitude
         }
         mapCenter.value = userLocation.value
+        
+        // Center map on user location
+        if (map.value) {
+          map.value.setCenter(userLocation.value)
+          map.value.setZoom(14)
+          
+          // Clear previous user marker if exists
+          if (userMarker.value) {
+            userMarker.value.setMap(null)
+          }
+          
+          // Create a new marker for user location
+          userMarker.value = new googleInstance.maps.Marker({
+            position: userLocation.value,
+            map: map.value,
+            icon: {
+              path: googleInstance.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#4285F4",
+              fillOpacity: 1,
+              strokeColor: "#FFFFFF",
+              strokeWeight: 2
+            },
+            animation: googleInstance.maps.Animation.DROP,
+            title: "Your Location"
+          })
+          
+          // Sort clinics by distance from user location
+          displayedClinics.value = clinics
+            .map(clinic => ({
+              ...clinic,
+              distance: getDistance(
+                userLocation.value.lat,
+                userLocation.value.lng,
+                clinic.lat,
+                clinic.lng
+              )
+            }))
+            .sort((a, b) => a.distance - b.distance)
+          
+          // Update markers and select nearest clinic
+          updateMarkers()
+          if (displayedClinics.value.length > 0) {
+            selectedClinic.value = displayedClinics.value[0]
+          }
+        }
       },
       error => {
         console.error('Error getting location:', error)
