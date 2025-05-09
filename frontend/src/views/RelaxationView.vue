@@ -539,6 +539,17 @@ section:not(:last-child)::after {
   margin: 0;
 }
 
+/* Ensure bento card titles are always pure white */
+:deep(.bento-grid-card h3) {
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-weight: bold;
+}
+
+:deep(.bento-grid-card:hover h3) {
+  color: #fff !important;
+}
+
 .modal {
   position: fixed;
   top: 0;

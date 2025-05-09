@@ -34,7 +34,7 @@ const router = createRouter({
       path: '/relaxation',
       name: 'relaxation',
       component: RelaxationView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/creator-wellbeing',
