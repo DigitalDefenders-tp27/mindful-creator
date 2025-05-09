@@ -71,6 +71,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Local development
+        "http://localhost:5173",  # Vite dev server
         "https://mindful-creator.vercel.app",  # Main Vercel domain
         "https://mindful-creator-mcqbwi1f8-tp27.vercel.app",
         "https://tiezhu.org",

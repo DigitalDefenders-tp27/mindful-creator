@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 import pandas as pd
 import random
 import os
+import glob
 from typing import List, Dict, Optional
 
 router = APIRouter()
 
 # Path to the meme dataset
 MEME_DATASET_PATH = "backend/datasets/meme"
+# Path to public meme directory
+PUBLIC_MEME_PATH = "frontend/public/memes"
 
 def ensure_meme_directory_exists():
     """Ensure that the meme directory exists."""
@@ -126,4 +129,40 @@ async def get_memes_for_memory_match(
     return {
         "level": level,
         "memes": selected_memes
-    } 
+    }
+
+@router.get("/scan-memes")
+async def scan_available_memes() -> List[str]:
+    """
+    Scan for available meme images in the public directory.
+    
+    Returns:
+        List of image filenames found in the public memes directory
+    """
+    all_meme_paths = []
+    
+    # Check the main public meme directory
+    if os.path.exists(PUBLIC_MEME_PATH):
+        for ext in ['jpg', 'jpeg', 'png', 'gif']:
+            pattern = os.path.join(PUBLIC_MEME_PATH, f"*.{ext}")
+            all_meme_paths.extend(glob.glob(pattern))
+    
+    # Always include the fallback test meme directory if we're in development
+    test_meme_paths = []
+    test_dir = "backend/datasets/test_memes"
+    if os.path.exists(test_dir):
+        for ext in ['jpg', 'jpeg', 'png', 'gif']:
+            pattern = os.path.join(test_dir, f"*.{ext}")
+            test_meme_paths.extend(glob.glob(pattern))
+    
+    # Extract just the filenames without full paths
+    public_meme_files = [os.path.basename(p) for p in all_meme_paths]
+    test_meme_files = [os.path.basename(p) for p in test_meme_paths]
+    
+    # Combine unique filenames from both sources
+    all_meme_files = list(set(public_meme_files + test_meme_files))
+    
+    # Log what we found
+    print(f"Found {len(all_meme_files)} unique meme files across all directories")
+    
+    return all_meme_files 

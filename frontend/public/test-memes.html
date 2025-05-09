@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meme Images Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .image-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .image-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .image-info {
+      padding: 10px;
+      background-color: #f5f5f5;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Meme Images Test Page</h1>
+  
+  <div class="section">
+    <h2>Dataset Images (image_XXXX.jpg)</h2>
+    <div class="image-grid">
+      <div class="image-item">
+        <img src="/memes/image_1258.jpg" alt="Meme 1258" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">image_1258.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/image_1264.jpg" alt="Meme 1264" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">image_1264.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/image_1270.jpg" alt="Meme 1270" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">image_1270.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/image_2037.jpg" alt="Meme 2037" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">image_2037.jpg</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>Numbered Memes (meme_X.jpg)</h2>
+    <div class="image-grid">
+      <div class="image-item">
+        <img src="/memes/meme_1.jpg" alt="Meme 1" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_1.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_2.jpg" alt="Meme 2" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_2.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_3.jpg" alt="Meme 3" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_3.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_4.jpg" alt="Meme 4" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_4.jpg</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>PNG Variants</h2>
+    <div class="image-grid">
+      <div class="image-item">
+        <img src="/memes/meme_3.png" alt="Meme 3 PNG" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_3.png</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_5.png" alt="Meme 5 PNG" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_5.png</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_6.png" alt="Meme 6 PNG" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_6.png</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/meme_9.png" alt="Meme 9 PNG" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">meme_9.png</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Memory Match Special Images</h2>
+    <div class="image-grid">
+      <div class="image-item">
+        <img src="/memes/MemoryMatch_1.jpg" alt="Memory Match 1" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">MemoryMatch_1.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/MemoryMatch_2.jpg" alt="Memory Match 2" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">MemoryMatch_2.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/MemoryMatch_3.jpg" alt="Memory Match 3" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">MemoryMatch_3.jpg</div>
+      </div>
+      <div class="image-item">
+        <img src="/memes/MemoryMatch.jpg" alt="Memory Match" onerror="this.src='/images/placeholder.png'">
+        <div class="image-info">MemoryMatch.jpg</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Log any image loading errors
+    document.querySelectorAll('img').forEach(img => {
+      img.addEventListener('error', (e) => {
+        console.error(`Failed to load image: ${e.target.src}`);
+      });
+      img.addEventListener('load', (e) => {
+        console.log(`Successfully loaded image: ${e.target.src}`);
+      });
+    });
+  </script>
+</body>
+</html> 
