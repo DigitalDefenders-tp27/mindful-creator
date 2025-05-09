@@ -14,10 +14,10 @@
           <!-- Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Flower" class="element hoverable">
             </div>
             <div class="element-wrapper">
               <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
@@ -758,10 +758,10 @@ const resetImage = () => {
   position: relative;
   background: linear-gradient(
     to right,
-    #FF6B6B 20%,
-    #4ECDC4 40%,
-    #4ECDC4 60%,
-    #FF6B6B 80%
+    #d8a1e5 20%,
+    #ffb1c5 40%,
+    #ffb1c5 60%,
+    #d8a1e5 80%
   );
   background-size: 200% auto;
   color: transparent;
@@ -780,7 +780,7 @@ const resetImage = () => {
 }
 
 .title-group h1:hover {
-  filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.5));
+  filter: drop-shadow(0 0 2px rgba(216, 161, 229, 0.5));
   transform: scale(1.02);
   animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
@@ -1295,7 +1295,70 @@ input[type="text"] {
 }
 
 /* Responsive styles */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(0);
+    row-gap: 0.75rem;
+    justify-content: end;
+  }
+}
+
 @media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+    justify-content: end;
+  }
+  
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  
+  .subtitle {
+    font-size: 1.5rem;
+  }
+  
   .license-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
@@ -1319,6 +1382,16 @@ input[type="text"] {
     min-height: 30vh;
   }
   
+  .slogan {
+    margin-left: 1rem;
+    max-width: 90%;
+  }
+  
+  .decorative-elements {
+    opacity: 0.3;
+    transform: translateX(0) scale(0.8);
+  }
+  
   .title-group h1 {
     font-size: 4.2rem;
   }
@@ -1330,10 +1403,6 @@ input[type="text"] {
   .subtitle {
     font-size: 1.5rem;
     margin-top: 1.8rem;
-  }
-  
-  .decorative-elements {
-    opacity: 0.5;
   }
   
   .container {
@@ -1355,6 +1424,19 @@ input[type="text"] {
   .usage-list li,
   .resources-list li {
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.7);
+  }
+
+  .hero-section {
+    min-height: 25vh;
+    padding: 7rem 0 0.5rem;
+    margin-bottom: 1rem;
   }
 }
 
@@ -1390,7 +1472,8 @@ input[type="text"] {
   }
   
   .decorative-elements {
-    display: none;
+    opacity: 0.05;
+    transform: translateX(0) scale(0.6);
   }
   
   .container {
