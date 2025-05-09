@@ -27,6 +27,9 @@
         </router-link>
         <router-link to="/privacy" class="nav-link" active-class="active" @click="closeMenu"><span>PRIVACY</span></router-link>
         <router-link to="/copyright" class="nav-link" active-class="active" @click="closeMenu"><span>COPYRIGHT</span></router-link>
+        <router-link to="/relaxation" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>RELAXATION</span>
+        </router-link>
       </div>
 
       <!-- Hamburger Menu Button -->
