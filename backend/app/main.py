@@ -18,6 +18,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import affirmations, breaths, journals, memes
 
+# Explicitly import the games router
+from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 
 # First import only the base router to ensure health check endpoint is available
 # from app.api.router import router as api_router
@@ -219,15 +221,17 @@ ADDITIONAL_ROUTES = [
     ("app.api.relaxation.routes", "/api/relaxation"),
     ("app.api.notes.routes", "/api/notes"),
     ("app.api.youtube.routes", "/api/youtube"),
-    ("app.api.copyright.routes", "/api/copyright"),  # Add copyright routes
+    ("app.api.copyright.routes", "/api/copyright"),
     ("app.routers.affirmations", "/api/affirmations"),
     ("app.routers.breaths", "/api/breaths"),
     ("app.routers.journals", "/api/journals"),
     ("app.routers.memes", "/api/memes")
+    # ("app.api.games", "/api/games") # Removed from dynamic list
 ]
 
-# Add the games router
-ADDITIONAL_ROUTES.append(("app.api.games", "/api/games"))
+# Explicitly include the games router
+app.include_router(games_api_router, prefix="/api/games")
+logger.info("Explicitly included games_api_router at prefix /api/games")
 
 logger.info("Loading additional routes...")
 for route_module, prefix in ADDITIONAL_ROUTES:
