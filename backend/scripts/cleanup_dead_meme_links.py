@@ -14,21 +14,34 @@ CLEANED_TABLE_NAME = "meme_fetch_cleaned"
 
 # --- Database Connection ---
 async def get_db_connection_pool():
-    PGHOST_ENV = os.getenv("PGHOST")
-    PGUSER_ENV = os.getenv("PGUSER")
-    PGPASSWORD_ENV = os.getenv("PGPASSWORD")
-    PGDATABASE_ENV = os.getenv("PGDATABASE")
-    PGPORT_ENV = os.getenv("PGPORT", "5432")
+    # --- --- TEMPORARY HARDCODED VALUES FOR DIAGNOSIS --- --- 
+    # --- --- REVERT IMMEDIATELY AFTER TESTING --- --- 
+    HARDCODED_PGHOST = "postgres.railway.internal"
+    HARDCODED_PGUSER = "postgres"
+    HARDCODED_PGPASSWORD = "LLDhBhwcYsquTnhxqNw1ZkGrgYNdwmY"  # REPLACE WITH YOUR ACTUAL PASSWORD IF DIFFERENT
+    HARDCODED_PGDATABASE = "railway"
+    HARDCODED_PGPORT = "5432"
 
-    if not (PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV):
-        logger.error("Database environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) are not fully set.")
-        raise ConnectionError("Missing database configuration in environment.")
+    logger.info("--- USING TEMPORARY HARDCODED DB CREDENTIALS FOR DIAGNOSIS ---")
+    logger.info(f"Host: {HARDCODED_PGHOST}, User: {HARDCODED_PGUSER}, DB: {HARDCODED_PGDATABASE}, Port: {HARDCODED_PGPORT}")
 
-    dsn = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{PGHOST_ENV}:{PGPORT_ENV}/{PGDATABASE_ENV}"
+    # PGHOST_ENV = os.getenv("PGHOST")
+    # PGUSER_ENV = os.getenv("PGUSER")
+    # PGPASSWORD_ENV = os.getenv("PGPASSWORD")
+    # PGDATABASE_ENV = os.getenv("PGDATABASE")
+    # PGPORT_ENV = os.getenv("PGPORT", "5432")
+
+    # if not (PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV):
+    #     logger.error("Database environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) are not fully set.")
+    #     raise ConnectionError("Missing database configuration in environment.")
+
+    # dsn = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{PGHOST_ENV}:{PGPORT_ENV}/{PGDATABASE_ENV}"
+    dsn = f"postgresql://{HARDCODED_PGUSER}:{HARDCODED_PGPASSWORD}@{HARDCODED_PGHOST}:{HARDCODED_PGPORT}/{HARDCODED_PGDATABASE}"
+    # --- --- END TEMPORARY HARDCODED VALUES --- --- 
     
     try:
         pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=5)
-        logger.info(f"Successfully connected to database: {PGDATABASE_ENV} on {PGHOST_ENV}")
+        logger.info(f"Successfully connected to database: {HARDCODED_PGDATABASE} on {HARDCODED_PGHOST}")
         return pool
     except Exception as e:
         logger.error(f"Failed to create database connection pool: {e}")
