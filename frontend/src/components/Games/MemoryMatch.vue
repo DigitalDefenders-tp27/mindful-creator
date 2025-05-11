@@ -581,6 +581,7 @@ watch(currentLevel, (newLevel) => {
   grid-template-columns: repeat(4, 1fr); /* 4 columns for 6 pairs */
   grid-template-rows: repeat(3, 1fr);    /* 3 rows for 6 pairs */
   aspect-ratio: 4 / 3;
+  padding: clamp(10px, 2.5vmin, 20px); /* Increased padding to shrink cards */
 }
 
 .game-board.level-2 {
