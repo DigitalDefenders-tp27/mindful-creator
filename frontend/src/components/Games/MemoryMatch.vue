@@ -555,7 +555,7 @@ watch(currentLevel, (newLevel) => {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   padding: 0;
   overflow: hidden;
