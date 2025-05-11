@@ -67,16 +67,24 @@ app = FastAPI(
 )
 
 # Configure CORS middleware
+# Define allowed origins for specific domains
+allowed_origins = [
+    "http://localhost:3000",  # Local development (frontend)
+    "http://localhost:5173",  # Vite dev server (frontend)
+    "https://mindful-creator.vercel.app",  # Main Vercel production domain
+    "https://tiezhu.org", # Custom domain
+    "https://www.tiezhu.org" # Custom domain with www
+    # Add any other specific production/staging domains here
+]
+
+# Define a regex for Vercel preview deployments under your specific project/scope
+# This matches URLs like: https://mindful-creator-<hash>-tp27.vercel.app
+vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\-]+-tp27\.vercel\.app$"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Local development
-        "http://localhost:5173",  # Vite dev server
-        "https://mindful-creator.vercel.app",  # Main Vercel domain
-        "https://mindful-creator-mcqbwi1f8-tp27.vercel.app",
-        "https://tiezhu.org",
-        "https://www.tiezhu.org"
-    ],
+    allow_origins=allowed_origins, # List of specific origins
+    allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
@@ -126,7 +134,7 @@ async def load_nlp_model():
 
         # 5) Load MTL head weights
         state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
-        model.load_state_dict(state_dict)
+        model.load_state_dict(state_dict, strict=False)
         model.eval()
 
         # 6) Mount to app.state
@@ -217,6 +225,9 @@ ADDITIONAL_ROUTES = [
     ("app.routers.journals", "/api/journals"),
     ("app.routers.memes", "/api/memes")
 ]
+
+# Add the games router
+ADDITIONAL_ROUTES.append(("app.api.games", "/api/games"))
 
 logger.info("Loading additional routes...")
 for route_module, prefix in ADDITIONAL_ROUTES:
