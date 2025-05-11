@@ -62,18 +62,26 @@ WORKDIR /app/meme_images
 # Download the dataset. Ensure 'williamscott701/memotion-dataset-7k' is correct.
 RUN echo "Current directory before Kaggle download: $(pwd)" && \
     kaggle datasets download -d williamscott701/memotion-dataset-7k --unzip -p . && \
-    echo "Contents of /app/meme_images after Kaggle download and unzip:" && \
+    echo "Contents of /app/meme_images after Kaggle download and unzip (initial listing):" && \
     ls -laR . && \
-    # If images are in a subdirectory (e.g., named 'images'), move them to the current dir
-    # and remove the subdirectory.
-    if [ -d "images" ]; then \
-        echo "'images' subdirectory found. Moving contents..."; \
+    # Check for the new expected path: memotion_dataset_7k/images
+    if [ -d "memotion_dataset_7k/images" ]; then \
+        echo "Found images in memotion_dataset_7k/images/. Moving contents..."; \
+        mv memotion_dataset_7k/images/* .; \
+        echo "Cleaning up memotion_dataset_7k directory structure..."; \
+        rm -rf memotion_dataset_7k; \
+        echo "Contents of /app/meme_images after moving from memotion_dataset_7k/images:" && \
+        ls -laR .; \
+    # Fallback for a direct 'images' subdirectory (older structure?)
+    elif [ -d "images" ]; then \
+        echo "Found images in a direct 'images' subdirectory. Moving contents..."; \
         mv images/* .; \
         rm -rf images; \
-        echo "Contents of /app/meme_images after mv operation:" && \
+        echo "Contents of /app/meme_images after moving from direct 'images' subdir:" && \
         ls -laR .; \
     else \
-        echo "No 'images' subdirectory found, or it was empty."; \
+        echo "Images are expected to be directly in /app/meme_images or no known subdirectory structure was found. No move operation performed."; \
+        # This assumes images are already in the root of /app/meme_images if the above conditions are not met.
     fi
 WORKDIR /app # Switch back to the main app directory
 # --- End Kaggle Download ---
