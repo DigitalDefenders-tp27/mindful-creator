@@ -555,22 +555,20 @@ watch(currentLevel, (newLevel) => {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
   width: 100%;
   padding: 0;
   overflow: hidden;
   min-height: 0;
   box-sizing: border-box;
-  margin: 5px auto;
 }
 
 .game-board {
   display: grid;
   width: auto;
   height: auto;
-  max-width: 95vw;
-  max-height: 100%;
-  margin: 0 auto;
+  max-width: 90vw;
+  max-height: 80vh;
   gap: clamp(5px, 1.5vmin, 10px);
   padding: clamp(5px, 1.5vmin, 10px);
   background: rgba(0, 0, 0, 0.03);
