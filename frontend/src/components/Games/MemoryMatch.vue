@@ -586,9 +586,10 @@ watch(currentLevel, (newLevel) => {
 }
 
 .game-board.level-2 {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(10, 1fr);
-  aspect-ratio: 5 / 10;
+  aspect-ratio: unset;
+  overflow-y: auto;
 }
 
 .card {
@@ -601,7 +602,7 @@ watch(currentLevel, (newLevel) => {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
@@ -979,7 +980,7 @@ watch(currentLevel, (newLevel) => {
   align-items: center;
   margin: 10px auto 15px auto; /* Center block and add some margin */
   padding: 8px 15px;
-  background-color: rgba(144, 238, 144, 0.8); /* Light green with some transparency */
+  background-color: #FE6B8B; /* Changed to dark pink theme color */
   border-radius: 25px; /* Pill shape */
   font-size: clamp(0.8rem, 2.5vw, 1rem); /* Adjusted font size */
   font-weight: 500;
