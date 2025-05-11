@@ -5,9 +5,12 @@
       <h1>Meme Memory Match</h1>
       <!-- Level selection (simplified, can be expanded) -->
       <div v-if="!gameStarted && !gameOver" class="level-selector">
-        Select Level:
-        <button @click="selectLevel(1)" :class="{ 'active-level': currentLevel === 1 }">Easy ({{levels[1].pairs}} pairs)</button>
-        <button @click="selectLevel(2)" :class="{ 'active-level': currentLevel === 2 }">Medium ({{levels[2].pairs}} pairs)</button>
+        <!-- Level selection removed from initial screen, game defaults to Level 1 -->
+        <!-- Buttons were: <button @click="selectLevel(1)"...>, <button @click="selectLevel(2)"...> -->
+        <p class="game-instructions">
+          Welcome to Meme Memory Match! <br />
+          Click the cards to find matching pairs of memes. Clear the board before time runs out!
+        </p>
         <button @click="startGame" class="start-button">Start Game</button>
       </div>
     </div>
@@ -77,31 +80,37 @@
         </div>
         <p>Score: {{ score }}</p>
         
-        <!-- Meme gallery in modal -->
-        <div v-if="gameWon && gameMemesForModal.length > 0" class="meme-gallery-modal">
-          <h3>Memes from this game:</h3>
-          <div class="meme-scroll-container">
-            <div v-for="meme in gameMemesForModal" :key="meme.image_name" class="modal-meme-item">
+        <!-- Meme gallery in modal - updated for single display with navigation -->
+        <div v-if="gameWon && gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style">
+          <h3>Know more about it</h3>
+          <div class="meme-carousel">
+            <button @click="prevModalMeme" class="arrow-btn left-arrow" :disabled="currentModalMemeIndex === 0">&#x276E;</button>
+            <div class="modal-meme-item-container">
               <img 
-                :src="meme.image_url || '/images/placeholder.png'" 
-                :alt="meme.text"
+                :src="currentModalMeme.image_url || '/images/placeholder.png'" 
+                :alt="currentModalMeme.text"
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
-                class="modal-meme-image-item"
+                class="modal-meme-image-single"
               >
-              <div class="modal-meme-details">
-                <p><strong>Text:</strong> {{ meme.text || 'N/A' }}</p>
-                <!-- Add other details if needed, e.g., sentiment -->
+              <p class="modal-meme-text-under-image">{{ currentModalMeme.text || 'N/A' }}</p>
+              <div class="modal-meme-sentiments">
+                <span v-if="currentModalMeme.humour" class="sentiment-tag humour">Humour: {{ currentModalMeme.humour }}</span>
+                <span v-if="currentModalMeme.sarcasm" class="sentiment-tag sarcasm">Sarcasm: {{ currentModalMeme.sarcasm }}</span>
+                <span v-if="currentModalMeme.offensive" class="sentiment-tag offensive">Offensive: {{ currentModalMeme.offensive }}</span>
+                <span v-if="currentModalMeme.motivational" class="sentiment-tag motivational">Motivational: {{ currentModalMeme.motivational }}</span>
+                <span v-if="currentModalMeme.overall_sentiment" class="sentiment-tag overall">Overall Sentiment: {{ currentModalMeme.overall_sentiment }}</span>
               </div>
             </div>
+            <button @click="nextModalMeme" class="arrow-btn right-arrow" :disabled="currentModalMemeIndex === gameMemesForModal.length - 1">&#x276F;</button>
           </div>
         </div>
-        <div v-else-if="!gameWon && modalMeme" class="meme-gallery-simplified">
+        <div v-else-if="!gameWon" class="meme-gallery-simplified">
           <p>Better luck next time!</p>
         </div>
         
         <div class="modal-controls">
-          <!-- Removed NEXT LEVEL button for simplicity, user can re-select level and start -->
-          <button class="control-btn play-btn" @click="restartGame">PLAY AGAIN</button>
+          <button v-if="gameWon && canAdvanceLevel" class="control-btn advance-btn" @click="challengeAdvance">CHALLENGE ADVANCE</button>
+          <button class="control-btn try-again-btn" @click="restartGame">TRY AGAIN</button>
           <button class="control-btn exit-btn" @click="exitGame">EXIT</button>
         </div>
       </div>
@@ -140,6 +149,7 @@ const errorMessage = ref<string | null>(null);
 const showVictoryModal = ref(false);
 const processingFlip = ref(false);
 const gameMemesForModal = ref<MemeData[]>([]);
+const currentModalMemeIndex = ref(0);
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tiezhu.org';
 
@@ -181,6 +191,19 @@ const cardTextSizeClass = computed(() => levels[currentLevel.value].textSize);
 
 const modalMeme = ref<MemeData | null>(null);
 
+const currentModalMeme = computed(() => {
+  if (gameMemesForModal.value.length > 0 && currentModalMemeIndex.value < gameMemesForModal.value.length) {
+    return gameMemesForModal.value[currentModalMemeIndex.value];
+  }
+  return null;
+});
+
+const canAdvanceLevel = computed(() => {
+  const levelKeys = Object.keys(levels).map(Number) as LevelKey[];
+  const maxLevel = Math.max(...levelKeys);
+  return currentLevel.value < maxLevel;
+});
+
 async function initializeGameFromBackend() {
   if (!gameStarted.value) return;
   isLoading.value = true;
@@ -188,6 +211,7 @@ async function initializeGameFromBackend() {
   cards.value = [];
   matchedPairs.value = 0;
   gameMemesForModal.value = [];
+  currentModalMemeIndex.value = 0;
 
   try {
     console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
@@ -244,9 +268,9 @@ function startGame() {
   gameOver.value = false;
   gameWon.value = false;
   showVictoryModal.value = false;
-  modalMeme.value = null;
   processingFlip.value = false;
   gameMemesForModal.value = [];
+  currentModalMemeIndex.value = 0;
   resetGameState();
   timer.value = levels[currentLevel.value].gameTime;
   initializeGameFromBackend();
@@ -348,6 +372,7 @@ function endGame(won: boolean) {
   stopTimer();
   gameOver.value = true;
   gameWon.value = won;
+  currentModalMemeIndex.value = 0;
   showVictoryModal.value = true;
 
   if (won) {
@@ -364,13 +389,43 @@ function restartGame() {
   stopGame();
   gameOver.value = false;
   gameWon.value = false;
-  modalMeme.value = null;
+  currentLevel.value = 1;
+  resetGameState();
+  timer.value = levels[currentLevel.value].gameTime;
   startGame();
 }
 
 function exitGame() {
   showVictoryModal.value = false;
-  goHome();
+  gameStarted.value = false;
+  gameOver.value = false;
+  gameWon.value = false;
+  currentLevel.value = 1;
+  resetGameState();
+  timer.value = levels[currentLevel.value].gameTime;
+}
+
+function nextModalMeme() {
+  if (currentModalMemeIndex.value < gameMemesForModal.value.length - 1) {
+    currentModalMemeIndex.value++;
+  }
+}
+
+function prevModalMeme() {
+  if (currentModalMemeIndex.value > 0) {
+    currentModalMemeIndex.value--;
+  }
+}
+
+function challengeAdvance() {
+  if (canAdvanceLevel.value) {
+    const levelKeys = Object.keys(levels).map(Number).sort((a,b) => a-b) as LevelKey[];
+    const currentLevelIndex = levelKeys.indexOf(currentLevel.value);
+    if (currentLevelIndex < levelKeys.length - 1) {
+      currentLevel.value = levelKeys[currentLevelIndex + 1];
+      restartGame();
+    }
+  }
 }
 
 onMounted(() => {
@@ -418,40 +473,32 @@ watch(currentLevel, (newLevel) => {
 }
 
 .game-header h1 {
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 5vw, 2.2rem);
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: #1a73e8;
 }
 
 .level-selector {
   margin-bottom: 10px;
   font-size: clamp(0.8rem, 2.5vw, 1rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
-.level-selector button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #1a73e8;
-  background-color: white;
-  color: #1a73e8;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+.game-instructions {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  color: #5f6368;
+  margin-bottom: 10px;
+  max-width: 500px;
+  line-height: 1.4;
 }
-.level-selector button.active-level {
-  background-color: #1a73e8;
-  color: white;
-}
-.level-selector button:hover {
-  background-color: #e8f0fe;
-}
+
 .start-button {
-  margin-left: 10px;
+  padding: clamp(10px, 3vw, 12px) clamp(20px, 5vw, 25px);
+  font-size: clamp(1rem, 3.5vw, 1.2rem);
   background-color: #34a853 !important;
-  color: white !important;
-  border-color: #34a853 !important;
-}
-.start-button:hover {
-  background-color: #2c8a42 !important;
 }
 
 .game-status-bar {
@@ -650,6 +697,7 @@ watch(currentLevel, (newLevel) => {
   justify-content: center;
   align-items: center;
   gap: 8px;
+  font-weight: bold;
 }
 
 .level-badge {
@@ -667,81 +715,93 @@ watch(currentLevel, (newLevel) => {
     font-weight: bold;
 }
 
-.meme-gallery-modal {
+.meme-gallery-modal.victory-style {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
   margin-bottom: 20px;
+}
+
+.meme-gallery-modal.victory-style h3 {
+  text-align: center;
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  color: #d6336c;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.meme-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-meme-item-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  padding: 0 10px;
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  font-size: 2.5rem;
+  color: #5f6368;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: color 0.2s;
+}
+.arrow-btn:hover:not(:disabled) {
+  color: #1a73e8;
+}
+.arrow-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+.modal-meme-image-single {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.modal-meme-text-under-image {
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  color: #333;
+  text-align: center;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.modal-meme-sentiments {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
 }
 
-.meme-gallery-modal h3 {
-  font-size: 1.3em;
-  margin-bottom: 10px;
-  color: #444;
-}
-
-.meme-scroll-container {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  padding: 10px;
-  background-color: #f9f9f9;
-}
-
-.modal-meme-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
-.modal-meme-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.modal-meme-image-item {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-right: 15px;
-  border: 1px solid #ddd;
-}
-
-.modal-meme-details {
-  text-align: left;
-  font-size: 0.9em;
-  flex-grow: 1;
-}
-
-.modal-meme-details p {
-  margin: 2px 0;
-  font-size: 0.95em;
+.sentiment-tag {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  font-weight: 500;
   color: #333;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
 }
-.modal-meme-details p strong {
-  color: #111;
-}
-
-.meme-gallery-simplified {
-    margin-top: 15px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-.modal-meme-image {
-    max-width: 100%;
-    max-height: 150px;
-    object-fit: contain;
-    border-radius: 4px;
-    margin-bottom: 10px;
-}
-.modal-meme-sentiment p {
-    font-size: 0.85em;
-    margin: 3px 0;
-    color: #666;
-}
+.sentiment-tag.humour { background-color: #c3e6cb; border-color: #b1dfbb; color: #155724; }
+.sentiment-tag.sarcasm { background-color: #f5c6cb; border-color: #f1b0b7; color: #721c24; }
+.sentiment-tag.offensive { background-color: #ffeeba; border-color: #ffdf7e; color: #856404; }
+.sentiment-tag.motivational { background-color: #bee5eb; border-color: #abdde5; color: #0c5460; }
+.sentiment-tag.overall { background-color: #d6d8db; border-color: #c6c8ca; color: #383d41; }
 
 .modal-controls {
   display: flex;
@@ -772,7 +832,9 @@ watch(currentLevel, (newLevel) => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 .play-btn { background: linear-gradient(135deg, #34a853, #2c8a42); }
+.try-again-btn { background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; }
 .exit-btn { background: linear-gradient(135deg, #ea4335, #c5221f); }
+.advance-btn { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
 
 .loading-overlay {
   position: fixed;
