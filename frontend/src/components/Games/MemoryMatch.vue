@@ -584,10 +584,10 @@ watch(currentLevel, (newLevel) => {
 }
 
 .game-board.level-2 {
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  aspect-ratio: unset;
-  overflow-y: auto;
+  grid-template-columns: repeat(5, 1fr); /* Default 5 columns for 25 pairs */
+  grid-template-rows: repeat(10, 1fr);   /* 10 rows for 25 pairs */
+  aspect-ratio: 5 / 10; /* Default aspect ratio (simplifies to 1/2) */
+  /* overflow-y: auto; will be applied by media queries when needed */
 }
 
 .card {
@@ -882,10 +882,11 @@ watch(currentLevel, (newLevel) => {
     padding: clamp(4px, 1.2vmin, 8px);
   }
   .game-board.level-2 {
-    overflow-y: auto;
-    aspect-ratio: unset;
-    width: 98%;
-    height: auto;
+    overflow-y: auto; /* Enable scrolling for Level 2 on smaller screens */
+    aspect-ratio: unset; /* Allow height to be determined by content for scrolling */
+    width: 98%; /* Take most of the container width */
+    height: auto; /* Height will be determined by content and max-height of .game-board */
+    /* grid-template-columns will be inherited (5) or overridden by narrower media queries */
   }
   .level-2-help {
     display: block !important;
@@ -950,11 +951,10 @@ watch(currentLevel, (newLevel) => {
         aspect-ratio: 3 / 2;
     }
     .game-board.level-2 {
-        grid-template-columns: repeat(5, 1fr);
-        aspect-ratio: unset;
-        overflow-y: auto;
-        width: 98vw;
-        max-height: calc(100vh - 90px);
+        grid-template-columns: repeat(7, 1fr); /* 7 columns for landscape Level 2 */
+        aspect-ratio: unset; /* Correct: allow scrolling to determine height */
+        overflow-y: auto; /* Correct: enable scrolling */
+        width: 98vw; /* Take almost full viewport width */
     }
     .modal-content {
         width: 90%;
