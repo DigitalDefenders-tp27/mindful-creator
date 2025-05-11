@@ -16,34 +16,6 @@ logger = logging.getLogger(__name__)
 # Configure logging if not already done globally, e.g.:
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-# Database Configuration
-PGHOST_ENV = os.getenv("PGHOST")
-PGUSER_ENV = os.getenv("PGUSER")
-PGPASSWORD_ENV = os.getenv("PGPASSWORD")
-PGDATABASE_ENV = os.getenv("PGDATABASE")
-PGPORT_ENV = os.getenv("PGPORT", "5432") # Default PostgreSQL port
-
-# --- TEMPORARY DIAGNOSTIC PRINTS ---
-print(f"DEBUG: Read PGHOST_ENV: '{PGHOST_ENV}' (Type: {type(PGHOST_ENV)})")
-print(f"DEBUG: Read PGUSER_ENV: '{PGUSER_ENV}' (Type: {type(PGUSER_ENV)})")
-print(f"DEBUG: Read PGPASSWORD_ENV: '{'********' if PGPASSWORD_ENV else PGPASSWORD_ENV}' (Type: {type(PGPASSWORD_ENV)})") # Mask password
-print(f"DEBUG: Read PGDATABASE_ENV: '{PGDATABASE_ENV}' (Type: {type(PGDATABASE_ENV)})")
-print(f"DEBUG: Read PGPORT_ENV: '{PGPORT_ENV}' (Type: {type(PGPORT_ENV)})")
-# --- END TEMPORARY DIAGNOSTIC PRINTS ---
-
-# Logic for DATABASE_URL_MEME_FETCH override has been removed.
-# The application will now solely rely on PG* environment variables.
-
-if PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV:
-    # Ensure db_host is correctly determined for Railway internal or external hostnames
-    db_host = PGHOST_ENV
-    DATABASE_URL = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{db_host}:{PGPORT_ENV}/{PGDATABASE_ENV}"
-    logger.info(f"Constructed DATABASE_URL from PG* env vars. Connecting to host: {db_host}") # This will only show if condition is true and logger is configured
-else:
-    DATABASE_URL = None # No valid configuration found
-    logger.error("Insufficient PG* environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) found to construct DATABASE_URL.")
-    logger.info("Ensure these environment variables are correctly set and injected by your hosting provider (e.g., Railway).")
-
 # Path constants for the new mechanism
 # FRONTEND_PUBLIC_DIR = Path("frontend/public")
 # TEMP_MEMES_SUBDIR = "temp_memes" # This will be inside frontend/public/
@@ -71,15 +43,42 @@ class MemeDataFromDB(BaseModel): # Renamed to distinguish from frontend's potent
 
 # Helper functions for the new mechanism
 async def get_db_connection():
-    if not DATABASE_URL:
-        logger.error("Cannot connect to DB: DATABASE_URL is not configured.")
-        raise HTTPException(status_code=500, detail="Database configuration error.")
+    PGHOST_ENV = os.getenv("PGHOST")
+    PGUSER_ENV = os.getenv("PGUSER")
+    PGPASSWORD_ENV = os.getenv("PGPASSWORD")
+    PGDATABASE_ENV = os.getenv("PGDATABASE")
+    PGPORT_ENV = os.getenv("PGPORT", "5432") # Default PostgreSQL port
+
+    # Diagnostic logging (can be removed after confirming the fix)
+    logger.info(f"get_db_connection: Read PGHOST_ENV: '{PGHOST_ENV}'")
+    logger.info(f"get_db_connection: Read PGUSER_ENV: '{PGUSER_ENV}'")
+    # logger.info(f"get_db_connection: Read PGPASSWORD_ENV: '{'********' if PGPASSWORD_ENV else 'None'}'") # Mask password
+    logger.info(f"get_db_connection: Read PGDATABASE_ENV: '{PGDATABASE_ENV}'")
+    logger.info(f"get_db_connection: Read PGPORT_ENV: '{PGPORT_ENV}'")
+
+    local_database_url = None
+    if PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV:
+        db_host = PGHOST_ENV
+        local_database_url = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{db_host}:{PGPORT_ENV}/{PGDATABASE_ENV}"
+        logger.info(f"get_db_connection: Constructed DATABASE_URL for host: {db_host}")
+    else:
+        logger.error("get_db_connection: Insufficient PG* vars (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) found.")
+    
+    if not local_database_url:
+        logger.error("Cannot connect to DB: DATABASE_URL could not be constructed or is not configured.")
+        # This specific detail will be shown to the frontend if this path is taken.
+        raise HTTPException(status_code=500, detail="Database configuration error due to missing connection details in backend environment.")
+    
     try:
-        conn = await asyncpg.connect(DATABASE_URL)
-        logger.info(f"DB Connected: {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else 'DB'}")
+        conn = await asyncpg.connect(local_database_url)
+        # Avoid logging the full URL with password in production if possible, or just the host part
+        logger.info(f"DB Connected to host: {local_database_url.split('@')[-1].split('/')[0] if '@' in local_database_url else 'DB'}")
         return conn
+    except asyncpg.PostgresError as dbe:
+        logger.error(f"DB Connection Failed (asyncpg.PostgresError): {dbe}")
+        raise HTTPException(status_code=500, detail=f"Database connection error: {dbe}")
     except Exception as e:
-        logger.error(f"DB Connection Failed: {e}")
+        logger.error(f"DB Connection Failed (General Exception): {e}")
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
 # New Endpoints using PostgreSQL
