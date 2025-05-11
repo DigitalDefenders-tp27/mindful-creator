@@ -566,7 +566,7 @@ watch(currentLevel, (newLevel) => {
 .game-board {
   display: grid;
   width: auto;
-  height: auto;
+  height: 100%;
   max-width: 90vw;
   max-height: 100%;
   gap: clamp(5px, 1.5vmin, 10px);
