@@ -163,12 +163,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import axios from 'axios';
 
 // API configuration
-const MEME_API_URL = import.meta.env.VITE_MEME_API_URL || 'http://localhost:8000';
-const IS_DEVELOPMENT = import.meta.env.DEV;
+const MEME_API_URL = import.meta.env.VITE_MEME_API_URL || 'https://api.tiezhu.org';
+// const IS_DEVELOPMENT = import.meta.env.DEV; // Keep if used
 
 // Game settings
 const currentLevel = ref(1);
@@ -177,13 +177,13 @@ const isGameActive = ref(false);
 const isLoading = ref(true);
 const showVictoryModal = ref(false);
 const timerInterval = ref(null);
-const memeDirAccessible = ref(true); // Flag to track if memes directory is accessible
+// const memeDirAccessible = ref(true); // This is no longer needed as backend handles access
 
 // Cards state
 const cards = ref([]);
 const flippedCards = ref([]);
-const memes = ref([]);
-const totalPairs = computed(() => currentLevel.value === 1 ? 6 : 25);
+const memes = ref([]); // This will now be populated by the new backend endpoint
+const totalPairs = computed(() => currentLevel.value === 1 ? 6 : 25); // Using 6 pairs for level 1
 const matchedPairs = ref(0);
 
 // Track victory status
@@ -193,320 +193,129 @@ const isVictory = ref(true);
 const currentMemeIndex = ref(0);
 const usedMemes = computed(() => {
   // In the victory modal, show only the memes that were used in the game
-  const uniqueMemeIds = [...new Set(cards.value.map(card => card.originalId))];
-  return memes.value.filter(meme => uniqueMemeIds.includes(meme.id));
+  // The `id` from the backend is now the `originalId`
+  const uniqueMemeOriginalIds = [...new Set(cards.value.map(card => card.originalId))];
+  return memes.value.filter(meme => uniqueMemeOriginalIds.includes(meme.id)); // meme.id is the originalId now
 });
 
-// Update currentMeme to use usedMemes instead of all memes
+// Update currentMeme to use usedMemes and the new data structure
 const currentMeme = computed(() => {
   if (!usedMemes.value || usedMemes.value.length === 0) {
     return { 
-      id: 0,
+      id: 0, // This 'id' is the meme's original id
       text: 'No meme available',
-      imagePath: '/images/placeholder.png',
+      imagePath: '/images/placeholder.png', // Default placeholder
+      isOffline: false, // No offline concept with new backend
       sentiment: {
         humour: 'unknown',
         sarcasm: 'unknown',
-        offensive: 'not_offensive',
+        offensive: 'unknown',
         motivational: 'unknown',
         overall: 'neutral'
       }
     };
   }
   
-  // Make sure currentMemeIndex is within bounds
   if (currentMemeIndex.value >= usedMemes.value.length) {
     currentMemeIndex.value = 0;
   }
   
-  // Use the current index (for navigation)
-  const meme = usedMemes.value[currentMemeIndex.value];
+  const memeFromGame = usedMemes.value[currentMemeIndex.value];
   
-  // Format image path - ensure it has the proper prefix
-  let imagePath = meme.image_name;
-  if (!imagePath.startsWith('/')) {
-    imagePath = `/memes/${imagePath}`;
-  } else if (!imagePath.startsWith('/memes/')) {
-    imagePath = `/memes${imagePath}`;
-  }
-  
-  // Ensure all sentiment data is present
+  // Data from backend is already structured, imagePath is direct
   return {
-    id: meme.id,
-    text: meme.text || `Meme ${meme.id}`,
-    imagePath: imagePath,
-    sentiment: {
-      humour: meme.humour || 'unknown',
-      sarcasm: meme.sarcasm || 'unknown',
-      offensive: meme.offensive || 'not_offensive',
-      motivational: meme.motivational || 'unknown',
-      overall: meme.overall_sentiment || 'neutral'
+    id: memeFromGame.id,
+    text: memeFromGame.text || `Meme ${memeFromGame.id}`,
+    imagePath: memeFromGame.imagePath, // This path comes directly from the backend
+    isOffline: false, // Explicitly false
+    sentiment: { // Assuming backend provides these directly nested or top-level
+      humour: memeFromGame.humour || 'unknown',
+      sarcasm: memeFromGame.sarcasm || 'unknown',
+      offensive: memeFromGame.offensive || 'unknown', // Map to overall_sentiment if needed
+      motivational: memeFromGame.motivational || 'unknown',
+      overall: memeFromGame.overall_sentiment || 'neutral' // map overall_sentiment from backend
     }
   };
 });
 
-// Sample sentiment values for randomization
-const sentimentOptions = {
-  humour: ['very_funny', 'funny', 'not_funny', 'neutral'],
-  sarcasm: ['very_sarcastic', 'sarcastic', 'not_sarcastic', 'neutral'],
-  offensive: ['offensive', 'not_offensive'],
-  motivational: ['motivational', 'not_motivational', 'neutral'],
-  overall: ['very_positive', 'positive', 'neutral', 'negative', 'very_negative']
-};
-
-// Ensure we have the getRandomSentiment function properly defined
-// This function should be right after sentimentOptions declaration to ensure it is defined before use
-const getRandomSentiment = (type) => {
-  // Ensure sentimentOptions is defined
-  if (!sentimentOptions[type]) {
-    console.warn(`Unknown sentiment type: ${type}, using fallback`);
-    return 'neutral'; // Safe fallback
-  }
-  const options = sentimentOptions[type];
-  return options[Math.floor(Math.random() * options.length)];
-};
-
 // Methods
-const fetchMemes = async () => {
+
+// NEW: Function to initialize game data from the backend
+const initializeGameFromBackend = async () => {
+  isLoading.value = true;
+  console.log('Initializing game from backend...');
   try {
-    isLoading.value = true;
-    console.log('Fetching memes...');
-
-    // API server status flag
-    let apiUnavailable = !memeDirAccessible.value; // Start with directory access status
-    
-    // Skip API calls if memes directory is already known to be inaccessible
-    if (apiUnavailable) {
-      console.log('Memes directory inaccessible, using offline mode immediately');
-    } else {
-      // Try to fetch memes from the API if directory is accessible
-      try {
-        console.log('Attempting to fetch memes from API...');
-        // Use a higher count to ensure we have enough memes after filtering duplicates
-        const response = await fetch(`${MEME_API_URL}/api/memes/random?count=100`, { 
-          signal: AbortSignal.timeout(5000) // 5 second timeout
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            console.log(`Successfully fetched ${data.length} memes from API`);
-            
-            // Process the API memes
-            const processedMemes = data.map((meme, index) => ({
-              id: meme.id || index + 1,
-              image_name: meme.image_name || `meme_${index + 1}.jpg`,
-              text: meme.text || `Meme ${index + 1}`,
-              humour: meme.humour || getRandomSentiment('humour'),
-              sarcasm: meme.sarcasm || getRandomSentiment('sarcasm'),
-              offensive: meme.offensive || getRandomSentiment('offensive'),
-              motivational: meme.motivational || getRandomSentiment('motivational'),
-              overall_sentiment: meme.overall_sentiment || getRandomSentiment('overall')
-            }));
-            
-            // Filter out duplicates by image_name
-            const uniqueMemes = filterDuplicateMemes(processedMemes);
-            memes.value = uniqueMemes;
-            
-            setupCards();
-            isLoading.value = false;
-            startGame();
-            return;
-          }
-        } else {
-          console.warn(`API response was not OK: ${response.status}`);
-          apiUnavailable = true;
-        }
-      } catch (apiError) {
-        console.warn('API fetch failed, falling back to local memes:', apiError);
-        apiUnavailable = true;
-      }
-    }
-    
-    // If API fetch failed or directory inaccessible, use local fallback
-    if (apiUnavailable) {
-      console.log('API unavailable, creating offline fallback cards');
-      
-      // Create the array of known fallback meme filenames directly
-      const knownMemeFiles = [
-        // Numbered meme files we know exist
-        ...Array.from({ length: 20 }, (_, i) => `meme_${i + 1}.jpg`),
-        // MemoryMatch special files
-        'MemoryMatch_1.jpg', 'MemoryMatch_2.jpg', 'MemoryMatch_3.jpg', 'MemoryMatch.jpg',
-        // Known dataset images that we've verified exist
-        'image_1258.jpg', 'image_1264.jpg', 'image_1270.jpg', 'image_2037.jpg',
-        'image_2779.jpg', 'image_3301.jpg', 'image_3315.jpg', 'image_3329.jpg',
-        'image_3467.jpg', 'image_3473.jpg', 'image_4308.jpg', 'image_4446.jpg',
-        'image_5002.jpg', 'image_5016.jpg', 'image_5758.jpg', 'image_5980.jpg',
-        'image_6251.jpg', 'image_6279.jpg', 'image_6537.jpg', 'image_811.jpg'
-      ];
-      
-      console.log(`Using ${knownMemeFiles.length} static fallback filenames`);
-      
-      // Create meme objects
-      const allMemes = knownMemeFiles.map((filename, index) => ({
-        id: index + 1,
-        image_name: filename,
-        text: `Meme ${index + 1}`,
-        humour: getRandomSentiment('humour'),
-        sarcasm: getRandomSentiment('sarcasm'),
-        offensive: getRandomSentiment('offensive'),
-        motivational: getRandomSentiment('motivational'),
-        overall_sentiment: getRandomSentiment('overall')
-      }));
-      
-      // Filter and select memes
-      const uniqueMemes = filterDuplicateMemes(allMemes);
-      const shuffledMemes = shuffleArray([...uniqueMemes]);
-      const selectedMemes = shuffledMemes.slice(0, totalPairs.value);
-      
-      memes.value = selectedMemes;
-      setupCards();
-      isLoading.value = false;
-      startGame();
-      return;
-    }
-
-    // ... rest of existing code ...
-  
-  } catch (error) {
-    console.error('Error setting up memes:', error);
-    isLoading.value = false;
-    
-    // Don't try retryWithImagesDirectory if we already know the memes directory is inaccessible
-    if (memeDirAccessible.value) {
-      // Try the fallback method as a last resort
-      retryWithImagesDirectory();
-    } else {
-      // Create a completely offline fallback with just canvas elements if needed
-      createOfflineFallbackCards();
-    }
-  }
-};
-
-// Fix createOfflineFallbackCards function to ensure it works properly
-const createOfflineFallbackCards = () => {
-  console.log('Creating 100% offline fallback cards with canvas');
-  
-  // Generate unique pairs based on the current level
-  const numPairs = totalPairs.value;
-  const offlineMemes = [];
-  
-  // Create memes with unique colors based on ID
-  for (let i = 1; i <= numPairs; i++) {
-    const hue = (i * 30) % 360; // Create a unique color for each meme
-    
-    offlineMemes.push({
-      id: i,
-      image_name: `offline_${i}.jpg`, // This won't be used for rendering
-      text: `Meme ${i}`,
-      humour: getRandomSentiment('humour'),
-      sarcasm: getRandomSentiment('sarcasm'),
-      offensive: getRandomSentiment('offensive'),
-      motivational: getRandomSentiment('motivational'),
-      overall_sentiment: getRandomSentiment('overall'),
-      isOffline: true, // This flag tells the renderer to use canvas
-      hue: hue // Store the hue for rendering
+    const response = await fetch(`${MEME_API_URL}/api/games/memory_match/initialize_game`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ level: currentLevel.value }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `Failed to initialize game: ${response.status}`);
+    }
+
+    const gameData = await response.json();
+    if (gameData && gameData.length > 0) {
+      memes.value = gameData; // Backend provides array of MemeData objects
+      console.log(`Successfully fetched ${memes.value.length} memes from backend.`);
+      setupCards();
+      startGame();
+    } else {
+      console.error('No memes received from backend or empty array.');
+      // Handle empty memes - perhaps show an error to the user
+      alert('Failed to load memes for the game. Please try again later.');
+    }
+  } catch (error) {
+    console.error('Error initializing game from backend:', error);
+    alert(`Error initializing game: ${error.message}. Please check backend logs and try again.`);
+    // Could implement a retry or direct user to refresh
+  } finally {
+    isLoading.value = false;
   }
-  
-  console.log(`Created ${offlineMemes.length} offline memes with unique colors`);
-  
-  // Set the memes and set up the game
-  memes.value = offlineMemes;
-  
-  // Show the cards
-  setupCards();
-  
-  // End loading and start the game
-  isLoading.value = false;
-  startGame();
 };
 
-// Enhanced helper function to filter duplicate memes
-const filterDuplicateMemes = (memeArray) => {
-  // Track unique images by both filename and visual content
-  const uniqueImageNames = new Set();
-  const uniqueVisualContent = new Set();
-  
-  return memeArray.filter(meme => {
-    // Skip if no image name
-    if (!meme.image_name) return false;
-    
-    // Get base filename without extension and path to catch duplicates with different extensions
-    const filename = meme.image_name;
-    // Remove path prefix if present
-    const fileNameOnly = filename.includes('/') ? 
-      filename.substring(filename.lastIndexOf('/') + 1) : filename;
-    // Remove extension
-    const baseName = fileNameOnly.includes('.') ? 
-      fileNameOnly.substring(0, fileNameOnly.lastIndexOf('.')) : fileNameOnly;
-    
-    // Extract any ID numbers present in the filename for deeper comparison
-    const idMatches = baseName.match(/\d+/g);
-    const fileId = idMatches ? idMatches.join('_') : '';
-    
-    // Create a visual content hash based on filename and any known pattern
-    // This helps identify visually identical content with different filenames
-    let visualContentId = baseName.toLowerCase();
-    
-    // Some files might have same visual content with different naming schemes
-    // e.g., "meme_1.jpg" and "funny_1.jpg" could be the same image
-    if (fileId) {
-      visualContentId = fileId;
-    }
-    
-    // Check for both filename and content duplicates
-    if (!uniqueImageNames.has(baseName.toLowerCase()) && 
-        !uniqueVisualContent.has(visualContentId)) {
-      uniqueImageNames.add(baseName.toLowerCase());
-      uniqueVisualContent.add(visualContentId);
-      return true;
-    }
-    
-    return false;
-  });
-};
-
-// Update card setup to use the public memes directory
+// setupCards will now use memes.value populated by initializeGameFromBackend
 const setupCards = () => {
-  // Create two cards for each meme
-  const memesNeeded = totalPairs.value;
-  const memesToUse = memes.value.slice(0, memesNeeded);
+  if (!memes.value || memes.value.length === 0) {
+    console.error("Cannot setup cards, memes array is empty.");
+    return;
+  }
+  // Create two cards for each meme. Backend ensures correct number of unique memes.
+  const memesToUse = memes.value; // memes.value is already the exact set from backend
   
-  console.log(`Setting up ${memesNeeded} pairs of cards with memes:`, memesToUse);
+  console.log(`Setting up ${memesToUse.length} pairs of cards with memes:`, memesToUse);
   
-  // Create pairs of cards
   const cardPairs = memesToUse.map(meme => {
-    // Determine the correct image path based on image name
-    let imagePath = meme.isOffline ? null : `/memes/${meme.image_name}`;
-    console.log(`Using path for ${meme.image_name}: ${imagePath || '[canvas fallback]'}`);
-    
+    // meme.imagePath is the direct path from backend (e.g., /temp_memes/image.jpg)
+    // meme.id is the original ID of the meme from the backend
     return [
       {
-        id: `${meme.id}-1`,
-        originalId: meme.id,
-        imagePath: imagePath,
+        id: `${meme.id}-1`, // Card's unique ID in the game
+        originalId: meme.id, // Meme's original ID (from backend's 'id' field)
+        imagePath: meme.imagePath,
         text: meme.text || '',
-        isOffline: meme.isOffline || false,
-        hue: meme.hue || ((meme.id * 137) % 360), // Used for offline mode
+        isOffline: false, // Always false with new backend
+        hue: null, // Not needed
         isFlipped: false,
         isMatched: false
       },
       {
         id: `${meme.id}-2`,
         originalId: meme.id,
-        imagePath: imagePath,
+        imagePath: meme.imagePath,
         text: meme.text || '',
-        isOffline: meme.isOffline || false,
-        hue: meme.hue || ((meme.id * 137) % 360), // Used for offline mode
+        isOffline: false,
+        hue: null,
         isFlipped: false,
         isMatched: false
       }
     ];
   }).flat();
   
-  // Shuffle the cards
   cards.value = shuffleArray(cardPairs);
 };
 
@@ -540,10 +349,12 @@ const resetGameState = () => {
   showVictoryModal.value = false;
   
   // Reset all cards
-  cards.value.forEach(card => {
-    card.isFlipped = false;
-    card.isMatched = false;
-  });
+  if (cards.value && cards.value.length > 0) {
+    cards.value.forEach(card => {
+      card.isFlipped = false;
+      card.isMatched = false;
+    });
+  }
   
   // Clear any existing timer
   if (timerInterval.value) {
@@ -553,7 +364,6 @@ const resetGameState = () => {
 };
 
 const flipCard = (card) => {
-  // Don't allow flipping if game not active, card already matched or already flipped
   if (!isGameActive.value || card.isMatched || card.isFlipped || flippedCards.value.length >= 2) {
     return;
   }
@@ -598,74 +408,26 @@ const endGame = async (isWin) => {
   isGameActive.value = false;
   isVictory.value = isWin;
   
-  // Clear the timer
   if (timerInterval.value) {
     clearInterval(timerInterval.value);
     timerInterval.value = null;
   }
   
-  // Get unique meme IDs used in this game
-  const uniqueMemeIds = [...new Set(cards.value.map(card => card.originalId))];
+  // Sentiment data is already part of the meme objects in memes.value
+  // The `usedMemes` computed property will filter these for the modal.
   
   if (isWin) {
-    try {
-      // Try to fetch sentiment data for the memes used in this game
-      const sentimentData = await fetchSentimentData(uniqueMemeIds);
-      
-      // If we got sentiment data, update the memes
-      if (sentimentData) {
-        memes.value = memes.value.map(meme => {
-          const updatedSentiment = sentimentData.find(s => s.id === meme.id);
-          if (updatedSentiment) {
-            // Make sure we preserve the image_name from the original meme
-            return {
-              ...meme,
-              ...updatedSentiment,
-              image_name: meme.image_name // Ensure we keep the original image_name
-            };
-          }
-          return meme;
-        });
-        console.log('Updated memes with sentiment data:', memes.value);
-      }
-    } catch (error) {
-      console.error('Error updating sentiment data:', error);
-    }
-    
-    // Show victory modal
     currentMemeIndex.value = 0;
     showVictoryModal.value = true;
   } else {
     // Show game over modal after showing all cards
-    cards.value.forEach(card => {
-      card.isFlipped = true;
-    });
+    if (cards.value && cards.value.length > 0){
+        cards.value.forEach(card => {
+        card.isFlipped = true;
+        });
+    }
     
-    setTimeout(async () => {
-      try {
-        // Try to fetch sentiment data for the memes used in this game
-        const sentimentData = await fetchSentimentData(uniqueMemeIds);
-        
-        // If we got sentiment data, update the memes
-        if (sentimentData) {
-          memes.value = memes.value.map(meme => {
-            const updatedSentiment = sentimentData.find(s => s.id === meme.id);
-            if (updatedSentiment) {
-              // Make sure we preserve the image_name from the original meme
-              return {
-                ...meme,
-                ...updatedSentiment,
-                image_name: meme.image_name // Ensure we keep the original image_name
-              };
-            }
-            return meme;
-          });
-          console.log('Updated memes with sentiment data for game over:', memes.value);
-        }
-      } catch (error) {
-        console.error('Error updating sentiment data for game over:', error);
-      }
-      
+    setTimeout(() => {
       currentMemeIndex.value = 0;
       showVictoryModal.value = true;
     }, 2000);
@@ -681,354 +443,150 @@ const formatTime = (seconds) => {
 const advanceLevel = () => {
   currentLevel.value = 2;
   showVictoryModal.value = false;
-  fetchMemes();
+  // resetGameState(); // Should be called by initializeGameFromBackend indirectly via startGame
+  initializeGameFromBackend(); // Fetch new memes for level 2
 };
 
 const restartGame = () => {
   showVictoryModal.value = false;
-  resetGameState();
-  startGame();
+  // resetGameState(); // startGame calls resetGameState
+  // fetchMemes(); // Old way, now use initializeGameFromBackend
+  initializeGameFromBackend();
 };
 
-const exitGame = () => {
-  // Emit event to parent component
+// NEW: Function to call backend cleanup
+const cleanupTemporaryGameFiles = async () => {
+  console.log('Attempting to cleanup temporary game files via backend...');
+  try {
+    const response = await fetch(`${MEME_API_URL}/api/games/memory_match/cleanup_game`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Backend cleanup failed:', errorData.detail || response.status);
+    } else {
+      console.log('Backend cleanup successful.');
+    }
+  } catch (error) {
+    console.error('Error calling backend cleanup:', error);
+  }
+};
+
+const exitGame = async () => {
   showVictoryModal.value = false;
-  resetGameState();
+  resetGameState(); // Reset local game state
+  await cleanupTemporaryGameFiles(); // Call backend cleanup
   emit('exit-game');
 };
 
+// Simplified image error handlers
 const handleImageError = (event, card) => {
-  console.warn(`Failed to load image for card: ${card.originalId}`);
-  console.warn(`Image path was: ${card.imagePath}`);
-  
-  // Try different image sources in sequence
+  console.warn(`Failed to load image for card: ${card.originalId}, path: ${card.imagePath}`);
+  // Image is from backend's temp store. If it fails, it's a server-side issue or broken link.
+  // Fallback to a generic placeholder or canvas.
+  // The complex retry logic with different extensions/paths is less relevant now.
   const img = event.target;
-  
-  // Extract the base filename without extension
-  const currentPath = card.imagePath;
-  const filename = currentPath.substring(currentPath.lastIndexOf('/') + 1);
-  const baseFilename = filename.includes('.') ? 
-    filename.substring(0, filename.lastIndexOf('.')) : filename;
-  const basePath = `/memes/${baseFilename}`;
-  
-  console.log(`Attempting to find alternative format for: ${baseFilename}`);
-  
-  // Store alternate paths to try
-  const alternatePathsToTry = [];
-  
-  // 1. First, try different extensions for same filename
-  const extensions = ['.jpg', '.png', '.jpeg', '.gif'];
-  const currentExt = filename.includes('.') ? filename.substring(filename.lastIndexOf('.')) : '';
-  
-  // Add alternate extensions to try
-  for (const ext of extensions) {
-    if (ext === currentExt) continue;
-    alternatePathsToTry.push(`${basePath}${ext}`);
-  }
-  
-  // 2. Try alternative meme files based on ID number 
-  const numericId = parseInt(card.originalId) || 1;
-  
-  // Add some reliable fallback options (we know these exist)
-  alternatePathsToTry.push(
-    `/memes/meme_${(numericId % 20) + 1}.jpg`,
-    `/memes/MemoryMatch_${(numericId % 3) + 1}.jpg`
-  );
-  
-  // 3. As the last resort, include emergency fallbacks we've verified
-  const emergencyFallbacks = [
-    '/memes/MemoryMatch_1.jpg',
-    '/memes/MemoryMatch_2.jpg',
-    '/memes/MemoryMatch_3.jpg',
-    '/memes/meme_1.jpg',
-    '/memes/meme_5.jpg',
-    '/memes/image_1258.jpg'
-  ];
-  
-  // Add emergency fallbacks
-  alternatePathsToTry.push(...emergencyFallbacks);
-  
-  // Track if we found a working replacement
-  let found = false;
-  
-  // Try each path in sequence
-  const tryNextPath = async (index = 0) => {
-    // If we've tried all paths, use canvas fallback
-    if (index >= alternatePathsToTry.length) {
-      console.log('All alternative paths failed, using canvas fallback');
-      createCanvasCardFallback(img, card);
-      return;
-    }
-    
-    // Try the current path
-    const path = alternatePathsToTry[index];
-    console.log(`Trying [${index+1}/${alternatePathsToTry.length}]: ${path}`);
-    
-    const tempImg = new Image();
-    tempImg.onload = () => {
-      // Path works - use it
-      img.src = path;
-      found = true;
-      console.log(`Successfully loaded: ${path}`);
-    };
-    
-    tempImg.onerror = () => {
-      // Path failed - try next
-      console.log(`Failed: ${path}`);
-      tryNextPath(index + 1);
-    };
-    
-    // Set source to trigger load attempt
-    tempImg.src = path;
-  };
-  
-  // Helper function to create canvas fallback
-  const createCanvasCardFallback = (imgElement, cardData) => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 200;
-      canvas.height = 200;
-      const ctx = canvas.getContext('2d');
-      
-      // Create a gradient background based on card ID
-      const hueRotation = (numericId * 137) % 360;
-      const gradient = ctx.createLinearGradient(0, 0, 200, 200);
-      gradient.addColorStop(0, `hsl(${hueRotation}, 70%, 60%)`);
-      gradient.addColorStop(1, `hsl(${(hueRotation + 120) % 360}, 70%, 60%)`);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 200, 200);
-      
-      // Add card ID text
-      ctx.fillStyle = 'white';
-      ctx.font = '36px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Card ${numericId}`, 100, 100);
-      
-      // Add fallback indicator
-      ctx.font = '14px Arial';
-      ctx.fillText('Image unavailable', 100, 130);
-      
-      imgElement.src = canvas.toDataURL('image/png');
-    } catch (e) {
-      console.error('Failed to create canvas fallback:', e);
-      // Last resort - empty image with border
-      imgElement.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-      imgElement.style.border = '1px dashed #ccc';
-      imgElement.style.borderRadius = '8px';
-      imgElement.style.backgroundColor = '#f8f8f8';
-    }
-  };
-  
-  // Start the process of trying alternative paths
-  tryNextPath();
+  createCanvasCardFallback(img, card); // Use canvas fallback directly
 };
 
 const handleMemeImageError = (event, meme) => {
-  console.log(`Image error in modal for meme ${meme.id} with path ${meme.imagePath}`);
-  
+  console.warn(`Image error in modal for meme ${meme.id}, path: ${meme.imagePath}`);
   const img = event.target;
-  const originalSrc = img.src;
-  
-  // Extract the base filename without extension for more robust handling
-  const pathParts = originalSrc.split('/');
-  const filename = pathParts[pathParts.length - 1];
-  const baseName = filename.includes('.') ? 
-    filename.substring(0, filename.lastIndexOf('.')) : filename;
-  
-  // Store alternate paths to try
-  const alternatePathsToTry = [];
-  
-  // 1. First, try different extensions for same filename
-  const extensions = ['.jpg', '.png', '.jpeg', '.gif'];
-  const currentExt = filename.includes('.') ? filename.substring(filename.lastIndexOf('.')) : '';
-  
-  // Add alternate extensions to try
-  for (const ext of extensions) {
-    if (ext === currentExt) continue;
-    alternatePathsToTry.push(`/memes/${baseName}${ext}`);
-  }
-  
-  // 2. Extract any potential numeric ID from the original filename or use meme ID
-  const numMatch = baseName.match(/\d+/);
-  const numericId = numMatch ? parseInt(numMatch[0]) : parseInt(meme.id) || 1;
-  
-  // Add known good fallbacks, prioritizing based on ID
-  alternatePathsToTry.push(
-    `/memes/meme_${(numericId % 20) + 1}.jpg`,
-    `/memes/MemoryMatch_${(numericId % 3) + 1}.jpg`
-  );
-  
-  // 3. Add emergency fallbacks as last resort
-  const emergencyFallbacks = [
-    '/memes/MemoryMatch_1.jpg',
-    '/memes/MemoryMatch_2.jpg',
-    '/memes/MemoryMatch_3.jpg',
-    '/memes/meme_1.jpg',
-    '/memes/meme_5.jpg',
-    '/memes/image_1258.jpg'
-  ];
-  
-  // Add emergency fallbacks
-  alternatePathsToTry.push(...emergencyFallbacks);
-  
-  // Track if we found a working replacement
-  let found = false;
-  
-  // Try each path in sequence
-  const tryNextPath = (index = 0) => {
-    // If we've tried all paths, use canvas fallback
-    if (index >= alternatePathsToTry.length) {
-      console.log('All alternative paths failed, using canvas fallback for modal image');
-      createModalCanvasFallback(img, meme);
-      return;
+  createModalCanvasFallback(img, meme); // Use canvas fallback directly
+};
+
+// Canvas fallback functions (keep these as they are good general fallbacks)
+const createCanvasCardFallback = (imgElement, cardData) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 200; // Or use card dimensions
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+      
+      const numericId = parseInt(String(cardData.originalId).replace(/[^0-9]/g, '')) || 1;
+      const hueRotation = (numericId * 137) % 360;
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, `hsl(${hueRotation}, 70%, 60%)`);
+      gradient.addColorStop(1, `hsl(${(hueRotation + 120) % 360}, 70%, 60%)`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Meme ${numericId}`, canvas.width/2, canvas.height/2 - 10);
+      ctx.font = '14px Arial';
+      ctx.fillText('Unavailable', canvas.width/2, canvas.height/2 + 15);
+      
+      imgElement.src = canvas.toDataURL('image/png');
+    } catch (e) {
+      console.error('Failed to create canvas card fallback:', e);
+      imgElement.src = '/images/placeholder.png'; // Final fallback
     }
-    
-    // Try the current path
-    const path = alternatePathsToTry[index];
-    console.log(`Trying modal image [${index+1}/${alternatePathsToTry.length}]: ${path}`);
-    
-    const tempImg = new Image();
-    tempImg.onload = () => {
-      // Path works - use it
-      img.src = path;
-      found = true;
-      console.log(`Successfully loaded modal image: ${path}`);
-    };
-    
-    tempImg.onerror = () => {
-      // Path failed - try next
-      console.log(`Failed modal image: ${path}`);
-      tryNextPath(index + 1);
-    };
-    
-    // Set source to trigger load attempt
-    tempImg.src = path;
-  };
-  
-  // Helper function to create canvas fallback for the modal
-  const createModalCanvasFallback = (imgElement, memeData) => {
+};
+
+const createModalCanvasFallback = (imgElement, memeData) => {
     try {
       const canvas = document.createElement('canvas');
       canvas.width = 300;
       canvas.height = 300;
       const ctx = canvas.getContext('2d');
       
-      // Create a visually pleasing gradient background with meme ID influence
-      const hueBase = (parseInt(meme.id) * 137) % 360;
+      const numericId = parseInt(String(memeData.id).replace(/[^0-9]/g, '')) || 1;
+      const hueBase = (numericId * 137) % 360;
       const gradient = ctx.createLinearGradient(0, 0, 300, 300);
       gradient.addColorStop(0, `hsl(${hueBase}, 70%, 65%)`);
       gradient.addColorStop(1, `hsl(${(hueBase + 180) % 360}, 70%, 65%)`);
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 300, 300);
       
-      // Add text and emoji
       ctx.font = '80px Arial';
       ctx.textAlign = 'center';
       ctx.fillStyle = 'white';
-      ctx.fillText('😎', 150, 140);
+      ctx.fillText('🚫', 150, 140); // Emoji for unavailable
       
-      ctx.font = '24px Arial';
+      ctx.font = 'bold 20px Arial';
       ctx.fillText('Meme Unavailable', 150, 200);
       
-      ctx.font = '16px Arial';
-      ctx.fillText(`ID: ${meme.id}`, 150, 230);
-      ctx.fillText(`${meme.text || 'No text available'}`, 150, 260, 280);
+      ctx.font = '14px Arial';
+      ctx.fillText(`ID: ${memeData.id}`, 150, 230);
       
-      // Set the canvas as the image source
       imgElement.src = canvas.toDataURL('image/png');
     } catch (e) {
-      console.error('Failed to create canvas fallback for modal:', e);
-      // Last resort - empty image with styled border
-      imgElement.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-      imgElement.style.border = '2px dashed #ccc';
-      imgElement.style.borderRadius = '8px';
-      imgElement.style.backgroundColor = '#f8f8f8';
-      
-      // Add text element after the image with error message
-      const errorText = document.createElement('div');
-      errorText.textContent = 'Image unavailable';
-      errorText.style.color = '#666';
-      errorText.style.fontStyle = 'italic';
-      errorText.style.padding = '10px';
-      errorText.style.textAlign = 'center';
-      
-      if (imgElement.parentNode) {
-        imgElement.parentNode.insertBefore(errorText, imgElement.nextSibling);
-      }
+      console.error('Failed to create canvas modal fallback:', e);
+      imgElement.src = '/images/placeholder.png'; // Final fallback
     }
-  };
-  
-  // Start the process of trying alternative paths
-  tryNextPath();
 };
 
 // Cleanup when component is unmounted
-const cleanup = () => {
+const performCleanup = async () => {
   if (timerInterval.value) {
     clearInterval(timerInterval.value);
     timerInterval.value = null;
   }
+  await cleanupTemporaryGameFiles(); // Call backend cleanup
 };
 
 // Load game on mount
 onMounted(() => {
-  console.log("MemoryMatch component mounted");
-  console.log(`API URL: ${MEME_API_URL}, Development mode: ${IS_DEVELOPMENT}`);
+  console.log("MemoryMatch component mounted. Using new DB backend strategy.");
+  // console.log(`API URL: ${MEME_API_URL}, Development mode: ${IS_DEVELOPMENT}`); // Keep if needed
   
-  // Test direct access to backend image path
-  const testBackendImage = new Image();
-  testBackendImage.onload = () => {
-    console.log("Backend image loaded successfully from: backend/datasets/meme/memotion_dataset_7k/images/image_1.jpg");
-  };
-  testBackendImage.onerror = () => {
-    console.warn("Couldn't load backend image - path is inaccessible");
-  };
-  testBackendImage.src = "/backend/datasets/meme/memotion_dataset_7k/images/image_1.jpg";
-  
-  // Check if memes directory is accessible
-  checkMemeDirectoryAccess().then(isAccessible => {
-    memeDirAccessible.value = isAccessible;
-    console.log(`Memes directory accessible: ${memeDirAccessible.value}`);
-    fetchMemes();
-  });
-  
-  // Cleanup when component is unmounted
-  return cleanup;
+  // Remove old checkMemeDirectoryAccess and related logic
+  // memeDirAccessible.value = isAccessible;
+  // fetchMemes(); // Old way
+
+  initializeGameFromBackend(); // New way to start
 });
 
-// Function to check if the memes directory is accessible
-const checkMemeDirectoryAccess = async () => {
-  // Try to load a known image to check access
-  const testImage = new Image();
-  
-  return new Promise(resolve => {
-    // Set a timeout for the check
-    const timeout = setTimeout(() => {
-      console.warn("Image load timeout - memes directory might be inaccessible");
-      resolve(false);
-    }, 3000);
-    
-    testImage.onload = () => {
-      clearTimeout(timeout);
-      console.log("Test meme loaded successfully - memes directory is accessible");
-      resolve(true);
-    };
-    
-    testImage.onerror = () => {
-      clearTimeout(timeout);
-      console.warn("Couldn't load test meme - memes directory is inaccessible");
-      resolve(false);
-    };
-    
-    // Try to load a known image
-    testImage.src = "/memes/MemoryMatch_1.jpg";
-  });
-};
+onUnmounted(() => {
+  performCleanup();
+});
 
-// Add defineEmits declaration at the top of script setup
-const emit = defineEmits(['game-completed', 'exit-game']);
+// emit is already defined
+// const emit = defineEmits(['game-completed', 'exit-game']);
 
-// Update the navigation methods to use usedMemes
+// Navigation methods (nextMeme, prevMeme) should work fine with usedMemes
 const nextMeme = () => {
   if (usedMemes.value.length > 0) {
     currentMemeIndex.value = (currentMemeIndex.value + 1) % usedMemes.value.length;
@@ -1041,167 +599,60 @@ const prevMeme = () => {
   }
 };
 
-// Get CSS class based on sentiment value
-const getSentimentClass = (sentiment) => {
-  if (!sentiment) return '';
+// Sentiment display helpers (getSentimentClass, getSentimentBarStyle)
+// These should work if `currentMeme.sentiment` has the expected structure.
+// The backend now provides overall_sentiment, humour, sarcasm, etc. directly.
+const getSentimentClass = (sentimentValue) => {
+  if (!sentimentValue) return '';
   
-  switch(sentiment.toLowerCase()) {
-    case 'positive':
-    case 'very_positive':
-      return 'positive';
-    case 'negative':
-    case 'very_negative':
-      return 'negative';
-    case 'neutral':
-      return 'neutral';
-    case 'not_offensive':
-      return 'positive';
-    case 'offensive':
-      return 'negative';
-    case 'very_funny':
-    case 'funny':
-      return 'positive';
-    case 'not_funny':
-      return 'negative';
-    case 'motivational':
-      return 'positive';
-    case 'not_motivational':
-      return 'negative';
-    default:
-      return '';
+  const sentiment = String(sentimentValue).toLowerCase(); // Ensure it's a string and lowercase
+
+  // Updated to match potential values from meme_fetch or general positive/negative
+  if (sentiment.includes('positive') || sentiment.includes('funny') || sentiment === 'motivational' || sentiment === 'not_offensive' || sentiment === 'hilarious' || sentiment === 'very_funny') {
+    return 'positive';
   }
+  if (sentiment.includes('negative') || sentiment.includes('not_funny') || sentiment === 'offensive' || sentiment === 'not_motivational') {
+    return 'negative';
+  }
+  if (sentiment.includes('neutral') || sentiment === 'general' || sentiment === 'unknown') {
+    return 'neutral';
+  }
+  return ''; // Default if no specific class
 };
 
-// Function to get sentiment data for the matched memes
-const fetchSentimentData = async (memeIds) => {
-  try {
-    console.log(`Fetching sentiment data for meme IDs: ${memeIds.join(', ')}`);
-    
-    // Create sentiment data objects for the meme IDs
-    const sentimentData = memeIds.map(id => {
-      // Get the original meme object if available
-      const originalMeme = memes.value.find(m => m.id === id);
-      
-      // Check if we already have sentiment data
-      if (originalMeme && 
-          (originalMeme.humour || originalMeme.overall_sentiment || 
-           originalMeme.sarcasm || originalMeme.offensive || 
-           originalMeme.motivational)) {
-        
-        // Use existing sentiment data
-        return {
-          id,
-          humour: originalMeme.humour || getRandomSentiment('humour'),
-          sarcasm: originalMeme.sarcasm || getRandomSentiment('sarcasm'),
-          offensive: originalMeme.offensive || getRandomSentiment('offensive'),
-          motivational: originalMeme.motivational || getRandomSentiment('motivational'),
-          overall_sentiment: originalMeme.overall_sentiment || getRandomSentiment('overall')
-        };
-      }
-      
-      // Generate random sentiment data if none exists
-      return {
-        id,
-        humour: getRandomSentiment('humour'),
-        sarcasm: getRandomSentiment('sarcasm'),
-        offensive: getRandomSentiment('offensive'),
-        motivational: getRandomSentiment('motivational'),
-        overall_sentiment: getRandomSentiment('overall')
-      };
-    });
-    
-    console.log('Generated sentiment data:', sentimentData);
-    return sentimentData;
-  } catch (error) {
-    console.error('Error fetching sentiment data:', error);
-    return null;
-  }
-};
+const getSentimentBarStyle = (sentimentValue) => {
+  let width = '50%'; // Neutral default
+  if (!sentimentValue) return { width };
 
-// Get a style for the sentiment meter based on the sentiment value
-const getSentimentBarStyle = (sentiment) => {
-  // Default width at 50% for neutral/unknown
-  let width = '50%';
-  
-  if (!sentiment) return { width };
-  
-  // Determine width based on sentiment
-  switch(sentiment.toLowerCase()) {
-    case 'very_positive':
-      width = '90%';
-      break;
-    case 'positive':
-      width = '75%';
-      break;
-    case 'neutral':
-      width = '50%';
-      break;
-    case 'negative':
-      width = '25%';
-      break;
-    case 'very_negative':
-      width = '10%';
-      break;
-    case 'very_funny':
-      width = '90%';
-      break;
-    case 'funny':
-      width = '75%';
-      break;
-    case 'not_funny':
-      width = '25%';
-      break;
-    case 'offensive':
-      width = '20%';
-      break;
-    case 'not_offensive':
-      width = '80%';
-      break;
-    default:
-      width = '50%';
-  }
+  const sentiment = String(sentimentValue).toLowerCase();
+
+  // Simplified mapping based on general positive/negative/neutral
+  if (sentiment.includes('very_positive') || sentiment.includes('very_funny') || sentiment === 'hilarious') width = '90%';
+  else if (sentiment.includes('positive') || sentiment.includes('funny') || sentiment === 'motivational' || sentiment === 'not_offensive') width = '75%';
+  else if (sentiment.includes('very_negative') || sentiment === 'offensive') width = '10%';
+  else if (sentiment.includes('negative') || sentiment.includes('not_funny') || sentiment === 'not_motivational') width = '25%';
+  else if (sentiment.includes('neutral') || sentiment === 'general' || sentiment === 'unknown') width = '50%';
   
   return { width };
 };
 
-// Get a style for offline cards using CSS gradients
-const getOfflineCardStyle = (card) => {
-  const hue = card.hue || ((parseInt(card.originalId) * 137) % 360);
-  return {
-    background: `linear-gradient(135deg, 
-      hsl(${hue}, 70%, 60%), 
-      hsl(${(hue + 120) % 360}, 70%, 60%))`,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-    borderRadius: '8px',
-    color: 'white',
-    textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-    fontWeight: 'bold'
-  };
-};
+// fetchSentimentData is no longer needed as data comes with initial load
+// const fetchSentimentData = async (memeIds) => { ... };
 
-// Get a style for offline memes in the victory modal
-const getOfflineMemeStyle = (meme) => {
-  const hue = meme.hue || ((parseInt(meme.id) * 137) % 360);
-  return {
-    background: `linear-gradient(135deg, 
-      hsl(${hue}, 70%, 65%), 
-      hsl(${(hue + 180) % 360}, 70%, 65%))`,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '300px',
-    borderRadius: '10px',
-    color: 'white',
-    marginBottom: '15px'
-  };
-};
+// Offline styles (getOfflineCardStyle, getOfflineMemeStyle) are no longer primary,
+// but canvas fallbacks might use similar styling if they create offline-like appearances.
+// The `isOffline` flag is now always false for game cards/memes.
+// The template sections for v-if="card.isOffline" or v-if="currentMeme.isOffline" will not be hit.
+// Consider removing them or keeping them only if canvas fallbacks are styled to look "offline".
+// For now, let's assume the canvas fallbacks are sufficient and these explicit offline styles are not needed
+// for the primary card/meme display.
+
+// The template needs to use `card.imagePath` directly for `<img>` src.
+// The `offline-card` and `offline-meme` divs in the template might be removed if `isOffline` is always false.
+// Let's check the template part:
+// <div v-if="card.isOffline" class="offline-card" ...>
+// <div v-if="currentMeme.isOffline" class="offline-meme" ...>
+// These will indeed not render. The canvas fallbacks are injected directly into the <img> src.
 </script>
 
 <style scoped>
