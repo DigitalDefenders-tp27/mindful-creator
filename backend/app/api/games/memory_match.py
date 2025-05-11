@@ -24,21 +24,22 @@ PGPASSWORD = os.getenv("PGPASSWORD")
 PGDATABASE = os.getenv("PGDATABASE")
 PGPORT = os.getenv("PGPORT", "5432") # Default PostgreSQL port
 
-# Prioritize DATABASE_URL_MEME_FETCH if explicitly set by the user
-DATABASE_URL_OVERRIDE = os.getenv("DATABASE_URL_MEME_FETCH")
+# Logic for DATABASE_URL_MEME_FETCH override has been removed.
+# The application will now solely rely on PG* environment variables.
 
-if DATABASE_URL_OVERRIDE:
-    DATABASE_URL = DATABASE_URL_OVERRIDE
-    logger.info(f"Using explicit DATABASE_URL_MEME_FETCH: {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else 'ตรวจสอบการตั้งค่า DATABASE_URL'}")
-elif PGHOST and PGUSER and PGPASSWORD and PGDATABASE:
+if PGHOST and PGUSER and PGPASSWORD and PGDATABASE:
     # If PGHOST is provided, use it. Otherwise, default to postgres.railway.internal if other PG vars are set.
-    db_host = PGHOST if PGHOST == "postgres.railway.internal" or "." in PGHOST else "postgres.railway.internal" # ensure it's either internal or a FQDN
+    # Ensure db_host is correctly determined for Railway internal or external hostnames
+    db_host = PGHOST
+    # A simple check for internal might be if it doesn't contain '.', but Railway's PGHOST might be a FQDN.
+    # The original logic: db_host = PGHOST if PGHOST == "postgres.railway.internal" or "." in PGHOST else "postgres.railway.internal"
+    # This simplifies to just using PGHOST as provided by Railway, which should be the correct resolvable hostname.
     DATABASE_URL = f"postgresql://{PGUSER}:{PGPASSWORD}@{db_host}:{PGPORT}/{PGDATABASE}"
-    logger.info(f"Constructed DATABASE_URL from PG* env vars for Railway: {DATABASE_URL.split('@')[-1]}")
+    logger.info(f"Constructed DATABASE_URL from PG* env vars. Connecting to host: {db_host}")
 else:
     DATABASE_URL = None # No valid configuration found
-    logger.error("DATABASE_URL_MEME_FETCH is not set, and insufficient PG* environment variables found for Railway internal connection.")
-    logger.info("Please set DATABASE_URL_MEME_FETCH or ensure PGHOST, PGUSER, PGPASSWORD, PGDATABASE are set for internal Railway connections.")
+    logger.error("Insufficient PG* environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) found to construct DATABASE_URL.")
+    logger.info("Ensure these environment variables are correctly set and injected by your hosting provider (e.g., Railway).")
 
 # Path constants for the new mechanism
 # FRONTEND_PUBLIC_DIR = Path("frontend/public")
