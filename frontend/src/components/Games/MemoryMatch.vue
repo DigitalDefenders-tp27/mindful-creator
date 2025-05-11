@@ -182,9 +182,10 @@ const timerInterval = ref(null);
 // Cards state
 const cards = ref([]);
 const flippedCards = ref([]);
-const memes = ref([]); // This will now be populated by the new backend endpoint
-const totalPairs = computed(() => currentLevel.value === 1 ? 6 : 25); // Using 6 pairs for level 1
+const memes = ref([]); 
+const totalPairs = computed(() => currentLevel.value === 1 ? 6 : 25);
 const matchedPairs = ref(0);
+const createdObjectUrls = ref([]); // New: To store Object URLs for cleanup
 
 // Track victory status
 const isVictory = ref(true);
@@ -202,10 +203,10 @@ const usedMemes = computed(() => {
 const currentMeme = computed(() => {
   if (!usedMemes.value || usedMemes.value.length === 0) {
     return { 
-      id: 0, // This 'id' is the meme's original id
+      id: 0, 
       text: 'No meme available',
-      imagePath: '/images/placeholder.png', // Default placeholder
-      isOffline: false, // No offline concept with new backend
+      imagePath: '/images/placeholder.png', // Default placeholder if no Object URL yet or error
+      isOffline: false, 
       sentiment: {
         humour: 'unknown',
         sarcasm: 'unknown',
@@ -222,18 +223,17 @@ const currentMeme = computed(() => {
   
   const memeFromGame = usedMemes.value[currentMemeIndex.value];
   
-  // Data from backend is already structured, imagePath is direct
   return {
     id: memeFromGame.id,
     text: memeFromGame.text || `Meme ${memeFromGame.id}`,
-    imagePath: memeFromGame.imagePath, // This path comes directly from the backend
-    isOffline: false, // Explicitly false
-    sentiment: { // Assuming backend provides these directly nested or top-level
+    imagePath: memeFromGame.displayImagePath || '/images/placeholder.png', // Use displayImagePath (Object URL)
+    isOffline: false, 
+    sentiment: { 
       humour: memeFromGame.humour || 'unknown',
       sarcasm: memeFromGame.sarcasm || 'unknown',
-      offensive: memeFromGame.offensive || 'unknown', // Map to overall_sentiment if needed
+      offensive: memeFromGame.offensive || 'unknown',
       motivational: memeFromGame.motivational || 'unknown',
-      overall: memeFromGame.overall_sentiment || 'neutral' // map overall_sentiment from backend
+      overall: memeFromGame.overall_sentiment || 'neutral'
     }
   };
 });
@@ -243,7 +243,10 @@ const currentMeme = computed(() => {
 // NEW: Function to initialize game data from the backend
 const initializeGameFromBackend = async () => {
   isLoading.value = true;
-  console.log('Initializing game from backend...');
+  // Clear any previously created Object URLs before fetching new ones
+  revokeAllObjectUrls(); 
+
+  console.log('Initializing game from backend (frontend download strategy)...');
   try {
     const response = await fetch(`${MEME_API_URL}/api/games/memory_match/initialize_game`, {
       method: 'POST',
@@ -258,60 +261,90 @@ const initializeGameFromBackend = async () => {
       throw new Error(errorData.detail || `Failed to initialize game: ${response.status}`);
     }
 
-    const gameData = await response.json();
-    if (gameData && gameData.length > 0) {
-      memes.value = gameData; // Backend provides array of MemeData objects
-      console.log(`Successfully fetched ${memes.value.length} memes from backend.`);
+    const rawMemesData = await response.json(); // These have image_url
+
+    if (rawMemesData && rawMemesData.length > 0) {
+      console.log(`Received ${rawMemesData.length} raw meme data objects from backend.`);
+      // Now download images and create Object URLs
+      const memesWithObjectUrls = await Promise.all(
+        rawMemesData.map(async (meme) => {
+          try {
+            const imageResponse = await fetch(meme.image_url, { mode: 'cors' }); // Use original image_url
+            if (!imageResponse.ok) {
+              console.error(`Failed to download image: ${meme.image_url}, status: ${imageResponse.status}`);
+              return { ...meme, displayImagePath: null }; // Or a default placeholder path
+            }
+            const blob = await imageResponse.blob();
+            const objectURL = URL.createObjectURL(blob);
+            createdObjectUrls.value.push(objectURL); // Store for cleanup
+            return { ...meme, displayImagePath: objectURL };
+          } catch (downloadError) {
+            console.error(`Error downloading image ${meme.image_url}:`, downloadError);
+            return { ...meme, displayImagePath: null }; // Fallback
+          }
+        })
+      );
+      
+      memes.value = memesWithObjectUrls.filter(meme => meme.displayImagePath !== null);
+      if (memes.value.length < rawMemesData.length) {
+        console.warn(`Could only successfully download images for ${memes.value.length}/${rawMemesData.length} memes.`);
+      }
+
+      if (memes.value.length === 0 && rawMemesData.length > 0) {
+        alert('Failed to download any meme images. Please check network or try again.');
+        isLoading.value = false;
+        return;
+      }
+      
+      console.log(`Successfully processed ${memes.value.length} memes with Object URLs.`);
       setupCards();
       startGame();
     } else {
       console.error('No memes received from backend or empty array.');
-      // Handle empty memes - perhaps show an error to the user
-      alert('Failed to load memes for the game. Please try again later.');
+      alert('Failed to load meme data for the game. Please try again later.');
     }
   } catch (error) {
-    console.error('Error initializing game from backend:', error);
-    alert(`Error initializing game: ${error.message}. Please check backend logs and try again.`);
-    // Could implement a retry or direct user to refresh
+    console.error('Error initializing game (frontend download strategy): ', error);
+    alert(`Error initializing game: ${error.message}. Please check backend and try again.`);
   } finally {
     isLoading.value = false;
   }
 };
 
 // setupCards will now use memes.value populated by initializeGameFromBackend
+// and memes will have a `displayImagePath` property (the Object URL)
 const setupCards = () => {
   if (!memes.value || memes.value.length === 0) {
-    console.error("Cannot setup cards, memes array is empty.");
+    console.error("Cannot setup cards, memes array is empty or image downloads failed.");
     return;
   }
-  // Create two cards for each meme. Backend ensures correct number of unique memes.
-  const memesToUse = memes.value; // memes.value is already the exact set from backend
+  const memesToUse = memes.value; 
   
-  console.log(`Setting up ${memesToUse.length} pairs of cards with memes:`, memesToUse);
+  console.log(`Setting up ${memesToUse.length} pairs of cards with memes (using Object URLs):`, memesToUse);
   
   const cardPairs = memesToUse.map(meme => {
-    // meme.imagePath is the direct path from backend (e.g., /temp_memes/image.jpg)
-    // meme.id is the original ID of the meme from the backend
     return [
       {
-        id: `${meme.id}-1`, // Card's unique ID in the game
-        originalId: meme.id, // Meme's original ID (from backend's 'id' field)
-        imagePath: meme.imagePath,
+        id: `${meme.id}-1`, 
+        originalId: meme.id, 
+        imagePath: meme.displayImagePath, // Use the Object URL for display
         text: meme.text || '',
-        isOffline: false, // Always false with new backend
-        hue: null, // Not needed
+        isOffline: false, 
+        hue: null, 
         isFlipped: false,
-        isMatched: false
+        isMatched: false,
+        original_url_for_error_handling: meme.image_url // Store original URL if needed for specific error handling
       },
       {
         id: `${meme.id}-2`,
         originalId: meme.id,
-        imagePath: meme.imagePath,
+        imagePath: meme.displayImagePath, // Use the Object URL for display
         text: meme.text || '',
         isOffline: false,
         hue: null,
         isFlipped: false,
-        isMatched: false
+        isMatched: false,
+        original_url_for_error_handling: meme.image_url
       }
     ];
   }).flat();
@@ -361,6 +394,8 @@ const resetGameState = () => {
     clearInterval(timerInterval.value);
     timerInterval.value = null;
   }
+  
+  revokeAllObjectUrls();
 };
 
 const flipCard = (card) => {
@@ -454,45 +489,37 @@ const restartGame = () => {
   initializeGameFromBackend();
 };
 
-// NEW: Function to call backend cleanup
-const cleanupTemporaryGameFiles = async () => {
-  console.log('Attempting to cleanup temporary game files via backend...');
-  try {
-    const response = await fetch(`${MEME_API_URL}/api/games/memory_match/cleanup_game`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Backend cleanup failed:', errorData.detail || response.status);
-    } else {
-      console.log('Backend cleanup successful.');
-    }
-  } catch (error) {
-    console.error('Error calling backend cleanup:', error);
+// NEW: Function to revoke all created Object URLs
+const revokeAllObjectUrls = () => {
+  if (createdObjectUrls.value.length > 0) {
+    console.log(`Revoking ${createdObjectUrls.value.length} Object URLs.`);
+    createdObjectUrls.value.forEach(url => URL.revokeObjectURL(url));
+    createdObjectUrls.value = []; // Clear the array
   }
 };
 
 const exitGame = async () => {
   showVictoryModal.value = false;
-  resetGameState(); // Reset local game state
-  await cleanupTemporaryGameFiles(); // Call backend cleanup
+  resetGameState(); 
+  // await cleanupTemporaryGameFiles(); // No longer calling backend for this
+  revokeAllObjectUrls(); // Frontend cleanup
   emit('exit-game');
 };
 
-// Simplified image error handlers
+// Simplified image error handlers for Object URLs
 const handleImageError = (event, card) => {
-  console.warn(`Failed to load image for card: ${card.originalId}, path: ${card.imagePath}`);
-  // Image is from backend's temp store. If it fails, it's a server-side issue or broken link.
-  // Fallback to a generic placeholder or canvas.
-  // The complex retry logic with different extensions/paths is less relevant now.
+  // If an Object URL fails to load, it might have been revoked or the initial download failed.
+  console.warn(`Failed to load image for card: ${card.originalId} using Object URL: ${card.imagePath}. Original DB URL was: ${card.original_url_for_error_handling}`);
   const img = event.target;
-  createCanvasCardFallback(img, card); // Use canvas fallback directly
+  // Fallback to canvas. The card object passed here should have originalId.
+  createCanvasCardFallback(img, { originalId: card.originalId }); // Pass a minimal object for canvas fallback
 };
 
-const handleMemeImageError = (event, meme) => {
-  console.warn(`Image error in modal for meme ${meme.id}, path: ${meme.imagePath}`);
+const handleMemeImageError = (event, memeInModal) => {
+  console.warn(`Image error in modal for meme ${memeInModal.id} using Object URL: ${memeInModal.imagePath}.`);
   const img = event.target;
-  createModalCanvasFallback(img, meme); // Use canvas fallback directly
+  // The memeInModal object should have the necessary `id` for canvas fallback.
+  createModalCanvasFallback(img, { id: memeInModal.id, text: memeInModal.text }); // Pass a minimal object
 };
 
 // Canvas fallback functions (keep these as they are good general fallbacks)
@@ -559,24 +586,18 @@ const createModalCanvasFallback = (imgElement, memeData) => {
 };
 
 // Cleanup when component is unmounted
-const performCleanup = async () => {
+const performCleanup = () => { // Renamed to avoid conflict, this is frontend cleanup
   if (timerInterval.value) {
     clearInterval(timerInterval.value);
     timerInterval.value = null;
   }
-  await cleanupTemporaryGameFiles(); // Call backend cleanup
+  revokeAllObjectUrls();
 };
 
 // Load game on mount
 onMounted(() => {
-  console.log("MemoryMatch component mounted. Using new DB backend strategy.");
-  // console.log(`API URL: ${MEME_API_URL}, Development mode: ${IS_DEVELOPMENT}`); // Keep if needed
-  
-  // Remove old checkMemeDirectoryAccess and related logic
-  // memeDirAccessible.value = isAccessible;
-  // fetchMemes(); // Old way
-
-  initializeGameFromBackend(); // New way to start
+  console.log("MemoryMatch component mounted. Frontend download strategy.");
+  initializeGameFromBackend();
 });
 
 onUnmounted(() => {

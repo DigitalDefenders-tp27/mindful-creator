@@ -4,8 +4,6 @@ import random
 import os
 import glob
 from typing import List, Dict, Optional, Any
-import shutil
-import httpx
 import asyncpg
 from pathlib import Path
 import logging
@@ -43,9 +41,9 @@ else:
     logger.info("Please set DATABASE_URL_MEME_FETCH or ensure PGHOST, PGUSER, PGPASSWORD, PGDATABASE are set for internal Railway connections.")
 
 # Path constants for the new mechanism
-FRONTEND_PUBLIC_DIR = Path("frontend/public")
-TEMP_MEMES_SUBDIR = "temp_memes" # This will be inside frontend/public/
-ABSOLUTE_TEMP_MEMES_DIR = FRONTEND_PUBLIC_DIR / TEMP_MEMES_SUBDIR
+# FRONTEND_PUBLIC_DIR = Path("frontend/public")
+# TEMP_MEMES_SUBDIR = "temp_memes" # This will be inside frontend/public/
+# ABSOLUTE_TEMP_MEMES_DIR = FRONTEND_PUBLIC_DIR / TEMP_MEMES_SUBDIR
 
 # Path to the meme dataset
 MEME_DATASET_PATH = "backend/datasets/meme"
@@ -56,10 +54,10 @@ PUBLIC_MEME_PATH = "frontend/public/memes"
 class GameInitRequest(BaseModel):
     level: int
 
-class MemeData(BaseModel):
+class MemeDataFromDB(BaseModel): # Renamed to distinguish from frontend's potential MemeData
     id: Any 
-    image_name: str
-    imagePath: str 
+    image_name: str # Keep for reference if needed
+    image_url: str # This will be the original URL from the DB
     text: str
     humour: str | None
     sarcasm: str | None
@@ -70,45 +68,33 @@ class MemeData(BaseModel):
 # Helper functions for the new mechanism
 async def get_db_connection():
     if not DATABASE_URL:
-        logger.error("Cannot connect to DB: DATABASE_URL_MEME_FETCH is not set.")
+        logger.error("Cannot connect to DB: DATABASE_URL is not configured.")
         raise HTTPException(status_code=500, detail="Database configuration error.")
     try:
         conn = await asyncpg.connect(DATABASE_URL)
-        logger.info(f"Successfully connected to database via {DATABASE_URL.split('@')[-1] if DATABASE_URL and '@' in DATABASE_URL else 'DATABASE_URL'}")
+        logger.info(f"DB Connected: {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else 'DB'}")
         return conn
     except Exception as e:
-        logger.error(f"Failed to connect to database ({DATABASE_URL.split('@')[-1] if DATABASE_URL and '@' in DATABASE_URL else 'DATABASE_URL'}): {e}")
+        logger.error(f"DB Connection Failed: {e}")
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
-def ensure_temp_dir_exists_and_is_empty():
-    """Ensures the temporary meme directory exists and is empty."""
-    try:
-        if ABSOLUTE_TEMP_MEMES_DIR.exists():
-            for item in ABSOLUTE_TEMP_MEMES_DIR.iterdir():
-                if item.is_file():
-                    item.unlink()
-                elif item.is_dir():
-                    shutil.rmtree(item)
-        else:
-            ABSOLUTE_TEMP_MEMES_DIR.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Temporary directory {ABSOLUTE_TEMP_MEMES_DIR} ensured and emptied.")
-    except Exception as e:
-        logger.error(f"Error managing temporary directory {ABSOLUTE_TEMP_MEMES_DIR}: {e}")
-        raise HTTPException(status_code=500, detail=f"Could not initialize temporary storage: {e}")
-
 # New Endpoints using PostgreSQL
-@router.post("/memory_match/initialize_game", response_model=List[MemeData])
+@router.post("/memory_match/initialize_game", response_model=List[MemeDataFromDB])
 async def initialize_game_data_from_db(request: GameInitRequest):
     level = request.level
+    num_memes_to_fetch = 30 # User requested 30 memes; clarify if this is for game pairs or a general pool
+                           # For Memory Match, we usually need N pairs. If it's 30 total unique images, frontend makes 15 pairs.
+                           # Or, if it means 30 *pairs*, then 30 unique images. Or if it's just a data table for other use, then 30 is fine.
+                           # Sticking to game pairs logic: Level 1 = 6 unique memes, Level 2 = 25 unique memes.
     if level == 1:
         num_memes_to_fetch = 6
     elif level == 2:
         num_memes_to_fetch = 25
     else:
-        raise HTTPException(status_code=400, detail="Invalid game level specified. Must be 1 or 2.")
+        # If user wants a fixed 30 for a "table" regardless of level, adjust this logic.
+        # For now, assuming level dictates pair count for the game.
+        raise HTTPException(status_code=400, detail="Invalid game level specified. Must be 1 or 2 for standard game setup.")
 
-    ensure_temp_dir_exists_and_is_empty()
-    
     conn = None
     try:
         conn = await get_db_connection()
@@ -122,98 +108,53 @@ async def initialize_game_data_from_db(request: GameInitRequest):
         db_records = await conn.fetch(query, num_memes_to_fetch)
         
         if not db_records or len(db_records) < num_memes_to_fetch:
-            logger.warning(f"Could only retrieve {len(db_records)}/{num_memes_to_fetch} memes from DB for level {level}.")
-            if not db_records: # If no records at all
-                 raise HTTPException(status_code=404, detail="Not enough memes found in the database to start the game.")
+            logger.warning(f"DB: Retrieved {len(db_records)}/{num_memes_to_fetch} memes for level {level}.")
+            if not db_records:
+                 raise HTTPException(status_code=404, detail="Not enough memes in DB for game.")
         
-        processed_memes_data: List[MemeData] = []
-        meme_id_counter = 1 
+        processed_memes_data: List[MemeDataFromDB] = []
+        meme_id_counter = 1 # Simple sequential ID for this batch
 
-        async with httpx.AsyncClient(timeout=15.0) as client: # Increased timeout for downloads
-            for record_idx, record in enumerate(db_records):
-                image_name_from_db = record["image_name"]
-                image_url = record["image_url"]
-                
-                if not image_name_from_db or not image_url:
-                    logger.warning(f"Skipping record (idx: {record_idx}) due to missing image_name or image_url: {record}")
-                    continue
-
-                local_filename = Path(image_name_from_db).name 
-                local_image_path_absolute = ABSOLUTE_TEMP_MEMES_DIR / local_filename
-                
-                try:
-                    logger.info(f"Downloading: {image_url} to {local_image_path_absolute}")
-                    response = await client.get(image_url)
-                    
-                    if response.status_code == 404:
-                        logger.warning(f"Image not found (404) at URL: {image_url}. Skipping this meme.")
-                        continue
-                    response.raise_for_status() 
-                    
-                    with open(local_image_path_absolute, "wb") as f:
-                        f.write(response.content)
-                    logger.info(f"Saved: {local_filename}")
-                    
-                    frontend_accessible_path = f"/{TEMP_MEMES_SUBDIR}/{local_filename}"
-                    
-                    processed_memes_data.append(MemeData(
-                        id=meme_id_counter,
-                        image_name=local_filename,
-                        imagePath=frontend_accessible_path,
-                        text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
-                        humour=record["humour"],
-                        sarcasm=record["sarcasm"],
-                        offensive=record["offensive"],
-                        motivational=record["motivational"],
-                        overall_sentiment=record["overall_sentiment"]
-                    ))
-                    meme_id_counter += 1
-                    
-                except httpx.HTTPStatusError as e:
-                    logger.error(f"HTTP error {e.response.status_code} for {image_url}: {e}")
-                except httpx.RequestError as e: # Covers network errors, timeouts, etc.
-                    logger.error(f"Request error for {image_url}: {e}")
-                except Exception as e: # Catch any other unexpected errors during download/processing
-                    logger.error(f"Unexpected error processing image {image_url} (Name: {image_name_from_db}): {e}")
-                
-                if len(processed_memes_data) >= num_memes_to_fetch: # Should match the outer loop logic but good for safety
-                    break
+        for record in db_records:
+            image_name_from_db = record["image_name"]
+            image_url_from_db = record["image_url"]
+            
+            if not image_url_from_db: # Should be caught by WHERE clause, but good to check
+                logger.warning(f"Skipping record with missing image_url: {image_name_from_db}")
+                continue
+            
+            processed_memes_data.append(MemeDataFromDB(
+                id=meme_id_counter, # This ID is just for this batch
+                image_name=image_name_from_db,
+                image_url=image_url_from_db, # Return the original URL
+                text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
+                humour=record["humour"],
+                sarcasm=record["sarcasm"],
+                offensive=record["offensive"],
+                motivational=record["motivational"],
+                overall_sentiment=record["overall_sentiment"]
+            ))
+            meme_id_counter += 1
         
-        if len(processed_memes_data) < num_memes_to_fetch:
-            logger.warning(f"Successfully prepared {len(processed_memes_data)} memes, but expected {num_memes_to_fetch}.")
-            if not processed_memes_data: # If still no memes after trying to download
-                 raise HTTPException(status_code=500, detail="Failed to download and prepare any memes for the game.")
-        
-        logger.info(f"Returning {len(processed_memes_data)} memes for level {level}.")
+        logger.info(f"Returning {len(processed_memes_data)} meme data objects (with URLs) for level {level}.")
         return processed_memes_data
         
     except asyncpg.PostgresError as e:
-        logger.error(f"Database query error: {e}")
+        logger.error(f"DB query error: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
-    except HTTPException: 
+    except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error in initialize_game_data_from_db: {e}")
-        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected server error: {e}")
     finally:
         if conn and not conn.is_closed():
             await conn.close()
-            logger.info("Database connection closed.")
+            logger.info("DB connection closed.")
 
-@router.post("/memory_match/cleanup_game")
-async def cleanup_temporary_memes_endpoint(): # Renamed function slightly for clarity
-    try:
-        if ABSOLUTE_TEMP_MEMES_DIR.exists():
-            shutil.rmtree(ABSOLUTE_TEMP_MEMES_DIR) # Remove the entire directory
-            ABSOLUTE_TEMP_MEMES_DIR.mkdir(parents=True, exist_ok=True) # Recreate for next session
-            logger.info(f"Cleaned up and recreated temporary memes directory: {ABSOLUTE_TEMP_MEMES_DIR}")
-        else:
-            logger.info(f"Temporary memes directory {ABSOLUTE_TEMP_MEMES_DIR} not found, creating it.")
-            ABSOLUTE_TEMP_MEMES_DIR.mkdir(parents=True, exist_ok=True)
-        return {"message": "Temporary memes storage managed successfully."}
-    except Exception as e:
-        logger.error(f"Error managing temporary memes directory {ABSOLUTE_TEMP_MEMES_DIR}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to manage temporary memes storage: {e}")
+# The cleanup_temporary_memes_endpoint is no longer needed as frontend handles its own temp storage (Object URLs)
+# @router.post("/memory_match/cleanup_game")
+# async def cleanup_temporary_memes_endpoint(): ...
 
 def ensure_meme_directory_exists():
     """Ensure that the meme directory exists."""
