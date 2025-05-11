@@ -562,7 +562,10 @@ watch(currentLevel, (newLevel) => {
 
 .game-board {
   display: grid;
-  width: clamp(280px, min(90vh - 150px, 95vw), 1200px);
+  width: auto;
+  height: auto;
+  max-width: 95vw;
+  max-height: calc(100vh - 150px);
   margin: 0 auto;
   gap: clamp(5px, 1.5vmin, 15px);
   padding: clamp(5px, 1.5vmin, 15px);
@@ -576,24 +579,31 @@ watch(currentLevel, (newLevel) => {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
   aspect-ratio: 3 / 2;
-  max-width: clamp(280px, 60vh, 600px);
 }
 
 .game-board.level-2 {
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(10, 1fr);
   aspect-ratio: 5 / 10;
-  max-width: clamp(400px, 80vh, 1000px);
 }
 
 .card {
   aspect-ratio: 1 / 1;
   perspective: 1000px;
   cursor: pointer;
-  position: relative;
-  transform-style: preserve-3d;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+  display: none;
 }
 
 .card-inner {
@@ -886,10 +896,11 @@ watch(currentLevel, (newLevel) => {
   .game-board.level-2 {
     overflow-y: auto;
     aspect-ratio: unset;
-    grid-template-rows: repeat(auto-fill, minmax(min(18vw, 100px), 1fr));
+    width: 100%;
+    height: auto;
   }
   .level-2-help {
-    display: block;
+    display: block !important;
   }
   .modal-content {
     width: 95%;
@@ -898,7 +909,6 @@ watch(currentLevel, (newLevel) => {
 
 @media (max-width: 480px) {
   .game-header h1 { font-size: clamp(1.3rem, 6vw, 1.8rem); }
-  .level-selector button { padding: 4px 8px; margin: 0 3px; }
   .game-status-bar { padding: 6px 8px; }
   .game-board.level-1 {
     grid-template-columns: repeat(2, 1fr);
@@ -907,7 +917,6 @@ watch(currentLevel, (newLevel) => {
   }
   .game-board.level-2 {
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(5, 1fr);
   }
   .modal-content {
     padding: 15px;
