@@ -31,3 +31,4 @@ gunicorn==21.2.0
 tensorflow==2.15.0
 cryptography==42.0.2
 asyncpg
+aiohttp
