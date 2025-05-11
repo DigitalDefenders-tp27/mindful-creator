@@ -164,41 +164,39 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useGameStore, GameResult } from '@/stores/gameStore';
-import FullScreenButton from '@/components/Tools/FullScreenButton.vue';
-import router from '@/router'; // Import router for navigation
-import { showConfetti } from '@/utils/confetti'; // Import confetti utility
+// Removed: import { useGameStore, GameResult } from '@/stores/gameStore';
+// Removed: import FullScreenButton from '@/components/Tools/FullScreenButton.vue';
+// Removed: import router from '@/router';
+// Removed: import { showConfetti } from '@/utils/confetti';
 
-const gameStore = useGameStore();
+// const gameStore = useGameStore(); // Removed
 
 // Game levels and their configurations
 const levels = {
-  1: { pairs: 3, columns: 3, name: 'Easy (3 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 }, // 6 cards total
-  2: { pairs: 10, columns: 5, name: 'Medium (10 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 180 }, // 20 cards total
-  // 3: { pairs: 15, columns: 6, name: 'Hard (15 pairs)', cardWidth: 'w-16', cardHeight: 'h-16', textSize: 'text-xxs', gameTime: 300 } // 30 cards total (consider performance)
+  1: { pairs: 3, columns: 3, name: 'Easy (3 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 },
+  2: { pairs: 10, columns: 5, name: 'Medium (10 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 180 },
 };
 type LevelKey = keyof typeof levels;
 
-const currentLevel = ref<LevelKey>(1); // Default to Easy
+const currentLevel = ref<LevelKey>(1);
 const gameStarted = ref(false);
 const gameOver = ref(false);
 const gameWon = ref(false);
 const cards = ref<Card[]>([]);
 const flippedCards = ref<number[]>([]);
-const matchedPairs = ref<string[]>([]); // Store matched meme names (or IDs)
-const timer = ref(levels[currentLevel.value].gameTime); // Initial time in seconds
+const matchedPairs = ref<string[]>([]);
+const timer = ref(levels[currentLevel.value].gameTime);
 const timerId = ref<number | null>(null);
 const score = ref(0);
-const isLoading = ref(false); // For loading state during API call
-const errorMessage = ref<string | null>(null); // For displaying errors from API
+const isLoading = ref(false);
+const errorMessage = ref<string | null>(null);
 
-// Define API URL from environment variable or default
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 interface MemeData {
-  id: any; // Can be number or string, depending on what backend sends
+  id: any;
   image_name: string;
-  image_url: string; // This will now be the direct URL from the backend
+  image_url: string; // Direct URL from backend
   text: string;
   humour?: string;
   sarcasm?: string;
@@ -208,24 +206,20 @@ interface MemeData {
 }
 
 interface Card {
-  id: number; // Unique ID for the card itself (0 to 2*pairs - 1)
-  memeData: MemeData; // Contains meme details, including the direct image URL
+  id: number;
+  memeData: MemeData;
   isFlipped: boolean;
   isMatched: boolean;
 }
 
-const gridClass = computed(() => {
-  return `grid-cols-${levels[currentLevel.value].columns}`;
-});
+const gridClass = computed(() => `grid-cols-${levels[currentLevel.value].columns}`);
 
 const cardSizeClass = computed(() => {
   const config = levels[currentLevel.value];
   return `${config.cardWidth} ${config.cardHeight}`;
 });
 
-const cardTextSizeClass = computed(() => {
-  return levels[currentLevel.value].textSize;
-});
+const cardTextSizeClass = computed(() => levels[currentLevel.value].textSize);
 
 const currentMeme = computed(() => {
   if (flippedCards.value.length === 1) {
@@ -235,21 +229,17 @@ const currentMeme = computed(() => {
   return null;
 });
 
-// Initialize game with data from backend
 async function initializeGameFromBackend() {
-  if (!gameStarted.value) return; // Only initialize if game has been started
+  if (!gameStarted.value) return;
   isLoading.value = true;
   errorMessage.value = null;
-  cards.value = []; // Clear existing cards
-  // No need to revoke object URLs anymore
+  cards.value = [];
 
   try {
     console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
     const response = await fetch(`${API_BASE_URL}/api/games/memory_match/initialize_game`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ level: currentLevel.value }),
     });
 
@@ -262,25 +252,22 @@ async function initializeGameFromBackend() {
     console.log('Memes received from API:', memesFromApi);
 
     if (memesFromApi.length < levels[currentLevel.value].pairs) {
-      throw new Error(`Not enough memes received from backend. Expected ${levels[currentLevel.value].pairs}, got ${memesFromApi.length}.`);
+      throw new Error(`Not enough memes. Expected ${levels[currentLevel.value].pairs}, got ${memesFromApi.length}.`);
     }
 
-    // Create card pairs
     const gameCards: Card[] = [];
     memesFromApi.slice(0, levels[currentLevel.value].pairs).forEach((meme, index) => {
-      // Each meme forms a pair, so two cards
       gameCards.push({ id: index * 2, memeData: meme, isFlipped: false, isMatched: false });
       gameCards.push({ id: index * 2 + 1, memeData: meme, isFlipped: false, isMatched: false });
     });
 
     cards.value = shuffleArray(gameCards);
-    console.log('Shuffled cards ready for game:', cards.value);
+    console.log('Shuffled cards ready:', cards.value);
 
   } catch (error: any) {
-    console.error('Error initializing game from backend:', error);
-    errorMessage.value = error.message || "An unknown error occurred while fetching memes.";
-    // Potentially stop the game or offer a retry
-    stopGame(); // Stop game if initialization fails
+    console.error('Error initializing game:', error);
+    errorMessage.value = error.message || "An unknown error occurred.";
+    stopGame();
   } finally {
     isLoading.value = false;
   }
@@ -288,7 +275,6 @@ async function initializeGameFromBackend() {
 
 function selectLevel(level: LevelKey) {
   currentLevel.value = level;
-  // Reset game state when level changes before starting
   if (!gameStarted.value) {
     resetGameState();
     timer.value = levels[currentLevel.value].gameTime;
@@ -299,9 +285,9 @@ function startGame() {
   gameStarted.value = true;
   gameOver.value = false;
   gameWon.value = false;
-  resetGameState(); // Reset score, timer, etc.
-  timer.value = levels[currentLevel.value].gameTime; // Set timer for the current level
-  initializeGameFromBackend(); // Fetch memes for the selected level
+  resetGameState();
+  timer.value = levels[currentLevel.value].gameTime;
+  initializeGameFromBackend();
   startTimer();
 }
 
@@ -309,7 +295,6 @@ function resetGameState() {
   flippedCards.value = [];
   matchedPairs.value = [];
   score.value = 0;
-  // cards.value = []; // Cards are re-initialized by initializeGameFromBackend
   if (timerId.value) {
     clearInterval(timerId.value);
     timerId.value = null;
@@ -322,14 +307,13 @@ function stopGame() {
     clearInterval(timerId.value);
     timerId.value = null;
   }
-  // Do not reset gameOver and gameWon here, as they indicate the final state
 }
 
 function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
   }
   return newArray;
 }
@@ -338,10 +322,8 @@ function flipCard(index: number) {
   if (!gameStarted.value || gameOver.value || cards.value[index].isFlipped || cards.value[index].isMatched || flippedCards.value.length >= 2) {
     return;
   }
-
   cards.value[index].isFlipped = true;
   flippedCards.value.push(index);
-
   if (flippedCards.value.length === 2) {
     checkForMatch();
   }
@@ -352,34 +334,31 @@ function checkForMatch() {
   const firstCard = cards.value[firstIndex];
   const secondCard = cards.value[secondIndex];
 
-  // Using image_name for matching, assuming it's unique for each meme image
   if (firstCard.memeData.image_name === secondCard.memeData.image_name) {
     firstCard.isMatched = true;
     secondCard.isMatched = true;
     matchedPairs.value.push(firstCard.memeData.image_name);
-    score.value += 10; // Add points for a match
-
+    score.value += 10;
     if (matchedPairs.value.length === levels[currentLevel.value].pairs) {
-      endGame(true); // All pairs matched, game won
+      endGame(true);
     }
   } else {
-    score.value = Math.max(0, score.value - 2); // Deduct points for a mismatch
-    // Not a match, flip back after a delay
+    score.value = Math.max(0, score.value - 2);
     setTimeout(() => {
       firstCard.isFlipped = false;
       secondCard.isFlipped = false;
-    }, 1000); // 1 second delay
+    }, 1000);
   }
-  flippedCards.value = []; // Reset flipped cards array
+  flippedCards.value = [];
 }
 
 function startTimer() {
-  if (timerId.value) clearInterval(timerId.value); // Clear existing timer
+  if (timerId.value) clearInterval(timerId.value);
   timerId.value = setInterval(() => {
     if (timer.value > 0) {
       timer.value--;
     } else {
-      endGame(false); // Time's up, game lost
+      endGame(false);
     }
   }, 1000);
 }
@@ -392,47 +371,31 @@ function endGame(won: boolean) {
     timerId.value = null;
   }
   if (won) {
-    showConfetti(3000); // Show confetti for 3 seconds if won
+    console.log("Game Won! Congratulations!"); // Simple console log for winning
   }
-
-  // Save game result
-  const result: GameResult = {
-    gameName: 'Memory Match',
-    level: levels[currentLevel.value].name,
-    score: score.value,
-    won: gameWon.value,
-    date: new Date().toISOString(),
-    timeTaken: levels[currentLevel.value].gameTime - timer.value, // Time spent
-  };
-  gameStore.addResult(result);
 }
 
 function goHome() {
-  router.push('/'); // Navigate to home page
+  window.location.href = '/'; // Simple navigation to root
 }
 
 function restartGame() {
-  stopGame(); // Stop current game processes
-  // Reset all game state variables to their initial states before starting a new game.
+  stopGame();
   gameOver.value = false;
   gameWon.value = false;
-  // Level selection remains, or you can reset it:
-  // currentLevel.value = 1; 
-  startGame(); // Start a new game with the current (or reset) level
+  startGame();
 }
 
 onMounted(() => {
-  // Game doesn't start automatically; user clicks "Start Game"
+  // Game starts on button click
 });
 
 onUnmounted(() => {
   if (timerId.value) {
     clearInterval(timerId.value);
   }
-  // No Object URLs to revoke
 });
 
-// Watch for level changes to update timer display if game not started
 watch(currentLevel, (newLevel) => {
   if (!gameStarted.value) {
     timer.value = levels[newLevel].gameTime;
