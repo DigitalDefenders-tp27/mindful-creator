@@ -79,7 +79,7 @@ async def get_db_connection():
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
 # New Endpoints using PostgreSQL
-@router.post("/memory_match/initialize_game", response_model=List[MemeDataFromDB])
+@router.post("/initialize_game", response_model=List[MemeDataFromDB])
 async def initialize_game_data_from_db(request: GameInitRequest):
     level = request.level
     num_memes_to_fetch = 30 # User requested 30 memes; clarify if this is for game pairs or a general pool
