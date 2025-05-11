@@ -62,7 +62,7 @@
           </div>
         </div>
       </div>
-      <div v-if="currentLevel === 2 && cards.length > levels[1].pairs * 2" class="level-2-help">Scroll to see more cards</div>
+      <div v-if="currentLevel === 2" class="level-2-help">Scroll to see more cards</div>
     </div>
     
     <!-- Victory modal - Simplified -->
@@ -130,7 +130,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Game levels and their configurations
 const levels = {
   1: { pairs: 3, columns: 3, name: 'Easy (3 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 },
-  2: { pairs: 10, columns: 5, name: 'Medium (10 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 180 },
+  2: { pairs: 25, columns: 5, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 300 },
 };
 type LevelKey = keyof typeof levels;
 
@@ -386,10 +386,8 @@ function goHome() {
 
 function restartGame() {
   showVictoryModal.value = false;
-  stopGame();
   gameOver.value = false;
   gameWon.value = false;
-  currentLevel.value = 1;
   resetGameState();
   timer.value = levels[currentLevel.value].gameTime;
   startGame();
@@ -583,8 +581,8 @@ watch(currentLevel, (newLevel) => {
 
 .game-board.level-2 {
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  aspect-ratio: 5 / 4;
+  grid-template-rows: repeat(10, 1fr);
+  aspect-ratio: 5 / 10;
   max-width: clamp(400px, 80vh, 1000px);
 }
 
@@ -646,7 +644,6 @@ watch(currentLevel, (newLevel) => {
   transform: rotateY(180deg);
 }
 .card.matched .card-inner {
-  opacity: 0.7;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .card.matched {
