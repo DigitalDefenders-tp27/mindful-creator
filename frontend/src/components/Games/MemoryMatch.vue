@@ -16,15 +16,15 @@
     </div>
     
     <!-- Game status bar -->
-    <div v-if="gameStarted && !gameOver" class="game-status-bar">
-      <div class="timer-display">
-        Time: {{ formatTime(timer) }}
+    <div v-if="gameStarted && !gameOver" class="game-status-bar new-status-bar">
+      <div class="status-item timer-display">
+        Time: <span>{{ formatTime(timer) }}</span>
       </div>
-      <div class="score-display">
-        Score: {{ score }}
+      <div class="status-item score-display">
+        Score: <span>{{ score }}</span>
       </div>
-      <div class="match-counter">
-        Matches: {{ matchedPairs }} / {{ totalPairs }}
+      <div class="status-item match-counter">
+        Matches: <span>{{ matchedPairs }} / {{ totalPairs }}</span>
       </div>
     </div>
     
@@ -66,52 +66,57 @@
     </div>
     
     <!-- Victory modal - Simplified -->
-    <div v-if="showVictoryModal" class="victory-modal">
-      <div class="modal-content">
-        <h2>{{ gameWon ? 'Victory!' : 'Game Over' }}</h2>
+    <div v-if="showVictoryModal" class="victory-modal new-victory-modal">
+      <div class="modal-content new-modal-content">
+        <h2 class="new-modal-h2">Victory!</h2>
         
-        <div class="modal-subtitle" v-if="gameWon">
-          You matched all {{ totalPairs }} pairs in {{ formatTime(levels[currentLevel].gameTime - timer) }}!
-          <span class="level-badge">Level {{ currentLevel }}</span>
+        <div class="new-modal-subtitle">
+          Your Meme Collection <span class="level-badge new-level-badge">Level {{ currentLevel }}</span>
         </div>
-         <div class="modal-subtitle" v-else>
-          {{ timer <= 0 ? "Time's up!" : "Keep trying!" }}
-          <span class="level-badge">Level {{ currentLevel }}</span>
-        </div>
-        <p>Score: {{ score }}</p>
         
-        <!-- Meme gallery in modal - updated for single display with navigation -->
-        <div v-if="gameWon && gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style">
-          <h3>Know more about it</h3>
-          <div class="meme-carousel">
-            <button @click="prevModalMeme" class="arrow-btn left-arrow" :disabled="currentModalMemeIndex === 0">&#x276E;</button>
-            <div class="modal-meme-item-container">
+        <div v-if="gameWon && gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style new-meme-gallery">
+          <div class="meme-carousel new-meme-carousel">
+            <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn" :disabled="currentModalMemeIndex === 0">&#x276E;</button>
+            <div class="modal-meme-item-container new-meme-item-container">
               <img 
                 :src="currentModalMeme.image_url || '/images/placeholder.png'" 
                 :alt="currentModalMeme.text"
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
-                class="modal-meme-image-single"
+                class="modal-meme-image-single new-modal-meme-image"
               >
-              <p class="modal-meme-text-under-image">{{ currentModalMeme.text || 'N/A' }}</p>
-              <div class="modal-meme-sentiments">
-                <span v-if="currentModalMeme.humour" class="sentiment-tag humour">Humour: {{ currentModalMeme.humour }}</span>
-                <span v-if="currentModalMeme.sarcasm" class="sentiment-tag sarcasm">Sarcasm: {{ currentModalMeme.sarcasm }}</span>
-                <span v-if="currentModalMeme.offensive" class="sentiment-tag offensive">Offensive: {{ currentModalMeme.offensive }}</span>
-                <span v-if="currentModalMeme.motivational" class="sentiment-tag motivational">Motivational: {{ currentModalMeme.motivational }}</span>
-                <span v-if="currentModalMeme.overall_sentiment" class="sentiment-tag overall">Overall Sentiment: {{ currentModalMeme.overall_sentiment }}</span>
+              <p class="meme-identifier new-meme-identifier">Meme {{ currentModalMemeIndex + 1 }}</p>
+              <div class="modal-meme-sentiments new-modal-sentiments">
+                <div class="sentiment-row new-sentiment-row">
+                  <span class="sentiment-label">Overall Sentiment:</span>
+                  <span class="sentiment-tag overall new-sentiment-tag">{{ currentModalMeme.overall_sentiment || 'N/A' }}</span>
+                </div>
+                <div class="sentiment-grid new-sentiment-grid">
+                  <div v-if="currentModalMeme.humour" class="sentiment-item new-sentiment-item">
+                    <span class="sentiment-label">Humour:</span> <span class="sentiment-tag new-sentiment-tag humour">{{ currentModalMeme.humour }}</span>
+                  </div>
+                  <div v-if="currentModalMeme.sarcasm" class="sentiment-item new-sentiment-item">
+                    <span class="sentiment-label">Sarcasm:</span> <span class="sentiment-tag new-sentiment-tag sarcasm">{{ currentModalMeme.sarcasm }}</span>
+                  </div>
+                  <div v-if="currentModalMeme.motivational" class="sentiment-item new-sentiment-item">
+                    <span class="sentiment-label">Motivational:</span> <span class="sentiment-tag new-sentiment-tag motivational">{{ currentModalMeme.motivational }}</span>
+                  </div>
+                  <div v-if="currentModalMeme.offensive" class="sentiment-item new-sentiment-item">
+                    <span class="sentiment-label">Offensive:</span> <span class="sentiment-tag new-sentiment-tag offensive">{{ currentModalMeme.offensive }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <button @click="nextModalMeme" class="arrow-btn right-arrow" :disabled="currentModalMemeIndex === gameMemesForModal.length - 1">&#x276F;</button>
+            <button @click="nextModalMeme" class="arrow-btn right-arrow new-arrow-btn" :disabled="currentModalMemeIndex === gameMemesForModal.length - 1">&#x276F;</button>
           </div>
         </div>
         <div v-else-if="!gameWon" class="meme-gallery-simplified">
           <p>Better luck next time!</p>
         </div>
         
-        <div class="modal-controls">
-          <button v-if="gameWon && canAdvanceLevel" class="control-btn advance-btn" @click="challengeAdvance">CHALLENGE ADVANCE</button>
-          <button class="control-btn try-again-btn" @click="restartGame">TRY AGAIN</button>
-          <button class="control-btn exit-btn" @click="exitGame">EXIT</button>
+        <div class="modal-controls new-modal-controls">
+          <button v-if="gameWon && canAdvanceLevel" class="control-btn new-control-btn next-level-btn" @click="challengeAdvance">NEXT LEVEL</button>
+          <button class="control-btn new-control-btn play-again-btn" @click="restartGame">PLAY AGAIN</button>
+          <button class="control-btn new-control-btn exit-btn" @click="exitGame">EXIT</button>
         </div>
       </div>
     </div>
@@ -129,7 +134,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
 // Game levels and their configurations
 const levels = {
-  1: { pairs: 3, columns: 3, name: 'Easy (3 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 },
+  1: { pairs: 6, columns: 4, name: 'Easy (6 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 120 }, // 6 pairs, 4x3 grid, 120s
   2: { pairs: 25, columns: 5, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 300 },
 };
 type LevelKey = keyof typeof levels;
@@ -458,7 +463,7 @@ watch(currentLevel, (newLevel) => {
   color: #333;
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa;
+  background-color: #FDFDFF; /* Very light off-white, almost pure white */
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
@@ -474,7 +479,7 @@ watch(currentLevel, (newLevel) => {
   font-size: clamp(1.8rem, 5vw, 2.2rem);
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: #1a73e8;
+  color: #333333; /* Dark grey/black for game title */
 }
 
 .level-selector {
@@ -513,7 +518,6 @@ watch(currentLevel, (newLevel) => {
   max-width: 500px;
   width: 95%;
   align-self: center;
-  flex-shrink: 0;
   color: #3c4043;
 }
 
@@ -557,7 +561,7 @@ watch(currentLevel, (newLevel) => {
   overflow: hidden;
   min-height: 0;
   box-sizing: border-box;
-  margin: 0 auto;
+  margin: 5px auto;
 }
 
 .game-board {
@@ -565,20 +569,20 @@ watch(currentLevel, (newLevel) => {
   width: auto;
   height: auto;
   max-width: 95vw;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 160px);
   margin: 0 auto;
-  gap: clamp(5px, 1.5vmin, 15px);
-  padding: clamp(5px, 1.5vmin, 15px);
-  background: rgba(0, 0, 0, 0.05);
+  gap: clamp(5px, 1.5vmin, 10px);
+  padding: clamp(5px, 1.5vmin, 10px);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 8px;
   position: relative;
   box-sizing: border-box;
 }
 
 .game-board.level-1 {
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  aspect-ratio: 3 / 2;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns for 6 pairs */
+  grid-template-rows: repeat(3, 1fr);    /* 3 rows for 6 pairs */
+  aspect-ratio: 4 / 3;
 }
 
 .game-board.level-2 {
@@ -591,19 +595,6 @@ watch(currentLevel, (newLevel) => {
   aspect-ratio: 1 / 1;
   perspective: 1000px;
   cursor: pointer;
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 50;
-  pointer-events: none;
-  display: none;
 }
 
 .card-inner {
@@ -629,10 +620,13 @@ watch(currentLevel, (newLevel) => {
 }
 
 .card-front {
-  background: linear-gradient(145deg, #4e73df, #224abe);
+  /* background: linear-gradient(145deg, #4e73df, #224abe); */ /* Old blue gradient */
+  background: linear-gradient(145deg, #FF7E5F, #FEB47B); /* New orange/reddish gradient */
+  /* Other styles like display flex, align, justify for content if any */
 }
 .card-front::before {
-    content: '?';
+    /* content: '?'; */ /* Question mark removed */
+    content: ''; /* Ensure no content */
     font-size: clamp(20px, 10vmin, 50px);
     color: rgba(255,255,255,0.7);
     font-weight: bold;
@@ -666,12 +660,12 @@ watch(currentLevel, (newLevel) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(20, 20, 20, 0.85); /* Darker overlay, less transparency */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(10px); /* Increased blur */
   padding: 15px;
   box-sizing: border-box;
 }
@@ -691,20 +685,18 @@ watch(currentLevel, (newLevel) => {
 .modal-content h2 {
   text-align: center;
   font-size: clamp(1.8rem, 5vw, 2.5rem);
-  color: #1a73e8;
+  color: #FE6B8B; /* Pinkish color from a similar design */
   margin-bottom: 15px;
 }
 
 .modal-subtitle {
   text-align: center;
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  color: #5f6368;
-  margin-bottom: 15px;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: #4F4F4F; /* Darker Grey for subtitle text */
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  font-weight: bold;
 }
 
 .level-badge {
@@ -723,20 +715,11 @@ watch(currentLevel, (newLevel) => {
 }
 
 .meme-gallery-modal.victory-style {
-  background-color: #fffbe6;
-  border: 1px solid #ffe58f;
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 15px;
+  background-color: transparent; /* No separate background for the gallery box itself */
+  border: none;
+  padding: 0;
+  margin-top: 0;
   margin-bottom: 20px;
-}
-
-.meme-gallery-modal.victory-style h3 {
-  text-align: center;
-  font-size: clamp(1.1rem, 3vw, 1.3rem);
-  color: #d6336c;
-  margin-bottom: 15px;
-  font-weight: bold;
 }
 
 .meme-carousel {
@@ -763,7 +746,7 @@ watch(currentLevel, (newLevel) => {
   transition: color 0.2s;
 }
 .arrow-btn:hover:not(:disabled) {
-  color: #1a73e8;
+  color: #FE6B8B;
 }
 .arrow-btn:disabled {
   color: #cccccc;
@@ -878,25 +861,31 @@ watch(currentLevel, (newLevel) => {
 }
 
 .level-2-help {
+  display: none;
   position: absolute;
-  bottom: 5px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
   color: white;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 15px;
-  font-size: 0.75rem;
+  font-size: clamp(0.7rem, 2vw, 0.8rem);
   white-space: nowrap;
   z-index: 50;
   pointer-events: none;
 }
 
 @media (max-width: 768px) {
+  .game-board {
+    max-height: calc(100vh - 140px);
+    gap: clamp(4px, 1.2vmin, 8px);
+    padding: clamp(4px, 1.2vmin, 8px);
+  }
   .game-board.level-2 {
     overflow-y: auto;
     aspect-ratio: unset;
-    width: 100%;
+    width: 98%;
     height: auto;
   }
   .level-2-help {
@@ -908,8 +897,11 @@ watch(currentLevel, (newLevel) => {
 }
 
 @media (max-width: 480px) {
-  .game-header h1 { font-size: clamp(1.3rem, 6vw, 1.8rem); }
-  .game-status-bar { padding: 6px 8px; }
+  .game-board {
+    max-height: calc(100vh - 120px);
+    gap: 3px;
+    padding: 3px;
+  }
   .game-board.level-1 {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -917,6 +909,7 @@ watch(currentLevel, (newLevel) => {
   }
   .game-board.level-2 {
     grid-template-columns: repeat(4, 1fr);
+    width: 100%;
   }
   .modal-content {
     padding: 15px;
@@ -928,9 +921,11 @@ watch(currentLevel, (newLevel) => {
 @media (max-height: 480px) and (orientation: landscape) {
     .memory-game-container {
         padding: 5px;
+        gap: 5px;
     }
+    .game-header { margin-bottom: 5px; }
     .game-header h1 {
-        font-size: clamp(1rem, 4vh, 1.3rem);
+        font-size: clamp(1.1rem, 4vh, 1.3rem);
         margin-bottom: 2px;
     }
     .level-selector {
@@ -941,14 +936,14 @@ watch(currentLevel, (newLevel) => {
     .game-status-bar {
         padding: 4px 6px;
         margin-bottom: 5px;
-        font-size: clamp(0.7rem, 3vh, 0.9rem);
+        font-size: clamp(0.75rem, 3vh, 0.9rem);
     }
     .game-board-container {
+        margin: 0 auto;
     }
     .game-board {
         gap: clamp(3px, 1vmin, 5px);
         padding: clamp(3px, 1vmin, 5px);
-        width: clamp(200px, min(85vh - 80px, 90vw), 800px);
     }
      .game-board.level-1 {
         grid-template-columns: repeat(3, 1fr);
@@ -957,8 +952,10 @@ watch(currentLevel, (newLevel) => {
     }
     .game-board.level-2 {
         grid-template-columns: repeat(5, 1fr);
-        grid-template-rows: repeat(4, 1fr);
-        aspect-ratio: 5 / 4;
+        aspect-ratio: unset;
+        overflow-y: auto;
+        width: 98vw;
+        max-height: calc(100vh - 90px);
     }
     .modal-content {
         width: 90%;
@@ -975,5 +972,199 @@ watch(currentLevel, (newLevel) => {
         bottom: 2px;
     }
 }
+
+.game-status-bar.new-status-bar {
+  display: flex;
+  justify-content: center; /* Center items */
+  align-items: center;
+  margin: 10px auto 15px auto; /* Center block and add some margin */
+  padding: 8px 15px;
+  background-color: rgba(144, 238, 144, 0.8); /* Light green with some transparency */
+  border-radius: 25px; /* Pill shape */
+  font-size: clamp(0.8rem, 2.5vw, 1rem); /* Adjusted font size */
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 400px; /* Max width for the pill */
+  width: auto; /* Auto width based on content */
+  align-self: center;
+  color: #ffffff; /* White text for labels */
+}
+
+.status-item {
+  margin: 0 10px; /* Spacing between items */
+  display: flex;
+  align-items: center;
+}
+.status-item span { /* For the value part */
+  font-weight: bold;
+  margin-left: 5px;
+  color: #ffffff; /* White text for values */
+}
+
+.victory-modal.new-victory-modal {
+  background-color: rgba(20, 20, 20, 0.85); /* Darker overlay, less transparency */
+  backdrop-filter: blur(10px); /* Increased blur */
+}
+
+.modal-content.new-modal-content {
+  background-color: #ffffff;
+  border-radius: 16px; /* More rounded */
+  padding: 20px;
+  width: min(90%, 550px); /* Slightly adjusted width */
+  max-height: 95vh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.new-modal-h2 { /* For "Victory!" */
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  color: #FE6B8B; /* Pinkish color from a similar design */
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.new-modal-subtitle { /* "Your Meme Collection Level X" */
+  text-align: center;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: #4F4F4F; /* Darker Grey for subtitle text */
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.level-badge.new-level-badge {
+  background-color: #FE6B8B; /* Match h2 color - Pink */
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  margin-left: 10px;
+}
+
+.meme-gallery-modal.new-meme-gallery {
+  background-color: transparent; /* No separate background for the gallery box itself */
+  border: none;
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.meme-carousel.new-meme-carousel {
+  /* Using existing flex properties */
+}
+
+.modal-meme-item-container.new-meme-item-container {
+  /* Using existing flex properties */
+}
+
+.arrow-btn.new-arrow-btn {
+  font-size: 2rem; /* Slightly smaller */
+  color: #aaa;
+}
+.arrow-btn.new-arrow-btn:hover:not(:disabled) {
+  color: #FE6B8B; /* Match theme color */
+}
+
+.modal-meme-image-single.new-modal-meme-image {
+  max-width: 100%;
+  max-height: 220px; /* Slightly more height for image */
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  /* border: 1px solid #e0e0e0; */ /* Border removed as per design */
+}
+
+.meme-identifier.new-meme-identifier { /* "Meme X" */
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  color: #4F4F4F; /* Dark Grey */
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.modal-meme-sentiments.new-modal-sentiments {
+  background-color: #ffffff; /* White background for sentiment area to match modal */
+  border-radius: 8px;
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sentiment-row.new-sentiment-row { /* For "Overall Sentiment: value" */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+.sentiment-row.new-sentiment-row .sentiment-label {
+  font-weight: bold;
+  color: #333333; /* Black/Dark Grey for "Overall Sentiment:" */
+  font-size: clamp(0.85rem, 2.2vw, 1rem);
+}
+.sentiment-row.new-sentiment-row .sentiment-tag.new-sentiment-tag {
+  padding: 4px 10px;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
+  background-color: #E0E0E0; /* Light grey pill for overall sentiment value */
+  color: #333333; /* Dark text */
+}
+
+
+.sentiment-grid.new-sentiment-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Each item takes full width for label: value display */
+  gap: 8px; /* Reduced gap between sentiment rows */
+}
+
+.sentiment-item.new-sentiment-item {
+  display: flex; /* Changed to flex for inline label and tag */
+  justify-content: space-between; /* Pushes label and tag to ends */
+  align-items: center; 
+  width: 100%;
+}
+
+.sentiment-item.new-sentiment-item .sentiment-label {
+  font-size: clamp(0.75rem, 1.8vw, 0.9rem); /* Slightly increased size */
+  color: #828282; /* Lighter grey for individual sentiment labels */
+  margin-bottom: 0; /* Remove bottom margin */
+  margin-right: 8px; /* Add right margin for spacing */
+}
+
+.sentiment-tag.new-sentiment-tag {
+  padding: 5px 12px; /* Adjusted padding for pill look */
+  border-radius: 15px;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  font-weight: 500;
+  border: none; /* Remove border from previous style */
+  width: fit-content; /* Tag only as wide as its content */
+}
+/* New Sentiment Tag Colors (approximating from screenshot) */
+.sentiment-tag.new-sentiment-tag.overall { background-color: #e0e0e0; color: #333; } /* Re-defined above, kept for clarity */
+.sentiment-tag.new-sentiment-tag.humour { background-color: #6FCF97; color: #212529; } /* Brighter Green pill, dark text */
+.sentiment-tag.new-sentiment-tag.sarcasm { background-color: #F2C94C; color: #212529; } /* Yellow/Orange pill, dark text */
+.sentiment-tag.new-sentiment-tag.motivational { background-color: #6FCF97; color: #212529; } /* Brighter Green pill, dark text (same as humour) */
+.sentiment-tag.new-sentiment-tag.offensive { background-color: #F2C94C; color: #212529; } /* Yellow/Orange pill, dark text (same as sarcasm) */
+
+
+.modal-controls.new-modal-controls {
+  gap: 10px; /* Reduced gap */
+}
+
+.control-btn.new-control-btn {
+  border-radius: 25px; /* Pill shape */
+  padding: clamp(10px, 2.5vw, 12px) clamp(20px, 4vw, 30px); /* Adjusted padding */
+  font-size: clamp(0.85rem, 2.5vw, 1rem); /* Slightly smaller font */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.control-btn.new-control-btn:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.next-level-btn { background: #56CCF2; color: #212529; } /* Light Blue/Cyan, dark text */
+.play-again-btn { background: #F2994A; color: #212529; } /* Orange, dark text */
+.exit-btn { background: #F2F2F2; color: #4F4F4F; border: 1px solid #BDBDBD; } /* Light grey, dark text, grey border */
 
 </style> 
