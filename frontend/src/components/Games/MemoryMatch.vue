@@ -68,35 +68,35 @@
         <h2>{{ gameWon ? 'Victory!' : 'Game Over' }}</h2>
         
         <div class="modal-subtitle" v-if="gameWon">
-          You matched all {{ totalPairs }} pairs!
+          You matched all {{ totalPairs }} pairs in {{ formatTime(levels[currentLevel].gameTime - timer) }}!
           <span class="level-badge">Level {{ currentLevel }}</span>
         </div>
          <div class="modal-subtitle" v-else>
-          Time's up or no more moves!
+          {{ timer <= 0 ? "Time's up!" : "Keep trying!" }}
           <span class="level-badge">Level {{ currentLevel }}</span>
         </div>
         <p>Score: {{ score }}</p>
         
-        <!-- Simplified Meme display in modal -->
-        <div v-if="modalMeme" class="meme-gallery-simplified">
-          <h3>Last Matched Meme:</h3>
-          <img 
-            :src="modalMeme.image_url || '/images/placeholder.png'" 
-            :alt="modalMeme.text"
-            @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
-            class="modal-meme-image"
-          >
-          <div class="modal-meme-sentiment">
-            <p><strong>Text:</strong> {{ modalMeme.text || 'N/A' }}</p>
-            <p><strong>Humour:</strong> {{ modalMeme.humour || 'N/A' }}</p>
-            <p><strong>Sarcasm:</strong> {{ modalMeme.sarcasm || 'N/A' }}</p>
-            <p><strong>Offensive:</strong> {{ modalMeme.offensive || 'N/A' }}</p>
-            <p><strong>Motivational:</strong> {{ modalMeme.motivational || 'N/A' }}</p>
-            <p><strong>Overall Sentiment:</strong> {{ modalMeme.overall_sentiment || 'N/A' }}</p>
+        <!-- Meme gallery in modal -->
+        <div v-if="gameWon && gameMemesForModal.length > 0" class="meme-gallery-modal">
+          <h3>Memes from this game:</h3>
+          <div class="meme-scroll-container">
+            <div v-for="meme in gameMemesForModal" :key="meme.image_name" class="modal-meme-item">
+              <img 
+                :src="meme.image_url || '/images/placeholder.png'" 
+                :alt="meme.text"
+                @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
+                class="modal-meme-image-item"
+              >
+              <div class="modal-meme-details">
+                <p><strong>Text:</strong> {{ meme.text || 'N/A' }}</p>
+                <!-- Add other details if needed, e.g., sentiment -->
+              </div>
+            </div>
           </div>
         </div>
-        <div v-else-if="gameWon" class="meme-gallery-simplified">
-            <p>Displaying one of the matched memes.</p>
+        <div v-else-if="!gameWon && modalMeme" class="meme-gallery-simplified">
+          <p>Better luck next time!</p>
         </div>
         
         <div class="modal-controls">
@@ -130,7 +130,7 @@ const gameStarted = ref(false);
 const gameOver = ref(false);
 const gameWon = ref(false);
 const cards = ref<Card[]>([]);
-const flippedCards = ref<number[]>([]);
+const flippedCards = ref<Card[]>([]);
 const matchedPairs = ref(0);
 const timer = ref(levels[currentLevel.value].gameTime);
 const timerId = ref<number | null>(null);
@@ -138,6 +138,8 @@ const score = ref(0);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
 const showVictoryModal = ref(false);
+const processingFlip = ref(false);
+const gameMemesForModal = ref<MemeData[]>([]);
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tiezhu.org';
 
@@ -185,6 +187,7 @@ async function initializeGameFromBackend() {
   errorMessage.value = null;
   cards.value = [];
   matchedPairs.value = 0;
+  gameMemesForModal.value = [];
 
   try {
     console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
@@ -208,6 +211,8 @@ async function initializeGameFromBackend() {
 
     const gameCards: Card[] = [];
     const memesForLevel = memesFromApi.slice(0, levels[currentLevel.value].pairs);
+
+    gameMemesForModal.value = [...memesForLevel];
 
     memesForLevel.forEach((meme, index) => {
       gameCards.push({ id: index * 2, memeData: meme, isFlipped: false, isMatched: false });
@@ -240,6 +245,8 @@ function startGame() {
   gameWon.value = false;
   showVictoryModal.value = false;
   modalMeme.value = null;
+  processingFlip.value = false;
+  gameMemesForModal.value = [];
   resetGameState();
   timer.value = levels[currentLevel.value].gameTime;
   initializeGameFromBackend();
@@ -250,6 +257,10 @@ function resetGameState() {
   flippedCards.value = [];
   matchedPairs.value = 0;
   score.value = 0;
+  cards.value.forEach(card => {
+    card.isFlipped = false;
+    card.isMatched = false;
+  });
   if (timerId.value) {
     clearInterval(timerId.value);
     timerId.value = null;
@@ -273,72 +284,75 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArray;
 }
 
-function flipCard(cardToFlip: Card) {
-  const cardIndex = cards.value.findIndex(c => c.id === cardToFlip.id);
-  if (cardIndex === -1 || !gameStarted.value || gameOver.value || cards.value[cardIndex].isFlipped || cards.value[cardIndex].isMatched || flippedCards.value.length >= 2) {
+function flipCard(clickedCard: Card) {
+  if (processingFlip.value || clickedCard.isFlipped || clickedCard.isMatched || gameOver.value) {
     return;
   }
-  cards.value[cardIndex].isFlipped = true;
-  flippedCards.value.push(cardIndex);
-  if (flippedCards.value.length === 2) {
-    checkForMatch();
+
+  if (flippedCards.value.length < 2) {
+    clickedCard.isFlipped = true;
+    flippedCards.value.push(clickedCard);
+
+    if (flippedCards.value.length === 2) {
+      processingFlip.value = true;
+      checkForMatch();
+    }
   }
 }
 
 function checkForMatch() {
-  const [firstIndex, secondIndex] = flippedCards.value;
-  const firstCard = cards.value[firstIndex];
-  const secondCard = cards.value[secondIndex];
+  const [card1, card2] = flippedCards.value;
 
-  if (firstCard.memeData.image_name === secondCard.memeData.image_name) {
-    firstCard.isMatched = true;
-    secondCard.isMatched = true;
+  if (card1.memeData.image_name === card2.memeData.image_name) {
+    card1.isMatched = true;
+    card2.isMatched = true;
     matchedPairs.value++;
-    score.value += 10;
-    modalMeme.value = firstCard.memeData;
+    score.value += 100;
+    modalMeme.value = card1.memeData;
+
+    flippedCards.value = [];
+    processingFlip.value = false;
+
     if (matchedPairs.value === totalPairs.value) {
       endGame(true);
     }
   } else {
-    score.value = Math.max(0, score.value - 2);
+    score.value = Math.max(0, score.value - 10);
     setTimeout(() => {
-      if (!firstCard.isMatched) firstCard.isFlipped = false;
-      if (!secondCard.isMatched) secondCard.isFlipped = false;
+      card1.isFlipped = false;
+      card2.isFlipped = false;
+      flippedCards.value = [];
+      processingFlip.value = false;
     }, 1000);
   }
-  flippedCards.value = [];
 }
 
 function startTimer() {
   if (timerId.value) clearInterval(timerId.value);
   timerId.value = setInterval(() => {
-    if (timer.value > 0 && !gameOver.value) {
-      timer.value--;
-    } else if (timer.value === 0 && !gameOver.value) {
+    timer.value--;
+    if (timer.value <= 0) {
       endGame(false);
     }
   }, 1000);
 }
 
-function endGame(won: boolean) {
-  gameOver.value = true;
-  gameWon.value = won;
+function stopTimer() {
   if (timerId.value) {
     clearInterval(timerId.value);
     timerId.value = null;
   }
-  if (won) {
-    console.log("Game Won! Congratulations!");
-    if (!modalMeme.value && cards.value.length > 0) {
-        const anyMatchedCard = cards.value.find(c => c.isMatched);
-        if (anyMatchedCard) modalMeme.value = anyMatchedCard.memeData;
-    }
-  } else {
-    if (!modalMeme.value && cards.value.length > 0) {
-        modalMeme.value = cards.value[0].memeData;
-    }
-  }
+}
+
+function endGame(won: boolean) {
+  stopTimer();
+  gameOver.value = true;
+  gameWon.value = won;
   showVictoryModal.value = true;
+
+  if (won) {
+    score.value += timer.value * 10;
+  }
 }
 
 function goHome() {
@@ -653,43 +667,80 @@ watch(currentLevel, (newLevel) => {
     font-weight: bold;
 }
 
-.meme-gallery-simplified {
-  text-align: center;
+.meme-gallery-modal {
   margin-bottom: 20px;
+  width: 100%;
 }
-.meme-gallery-simplified h3 {
-  font-size: clamp(1rem, 3vw, 1.2rem);
+
+.meme-gallery-modal h3 {
+  font-size: 1.3em;
   margin-bottom: 10px;
-  color: #3c4043;
+  color: #444;
+}
+
+.meme-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.modal-meme-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.modal-meme-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.modal-meme-image-item {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 15px;
+  border: 1px solid #ddd;
+}
+
+.modal-meme-details {
+  text-align: left;
+  font-size: 0.9em;
+  flex-grow: 1;
+}
+
+.modal-meme-details p {
+  margin: 2px 0;
+  font-size: 0.95em;
+  color: #333;
+}
+.modal-meme-details p strong {
+  color: #111;
+}
+
+.meme-gallery-simplified {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
 }
 .modal-meme-image {
-  max-width: min(100%, 350px);
-  max-height: 300px;
-  width: auto;
-  height: auto;
-  border-radius: 8px;
-  margin: 0 auto 15px auto;
-  object-fit: contain;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  padding: 5px;
-  display: block;
-}
-.modal-meme-sentiment {
-  font-size: clamp(0.8rem, 2.2vw, 1rem);
-  text-align: left;
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  max-width: 400px;
-  margin: 0 auto;
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-bottom: 10px;
 }
 .modal-meme-sentiment p {
-  margin-bottom: 5px;
-  word-break: break-word;
-}
-.modal-meme-sentiment strong {
-  color: #1a73e8;
+    font-size: 0.85em;
+    margin: 3px 0;
+    color: #666;
 }
 
 .modal-controls {
