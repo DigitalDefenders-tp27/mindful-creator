@@ -17,24 +17,29 @@ logger = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Database Configuration
-# Try to build from Railway-specific environment variables first for internal connections
-PGHOST = os.getenv("PGHOST")
-PGUSER = os.getenv("PGUSER")
-PGPASSWORD = os.getenv("PGPASSWORD")
-PGDATABASE = os.getenv("PGDATABASE")
-PGPORT = os.getenv("PGPORT", "5432") # Default PostgreSQL port
+PGHOST_ENV = os.getenv("PGHOST")
+PGUSER_ENV = os.getenv("PGUSER")
+PGPASSWORD_ENV = os.getenv("PGPASSWORD")
+PGDATABASE_ENV = os.getenv("PGDATABASE")
+PGPORT_ENV = os.getenv("PGPORT", "5432") # Default PostgreSQL port
+
+# Diagnostic logging for environment variables
+logger.info(f"Read PGHOST_ENV: '{PGHOST_ENV}' (Type: {type(PGHOST_ENV)})")
+logger.info(f"Read PGUSER_ENV: '{PGUSER_ENV}' (Type: {type(PGUSER_ENV)})")
+logger.info(f"Read PGPASSWORD_ENV: '{'********' if PGPASSWORD_ENV else PGPASSWORD_ENV}' (Type: {type(PGPASSWORD_ENV)})") # Mask password
+logger.info(f"Read PGDATABASE_ENV: '{PGDATABASE_ENV}' (Type: {type(PGDATABASE_ENV)})")
+logger.info(f"Read PGPORT_ENV: '{PGPORT_ENV}' (Type: {type(PGPORT_ENV)})")
 
 # Logic for DATABASE_URL_MEME_FETCH override has been removed.
 # The application will now solely rely on PG* environment variables.
 
-if PGHOST and PGUSER and PGPASSWORD and PGDATABASE:
-    # If PGHOST is provided, use it. Otherwise, default to postgres.railway.internal if other PG vars are set.
+if PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV:
     # Ensure db_host is correctly determined for Railway internal or external hostnames
-    db_host = PGHOST
+    db_host = PGHOST_ENV
     # A simple check for internal might be if it doesn't contain '.', but Railway's PGHOST might be a FQDN.
     # The original logic: db_host = PGHOST if PGHOST == "postgres.railway.internal" or "." in PGHOST else "postgres.railway.internal"
     # This simplifies to just using PGHOST as provided by Railway, which should be the correct resolvable hostname.
-    DATABASE_URL = f"postgresql://{PGUSER}:{PGPASSWORD}@{db_host}:{PGPORT}/{PGDATABASE}"
+    DATABASE_URL = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{db_host}:{PGPORT_ENV}/{PGDATABASE_ENV}"
     logger.info(f"Constructed DATABASE_URL from PG* env vars. Connecting to host: {db_host}")
 else:
     DATABASE_URL = None # No valid configuration found
