@@ -29,9 +29,6 @@ pytest.ini
 *.sqlite3
 *.db
 
-# Kaggle API token
-kaggle.json
-
 # Version control
 .git
 .gitignore
