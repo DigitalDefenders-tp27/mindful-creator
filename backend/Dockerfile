@@ -3,9 +3,14 @@ WORKDIR /app
 
 # ---------- Install git & git-lfs ----------
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git git-lfs procps && \
-    git lfs install && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    git \
+    git-lfs \
+    procps \
+    unzip \
+    python3-pip \
+    && git lfs install \
+    && rm -rf /var/lib/apt/lists/*
 
 # ---------- Python deps ----------
 COPY requirements.txt .
@@ -30,6 +35,21 @@ RUN mkdir -p /app/nlp && \
 # ---------- App source ----------
 COPY railway_startup.sh .
 RUN chmod +x railway_startup.sh
+
+# --- Kaggle API Setup & Download ---
+# This step expects kaggle.json to be in the build context (backend directory)
+COPY kaggle.json /root/.kaggle/kaggle.json
+RUN chmod 600 /root/.kaggle/kaggle.json
+
+# Create a directory for the memes and download them
+RUN mkdir -p /app/meme_images
+WORKDIR /app/meme_images
+# Download the dataset. Ensure 'williamscott701/memotion-dataset-7k' is correct.
+RUN kaggle datasets download -d williamscott701/memotion-dataset-7k --unzip -p .
+# If the unzip creates an 'images' subdirectory, move its contents up and remove the subdir
+RUN if [ -d "images" ]; then mv images/* .; rm -rf images; fi
+WORKDIR /app # Switch back to the main app directory
+# --- End Kaggle Download ---
 
 COPY . .
 # EXPOSE 8080

@@ -50,8 +50,6 @@ backend/datasets/meme/*.jpeg
 backend/datasets/meme/*.png
 backend/datasets/meme/*.gif
 
-# Kaggle credentials
-kaggle.json
 
 # Local configuration
 .DS_Store

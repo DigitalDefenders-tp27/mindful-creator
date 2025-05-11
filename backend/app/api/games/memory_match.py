@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import FileResponse
 import pandas as pd
 import random
 import os
@@ -26,20 +27,24 @@ MEME_DATASET_PATH = "backend/datasets/meme"
 # Path to public meme directory
 PUBLIC_MEME_PATH = "frontend/public/memes"
 
+# This path should correspond to where images were downloaded in your Dockerfile
+MEME_IMAGE_DIR = Path("/app/meme_images") 
+
 # Pydantic models for new endpoints
 class GameInitRequest(BaseModel):
     level: int
 
-class MemeDataFromDB(BaseModel): # Renamed to distinguish from frontend's potential MemeData
+# Renamed Pydantic model for clarity
+class MemeDataWithLocalURL(BaseModel):
     id: Any 
-    image_name: str # Keep for reference if needed
-    image_url: str # This will be the original URL from the DB
+    image_name: str 
+    image_url: str # This will now be a URL to our backend's serving endpoint
     text: str
-    humour: str | None
-    sarcasm: str | None
-    offensive: str | None
-    motivational: str | None
-    overall_sentiment: str | None
+    humour: Optional[str] = None
+    sarcasm: Optional[str] = None
+    offensive: Optional[str] = None
+    motivational: Optional[str] = None
+    overall_sentiment: Optional[str] = None
 
 # Helper functions for the new mechanism
 async def get_db_connection():
@@ -82,29 +87,25 @@ async def get_db_connection():
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
 # New Endpoints using PostgreSQL
-@router.post("/initialize_game", response_model=List[MemeDataFromDB])
-async def initialize_game_data_from_db(request: GameInitRequest):
-    level = request.level
-    num_memes_to_fetch = 30 # User requested 30 memes; clarify if this is for game pairs or a general pool
-                           # For Memory Match, we usually need N pairs. If it's 30 total unique images, frontend makes 15 pairs.
-                           # Or, if it means 30 *pairs*, then 30 unique images. Or if it's just a data table for other use, then 30 is fine.
-                           # Sticking to game pairs logic: Level 1 = 6 unique memes, Level 2 = 25 unique memes.
+@router.post("/initialize_game", response_model=List[MemeDataWithLocalURL])
+async def initialize_game_data_with_local_urls(game_request: GameInitRequest, http_request: Request):
+    level = game_request.level
+    num_memes_to_fetch = 0
     if level == 1:
         num_memes_to_fetch = 6
     elif level == 2:
         num_memes_to_fetch = 25
     else:
-        # If user wants a fixed 30 for a "table" regardless of level, adjust this logic.
-        # For now, assuming level dictates pair count for the game.
         raise HTTPException(status_code=400, detail="Invalid game level specified. Must be 1 or 2 for standard game setup.")
 
     conn = None
     try:
         conn = await get_db_connection()
+        # Fetch necessary fields from 'meme_cleand'. No need for original image_url for serving.
         query = """
-            SELECT image_name, image_url, text_corrected, humour, sarcasm, offensive, motivational, overall_sentiment
-            FROM meme_cleand
-            WHERE image_url IS NOT NULL AND image_url <> '' AND image_name IS NOT NULL AND image_name <> ''
+            SELECT image_name, text_corrected, humour, sarcasm, offensive, motivational, overall_sentiment
+            FROM meme_cleand  -- Using the cleaned table
+            WHERE image_name IS NOT NULL AND image_name <> ''
             ORDER BY RANDOM()
             LIMIT $1
         """
@@ -115,21 +116,26 @@ async def initialize_game_data_from_db(request: GameInitRequest):
             if not db_records:
                  raise HTTPException(status_code=404, detail="Not enough memes in 'meme_cleand' DB for game setup.")
         
-        processed_memes_data: List[MemeDataFromDB] = []
-        meme_id_counter = 1 # Simple sequential ID for this batch
+        processed_memes_data: List[MemeDataWithLocalURL] = []
+        meme_id_counter = 1 
+        base_url = str(http_request.base_url).rstrip('/')
 
         for record in db_records:
             image_name_from_db = record["image_name"]
-            image_url_from_db = record["image_url"]
             
-            if not image_url_from_db: # Should be caught by WHERE clause, but good to check
-                logger.warning(f"Skipping record from 'meme_cleand' with missing image_url: {image_name_from_db}")
-                continue
+            # Verify the image file actually exists in our downloaded image directory
+            expected_image_path = MEME_IMAGE_DIR / image_name_from_db
+            if not expected_image_path.is_file():
+                logger.warning(f"Image file not found in backend storage for '{image_name_from_db}' at path '{expected_image_path}'. Skipping this meme.")
+                continue # Skip this meme if its image isn't found locally
             
-            processed_memes_data.append(MemeDataFromDB(
-                id=meme_id_counter, # This ID is just for this batch
+            # Construct the new image URL pointing to our backend serving endpoint
+            local_image_url = f"{base_url}/api/games/memory_match/images/{image_name_from_db}"
+            
+            processed_memes_data.append(MemeDataWithLocalURL(
+                id=meme_id_counter, 
                 image_name=image_name_from_db,
-                image_url=image_url_from_db, # Return the original URL
+                image_url=local_image_url, 
                 text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
                 humour=record["humour"],
                 sarcasm=record["sarcasm"],
@@ -139,21 +145,62 @@ async def initialize_game_data_from_db(request: GameInitRequest):
             ))
             meme_id_counter += 1
         
-        logger.info(f"Returning {len(processed_memes_data)} meme data objects (from 'meme_cleand') for level {level}.")
+        if not processed_memes_data and db_records: # All fetched records had missing image files
+            logger.error(f"Fetched {len(db_records)} records from DB, but all corresponding image files were missing from {MEME_IMAGE_DIR}.")
+            raise HTTPException(status_code=500, detail="Meme data found, but image files are missing in backend storage.")
+        elif not processed_memes_data:
+             # This case is hit if initial db_records was empty AND less than num_memes_to_fetch
+             # The earlier check for len(db_records) < num_memes_to_fetch would have already caught this if db_records was totally empty.
+             # So, this is more of a safeguard or if the logic above changes.
+             logger.warning("No processable meme data after checking file existence.")
+             # Re-evaluate if a 404 is more appropriate here as well.
+             # For now, sticking to the logic that it implies an issue if initial fetch was okay but then all files missing.
+
+        logger.info(f"Returning {len(processed_memes_data)} meme data objects (from 'meme_cleand' with local URLs) for level {level}.")
         return processed_memes_data
         
     except asyncpg.PostgresError as dbe:
         logger.error(f"DB query error on 'meme_cleand': {dbe}")
         raise HTTPException(status_code=500, detail=f"Database error: {dbe}")
-    except HTTPException:
+    except HTTPException: 
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in initialize_game_data_from_db (targeting 'meme_cleand'): {e}")
+        logger.error(f"Unexpected error in initialize_game_data_with_local_urls (targeting 'meme_cleand'): {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected server error: {e}")
     finally:
         if conn and not conn.is_closed():
             await conn.close()
-            # logger.info("DB connection closed.") # This log can be a bit noisy for every request.
+
+# --- New Endpoint to Serve Images --- 
+@router.get("/images/{image_filename}")
+async def serve_meme_image(image_filename: str):
+    try:
+        # Sanitize filename to prevent directory traversal - basic check
+        if ".." in image_filename or image_filename.startswith("/"):
+            raise HTTPException(status_code=400, detail="Invalid image filename.")
+
+        image_path = MEME_IMAGE_DIR / image_filename
+        
+        if not image_path.is_file():
+            logger.error(f"Image serving: File not found at {image_path}")
+            raise HTTPException(status_code=404, detail="Image not found.")
+        
+        media_type = "image/jpeg" # Default
+        if image_filename.lower().endswith(".png"):
+            media_type = "image/png"
+        elif image_filename.lower().endswith(".gif"):
+            media_type = "image/gif"
+        elif image_filename.lower().endswith(".jpg") or image_filename.lower().endswith(".jpeg"):
+            media_type = "image/jpeg"
+        # Add more as needed: webp, etc.
+
+        logger.info(f"Serving image: {image_filename} from {image_path} with media type {media_type}")
+        return FileResponse(str(image_path), media_type=media_type)
+    except HTTPException:
+        raise 
+    except Exception as e:
+        logger.error(f"Error serving image {image_filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error serving image.")
 
 # The cleanup_temporary_memes_endpoint is no longer needed as frontend handles its own temp storage (Object URLs)
 # @router.post("/memory_match/cleanup_game")

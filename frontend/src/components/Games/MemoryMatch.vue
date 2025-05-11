@@ -162,93 +162,90 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
-import axios from 'axios';
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useGameStore, GameResult } from '@/stores/gameStore';
+import FullScreenButton from '@/components/Tools/FullScreenButton.vue';
+import router from '@/router'; // Import router for navigation
+import { showConfetti } from '@/utils/confetti'; // Import confetti utility
 
-// API configuration
-const MEME_API_URL = import.meta.env.VITE_MEME_API_URL || 'https://api.tiezhu.org';
-// const IS_DEVELOPMENT = import.meta.env.DEV; // Keep if used
+const gameStore = useGameStore();
 
-// Game settings
-const currentLevel = ref(1);
-const timeRemaining = ref(60); // 60 seconds for the game
-const isGameActive = ref(false);
-const isLoading = ref(true);
-const showVictoryModal = ref(false);
-const timerInterval = ref(null);
-// const memeDirAccessible = ref(true); // This is no longer needed as backend handles access
+// Game levels and their configurations
+const levels = {
+  1: { pairs: 3, columns: 3, name: 'Easy (3 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 }, // 6 cards total
+  2: { pairs: 10, columns: 5, name: 'Medium (10 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 180 }, // 20 cards total
+  // 3: { pairs: 15, columns: 6, name: 'Hard (15 pairs)', cardWidth: 'w-16', cardHeight: 'h-16', textSize: 'text-xxs', gameTime: 300 } // 30 cards total (consider performance)
+};
+type LevelKey = keyof typeof levels;
 
-// Cards state
-const cards = ref([]);
-const flippedCards = ref([]);
-const memes = ref([]); 
-const totalPairs = computed(() => currentLevel.value === 1 ? 6 : 25);
-const matchedPairs = ref(0);
-const createdObjectUrls = ref([]); // New: To store Object URLs for cleanup
+const currentLevel = ref<LevelKey>(1); // Default to Easy
+const gameStarted = ref(false);
+const gameOver = ref(false);
+const gameWon = ref(false);
+const cards = ref<Card[]>([]);
+const flippedCards = ref<number[]>([]);
+const matchedPairs = ref<string[]>([]); // Store matched meme names (or IDs)
+const timer = ref(levels[currentLevel.value].gameTime); // Initial time in seconds
+const timerId = ref<number | null>(null);
+const score = ref(0);
+const isLoading = ref(false); // For loading state during API call
+const errorMessage = ref<string | null>(null); // For displaying errors from API
 
-// Track victory status
-const isVictory = ref(true);
+// Define API URL from environment variable or default
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-// Victory modal state
-const currentMemeIndex = ref(0);
-const usedMemes = computed(() => {
-  // In the victory modal, show only the memes that were used in the game
-  // The `id` from the backend is now the `originalId`
-  const uniqueMemeOriginalIds = [...new Set(cards.value.map(card => card.originalId))];
-  return memes.value.filter(meme => uniqueMemeOriginalIds.includes(meme.id)); // meme.id is the originalId now
+interface MemeData {
+  id: any; // Can be number or string, depending on what backend sends
+  image_name: string;
+  image_url: string; // This will now be the direct URL from the backend
+  text: string;
+  humour?: string;
+  sarcasm?: string;
+  offensive?: string;
+  motivational?: string;
+  overall_sentiment?: string;
+}
+
+interface Card {
+  id: number; // Unique ID for the card itself (0 to 2*pairs - 1)
+  memeData: MemeData; // Contains meme details, including the direct image URL
+  isFlipped: boolean;
+  isMatched: boolean;
+}
+
+const gridClass = computed(() => {
+  return `grid-cols-${levels[currentLevel.value].columns}`;
 });
 
-// Update currentMeme to use usedMemes and the new data structure
+const cardSizeClass = computed(() => {
+  const config = levels[currentLevel.value];
+  return `${config.cardWidth} ${config.cardHeight}`;
+});
+
+const cardTextSizeClass = computed(() => {
+  return levels[currentLevel.value].textSize;
+});
+
 const currentMeme = computed(() => {
-  if (!usedMemes.value || usedMemes.value.length === 0) {
-    return { 
-      id: 0, 
-      text: 'No meme available',
-      imagePath: '/images/placeholder.png', // Default placeholder if no Object URL yet or error
-      isOffline: false, 
-      sentiment: {
-        humour: 'unknown',
-        sarcasm: 'unknown',
-        offensive: 'unknown',
-        motivational: 'unknown',
-        overall: 'neutral'
-      }
-    };
+  if (flippedCards.value.length === 1) {
+    const cardIndex = flippedCards.value[0];
+    return cards.value[cardIndex]?.memeData;
   }
-  
-  if (currentMemeIndex.value >= usedMemes.value.length) {
-    currentMemeIndex.value = 0;
-  }
-  
-  const memeFromGame = usedMemes.value[currentMemeIndex.value];
-  
-  return {
-    id: memeFromGame.id,
-    text: memeFromGame.text || `Meme ${memeFromGame.id}`,
-    imagePath: memeFromGame.displayImagePath || '/images/placeholder.png', // Use displayImagePath (Object URL)
-    isOffline: false, 
-    sentiment: { 
-      humour: memeFromGame.humour || 'unknown',
-      sarcasm: memeFromGame.sarcasm || 'unknown',
-      offensive: memeFromGame.offensive || 'unknown',
-      motivational: memeFromGame.motivational || 'unknown',
-      overall: memeFromGame.overall_sentiment || 'neutral'
-    }
-  };
+  return null;
 });
 
-// Methods
-
-// NEW: Function to initialize game data from the backend
-const initializeGameFromBackend = async () => {
+// Initialize game with data from backend
+async function initializeGameFromBackend() {
+  if (!gameStarted.value) return; // Only initialize if game has been started
   isLoading.value = true;
-  // Clear any previously created Object URLs before fetching new ones
-  revokeAllObjectUrls(); 
+  errorMessage.value = null;
+  cards.value = []; // Clear existing cards
+  // No need to revoke object URLs anymore
 
-  console.log('Initializing game from backend (frontend download strategy)...');
   try {
-    const response = await fetch(`${MEME_API_URL}/api/games/memory_match/initialize_game`, {
+    console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
+    const response = await fetch(`${API_BASE_URL}/api/games/memory_match/initialize_game`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -257,423 +254,191 @@ const initializeGameFromBackend = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `Failed to initialize game: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ detail: "Failed to parse error response." }));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
 
-    const rawMemesData = await response.json(); // These have image_url
+    const memesFromApi: MemeData[] = await response.json();
+    console.log('Memes received from API:', memesFromApi);
 
-    if (rawMemesData && rawMemesData.length > 0) {
-      console.log(`Received ${rawMemesData.length} raw meme data objects from backend.`);
-      // Now download images and create Object URLs
-      const memesWithObjectUrls = await Promise.all(
-        rawMemesData.map(async (meme) => {
-          try {
-            const imageResponse = await fetch(meme.image_url, { mode: 'cors' }); // Use original image_url
-            if (!imageResponse.ok) {
-              console.error(`Failed to download image: ${meme.image_url}, status: ${imageResponse.status}`);
-              return { ...meme, displayImagePath: null }; // Or a default placeholder path
-            }
-            const blob = await imageResponse.blob();
-            const objectURL = URL.createObjectURL(blob);
-            createdObjectUrls.value.push(objectURL); // Store for cleanup
-            return { ...meme, displayImagePath: objectURL };
-          } catch (downloadError) {
-            console.error(`Error downloading image ${meme.image_url}:`, downloadError);
-            return { ...meme, displayImagePath: null }; // Fallback
-          }
-        })
-      );
-      
-      memes.value = memesWithObjectUrls.filter(meme => meme.displayImagePath !== null);
-      if (memes.value.length < rawMemesData.length) {
-        console.warn(`Could only successfully download images for ${memes.value.length}/${rawMemesData.length} memes.`);
-      }
-
-      if (memes.value.length === 0 && rawMemesData.length > 0) {
-        alert('Failed to download any meme images. Please check network or try again.');
-        isLoading.value = false;
-        return;
-      }
-      
-      console.log(`Successfully processed ${memes.value.length} memes with Object URLs.`);
-      setupCards();
-      startGame();
-    } else {
-      console.error('No memes received from backend or empty array.');
-      alert('Failed to load meme data for the game. Please try again later.');
+    if (memesFromApi.length < levels[currentLevel.value].pairs) {
+      throw new Error(`Not enough memes received from backend. Expected ${levels[currentLevel.value].pairs}, got ${memesFromApi.length}.`);
     }
-  } catch (error) {
-    console.error('Error initializing game (frontend download strategy): ', error);
-    alert(`Error initializing game: ${error.message}. Please check backend and try again.`);
+
+    // Create card pairs
+    const gameCards: Card[] = [];
+    memesFromApi.slice(0, levels[currentLevel.value].pairs).forEach((meme, index) => {
+      // Each meme forms a pair, so two cards
+      gameCards.push({ id: index * 2, memeData: meme, isFlipped: false, isMatched: false });
+      gameCards.push({ id: index * 2 + 1, memeData: meme, isFlipped: false, isMatched: false });
+    });
+
+    cards.value = shuffleArray(gameCards);
+    console.log('Shuffled cards ready for game:', cards.value);
+
+  } catch (error: any) {
+    console.error('Error initializing game from backend:', error);
+    errorMessage.value = error.message || "An unknown error occurred while fetching memes.";
+    // Potentially stop the game or offer a retry
+    stopGame(); // Stop game if initialization fails
   } finally {
     isLoading.value = false;
   }
-};
+}
 
-// setupCards will now use memes.value populated by initializeGameFromBackend
-// and memes will have a `displayImagePath` property (the Object URL)
-const setupCards = () => {
-  if (!memes.value || memes.value.length === 0) {
-    console.error("Cannot setup cards, memes array is empty or image downloads failed.");
-    return;
+function selectLevel(level: LevelKey) {
+  currentLevel.value = level;
+  // Reset game state when level changes before starting
+  if (!gameStarted.value) {
+    resetGameState();
+    timer.value = levels[currentLevel.value].gameTime;
   }
-  const memesToUse = memes.value; 
-  
-  console.log(`Setting up ${memesToUse.length} pairs of cards with memes (using Object URLs):`, memesToUse);
-  
-  const cardPairs = memesToUse.map(meme => {
-    return [
-      {
-        id: `${meme.id}-1`, 
-        originalId: meme.id, 
-        imagePath: meme.displayImagePath, // Use the Object URL for display
-        text: meme.text || '',
-        isOffline: false, 
-        hue: null, 
-        isFlipped: false,
-        isMatched: false,
-        original_url_for_error_handling: meme.image_url // Store original URL if needed for specific error handling
-      },
-      {
-        id: `${meme.id}-2`,
-        originalId: meme.id,
-        imagePath: meme.displayImagePath, // Use the Object URL for display
-        text: meme.text || '',
-        isOffline: false,
-        hue: null,
-        isFlipped: false,
-        isMatched: false,
-        original_url_for_error_handling: meme.image_url
-      }
-    ];
-  }).flat();
-  
-  cards.value = shuffleArray(cardPairs);
-};
+}
 
-const shuffleArray = (array) => {
+function startGame() {
+  gameStarted.value = true;
+  gameOver.value = false;
+  gameWon.value = false;
+  resetGameState(); // Reset score, timer, etc.
+  timer.value = levels[currentLevel.value].gameTime; // Set timer for the current level
+  initializeGameFromBackend(); // Fetch memes for the selected level
+  startTimer();
+}
+
+function resetGameState() {
+  flippedCards.value = [];
+  matchedPairs.value = [];
+  score.value = 0;
+  // cards.value = []; // Cards are re-initialized by initializeGameFromBackend
+  if (timerId.value) {
+    clearInterval(timerId.value);
+    timerId.value = null;
+  }
+}
+
+function stopGame() {
+  gameStarted.value = false;
+  if (timerId.value) {
+    clearInterval(timerId.value);
+    timerId.value = null;
+  }
+  // Do not reset gameOver and gameWon here, as they indicate the final state
+}
+
+function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
   }
   return newArray;
-};
+}
 
-const startGame = () => {
-  resetGameState();
-  isGameActive.value = true;
-  
-  // Start the timer
-  timerInterval.value = setInterval(() => {
-    if (timeRemaining.value > 0) {
-      timeRemaining.value--;
-    } else {
-      endGame(false); // End game with loss
-    }
-  }, 1000);
-};
-
-const resetGameState = () => {
-  timeRemaining.value = 60;
-  matchedPairs.value = 0;
-  flippedCards.value = [];
-  showVictoryModal.value = false;
-  
-  // Reset all cards
-  if (cards.value && cards.value.length > 0) {
-    cards.value.forEach(card => {
-      card.isFlipped = false;
-      card.isMatched = false;
-    });
-  }
-  
-  // Clear any existing timer
-  if (timerInterval.value) {
-    clearInterval(timerInterval.value);
-    timerInterval.value = null;
-  }
-  
-  revokeAllObjectUrls();
-};
-
-const flipCard = (card) => {
-  if (!isGameActive.value || card.isMatched || card.isFlipped || flippedCards.value.length >= 2) {
+function flipCard(index: number) {
+  if (!gameStarted.value || gameOver.value || cards.value[index].isFlipped || cards.value[index].isMatched || flippedCards.value.length >= 2) {
     return;
   }
-  
-  // Flip the card
-  card.isFlipped = true;
-  flippedCards.value.push(card);
-  
-  // Check for match if we have two cards flipped
+
+  cards.value[index].isFlipped = true;
+  flippedCards.value.push(index);
+
   if (flippedCards.value.length === 2) {
     checkForMatch();
   }
-};
+}
 
-const checkForMatch = () => {
-  const [card1, card2] = flippedCards.value;
-  
-  // Check if the cards have the same original ID (same meme)
-  if (card1.originalId === card2.originalId) {
-    // It's a match
-    card1.isMatched = true;
-    card2.isMatched = true;
-    matchedPairs.value++;
-    
-    // Check if all pairs are matched
-    if (matchedPairs.value === totalPairs.value) {
-      endGame(true); // End game with victory
+function checkForMatch() {
+  const [firstIndex, secondIndex] = flippedCards.value;
+  const firstCard = cards.value[firstIndex];
+  const secondCard = cards.value[secondIndex];
+
+  // Using image_name for matching, assuming it's unique for each meme image
+  if (firstCard.memeData.image_name === secondCard.memeData.image_name) {
+    firstCard.isMatched = true;
+    secondCard.isMatched = true;
+    matchedPairs.value.push(firstCard.memeData.image_name);
+    score.value += 10; // Add points for a match
+
+    if (matchedPairs.value.length === levels[currentLevel.value].pairs) {
+      endGame(true); // All pairs matched, game won
     }
   } else {
-    // Not a match, flip cards back after delay
+    score.value = Math.max(0, score.value - 2); // Deduct points for a mismatch
+    // Not a match, flip back after a delay
     setTimeout(() => {
-      card1.isFlipped = false;
-      card2.isFlipped = false;
-    }, 600); // Reduced from 1000ms to 600ms for faster gameplay
+      firstCard.isFlipped = false;
+      secondCard.isFlipped = false;
+    }, 1000); // 1 second delay
   }
-  
-  // Reset flipped cards
-  flippedCards.value = [];
-};
+  flippedCards.value = []; // Reset flipped cards array
+}
 
-const endGame = async (isWin) => {
-  isGameActive.value = false;
-  isVictory.value = isWin;
-  
-  if (timerInterval.value) {
-    clearInterval(timerInterval.value);
-    timerInterval.value = null;
-  }
-  
-  // Sentiment data is already part of the meme objects in memes.value
-  // The `usedMemes` computed property will filter these for the modal.
-  
-  if (isWin) {
-    currentMemeIndex.value = 0;
-    showVictoryModal.value = true;
-  } else {
-    // Show game over modal after showing all cards
-    if (cards.value && cards.value.length > 0){
-        cards.value.forEach(card => {
-        card.isFlipped = true;
-        });
+function startTimer() {
+  if (timerId.value) clearInterval(timerId.value); // Clear existing timer
+  timerId.value = setInterval(() => {
+    if (timer.value > 0) {
+      timer.value--;
+    } else {
+      endGame(false); // Time's up, game lost
     }
-    
-    setTimeout(() => {
-      currentMemeIndex.value = 0;
-      showVictoryModal.value = true;
-    }, 2000);
+  }, 1000);
+}
+
+function endGame(won: boolean) {
+  gameOver.value = true;
+  gameWon.value = won;
+  if (timerId.value) {
+    clearInterval(timerId.value);
+    timerId.value = null;
   }
-};
-
-const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
-
-const advanceLevel = () => {
-  currentLevel.value = 2;
-  showVictoryModal.value = false;
-  // resetGameState(); // Should be called by initializeGameFromBackend indirectly via startGame
-  initializeGameFromBackend(); // Fetch new memes for level 2
-};
-
-const restartGame = () => {
-  showVictoryModal.value = false;
-  // resetGameState(); // startGame calls resetGameState
-  // fetchMemes(); // Old way, now use initializeGameFromBackend
-  initializeGameFromBackend();
-};
-
-// NEW: Function to revoke all created Object URLs
-const revokeAllObjectUrls = () => {
-  if (createdObjectUrls.value.length > 0) {
-    console.log(`Revoking ${createdObjectUrls.value.length} Object URLs.`);
-    createdObjectUrls.value.forEach(url => URL.revokeObjectURL(url));
-    createdObjectUrls.value = []; // Clear the array
+  if (won) {
+    showConfetti(3000); // Show confetti for 3 seconds if won
   }
-};
 
-const exitGame = async () => {
-  showVictoryModal.value = false;
-  resetGameState(); 
-  // await cleanupTemporaryGameFiles(); // No longer calling backend for this
-  revokeAllObjectUrls(); // Frontend cleanup
-  emit('exit-game');
-};
+  // Save game result
+  const result: GameResult = {
+    gameName: 'Memory Match',
+    level: levels[currentLevel.value].name,
+    score: score.value,
+    won: gameWon.value,
+    date: new Date().toISOString(),
+    timeTaken: levels[currentLevel.value].gameTime - timer.value, // Time spent
+  };
+  gameStore.addResult(result);
+}
 
-// Simplified image error handlers for Object URLs
-const handleImageError = (event, card) => {
-  // If an Object URL fails to load, it might have been revoked or the initial download failed.
-  console.warn(`Failed to load image for card: ${card.originalId} using Object URL: ${card.imagePath}. Original DB URL was: ${card.original_url_for_error_handling}`);
-  const img = event.target;
-  // Fallback to canvas. The card object passed here should have originalId.
-  createCanvasCardFallback(img, { originalId: card.originalId }); // Pass a minimal object for canvas fallback
-};
+function goHome() {
+  router.push('/'); // Navigate to home page
+}
 
-const handleMemeImageError = (event, memeInModal) => {
-  console.warn(`Image error in modal for meme ${memeInModal.id} using Object URL: ${memeInModal.imagePath}.`);
-  const img = event.target;
-  // The memeInModal object should have the necessary `id` for canvas fallback.
-  createModalCanvasFallback(img, { id: memeInModal.id, text: memeInModal.text }); // Pass a minimal object
-};
+function restartGame() {
+  stopGame(); // Stop current game processes
+  // Reset all game state variables to their initial states before starting a new game.
+  gameOver.value = false;
+  gameWon.value = false;
+  // Level selection remains, or you can reset it:
+  // currentLevel.value = 1; 
+  startGame(); // Start a new game with the current (or reset) level
+}
 
-// Canvas fallback functions (keep these as they are good general fallbacks)
-const createCanvasCardFallback = (imgElement, cardData) => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 200; // Or use card dimensions
-      canvas.height = 200;
-      const ctx = canvas.getContext('2d');
-      
-      const numericId = parseInt(String(cardData.originalId).replace(/[^0-9]/g, '')) || 1;
-      const hueRotation = (numericId * 137) % 360;
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, `hsl(${hueRotation}, 70%, 60%)`);
-      gradient.addColorStop(1, `hsl(${(hueRotation + 120) % 360}, 70%, 60%)`);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Meme ${numericId}`, canvas.width/2, canvas.height/2 - 10);
-      ctx.font = '14px Arial';
-      ctx.fillText('Unavailable', canvas.width/2, canvas.height/2 + 15);
-      
-      imgElement.src = canvas.toDataURL('image/png');
-    } catch (e) {
-      console.error('Failed to create canvas card fallback:', e);
-      imgElement.src = '/images/placeholder.png'; // Final fallback
-    }
-};
-
-const createModalCanvasFallback = (imgElement, memeData) => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 300;
-      const ctx = canvas.getContext('2d');
-      
-      const numericId = parseInt(String(memeData.id).replace(/[^0-9]/g, '')) || 1;
-      const hueBase = (numericId * 137) % 360;
-      const gradient = ctx.createLinearGradient(0, 0, 300, 300);
-      gradient.addColorStop(0, `hsl(${hueBase}, 70%, 65%)`);
-      gradient.addColorStop(1, `hsl(${(hueBase + 180) % 360}, 70%, 65%)`);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 300, 300);
-      
-      ctx.font = '80px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = 'white';
-      ctx.fillText('🚫', 150, 140); // Emoji for unavailable
-      
-      ctx.font = 'bold 20px Arial';
-      ctx.fillText('Meme Unavailable', 150, 200);
-      
-      ctx.font = '14px Arial';
-      ctx.fillText(`ID: ${memeData.id}`, 150, 230);
-      
-      imgElement.src = canvas.toDataURL('image/png');
-    } catch (e) {
-      console.error('Failed to create canvas modal fallback:', e);
-      imgElement.src = '/images/placeholder.png'; // Final fallback
-    }
-};
-
-// Cleanup when component is unmounted
-const performCleanup = () => { // Renamed to avoid conflict, this is frontend cleanup
-  if (timerInterval.value) {
-    clearInterval(timerInterval.value);
-    timerInterval.value = null;
-  }
-  revokeAllObjectUrls();
-};
-
-// Load game on mount
 onMounted(() => {
-  console.log("MemoryMatch component mounted. Frontend download strategy.");
-  initializeGameFromBackend();
+  // Game doesn't start automatically; user clicks "Start Game"
 });
 
 onUnmounted(() => {
-  performCleanup();
+  if (timerId.value) {
+    clearInterval(timerId.value);
+  }
+  // No Object URLs to revoke
 });
 
-// emit is already defined
-// const emit = defineEmits(['game-completed', 'exit-game']);
-
-// Navigation methods (nextMeme, prevMeme) should work fine with usedMemes
-const nextMeme = () => {
-  if (usedMemes.value.length > 0) {
-    currentMemeIndex.value = (currentMemeIndex.value + 1) % usedMemes.value.length;
+// Watch for level changes to update timer display if game not started
+watch(currentLevel, (newLevel) => {
+  if (!gameStarted.value) {
+    timer.value = levels[newLevel].gameTime;
   }
-};
+});
 
-const prevMeme = () => {
-  if (usedMemes.value.length > 0) {
-    currentMemeIndex.value = (currentMemeIndex.value - 1 + usedMemes.value.length) % usedMemes.value.length;
-  }
-};
-
-// Sentiment display helpers (getSentimentClass, getSentimentBarStyle)
-// These should work if `currentMeme.sentiment` has the expected structure.
-// The backend now provides overall_sentiment, humour, sarcasm, etc. directly.
-const getSentimentClass = (sentimentValue) => {
-  if (!sentimentValue) return '';
-  
-  const sentiment = String(sentimentValue).toLowerCase(); // Ensure it's a string and lowercase
-
-  // Updated to match potential values from meme_fetch or general positive/negative
-  if (sentiment.includes('positive') || sentiment.includes('funny') || sentiment === 'motivational' || sentiment === 'not_offensive' || sentiment === 'hilarious' || sentiment === 'very_funny') {
-    return 'positive';
-  }
-  if (sentiment.includes('negative') || sentiment.includes('not_funny') || sentiment === 'offensive' || sentiment === 'not_motivational') {
-    return 'negative';
-  }
-  if (sentiment.includes('neutral') || sentiment === 'general' || sentiment === 'unknown') {
-    return 'neutral';
-  }
-  return ''; // Default if no specific class
-};
-
-const getSentimentBarStyle = (sentimentValue) => {
-  let width = '50%'; // Neutral default
-  if (!sentimentValue) return { width };
-
-  const sentiment = String(sentimentValue).toLowerCase();
-
-  // Simplified mapping based on general positive/negative/neutral
-  if (sentiment.includes('very_positive') || sentiment.includes('very_funny') || sentiment === 'hilarious') width = '90%';
-  else if (sentiment.includes('positive') || sentiment.includes('funny') || sentiment === 'motivational' || sentiment === 'not_offensive') width = '75%';
-  else if (sentiment.includes('very_negative') || sentiment === 'offensive') width = '10%';
-  else if (sentiment.includes('negative') || sentiment.includes('not_funny') || sentiment === 'not_motivational') width = '25%';
-  else if (sentiment.includes('neutral') || sentiment === 'general' || sentiment === 'unknown') width = '50%';
-  
-  return { width };
-};
-
-// fetchSentimentData is no longer needed as data comes with initial load
-// const fetchSentimentData = async (memeIds) => { ... };
-
-// Offline styles (getOfflineCardStyle, getOfflineMemeStyle) are no longer primary,
-// but canvas fallbacks might use similar styling if they create offline-like appearances.
-// The `isOffline` flag is now always false for game cards/memes.
-// The template sections for v-if="card.isOffline" or v-if="currentMeme.isOffline" will not be hit.
-// Consider removing them or keeping them only if canvas fallbacks are styled to look "offline".
-// For now, let's assume the canvas fallbacks are sufficient and these explicit offline styles are not needed
-// for the primary card/meme display.
-
-// The template needs to use `card.imagePath` directly for `<img>` src.
-// The `offline-card` and `offline-meme` divs in the template might be removed if `isOffline` is always false.
-// Let's check the template part:
-// <div v-if="card.isOffline" class="offline-card" ...>
-// <div v-if="currentMeme.isOffline" class="offline-meme" ...>
-// These will indeed not render. The canvas fallbacks are injected directly into the <img> src.
 </script>
 
 <style scoped>
