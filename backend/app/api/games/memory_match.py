@@ -103,7 +103,7 @@ async def initialize_game_data_from_db(request: GameInitRequest):
         conn = await get_db_connection()
         query = """
             SELECT image_name, image_url, text_corrected, humour, sarcasm, offensive, motivational, overall_sentiment
-            FROM meme_fetch
+            FROM meme_cleand
             WHERE image_url IS NOT NULL AND image_url <> '' AND image_name IS NOT NULL AND image_name <> ''
             ORDER BY RANDOM()
             LIMIT $1
@@ -111,9 +111,9 @@ async def initialize_game_data_from_db(request: GameInitRequest):
         db_records = await conn.fetch(query, num_memes_to_fetch)
         
         if not db_records or len(db_records) < num_memes_to_fetch:
-            logger.warning(f"DB: Retrieved {len(db_records)}/{num_memes_to_fetch} memes for level {level}.")
+            logger.warning(f"DB: Retrieved {len(db_records)}/{num_memes_to_fetch} memes from 'meme_cleand' for level {level}.")
             if not db_records:
-                 raise HTTPException(status_code=404, detail="Not enough memes in DB for game.")
+                 raise HTTPException(status_code=404, detail="Not enough memes in 'meme_cleand' DB for game setup.")
         
         processed_memes_data: List[MemeDataFromDB] = []
         meme_id_counter = 1 # Simple sequential ID for this batch
@@ -123,7 +123,7 @@ async def initialize_game_data_from_db(request: GameInitRequest):
             image_url_from_db = record["image_url"]
             
             if not image_url_from_db: # Should be caught by WHERE clause, but good to check
-                logger.warning(f"Skipping record with missing image_url: {image_name_from_db}")
+                logger.warning(f"Skipping record from 'meme_cleand' with missing image_url: {image_name_from_db}")
                 continue
             
             processed_memes_data.append(MemeDataFromDB(
@@ -139,21 +139,21 @@ async def initialize_game_data_from_db(request: GameInitRequest):
             ))
             meme_id_counter += 1
         
-        logger.info(f"Returning {len(processed_memes_data)} meme data objects (with URLs) for level {level}.")
+        logger.info(f"Returning {len(processed_memes_data)} meme data objects (from 'meme_cleand') for level {level}.")
         return processed_memes_data
         
-    except asyncpg.PostgresError as e:
-        logger.error(f"DB query error: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    except asyncpg.PostgresError as dbe:
+        logger.error(f"DB query error on 'meme_cleand': {dbe}")
+        raise HTTPException(status_code=500, detail=f"Database error: {dbe}")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in initialize_game_data_from_db: {e}")
+        logger.error(f"Unexpected error in initialize_game_data_from_db (targeting 'meme_cleand'): {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected server error: {e}")
     finally:
         if conn and not conn.is_closed():
             await conn.close()
-            logger.info("DB connection closed.")
+            # logger.info("DB connection closed.") # This log can be a bit noisy for every request.
 
 # The cleanup_temporary_memes_endpoint is no longer needed as frontend handles its own temp storage (Object URLs)
 # @router.post("/memory_match/cleanup_game")

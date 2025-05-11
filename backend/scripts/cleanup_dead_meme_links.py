@@ -1,56 +1,29 @@
 import asyncio
-import asyncpg
-import aiohttp
+import aiohttp # For asynchronous HTTP requests
 import os
 import logging
-from typing import List, Tuple
+import csv # For CSV handling
+from typing import List, Dict, Any
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-ORIGINAL_TABLE_NAME = "meme_fetch"
-CLEANED_TABLE_NAME = "meme_fetch_cleaned"
+# === Configuration for Double-Checking ===
+INPUT_CSV_FILE = "backend/datasets/meme_cleand_202505112225.csv" # Input is the previously cleaned file
+OUTPUT_CSV_FILE = "backend/datasets/meme_links_double_checked.csv" # New output for the double-check results
 
-# --- Database Connection ---
-async def get_db_connection_pool():
-    # --- --- TEMPORARY HARDCODED VALUES FOR DIAGNOSIS --- --- 
-    # --- --- REVERT IMMEDIATELY AFTER TESTING --- --- 
-    HARDCODED_PGHOST = "postgres.railway.internal"
-    HARDCODED_PGUSER = "postgres"
-    HARDCODED_PGPASSWORD = "LLDhBhwcYsquTnhxqNw1ZkGrgYNdwmY"  # REPLACE WITH YOUR ACTUAL PASSWORD IF DIFFERENT
-    HARDCODED_PGDATABASE = "railway"
-    HARDCODED_PGPORT = "5432"
+EXPECTED_COLUMNS = [
+    'image_name', 'text_ocr', 'text_corrected', 'humour', 'sarcasm', 
+    'offensive', 'motivational', 'overall_sentiment', 'original_name', 'image_url'
+]
+# EXPECTED_DATA_ROWS = 6992 # Commented out for double-check, as row count will be different
+IMAGE_URL_COLUMN = 'image_url' # The column containing the URLs to check
 
-    logger.info("--- USING TEMPORARY HARDCODED DB CREDENTIALS FOR DIAGNOSIS ---")
-    logger.info(f"Host: {HARDCODED_PGHOST}, User: {HARDCODED_PGUSER}, DB: {HARDCODED_PGDATABASE}, Port: {HARDCODED_PGPORT}")
-
-    # PGHOST_ENV = os.getenv("PGHOST")
-    # PGUSER_ENV = os.getenv("PGUSER")
-    # PGPASSWORD_ENV = os.getenv("PGPASSWORD")
-    # PGDATABASE_ENV = os.getenv("PGDATABASE")
-    # PGPORT_ENV = os.getenv("PGPORT", "5432")
-
-    # if not (PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV):
-    #     logger.error("Database environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) are not fully set.")
-    #     raise ConnectionError("Missing database configuration in environment.")
-
-    # dsn = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{PGHOST_ENV}:{PGPORT_ENV}/{PGDATABASE_ENV}"
-    dsn = f"postgresql://{HARDCODED_PGUSER}:{HARDCODED_PGPASSWORD}@{HARDCODED_PGHOST}:{HARDCODED_PGPORT}/{HARDCODED_PGDATABASE}"
-    # --- --- END TEMPORARY HARDCODED VALUES --- --- 
-    
-    try:
-        pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=5)
-        logger.info(f"Successfully connected to database: {HARDCODED_PGDATABASE} on {HARDCODED_PGHOST}")
-        return pool
-    except Exception as e:
-        logger.error(f"Failed to create database connection pool: {e}")
-        raise
-
-# --- URL Connectivity Check ---
+# --- URL Connectivity Check (remains largely the same) ---
 async def is_url_alive(session: aiohttp.ClientSession, url: str, timeout_seconds: int = 10) -> bool:
-    if not url or not url.startswith(('http://', 'https://')):
-        logger.warning(f"Skipping invalid URL: {url}")
+    if not url or not isinstance(url, str) or not url.startswith(('http://', 'https://')):
+        logger.warning(f"Skipping invalid or non-string URL: '{url}'")
         return False
     try:
         async with session.head(url, timeout=timeout_seconds, allow_redirects=True) as response:
@@ -63,7 +36,7 @@ async def is_url_alive(session: aiohttp.ClientSession, url: str, timeout_seconds
         logger.warning(f"URL timed out: {url}")
         return False
     except aiohttp.ClientError as e:
-        logger.warning(f"URL client error ({type(e).__name__}): {url} - {e}")
+        logger.warning(f"URL client error ({type(e).__name__} for {url}): {e}")
         return False
     except Exception as e:
         logger.error(f"Unexpected error checking URL {url}: {e}")
@@ -72,71 +45,100 @@ async def is_url_alive(session: aiohttp.ClientSession, url: str, timeout_seconds
 
 # --- Main Logic ---
 async def main():
-    pool = None
-    dead_link_image_names: List[str] = []  # Changed from dead_link_ids to reflect usage of image_name
+    all_rows_from_csv: List[Dict[str, Any]] = []
+    live_link_rows: List[Dict[str, Any]] = []
+
+    # --- 1. Read and Validate CSV --- 
+    logger.info(f"Attempting to read CSV file for double-checking: {INPUT_CSV_FILE}")
+    if not os.path.exists(INPUT_CSV_FILE):
+        logger.error(f"Input CSV file not found: {INPUT_CSV_FILE}")
+        return
 
     try:
-        pool = await get_db_connection_pool()
-        
-        async with pool.acquire() as conn:
-            table_exists_check = await conn.fetchval(
-                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $1)",
-                CLEANED_TABLE_NAME
-            )
-
-            if not table_exists_check:
-                logger.info(f"Table '{CLEANED_TABLE_NAME}' does not exist. Creating it as a copy of '{ORIGINAL_TABLE_NAME}'...")
-                await conn.execute(f"CREATE TABLE {CLEANED_TABLE_NAME} (LIKE {ORIGINAL_TABLE_NAME} INCLUDING ALL)")
-                await conn.execute(f"INSERT INTO {CLEANED_TABLE_NAME} SELECT * FROM {ORIGINAL_TABLE_NAME}")
-                logger.info(f"Table '{CLEANED_TABLE_NAME}' created and populated successfully.")
-            else:
-                logger.info(f"Table '{CLEANED_TABLE_NAME}' already exists. Proceeding with existing data in it.")
-
-            # Fetch image_name and image_url from the CLEANED_TABLE_NAME
-            records = await conn.fetch(f"SELECT image_name, image_url FROM {CLEANED_TABLE_NAME} WHERE image_url IS NOT NULL AND image_url <> ''")
-            logger.info(f"Fetched {len(records)} records from '{CLEANED_TABLE_NAME}' table.")
-
-        if not records:
-            logger.info(f"No records with image_url found in '{CLEANED_TABLE_NAME}' to check.")
-            return
-
-        conn_config = aiohttp.TCPConnector(limit_per_host=10, limit=100, ssl=False)
-        async with aiohttp.ClientSession(connector=conn_config) as session:
-            tasks = []
-            for record in records:
-                image_name_val = record['image_name'] # Use image_name as the identifier
-                image_url = record['image_url']
-                tasks.append(check_and_collect_dead_link(session, image_name_val, image_url, dead_link_image_names))
+        with open(INPUT_CSV_FILE, mode='r', encoding='utf-8', newline='') as infile:
+            reader = csv.DictReader(infile)
+            actual_columns = reader.fieldnames
             
-            await asyncio.gather(*tasks)
+            if actual_columns is None:
+                logger.error(f"Could not read header from CSV: {INPUT_CSV_FILE}. File might be empty or malformed.")
+                return
+                
+            logger.info(f"CSV Columns found: {actual_columns}")
+            if list(actual_columns) != EXPECTED_COLUMNS:
+                logger.error(f"CSV column mismatch! Expected: {EXPECTED_COLUMNS}, Found: {actual_columns}")
+                missing_cols = set(EXPECTED_COLUMNS) - set(actual_columns)
+                extra_cols = set(actual_columns) - set(EXPECTED_COLUMNS)
+                if missing_cols:
+                    logger.error(f"Missing expected columns: {missing_cols}")
+                if extra_cols:
+                    logger.error(f"Found unexpected extra columns: {extra_cols}")
+                logger.error("Please ensure the CSV schema matches the expected structure.")
+                return
+            logger.info("CSV schema validation successful.")
 
-        logger.info(f"Found {len(dead_link_image_names)} dead links out of {len(records)} checked URLs in '{CLEANED_TABLE_NAME}'.")
+            all_rows_from_csv = list(reader)
+            num_data_rows = len(all_rows_from_csv)
+            logger.info(f"Read {num_data_rows} data rows from CSV ({INPUT_CSV_FILE}).")
 
-        if dead_link_image_names:
-            logger.info(f"Preparing to delete {len(dead_link_image_names)} records from '{CLEANED_TABLE_NAME}'...")
-            async with pool.acquire() as conn:
-                # Use image_name (text) for deletion
-                deleted_count_result = await conn.execute(
-                    f"DELETE FROM {CLEANED_TABLE_NAME} WHERE image_name = ANY($1::text[])", 
-                    dead_link_image_names
-                )
-                logger.info(f"Successfully deleted records from '{CLEANED_TABLE_NAME}'. Result: {deleted_count_result}") 
-        else:
-            logger.info(f"No dead links found to delete from '{CLEANED_TABLE_NAME}'.")
+            # Row Count Validation - now just a log, not a hard stop
+            # if num_data_rows != EXPECTED_DATA_ROWS:
+            #     logger.warning(f"Row count mismatch. Expected: {EXPECTED_DATA_ROWS} data rows, Found: {num_data_rows} data rows.")
+            # else:
+            #     logger.info("CSV row count validation successful.")
 
-    except ConnectionError:
-        logger.error("Could not establish database connection. Aborting.")
+    except FileNotFoundError:
+        logger.error(f"Input CSV file not found: {INPUT_CSV_FILE}")
+        return
     except Exception as e:
-        logger.error(f"An error occurred: {e}", exc_info=True)
-    finally:
-        if pool:
-            await pool.close()
-            logger.info("Database connection pool closed.")
+        logger.error(f"Error reading or validating CSV file {INPUT_CSV_FILE}: {e}", exc_info=True)
+        return
 
-async def check_and_collect_dead_link(session, image_name_val, image_url, dead_link_list):
+    if not all_rows_from_csv:
+        logger.info("No data rows found in CSV to process.")
+        return
+
+    # --- 2. Check URL Connectivity --- 
+    logger.info(f"Starting URL connectivity double-check for {len(all_rows_from_csv)} rows...")
+    conn_config = aiohttp.TCPConnector(limit_per_host=20, limit=100, ssl=False)
+    async with aiohttp.ClientSession(connector=conn_config) as session:
+        tasks = []
+        for row_index, row_data in enumerate(all_rows_from_csv):
+            image_url_to_check = row_data.get(IMAGE_URL_COLUMN)
+            tasks.append(check_url_and_collect_row(session, row_index, row_data, image_url_to_check, live_link_rows))
+        
+        await asyncio.gather(*tasks)
+    
+    num_live_links = len(live_link_rows)
+    num_dead_links = len(all_rows_from_csv) - num_live_links
+    logger.info(f"URL Connectivity Double-Check Complete. Total rows processed: {len(all_rows_from_csv)}, Live links found: {num_live_links}, Dead links found this run: {num_dead_links}")
+
+    # --- 3. Write Double-Checked Data to New CSV --- 
+    if live_link_rows:
+        logger.info(f"Writing {num_live_links} rows with validated live links to {OUTPUT_CSV_FILE}...")
+        try:
+            with open(OUTPUT_CSV_FILE, mode='w', encoding='utf-8', newline='') as outfile:
+                writer = csv.DictWriter(outfile, fieldnames=EXPECTED_COLUMNS)
+                writer.writeheader()
+                writer.writerows(live_link_rows)
+            logger.info(f"Successfully wrote double-checked data to {OUTPUT_CSV_FILE}")
+        except Exception as e:
+            logger.error(f"Error writing double-checked CSV to {OUTPUT_CSV_FILE}: {e}", exc_info=True)
+    else:
+        logger.info("No live links found in this double-check run. Output CSV file will not be created or will be empty.")
+
+async def check_url_and_collect_row(session, row_idx, row_data_dict, image_url, live_link_rows_list):
     is_alive = await is_url_alive(session, image_url)
-    if not is_alive:
-        dead_link_list.append(image_name_val) # Store image_name instead of id
+    if is_alive:
+        live_link_rows_list.append(row_data_dict)
+    else:
+        # Log which image_name has a dead link
+        image_name = row_data_dict.get('image_name', '[image_name_not_found]') # Get image_name, provide fallback
+        logger.warning(f"Dead link identified for image_name: '{image_name}'. URL: {image_url}")
     
 if __name__ == "__main__":
+    output_dir = os.path.dirname(OUTPUT_CSV_FILE)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        logger.info(f"Created output directory: {output_dir}")
+
     asyncio.run(main())
