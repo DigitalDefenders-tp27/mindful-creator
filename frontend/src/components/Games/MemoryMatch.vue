@@ -569,7 +569,7 @@ watch(currentLevel, (newLevel) => {
   width: auto;
   height: auto;
   max-width: 95vw;
-  max-height: calc(100vh - 160px);
+  max-height: 100%;
   margin: 0 auto;
   gap: clamp(5px, 1.5vmin, 10px);
   padding: clamp(5px, 1.5vmin, 10px);
