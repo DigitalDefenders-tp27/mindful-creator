@@ -20,9 +20,6 @@
       <div class="status-item timer-display">
         Time: <span>{{ formatTime(timer) }}</span>
       </div>
-      <div class="status-item score-display">
-        Score: <span>{{ score }}</span>
-      </div>
       <div class="status-item match-counter">
         Matches: <span>{{ matchedPairs }} / {{ totalPairs }}</span>
       </div>
@@ -134,8 +131,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
 // Game levels and their configurations
 const levels = {
-  1: { pairs: 6, columns: 4, name: 'Easy (6 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 120 }, // 6 pairs, 4x3 grid, 120s
-  2: { pairs: 25, columns: 5, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 300 },
+  1: { pairs: 6, columns: 4, name: 'Easy (6 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 }, // 6 pairs, 4x3 grid, 60s
+  2: { pairs: 25, columns: 5, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 120 }, // 25 pairs, 5x10 grid, 120s
 };
 type LevelKey = keyof typeof levels;
 
@@ -998,7 +995,7 @@ watch(currentLevel, (newLevel) => {
 .status-item span { /* For the value part */
   font-weight: bold;
   margin-left: 5px;
-  color: #ffffff; /* White text for values */
+  /* color: #ffffff; */ /* White text for values - already handled by parent or can be set if needed */
 }
 
 .victory-modal.new-victory-modal {
