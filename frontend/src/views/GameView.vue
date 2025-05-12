@@ -1,5 +1,32 @@
 <template>
   <div class="game-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="slogan">
+          <div class="title-group">
+            <h1>Meme-ory Palace</h1>
+            <h2>Where Brain Cells Go to Party</h2>
+          </div>
+          <p class="subtitle">Proving your memory is better than a goldfish, one meme at a time</p>
+        </div>
+        <div class="decorative-elements">
+          <!-- Decorative elements, similar to home page -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Game Portal -->
     <div class="game-portal-container">
       <div class="game-portal" @click="startGame('memory')">
@@ -61,14 +88,129 @@ const onGameCompleted = () => {
 </script>
 
 <style scoped>
+/* Hero Section Styles */
+.hero-section {
+  width: 100%;
+  background-color: #f5f7fa;
+  padding: 100px 20px 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.slogan {
+  max-width: 800px;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+}
+
+.title-group {
+  margin-bottom: 20px;
+}
+
+.title-group h1 {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: bold;
+  margin-bottom: 10px;
+  background: linear-gradient(
+    to right,
+    #e75a97 20%,
+    #4d8cd5 40%,
+    #4d8cd5 60%,
+    #e75a97 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: liquidFlow 3s linear infinite;
+}
+
+.title-group h2 {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  color: #333;
+  font-weight: 500;
+}
+
+.subtitle {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.decorative-elements {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.top-row {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  display: flex;
+  gap: 20px;
+}
+
+.element-wrapper {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.8;
+}
+
+.hoverable {
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Existing game container styles */
 .game-container {
   width: 100%;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
   background-color: #f5f7fa;
-  padding: 2rem;
 }
 
 .game-portal-container {
@@ -77,6 +219,7 @@ const onGameCompleted = () => {
   align-items: center;
   max-width: 1200px;
   width: 100%;
+  padding: 2rem;
 }
 
 .game-portal {

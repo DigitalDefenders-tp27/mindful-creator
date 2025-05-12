@@ -132,7 +132,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Game levels and their configurations
 const levels = {
   1: { pairs: 6, columns: 4, name: 'Easy (6 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 }, // 6 pairs, 4x3 grid, 60s
-  2: { pairs: 25, columns: 5, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 120 }, // 25 pairs, 5x10 grid, 120s
+  2: { pairs: 25, columns: 10, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 120 }, // 25 pairs, 5x10 grid, 120s
 };
 type LevelKey = keyof typeof levels;
 
@@ -153,7 +153,8 @@ const processingFlip = ref(false);
 const gameMemesForModal = ref<MemeData[]>([]);
 const currentModalMemeIndex = ref(0);
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tiezhu.org';
+// Hard-coded backend API address
+const API_BASE_URL = 'https://api.tiezhu.org';
 
 interface MemeData {
   id: any;
