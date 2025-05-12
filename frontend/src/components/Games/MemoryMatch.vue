@@ -1,20 +1,5 @@
 <template>
-  <div class="memory-game-container">
-    <!-- Game header -->
-    <div class="game-header">
-      <h1>Meme Memory Match</h1>
-      <!-- Level selection (simplified, can be expanded) -->
-      <div v-if="!gameStarted && !gameOver" class="level-selector">
-        <!-- Level selection removed from initial screen, game defaults to Level 1 -->
-        <!-- Buttons were: <button @click="selectLevel(1)"...>, <button @click="selectLevel(2)"...> -->
-        <p class="game-instructions">
-          Welcome to Meme Memory Match! <br />
-          Click the cards to find matching pairs of memes. Clear the board before time runs out!
-        </p>
-        <button @click="startGame" class="start-button">Start Game</button>
-      </div>
-    </div>
-    
+  <div class="memory-game-container" tabindex="0" @keydown.esc="exitGame" ref="gameContainer">
     <!-- Game status bar -->
     <div v-if="gameStarted && !gameOver" class="game-status-bar new-status-bar">
       <div class="status-item timer-display">
@@ -65,13 +50,13 @@
     <!-- Victory modal - Simplified -->
     <div v-if="showVictoryModal" class="victory-modal new-victory-modal">
       <div class="modal-content new-modal-content">
-        <h2 class="new-modal-h2">Victory!</h2>
+        <h2 class="new-modal-h2">{{ gameWon ? 'Victory!' : 'Time\'s Up!' }}</h2>
         
         <div class="new-modal-subtitle">
           Your Meme Collection <span class="level-badge new-level-badge">Level {{ currentLevel }}</span>
         </div>
         
-        <div v-if="gameWon && gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style new-meme-gallery">
+        <div v-if="gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style new-meme-gallery">
           <div class="meme-carousel new-meme-carousel">
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn" :disabled="currentModalMemeIndex === 0">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
@@ -83,31 +68,32 @@
               >
               <p class="meme-identifier new-meme-identifier">Meme {{ currentModalMemeIndex + 1 }}</p>
               <div class="modal-meme-sentiments new-modal-sentiments">
-                <div class="sentiment-row new-sentiment-row">
-                  <span class="sentiment-label">Overall Sentiment:</span>
-                  <span class="sentiment-tag overall new-sentiment-tag">{{ currentModalMeme.overall_sentiment || 'N/A' }}</span>
+                <!-- Overall sentiment with progress bar at the top -->
+                <div class="sentiment-progress-section">
+                  <div class="sentiment-progress-container">
+                    <div class="sentiment-progress-bar" :style="{width: getSentimentPercentage(currentModalMeme.overall_sentiment) + '%'}"></div>
+                    <span class="sentiment-value">{{ formatSentiment(currentModalMeme.overall_sentiment) || 'N/A' }}</span>
+                  </div>
                 </div>
+                
                 <div class="sentiment-grid new-sentiment-grid">
                   <div v-if="currentModalMeme.humour" class="sentiment-item new-sentiment-item">
-                    <span class="sentiment-label">Humour:</span> <span class="sentiment-tag new-sentiment-tag humour">{{ currentModalMeme.humour }}</span>
+                    <span class="sentiment-label">Humour:</span> <span class="sentiment-tag new-sentiment-tag humour">{{ formatSentiment(currentModalMeme.humour) }}</span>
                   </div>
                   <div v-if="currentModalMeme.sarcasm" class="sentiment-item new-sentiment-item">
-                    <span class="sentiment-label">Sarcasm:</span> <span class="sentiment-tag new-sentiment-tag sarcasm">{{ currentModalMeme.sarcasm }}</span>
+                    <span class="sentiment-label">Sarcasm:</span> <span class="sentiment-tag new-sentiment-tag sarcasm">{{ formatSentiment(currentModalMeme.sarcasm) }}</span>
                   </div>
                   <div v-if="currentModalMeme.motivational" class="sentiment-item new-sentiment-item">
-                    <span class="sentiment-label">Motivational:</span> <span class="sentiment-tag new-sentiment-tag motivational">{{ currentModalMeme.motivational }}</span>
+                    <span class="sentiment-label">Motivational:</span> <span class="sentiment-tag new-sentiment-tag motivational">{{ formatSentiment(currentModalMeme.motivational) }}</span>
                   </div>
                   <div v-if="currentModalMeme.offensive" class="sentiment-item new-sentiment-item">
-                    <span class="sentiment-label">Offensive:</span> <span class="sentiment-tag new-sentiment-tag offensive">{{ currentModalMeme.offensive }}</span>
+                    <span class="sentiment-label">Offensive:</span> <span class="sentiment-tag new-sentiment-tag offensive">{{ formatSentiment(currentModalMeme.offensive) }}</span>
                   </div>
                 </div>
               </div>
             </div>
             <button @click="nextModalMeme" class="arrow-btn right-arrow new-arrow-btn" :disabled="currentModalMemeIndex === gameMemesForModal.length - 1">&#x276F;</button>
           </div>
-        </div>
-        <div v-else-if="!gameWon" class="meme-gallery-simplified">
-          <p>Better luck next time!</p>
         </div>
         
         <div class="modal-controls new-modal-controls">
@@ -155,6 +141,9 @@ const currentModalMemeIndex = ref(0);
 
 // Hard-coded backend API address
 const API_BASE_URL = 'https://api.tiezhu.org';
+
+// Define emits
+const emit = defineEmits(['game-completed', 'exit-game']);
 
 interface MemeData {
   id: any;
@@ -206,6 +195,27 @@ const canAdvanceLevel = computed(() => {
   const maxLevel = Math.max(...levelKeys);
   return currentLevel.value < maxLevel;
 });
+
+const gameContainer = ref<HTMLElement | null>(null);
+
+function formatSentiment(sentiment: string | undefined): string {
+  if (!sentiment) return 'N/A';
+  return sentiment.replace(/_/g, ' ');
+}
+
+function getSentimentPercentage(sentiment: string | undefined): number {
+  if (!sentiment) return 0;
+  
+  const sentimentMap = {
+    'very_positive': 100,
+    'positive': 75,
+    'neutral': 50,
+    'negative': 25,
+    'very_negative': 0
+  };
+  
+  return sentimentMap[sentiment as keyof typeof sentimentMap] || 50;
+}
 
 async function initializeGameFromBackend() {
   if (!gameStarted.value) return;
@@ -404,6 +414,7 @@ function exitGame() {
   currentLevel.value = 1;
   resetGameState();
   timer.value = levels[currentLevel.value].gameTime;
+  emit('exit-game');
 }
 
 function nextModalMeme() {
@@ -429,9 +440,20 @@ function challengeAdvance() {
   }
 }
 
+// Focus the game container to enable keyboard events
+function focusGameContainer() {
+  if (gameContainer.value) {
+    gameContainer.value.focus();
+  }
+}
+
 onMounted(() => {
-  // Game starts on button click via startGame()
-  // No automatic start here
+  // Start the game automatically when component is mounted
+  startGame();
+  focusGameContainer();
+  
+  // Focus on component when modal opens
+  setTimeout(focusGameContainer, 100);
 });
 
 onUnmounted(() => {
@@ -478,28 +500,6 @@ watch(currentLevel, (newLevel) => {
   font-weight: bold;
   margin-bottom: 0.5rem;
   color: #333333; /* Dark grey/black for game title */
-}
-
-.level-selector {
-  margin-bottom: 10px;
-  font-size: clamp(0.8rem, 2.5vw, 1rem);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-.game-instructions {
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  color: #5f6368;
-  margin-bottom: 10px;
-  max-width: 500px;
-  line-height: 1.4;
-}
-
-.start-button {
-  padding: clamp(10px, 3vw, 12px) clamp(20px, 5vw, 25px);
-  font-size: clamp(1rem, 3.5vw, 1.2rem);
-  background-color: #34a853 !important;
 }
 
 .game-status-bar {
@@ -599,7 +599,7 @@ watch(currentLevel, (newLevel) => {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
@@ -927,11 +927,6 @@ watch(currentLevel, (newLevel) => {
         font-size: clamp(1.1rem, 4vh, 1.3rem);
         margin-bottom: 2px;
     }
-    .level-selector {
-        font-size: clamp(0.7rem, 3vh, 0.9rem);
-        margin-bottom: 5px;
-    }
-    .level-selector button { padding: 3px 6px; }
     .game-status-bar {
         padding: 4px 6px;
         margin-bottom: 5px;
@@ -1006,11 +1001,14 @@ watch(currentLevel, (newLevel) => {
 
 .modal-content.new-modal-content {
   background-color: #ffffff;
-  border-radius: 16px; /* More rounded */
+  border-radius: 16px;
   padding: 20px;
-  width: min(90%, 550px); /* Slightly adjusted width */
+  width: min(90%, 550px);
   max-height: 95vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  /* Fixed size for modal */
+  height: 600px;
+  overflow: auto;
 }
 
 .new-modal-h2 { /* For "Victory!" */
@@ -1082,87 +1080,156 @@ watch(currentLevel, (newLevel) => {
 }
 
 .modal-meme-sentiments.new-modal-sentiments {
-  background-color: #ffffff; /* White background for sentiment area to match modal */
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 15px;
   width: 100%;
   box-sizing: border-box;
-}
-
-.sentiment-row.new-sentiment-row { /* For "Overall Sentiment: value" */
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
-}
-.sentiment-row.new-sentiment-row .sentiment-label {
-  font-weight: bold;
-  color: #333333; /* Black/Dark Grey for "Overall Sentiment:" */
-  font-size: clamp(0.85rem, 2.2vw, 1rem);
-}
-.sentiment-row.new-sentiment-row .sentiment-tag.new-sentiment-tag {
-  padding: 4px 10px;
-  font-size: clamp(0.8rem, 2vw, 0.9rem);
-  background-color: #E0E0E0; /* Light grey pill for overall sentiment value */
-  color: #333333; /* Dark text */
+  flex-direction: column;
+  gap: 15px;
 }
 
+.sentiment-progress-section {
+  margin-bottom: 15px;
+  width: 100%;
+}
 
 .sentiment-grid.new-sentiment-grid {
   display: grid;
-  grid-template-columns: 1fr; /* Each item takes full width for label: value display */
-  gap: 8px; /* Reduced gap between sentiment rows */
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .sentiment-item.new-sentiment-item {
-  display: flex; /* Changed to flex for inline label and tag */
-  justify-content: space-between; /* Pushes label and tag to ends */
-  align-items: center; 
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   width: 100%;
 }
 
 .sentiment-item.new-sentiment-item .sentiment-label {
-  font-size: clamp(0.75rem, 1.8vw, 0.9rem); /* Slightly increased size */
-  color: #828282; /* Lighter grey for individual sentiment labels */
-  margin-bottom: 0; /* Remove bottom margin */
-  margin-right: 8px; /* Add right margin for spacing */
+  font-size: 0.85rem;
+  color: #828282;
+  margin-right: 8px;
+  white-space: nowrap;
 }
 
 .sentiment-tag.new-sentiment-tag {
-  padding: 5px 12px; /* Adjusted padding for pill look */
-  border-radius: 15px;
-  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 500;
-  border: none; /* Remove border from previous style */
-  width: fit-content; /* Tag only as wide as its content */
+  background-color: #f1f1f1;
+  color: #333;
 }
-/* New Sentiment Tag Colors (approximating from screenshot) */
-.sentiment-tag.new-sentiment-tag.overall { background-color: #e0e0e0; color: #333; } /* Re-defined above, kept for clarity */
-.sentiment-tag.new-sentiment-tag.humour { background-color: #6FCF97; color: #212529; } /* Brighter Green pill, dark text */
-.sentiment-tag.new-sentiment-tag.sarcasm { background-color: #F2C94C; color: #212529; } /* Yellow/Orange pill, dark text */
-.sentiment-tag.new-sentiment-tag.motivational { background-color: #6FCF97; color: #212529; } /* Brighter Green pill, dark text (same as humour) */
-.sentiment-tag.new-sentiment-tag.offensive { background-color: #F2C94C; color: #212529; } /* Yellow/Orange pill, dark text (same as sarcasm) */
 
+/* Progress Bar Styles */
+.sentiment-progress-container {
+  width: 100%;
+  height: 26px;
+  background-color: #f3f3f3;
+  border-radius: 13px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sentiment-progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #FE6B8B, #FF8E53);
+  border-radius: 13px;
+  transition: width 0.5s ease;
+}
+
+.sentiment-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #333;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.7);
+}
+
+/* Updated Button Colors */
+.next-level-btn { 
+  background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%); 
+  color: white; 
+}
+
+.play-again-btn { 
+  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%); 
+  color: white; 
+}
+
+.exit-btn { 
+  background: #f5f7fa; 
+  color: #333; 
+  border: 1px solid #ddd; 
+}
+
+/* Media Query for smaller screens */
+@media (max-width: 500px) {
+  .sentiment-grid.new-sentiment-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sentiment-item.new-sentiment-item {
+    margin-bottom: 5px;
+  }
+}
 
 .modal-controls.new-modal-controls {
-  gap: 10px; /* Reduced gap */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 30px !important;
+  padding-top: 15px !important;
+  gap: 15px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
 }
 
 .control-btn.new-control-btn {
-  border-radius: 25px; /* Pill shape */
-  padding: clamp(10px, 2.5vw, 12px) clamp(20px, 4vw, 30px); /* Adjusted padding */
-  font-size: clamp(0.85rem, 2.5vw, 1rem); /* Slightly smaller font */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.control-btn.new-control-btn:hover {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  display: inline-block !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 12px 25px !important;
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+  min-width: 120px !important;
+  text-align: center !important;
+  margin: 5px !important;
+  text-decoration: none !important;
+  appearance: button !important;
+  -webkit-appearance: button !important;
 }
 
-.next-level-btn { background: #56CCF2; color: #212529; } /* Light Blue/Cyan, dark text */
-.play-again-btn { background: #F2994A; color: #212529; } /* Orange, dark text */
-.exit-btn { background: #F2F2F2; color: #4F4F4F; border: 1px solid #BDBDBD; } /* Light grey, dark text, grey border */
+.control-btn.new-control-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Updated Button Colors */
+.next-level-btn { 
+  background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%) !important; 
+  color: white !important; 
+}
+
+.play-again-btn { 
+  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%) !important; 
+  color: white !important; 
+}
+
+.exit-btn { 
+  background: #f5f7fa !important; 
+  color: #333 !important; 
+  border: 1px solid #ddd !important; 
+}
 
 </style> 

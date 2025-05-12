@@ -29,13 +29,35 @@
 
     <!-- Game Portal -->
     <div class="game-portal-container">
-      <div class="game-portal" @click="startGame('memory')">
-        <div class="portal-image-container">
-          <img src="/memes/MemoryMatch.jpg" alt="Memory Match Game" class="portal-image">
+      <div class="game-layout">
+        <!-- Left side - Game card -->
+        <div class="game-portal" @click="startGame('memory')">
+          <div class="portal-image-container">
+            <img src="/memes/MemoryMatch.jpg" alt="Memory Match Game" class="portal-image">
+          </div>
+          <div class="portal-info">
+            <h2>Meme Memory Match</h2>
+            <p>Test your memory with a classic card matching game using trending memes.</p>
+          </div>
         </div>
-        <div class="portal-info">
-          <h2>Meme Memory Match</h2>
-          <p>Test your memory with a classic card matching game using trending memes.</p>
+        
+        <!-- Right side - Instructions and start button -->
+        <div class="game-instructions">
+          <h3>How to Play</h3>
+          
+          <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> This game contains memes that may include potentially insulting, sarcastic, or offensive content. Please play responsibly.</p>
+          </div>
+          
+          <ul>
+            <li>Flip cards to find matching meme pairs</li>
+            <li>Clear all pairs before time runs out</li>
+            <li>Challenge yourself with different difficulty levels</li>
+          </ul>
+          
+          <button class="start-game-btn" @click="startGame('memory')">
+            Start Game
+          </button>
         </div>
       </div>
     </div>
@@ -88,112 +110,88 @@ const onGameCompleted = () => {
 </script>
 
 <style scoped>
-/* Hero Section Styles */
-.hero-section {
+/* Game container styles */
+.game-container {
+  background-color: rgb(254, 251, 244);
+  min-height: 100vh;
   width: 100%;
-  background-color: #f5f7fa;
-  padding: 100px 20px 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  overflow: hidden;
+  padding-bottom: 5rem;
+}
+
+/* Hero Section Styles - Matched exactly with HomeView */
+.hero-section {
+  min-height: 40vh;
+  background-color: rgb(255, 252, 244);
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  padding: 6rem 0 1rem;
+  margin-bottom: 2rem;
 }
 
 .hero-content {
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  justify-content: center;
   position: relative;
-  z-index: 2;
+  width: 100%;
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  margin: 0 auto;
+  overflow: visible;
 }
 
 .slogan {
   max-width: 800px;
-  text-align: center;
   position: relative;
-  z-index: 3;
+  z-index: 2;
+  margin-left: 2rem;
+  text-align: left;
 }
 
 .title-group {
-  margin-bottom: 20px;
+  margin-bottom: 0.5rem;
+  text-align: left;
 }
 
 .title-group h1 {
-  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-size: 4rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  position: relative;
   background: linear-gradient(
     to right,
-    #e75a97 20%,
-    #4d8cd5 40%,
-    #4d8cd5 60%,
-    #e75a97 80%
+    #FF3D8C 0%,
+    #FF8B3D 25%,
+    #6FCF97 50%,
+    #4D8CD5 75%,
+    #FF3D8C 100%
   );
   background-size: 200% auto;
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: liquidFlow 3s linear infinite;
+  animation: rainbowFlow 3s linear infinite;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  line-height: 1.3;
+  display: inline-block;
+  margin-bottom: 1rem;
+  white-space: nowrap;
+  text-align: left;
+  padding: 0 0 0.2em;
+  transform: translateY(-0.05em);
+  overflow: visible;
 }
 
-.title-group h2 {
-  font-size: clamp(1.2rem, 4vw, 2rem);
-  color: #333;
-  font-weight: 500;
+.title-group h1:hover {
+  filter: drop-shadow(0 0 5px rgba(255, 61, 140, 0.7));
+  transform: scale(1.02) rotate(-1deg);
+  animation: rainbowFlow 1.5s linear infinite;
 }
 
-.subtitle {
-  font-size: clamp(1rem, 3vw, 1.2rem);
-  color: #666;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.decorative-elements {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.top-row {
-  position: absolute;
-  top: -30px;
-  right: 0;
-  display: flex;
-  gap: 20px;
-}
-
-.element-wrapper {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.element {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  opacity: 0.8;
-}
-
-.hoverable {
-  transition: transform 0.5s ease, opacity 0.5s ease;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes liquidFlow {
+@keyframes rainbowFlow {
   0% {
     background-position: 0% center;
   }
@@ -202,17 +200,252 @@ const onGameCompleted = () => {
   }
 }
 
-/* Existing game container styles */
-.game-container {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  background-color: #f5f7fa;
+.title-group h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+  text-align: left;
+  overflow: visible;
 }
 
+.subtitle {
+  font-size: 1.25rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 1.5rem;
+  white-space: normal;
+  text-align: left;
+  max-width: 100%;
+}
+
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto;
+  row-gap: 1rem;
+  padding: 2rem 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translateX(0);
+  justify-content: end;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: transform 0.5s ease;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: all 0.5s ease;
+}
+
+/* Hover effect enhancement */
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* Responsive Media Queries - Matching HomeView */
+@media (min-width: 640px) {
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-group h1 {
+    font-size: 3.75rem;
+  }
+  .title-group h2 {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 1280px) {
+  .title-group h1 {
+    font-size: 6rem;
+  }
+  .title-group h2 {
+    font-size: 3.75rem;
+  }
+  .subtitle {
+    font-size: 1.875rem;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(0);
+    row-gap: 0.75rem;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 22vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+    max-width: 90%;
+  }
+  
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+
+  .slogan {
+    padding-top: 0;
+  }
+
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+  
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+}
+
+/* Game Portal Styles */
 .game-portal-container {
   display: flex;
   justify-content: center;
@@ -220,11 +453,21 @@ const onGameCompleted = () => {
   max-width: 1200px;
   width: 100%;
   padding: 2rem;
+  margin: 0 auto;
+  margin-bottom: 4rem;
+}
+
+.game-layout {
+  display: flex;
+  width: 100%;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .game-portal {
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   height: 400px;
   background-color: white;
   border-radius: 20px;
@@ -234,6 +477,75 @@ const onGameCompleted = () => {
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  flex: 1;
+}
+
+.game-instructions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+  height: 400px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.game-instructions h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #333;
+  font-weight: 700;
+}
+
+.game-instructions ul {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.game-instructions li {
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.warning-box {
+  background-color: #fff8e6;
+  border: 1px solid #ffd166;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem 0;
+}
+
+.warning-box p {
+  color: #856404;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.start-game-btn {
+  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%);
+  border: none;
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: center;
+  box-shadow: 0 4px 15px rgba(255, 61, 140, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.start-game-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 7px 20px rgba(255, 61, 140, 0.4);
 }
 
 .game-portal:hover {
@@ -329,9 +641,19 @@ const onGameCompleted = () => {
 }
 
 @media (max-width: 768px) {
-  .game-portal {
+  .game-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .game-portal, .game-instructions {
     max-width: 100%;
     height: 350px;
+    width: 100%;
+  }
+  
+  .game-instructions {
+    padding: 1.5rem;
   }
   
   .portal-image-container {
