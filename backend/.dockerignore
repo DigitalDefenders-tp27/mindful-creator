@@ -1,23 +1,46 @@
+# General ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment
+env/
+venv/
+.env
+
+# IDE specific
+.vscode/
+.idea/
+
+# Test files
+*.test.py
+pytest.ini
+.pytest_cache/
+
+# Local data / downloaded files that should be handled by Dockerfile RUN steps
+# Add meme_images here to prevent local version from overwriting the one
+# created by the Kaggle download in the Dockerfile.
+/meme_images/
+
+# Other sensitive or large files
+*.log
+*.sqlite3
+*.db
+
 # Version control
 .git
 .gitignore
 
+# OS files
+.DS_Store
+
 # Python
-__pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
 .pytest_cache/
-
-# Environment
-.env
-.venv
-venv/
-ENV/
-
-# OS files
-.DS_Store
 
 # Development
 *.log 

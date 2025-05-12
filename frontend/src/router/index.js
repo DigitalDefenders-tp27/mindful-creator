@@ -8,6 +8,7 @@ import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
 import PrivacyView from '../views/PrivacyView.vue'
 import CopyrightView from '../views/CopyrightView.vue'
 import TestWebSocketView from '../views/TestWebSocketView.vue'
+import GameView from '../views/GameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +35,12 @@ const router = createRouter({
       path: '/relaxation',
       name: 'relaxation',
       component: RelaxationView,
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/games',
+      name: 'games',
+      component: GameView,
       meta: { requiresAuth: false }
     },
     {

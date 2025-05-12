@@ -8,12 +8,18 @@ import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.routing import APIRouter
 import datetime
 import uvicorn
 import platform
+from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from app.routers import affirmations, breaths, journals, memes
 
+# Explicitly import the games router
+from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 
 # First import only the base router to ensure health check endpoint is available
 # from app.api.router import router as api_router
@@ -63,15 +69,24 @@ app = FastAPI(
 )
 
 # Configure CORS middleware
+# Define allowed origins for specific domains
+allowed_origins = [
+    "http://localhost:3000",  # Local development (frontend)
+    "http://localhost:5173",  # Vite dev server (frontend)
+    "https://mindful-creator.vercel.app",  # Main Vercel production domain
+    "https://tiezhu.org", # Custom domain
+    "https://www.tiezhu.org" # Custom domain with www
+    # Add any other specific production/staging domains here
+]
+
+# Define a regex for Vercel preview deployments under your specific project/scope
+# This matches URLs like: https://mindful-creator-<hash>-tp27.vercel.app
+vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\-]+-tp27\.vercel\.app$"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Local development
-        "https://mindful-creator.vercel.app",  # Main Vercel domain
-        "https://mindful-creator-mcqbwi1f8-tp27.vercel.app",
-        "https://tiezhu.org",
-        "https://www.tiezhu.org"
-    ],
+    allow_origins=allowed_origins, # List of specific origins
+    allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
@@ -121,7 +136,7 @@ async def load_nlp_model():
 
         # 5) Load MTL head weights
         state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
-        model.load_state_dict(state_dict)
+        model.load_state_dict(state_dict, strict=False)
         model.eval()
 
         # 6) Mount to app.state
@@ -206,8 +221,17 @@ ADDITIONAL_ROUTES = [
     ("app.api.relaxation.routes", "/api/relaxation"),
     ("app.api.notes.routes", "/api/notes"),
     ("app.api.youtube.routes", "/api/youtube"),
-    ("app.api.copyright.routes", "/api/copyright")  # Add copyright routes
+    ("app.api.copyright.routes", "/api/copyright"),
+    ("app.routers.affirmations", "/api/affirmations"),
+    ("app.routers.breaths", "/api/breaths"),
+    ("app.routers.journals", "/api/journals"),
+    ("app.routers.memes", "/api/memes")
+    # ("app.api.games", "/api/games") # Removed from dynamic list
 ]
+
+# Explicitly include the games router
+app.include_router(games_api_router, prefix="/api/games")
+logger.info("Explicitly included games_api_router at prefix /api/games")
 
 logger.info("Loading additional routes...")
 for route_module, prefix in ADDITIONAL_ROUTES:
@@ -261,6 +285,28 @@ logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_time:.2f} secon
 port = int(os.environ.get("PORT", 8000))
 logger.info(f"API available at http://0.0.0.0:{port}")
 log_system_resources()
+
+# Mount static files if directories exist
+# Mount meme images directory if it exists
+meme_dir = os.path.abspath("backend/datasets/meme")
+if os.path.exists(meme_dir):
+    app.mount("/memes", StaticFiles(directory=meme_dir), name="memes")
+
+# Simple root endpoint
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <head>
+            <title>Inflowence API</title>
+        </head>
+        <body>
+            <h1>Welcome to the Inflowence API</h1>
+            <p>API is up and running!</p>
+            <p>Visit <a href="/docs">/docs</a> for the API documentation.</p>
+        </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")
