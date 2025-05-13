@@ -295,10 +295,10 @@ onMounted(() => {
   position: relative;
   background: linear-gradient(
     to right,
-    #ff0000 20%,
-    #2a2a2a 40%,
-    #2a2a2a 60%,
-    #ff0000 80%
+    #ff5f6d 20%,
+    #ffc371 40%,
+    #ffc371 60%,
+    #ff5f6d 80%
   );
   background-size: 200% auto;
   color: transparent;
@@ -312,14 +312,14 @@ onMounted(() => {
   margin-bottom: 1rem;
   white-space: nowrap;
   text-align: left;
-  padding: 0 0 0.2em;
+  padding: 0 0 0.15em;
   transform: translateY(-0.05em);
   overflow: visible;
 }
 
 .title-group h1:hover {
-  filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
-  transform: scale(1.02);
+  filter: drop-shadow(0 0 2px rgba(255, 95, 109, 0.5));
+  transform: none;
   animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
 

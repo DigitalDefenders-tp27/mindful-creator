@@ -30,7 +30,10 @@
         <router-link to="/relaxation" class="nav-link two-words" active-class="active" @click="closeMenu">
           <span>RELAXATION</span>
         </router-link>
-        <router-link to="/games" class="nav-link" active-class="active" @click="closeMenu"><span>GAMES</span></router-link>
+        <router-link to="/games" class="nav-link two-words" active-class="active" @click="closeMenu">
+          <span>MEME</span>
+          <span>GAME</span>
+        </router-link>
       </div>
 
       <!-- Hamburger Menu Button -->
