@@ -44,7 +44,6 @@
           </div>
         </div>
       </div>
-      <div v-if="currentLevel === 2" class="level-2-help">Scroll to see more cards</div>
     </div>
     
     <!-- Victory modal - Simplified -->
@@ -120,7 +119,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Game levels and their configurations
 const levels = {
   1: { pairs: 6, columns: 4, name: 'Easy (6 pairs)', cardWidth: 'w-24', cardHeight: 'h-24', textSize: 'text-xs', gameTime: 60 }, // 6 pairs, 4x3 grid, 60s
-  2: { pairs: 25, columns: 10, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 120 }, // 25 pairs, 5x10 grid, 120s
+  2: { pairs: 25, columns: 10, name: 'Medium (25 pairs)', cardWidth: 'w-20', cardHeight: 'h-20', textSize: 'text-xxs', gameTime: 180 }, // 25 pairs, 5x10 grid, 180s (3 mins)
 };
 type LevelKey = keyof typeof levels;
 
@@ -492,10 +491,12 @@ watch(currentLevel, (newLevel) => {
 <style scoped>
 .memory-game-container {
   width: 100%;
-  height: 100vh;
+  height: 100%; /* Changed from 100vh to prevent status bar overlap */
   max-width: none;
   margin: 0;
   padding: 10px;
+  padding-top: env(safe-area-inset-top, 10px); /* Add safe area inset for notch/status bar */
+  padding-bottom: env(safe-area-inset-bottom, 10px);
   font-family: Arial, sans-serif;
   color: #333;
   display: flex;
@@ -570,48 +571,84 @@ watch(currentLevel, (newLevel) => {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Changed from center to allow content to start from top */
+  align-items: center;
   width: 100%;
-  padding: 10px 0; /* Added vertical padding */
-  overflow-y: auto; /* Allow vertical scrolling */
-  min-height: 0;
+  padding: 10px 0;
+  overflow-y: auto;
   box-sizing: border-box;
   margin: 0 auto;
-  max-height: none; /* Removed max-height restriction */
+  max-width: min(95vw, 1200px); /* Added absolute max-width limit */
 }
 
 .game-board {
   display: grid;
   width: 100%;
   height: auto;
-  max-width: 95vw;
-  max-height: none; /* Removed max-height restriction */
-  gap: 10px; /* Fixed gap size */
+  max-width: 100%;
+  gap: 10px;
   padding: 15px;
   background: rgba(0, 0, 0, 0.03);
-  border-radius: 8px;
+  border-radius: 12px;
   position: relative;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
+/* Adjusted layout for level 1 with larger cards */
 .game-board.level-1 {
-  grid-template-columns: repeat(4, minmax(70px, 1fr));
-  grid-template-rows: repeat(3, minmax(70px, 1fr));
-  aspect-ratio: auto; /* Remove fixed aspect ratio */
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 20px;
+  width: min(90vw, 700px); /* Added absolute max-width limit */
+  max-width: min(90vw, 700px); /* Added absolute max-width limit */
+  height: auto;
+  aspect-ratio: 4/3; /* Maintain proportions */
 }
 
+/* Level 1 cards should be larger */
+.game-board.level-1 .card {
+  min-width: unset; /* Remove min size restriction */
+  min-height: unset;
+  max-width: none; /* Remove max size restriction */
+  max-height: none;
+  width: 100%; /* Fill available grid cell */
+  height: 100%;
+}
+
+/* Strict centering for level 2 */
 .game-board.level-2 {
-  grid-template-columns: repeat(10, minmax(55px, 1fr));
-  grid-template-rows: repeat(5, minmax(55px, 1fr));
-  aspect-ratio: auto; /* Remove fixed aspect ratio */
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 10px;
+  margin: 0 auto;
+  justify-content: center;
+  align-self: center;
+  justify-self: center;
+  width: min(95vw, 1200px); /* Increased max-width limit from 1000px to 1200px */
+  max-width: min(95vw, 1200px); /* Increased max-width limit from 1000px to 1200px */
+  height: auto;
+  aspect-ratio: 2/1; /* Approximate aspect ratio for 10x5 grid */
+}
+
+/* Ensure container is properly centered for level 2 */
+.memory-game-container:has(.game-board.level-2) .game-board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 80vh; /* Allow vertical space for the board */
 }
 
 .card {
   aspect-ratio: 1 / 1;
   perspective: 1000px;
   cursor: pointer;
-  min-width: 0; /* Allow cards to shrink below min-content */
-  min-height: 0; /* Allow cards to shrink below min-content */
+  min-width: unset; /* Remove min-width restriction */
+  min-height: unset; /* Remove min-height restriction */
+  max-width: none; /* Remove max-width restriction */
+  max-height: none; /* Remove max-height restriction */
+  margin: 0 auto;
+  width: 100%; /* Fill available space */
+  height: 100%; /* Fill available space */
 }
 
 .card-inner {
@@ -621,7 +658,7 @@ watch(currentLevel, (newLevel) => {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
+  border-radius: 12px; /* Increased for more rounded corners */
 }
 
 .card-front, .card-back {
@@ -629,7 +666,7 @@ watch(currentLevel, (newLevel) => {
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
-  border-radius: 8px;
+  border-radius: 12px; /* Match inner border radius */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -876,49 +913,47 @@ watch(currentLevel, (newLevel) => {
     color: #3c4043;
 }
 
-.level-2-help {
-  display: block;
-  position: static;
-  text-align: center;
-  margin-top: 10px;
-  background-color: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  transform: none;
-  left: auto;
-}
-
+/* Updated media query for responsive layout */
 @media (max-width: 768px) {
   .game-board.level-2 {
-    grid-template-columns: repeat(5, minmax(55px, 1fr));
-    grid-template-rows: repeat(10, minmax(55px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(10, 1fr);
     gap: 8px;
+    aspect-ratio: 1/2; /* Adjust for portrait orientation */
+    height: auto;
+  }
+  
+  .game-board.level-1 {
+    width: 95vw;
+    max-width: 95vw;
   }
 }
 
 @media (max-width: 480px) {
   .game-board-container {
-    padding: 5px;
+    padding: 5px 0;
   }
   
   .game-board {
-    gap: 5px;
-    padding: 5px;
-    max-width: 98vw;
+    gap: 6px;
+    padding: 10px;
+    max-width: 100%;
   }
   
   .game-board.level-1 {
-    grid-template-columns: repeat(4, minmax(50px, 1fr));
-    grid-template-rows: repeat(3, minmax(50px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    width: 98vw;
+    max-width: 98vw;
   }
   
   .game-board.level-2 {
-    grid-template-columns: repeat(5, minmax(45px, 1fr));
-    grid-template-rows: repeat(10, minmax(45px, 1fr));
-    gap: 5px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 6px;
+    width: 98vw;
+    max-width: 98vw;
   }
 }
 
@@ -1116,19 +1151,24 @@ watch(currentLevel, (newLevel) => {
 
 /* Updated Button Colors */
 .next-level-btn { 
-  background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%); 
-  color: white; 
+  background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%) !important; 
+  color: white !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin-bottom: 15px !important;
 }
 
 .play-again-btn { 
-  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%); 
-  color: white; 
+  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%) !important; 
+  color: white !important;
+  flex: 1 !important;
 }
 
 .exit-btn { 
-  background: #f5f7fa; 
-  color: #333; 
-  border: 1px solid #ddd; 
+  background: #4A4A4A !important; 
+  color: white !important; 
+  border: none !important;
+  flex: 1 !important;
 }
 
 /* Media Query for smaller screens */
@@ -1184,32 +1224,13 @@ watch(currentLevel, (newLevel) => {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Updated Button Colors */
-.next-level-btn { 
-  background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%) !important; 
-  color: white !important;
-  width: 80% !important;
-  max-width: 300px !important;
-  margin-bottom: 15px !important;
-}
-
-.play-again-btn { 
-  background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%) !important; 
-  color: white !important;
-}
-
-.exit-btn { 
-  background: #4A4A4A !important; 
-  color: white !important; 
-  border: none !important;
-}
-
 /* Create a container for the second row buttons */
 .second-row-buttons {
   display: flex !important;
   justify-content: center !important;
   gap: 15px !important;
   width: 100% !important;
+  max-width: 500px !important;
 }
 
 </style> 
