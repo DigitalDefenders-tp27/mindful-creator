@@ -307,7 +307,7 @@ const scrollToTop = () => {
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(231, 90, 151, 0.5));
-  transform: scale(1.02);
+  transform: none;
   animation: liquidFlow 2s linear infinite;
 }
 
@@ -445,7 +445,7 @@ const scrollToTop = () => {
 
 /* Hover效果增强 */
 .top-row .element:hover {
-  transform: rotate(-15deg) scale(1.1);
+  transform: none;
 }
 
 /* Responsive adjustments */
@@ -656,7 +656,7 @@ const scrollToTop = () => {
 }
 
 .feature:hover .feature-icon {
-  transform: scale(1.05);
+  transform: none;
 }
 
 .feature h3 {

@@ -58,7 +58,7 @@
         
         <div v-if="gameMemesForModal.length > 0 && currentModalMeme" class="meme-gallery-modal victory-style new-meme-gallery">
           <div class="meme-carousel new-meme-carousel">
-            <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn" :disabled="currentModalMemeIndex === 0">&#x276E;</button>
+            <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
                 :src="currentModalMeme.image_url || '/images/placeholder.png'" 
@@ -92,14 +92,16 @@
                 </div>
               </div>
             </div>
-            <button @click="nextModalMeme" class="arrow-btn right-arrow new-arrow-btn" :disabled="currentModalMemeIndex === gameMemesForModal.length - 1">&#x276F;</button>
+            <button @click="nextModalMeme" class="arrow-btn right-arrow new-arrow-btn">&#x276F;</button>
           </div>
         </div>
         
         <div class="modal-controls new-modal-controls">
           <button v-if="gameWon && canAdvanceLevel" class="control-btn new-control-btn next-level-btn" @click="challengeAdvance">NEXT LEVEL</button>
-          <button class="control-btn new-control-btn play-again-btn" @click="restartGame">PLAY AGAIN</button>
-          <button class="control-btn new-control-btn exit-btn" @click="exitGame">EXIT</button>
+          <div class="second-row-buttons">
+            <button class="control-btn new-control-btn play-again-btn" @click="restartGame">PLAY AGAIN</button>
+            <button class="control-btn new-control-btn exit-btn" @click="exitGame">EXIT</button>
+          </div>
         </div>
       </div>
     </div>
@@ -322,18 +324,25 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 function flipCard(clickedCard: Card) {
-  if (processingFlip.value || clickedCard.isFlipped || clickedCard.isMatched || gameOver.value) {
+  if (clickedCard.isFlipped || clickedCard.isMatched || gameOver.value) {
     return;
   }
 
-  if (flippedCards.value.length < 2) {
-    clickedCard.isFlipped = true;
-    flippedCards.value.push(clickedCard);
-
-    if (flippedCards.value.length === 2) {
-      processingFlip.value = true;
-      checkForMatch();
+  if (processingFlip.value && flippedCards.value.length === 2) {
+    if (!flippedCards.value[0].isMatched) {
+      flippedCards.value[0].isFlipped = false;
+      flippedCards.value[1].isFlipped = false;
+      flippedCards.value = [];
+      processingFlip.value = false;
     }
+  }
+
+  clickedCard.isFlipped = true;
+  flippedCards.value.push(clickedCard);
+
+  if (flippedCards.value.length === 2) {
+    processingFlip.value = true;
+    checkForMatch();
   }
 }
 
@@ -356,11 +365,13 @@ function checkForMatch() {
   } else {
     score.value = Math.max(0, score.value - 10);
     setTimeout(() => {
-      card1.isFlipped = false;
-      card2.isFlipped = false;
-      flippedCards.value = [];
-      processingFlip.value = false;
-    }, 1000);
+      if (flippedCards.value.includes(card1) && flippedCards.value.includes(card2)) {
+        card1.isFlipped = false;
+        card2.isFlipped = false;
+        flippedCards.value = [];
+        processingFlip.value = false;
+      }
+    }, 500);
   }
 }
 
@@ -420,12 +431,18 @@ function exitGame() {
 function nextModalMeme() {
   if (currentModalMemeIndex.value < gameMemesForModal.value.length - 1) {
     currentModalMemeIndex.value++;
+  } else {
+    // Loop back to the first meme
+    currentModalMemeIndex.value = 0;
   }
 }
 
 function prevModalMeme() {
   if (currentModalMemeIndex.value > 0) {
     currentModalMemeIndex.value--;
+  } else {
+    // Loop back to the last meme
+    currentModalMemeIndex.value = gameMemesForModal.value.length - 1;
   }
 }
 
@@ -485,7 +502,7 @@ watch(currentLevel, (newLevel) => {
   flex-direction: column;
   background-color: #FDFDFF; /* Very light off-white, almost pure white */
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: auto; /* Changed from hidden to auto to allow scrolling */
   position: relative;
 }
 
@@ -553,22 +570,24 @@ watch(currentLevel, (newLevel) => {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to allow content to start from top */
   width: 100%;
-  padding: 0;
-  overflow: hidden;
+  padding: 10px 0; /* Added vertical padding */
+  overflow-y: auto; /* Allow vertical scrolling */
   min-height: 0;
   box-sizing: border-box;
+  margin: 0 auto;
+  max-height: none; /* Removed max-height restriction */
 }
 
 .game-board {
   display: grid;
-  width: auto;
-  height: 100%;
-  max-width: 90vw;
-  max-height: 100%;
-  gap: clamp(5px, 1.5vmin, 10px);
-  padding: clamp(5px, 1.5vmin, 10px);
+  width: 100%;
+  height: auto;
+  max-width: 95vw;
+  max-height: none; /* Removed max-height restriction */
+  gap: 10px; /* Fixed gap size */
+  padding: 15px;
   background: rgba(0, 0, 0, 0.03);
   border-radius: 8px;
   position: relative;
@@ -576,23 +595,23 @@ watch(currentLevel, (newLevel) => {
 }
 
 .game-board.level-1 {
-  grid-template-columns: repeat(4, 1fr); /* 4 columns for 6 pairs */
-  grid-template-rows: repeat(3, 1fr);    /* 3 rows for 6 pairs */
-  aspect-ratio: 4 / 3;
-  padding: clamp(10px, 2.5vmin, 20px); /* Increased padding to shrink cards */
+  grid-template-columns: repeat(4, minmax(70px, 1fr));
+  grid-template-rows: repeat(3, minmax(70px, 1fr));
+  aspect-ratio: auto; /* Remove fixed aspect ratio */
 }
 
 .game-board.level-2 {
-  grid-template-columns: repeat(5, 1fr); /* Default 5 columns for 25 pairs */
-  grid-template-rows: repeat(10, 1fr);   /* 10 rows for 25 pairs */
-  aspect-ratio: 5 / 10; /* Default aspect ratio (simplifies to 1/2) */
-  /* overflow-y: auto; will be applied by media queries when needed */
+  grid-template-columns: repeat(10, minmax(55px, 1fr));
+  grid-template-rows: repeat(5, minmax(55px, 1fr));
+  aspect-ratio: auto; /* Remove fixed aspect ratio */
 }
 
 .card {
   aspect-ratio: 1 / 1;
   perspective: 1000px;
   cursor: pointer;
+  min-width: 0; /* Allow cards to shrink below min-content */
+  min-height: 0; /* Allow cards to shrink below min-content */
 }
 
 .card-inner {
@@ -753,11 +772,10 @@ watch(currentLevel, (newLevel) => {
 
 .modal-meme-image-single {
   max-width: 100%;
-  max-height: 200px;
+  max-height: 280px; /* Increased from 220px */
   object-fit: contain;
   border-radius: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #e0e0e0;
+  margin-bottom: 15px; /* Increased from 10px */
 }
 
 .modal-meme-text-under-image {
@@ -859,111 +877,49 @@ watch(currentLevel, (newLevel) => {
 }
 
 .level-2-help {
-  display: none;
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: block;
+  position: static;
+  text-align: center;
+  margin-top: 10px;
   background-color: rgba(0, 0, 0, 0.75);
   color: white;
   padding: 6px 12px;
   border-radius: 15px;
-  font-size: clamp(0.7rem, 2vw, 0.8rem);
+  font-size: 0.8rem;
   white-space: nowrap;
-  z-index: 50;
-  pointer-events: none;
+  transform: none;
+  left: auto;
 }
 
 @media (max-width: 768px) {
-  .game-board {
-    max-height: calc(100vh - 140px);
-    gap: clamp(4px, 1.2vmin, 8px);
-    padding: clamp(4px, 1.2vmin, 8px);
-  }
   .game-board.level-2 {
-    overflow-y: auto; /* Enable scrolling for Level 2 on smaller screens */
-    aspect-ratio: unset; /* Allow height to be determined by content for scrolling */
-    width: 98%; /* Take most of the container width */
-    height: auto; /* Height will be determined by content and max-height of .game-board */
-    /* grid-template-columns will be inherited (5) or overridden by narrower media queries */
-  }
-  .level-2-help {
-    display: block !important;
-  }
-  .modal-content {
-    width: 95%;
+    grid-template-columns: repeat(5, minmax(55px, 1fr));
+    grid-template-rows: repeat(10, minmax(55px, 1fr));
+    gap: 8px;
   }
 }
 
 @media (max-width: 480px) {
+  .game-board-container {
+    padding: 5px;
+  }
+  
   .game-board {
-    max-height: calc(100vh - 120px);
-    gap: 3px;
-    padding: 3px;
+    gap: 5px;
+    padding: 5px;
+    max-width: 98vw;
   }
+  
   .game-board.level-1 {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    aspect-ratio: 2 / 3;
+    grid-template-columns: repeat(4, minmax(50px, 1fr));
+    grid-template-rows: repeat(3, minmax(50px, 1fr));
   }
+  
   .game-board.level-2 {
-    grid-template-columns: repeat(4, 1fr);
-    width: 100%;
+    grid-template-columns: repeat(5, minmax(45px, 1fr));
+    grid-template-rows: repeat(10, minmax(45px, 1fr));
+    gap: 5px;
   }
-  .modal-content {
-    padding: 15px;
-  }
-   .modal-content h2 { font-size: clamp(1.5rem, 6vw, 2rem); }
-   .control-btn { padding: 8px 15px; font-size: clamp(0.8rem, 2.5vw, 1rem); }
-}
-
-@media (max-height: 480px) and (orientation: landscape) {
-    .memory-game-container {
-        padding: 5px;
-        gap: 5px;
-    }
-    .game-header { margin-bottom: 5px; }
-    .game-header h1 {
-        font-size: clamp(1.1rem, 4vh, 1.3rem);
-        margin-bottom: 2px;
-    }
-    .game-status-bar {
-        padding: 4px 6px;
-        margin-bottom: 5px;
-        font-size: clamp(0.75rem, 3vh, 0.9rem);
-    }
-    .game-board-container {
-        margin: 0 auto;
-    }
-    .game-board {
-        gap: clamp(3px, 1vmin, 5px);
-        padding: clamp(3px, 1vmin, 5px);
-    }
-     .game-board.level-1 {
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(2, 1fr);
-        aspect-ratio: 3 / 2;
-    }
-    .game-board.level-2 {
-        grid-template-columns: repeat(7, 1fr); /* 7 columns for landscape Level 2 */
-        aspect-ratio: unset; /* Correct: allow scrolling to determine height */
-        overflow-y: auto; /* Correct: enable scrolling */
-        width: 98vw; /* Take almost full viewport width */
-    }
-    .modal-content {
-        width: 90%;
-        max-height: 90vh;
-        padding: 10px;
-    }
-    .modal-content h2 { font-size: clamp(1.2rem, 5vh, 1.8rem); }
-    .modal-meme-image { max-height: 150px; }
-    .modal-meme-sentiment { font-size: clamp(0.7rem, 2vh, 0.8rem); padding: 8px;}
-    .control-btn { padding: 6px 12px; font-size: clamp(0.7rem, 2.5vh, 0.9rem); }
-    .level-2-help {
-        font-size: 0.65rem;
-        padding: 3px 8px;
-        bottom: 2px;
-    }
 }
 
 .game-status-bar.new-status-bar {
@@ -1003,12 +959,13 @@ watch(currentLevel, (newLevel) => {
   background-color: #ffffff;
   border-radius: 16px;
   padding: 20px;
-  width: min(90%, 550px);
+  width: min(95%, 700px);
   max-height: 95vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  /* Fixed size for modal */
-  height: 600px;
+  min-height: 600px;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .new-modal-h2 { /* For "Victory!" */
@@ -1064,18 +1021,17 @@ watch(currentLevel, (newLevel) => {
 
 .modal-meme-image-single.new-modal-meme-image {
   max-width: 100%;
-  max-height: 220px; /* Slightly more height for image */
+  max-height: 280px; /* Increased from 220px */
   object-fit: contain;
   border-radius: 8px;
-  margin-bottom: 10px;
-  /* border: 1px solid #e0e0e0; */ /* Border removed as per design */
+  margin-bottom: 15px; /* Increased from 10px */
 }
 
-.meme-identifier.new-meme-identifier { /* "Meme X" */
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  color: #4F4F4F; /* Dark Grey */
+.meme-identifier.new-meme-identifier {
+  font-size: clamp(1.1rem, 3vw, 1.3rem); /* Increased from 0.9rem/2.5vw/1.1rem */
+  color: #4F4F4F;
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 18px; /* Increased from 15px */
   font-weight: bold;
 }
 
@@ -1087,7 +1043,7 @@ watch(currentLevel, (newLevel) => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .sentiment-progress-section {
@@ -1097,47 +1053,53 @@ watch(currentLevel, (newLevel) => {
 
 .sentiment-grid.new-sentiment-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px 25px;
+  width: 100%;
 }
 
 .sentiment-item.new-sentiment-item {
   display: flex;
-  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
 .sentiment-item.new-sentiment-item .sentiment-label {
-  font-size: 0.85rem;
-  color: #828282;
-  margin-right: 8px;
-  white-space: nowrap;
+  font-size: 1rem;
+  color: #555;
+  font-weight: 500;
+  width: 40%;
+  text-align: right;
+  padding-right: 10px;
 }
 
 .sentiment-tag.new-sentiment-tag {
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   background-color: #f1f1f1;
   color: #333;
+  width: 60%;
+  text-align: center;
 }
 
 /* Progress Bar Styles */
 .sentiment-progress-container {
   width: 100%;
-  height: 26px;
+  height: 32px; /* Increased from 26px */
   background-color: #f3f3f3;
-  border-radius: 13px;
+  border-radius: 16px; /* Increased from 13px */
   overflow: hidden;
   position: relative;
+  margin-bottom: 10px; /* Added margin */
 }
 
 .sentiment-progress-bar {
   height: 100%;
   background: linear-gradient(to right, #FE6B8B, #FF8E53);
-  border-radius: 13px;
+  border-radius: 16px; /* Increased from 13px */
   transition: width 0.5s ease;
 }
 
@@ -1148,7 +1110,7 @@ watch(currentLevel, (newLevel) => {
   transform: translate(-50%, -50%);
   color: #333;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 1.1rem; /* Increased from 0.9rem */
   text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.7);
 }
 
@@ -1170,13 +1132,18 @@ watch(currentLevel, (newLevel) => {
 }
 
 /* Media Query for smaller screens */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .sentiment-grid.new-sentiment-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   
-  .sentiment-item.new-sentiment-item {
-    margin-bottom: 5px;
+  .sentiment-item.new-sentiment-item .sentiment-label {
+    width: 45%;
+  }
+  
+  .sentiment-tag.new-sentiment-tag {
+    width: 55%;
   }
 }
 
@@ -1185,10 +1152,12 @@ watch(currentLevel, (newLevel) => {
   justify-content: center !important;
   align-items: center !important;
   margin-top: 30px !important;
-  padding-top: 15px !important;
+  margin-bottom: 20px !important;
+  padding: 15px !important;
   gap: 15px !important;
-  flex-wrap: wrap !important;
+  flex-wrap: nowrap !important;
   width: 100% !important;
+  flex-direction: column !important;
 }
 
 .control-btn.new-control-btn {
@@ -1197,12 +1166,12 @@ watch(currentLevel, (newLevel) => {
   border: none !important;
   border-radius: 25px !important;
   padding: 12px 25px !important;
-  font-size: 1rem !important;
+  font-size: 1.1rem !important;
   font-weight: bold !important;
   cursor: pointer !important;
   transition: all 0.2s ease-in-out !important;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
-  min-width: 120px !important;
+  min-width: 130px !important;
   text-align: center !important;
   margin: 5px !important;
   text-decoration: none !important;
@@ -1218,18 +1187,29 @@ watch(currentLevel, (newLevel) => {
 /* Updated Button Colors */
 .next-level-btn { 
   background: linear-gradient(135deg, #e75a97 20%, #4d8cd5 80%) !important; 
-  color: white !important; 
+  color: white !important;
+  width: 80% !important;
+  max-width: 300px !important;
+  margin-bottom: 15px !important;
 }
 
 .play-again-btn { 
   background: linear-gradient(135deg, #FF3D8C 0%, #FF8B3D 100%) !important; 
-  color: white !important; 
+  color: white !important;
 }
 
 .exit-btn { 
-  background: #f5f7fa !important; 
-  color: #333 !important; 
-  border: 1px solid #ddd !important; 
+  background: #4A4A4A !important; 
+  color: white !important; 
+  border: none !important;
+}
+
+/* Create a container for the second row buttons */
+.second-row-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  width: 100% !important;
 }
 
 </style> 
