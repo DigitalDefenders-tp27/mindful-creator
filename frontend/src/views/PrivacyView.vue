@@ -10,6 +10,19 @@
           </div>
           <p class="subtitle" style="background: none; border: none;">Try to prevent your privacy follow these privacy setting steps across differenct platforms</p>
         </div>
+        <div class="decorative-elements">
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     
@@ -3050,6 +3063,121 @@ onUnmounted(() => {
   padding: 0.5rem 1rem;
 }
 /* ADD TAB NAVIGATION STYLES END */
+
+/* Decorative Elements Styles (Copied from HomeView.vue) */
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto;
+  row-gap: 1rem;
+  padding: 2rem 0;
+  z-index: 1; /* Ensure it's behind hero content if needed, but above background */
+  pointer-events: none;
+  transform: translateX(-2rem);
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7; /* Position to the right */
+  grid-row: 1;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; /* Allow hover on individual elements */
+  transition: transform 0.5s ease;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: all 0.5s ease;
+}
+
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* Responsive adjustments for Decorative Elements */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+}
+
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+}
+/* End Decorative Elements Styles */
 
 /* Adjust content area positioning */
 .settings-content-area {

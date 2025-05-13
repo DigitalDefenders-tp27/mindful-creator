@@ -404,8 +404,7 @@ const scrollToTop = () => {
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(0);
-  justify-content: end;
+  transform: translateX(-2rem);
 }
 
 .top-row {
@@ -445,7 +444,7 @@ const scrollToTop = () => {
 
 /* Hover效果增强 */
 .top-row .element:hover {
-  transform: none;
+  transform: rotate(-15deg) scale(1.1);
 }
 
 /* Responsive adjustments */
@@ -454,8 +453,7 @@ const scrollToTop = () => {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1.5rem);
   }
 }
 
@@ -464,8 +462,7 @@ const scrollToTop = () => {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1rem);
   }
 }
 
@@ -474,9 +471,8 @@ const scrollToTop = () => {
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(0);
+    transform: translateX(-0.5rem);
     row-gap: 0.75rem;
-    justify-content: end;
   }
 }
 
@@ -498,7 +494,6 @@ const scrollToTop = () => {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
-    justify-content: end;
   }
   
   .title-group h1 {
