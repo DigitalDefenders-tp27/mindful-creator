@@ -2191,11 +2191,12 @@ onUnmounted(() => {
   text-align: left;
   overflow: visible;
   padding-bottom: 0.1em;
+  transform: translateY(-0.05em);
 }
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(59, 89, 152, 0.5));
-  transform: scale(1.02);
+  transform: none;
   animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
 

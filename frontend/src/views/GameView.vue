@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import MemoryMatch from '@/components/Games/MemoryMatch.vue'
 
 // Game state
@@ -88,7 +88,7 @@ const gameCompleted = ref(false)
 // Check if current game should be displayed fullscreen
 const isFullscreenGame = computed(() => {
   return true; // Always fullscreen
-});
+})
 
 // Start a game
 const startGame = (gameType) => {
@@ -107,6 +107,43 @@ const closeModal = () => {
 const onGameCompleted = () => {
   gameCompleted.value = true
 }
+
+const showAlert = ref(false)
+const alertMessage = ref('')
+const alertType = ref('error')
+
+function showErrorAlert(message) {
+  alertMessage.value = message
+  alertType.value = 'error'
+  showAlert.value = true
+}
+
+function dismissAlert() {
+  showAlert.value = false
+}
+
+// Function to create random hover effects for the title
+onMounted(() => {
+  const titleElement = document.querySelector('.title-group h1')
+  if (titleElement) {
+    titleElement.addEventListener('mouseenter', () => {
+      // Generate random values for the animation and transform
+      const randomSpeed = 0.5 + (Math.random() * 2) // Between 0.5s and 2.5s
+      const randomScale = 1 + (Math.random() * 0.05) // Between 1 and 1.05
+      const randomRotate = (Math.random() * 3) - 1.5 // Between -1.5 and 1.5 degrees
+      
+      // Apply random styles
+      titleElement.style.animationDuration = `${randomSpeed}s`
+      titleElement.style.transform = `scale(${randomScale}) rotate(${randomRotate}deg) translateY(-0.05em)`
+    })
+    
+    // Reset on mouse leave
+    titleElement.addEventListener('mouseleave', () => {
+      titleElement.style.animationDuration = '3s'
+      titleElement.style.transform = 'translateY(-0.05em)'
+    })
+  }
+})
 </script>
 
 <style scoped>
@@ -187,8 +224,8 @@ const onGameCompleted = () => {
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 5px rgba(255, 61, 140, 0.7));
-  transform: scale(1.02) rotate(-1deg);
   animation: rainbowFlow 1.5s linear infinite;
+  transform: scale(1.02) rotate(-1deg);
 }
 
 @keyframes rainbowFlow {

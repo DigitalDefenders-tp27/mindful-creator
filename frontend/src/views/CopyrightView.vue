@@ -781,7 +781,7 @@ const resetImage = () => {
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(216, 161, 229, 0.5));
-  transform: scale(1.02);
+  transform: none;
   animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
 
