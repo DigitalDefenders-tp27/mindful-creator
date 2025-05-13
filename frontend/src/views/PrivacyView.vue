@@ -2912,24 +2912,6 @@ onUnmounted(() => {
   transform: translateY(-5px);
 }
 
-/* 删除按钮样式，不再需要 */
-/* .quick-view-content button {
-  position: absolute;
-  top: -30px;
-  right: -10px;
-  font-size: 2rem;
-  font-weight: bold;
-  color: white;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.quick-view-content button:hover {
-  color: #ccc;
-} */
 
 .quick-view-content div {
   color: #444; /* 深色文本 */
@@ -3193,4 +3175,101 @@ onUnmounted(() => {
   margin-top: 0; 
   z-index: 10; 
 }
+
+@media (max-width: 500px) {
+  .hero-section {
+    padding: 5rem 0 0.5rem; /* Ensure navbar doesn't overlap too much */
+    min-height: auto; /* Let content define height */
+    margin-bottom: 0.5rem;
+  }
+  .hero-content {
+    padding: 0 1rem; /* Reduced padding */
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .slogan {
+    margin-left: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  .title-group h1 {
+    font-size: 1.8rem; 
+    white-space: normal; 
+    word-break: break-word;
+    line-height: 1.2;
+  }
+  .title-group h2 {
+    font-size: 1.1rem; 
+    white-space: normal; 
+    word-break: break-word;
+    line-height: 1.3;
+    margin-top: 0.25rem;
+  }
+  .slogan .subtitle {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .decorative-elements { /* Ensure hidden on small mobile */
+    display: none;
+  }
+
+  .privacy-section {
+    padding: 1rem 0;
+  }
+  /* Ensure this specific rule is applied */
+  .privacy-section .container {
+    padding: 0 0.5rem !important; /* Further reduced horizontal padding */
+  }
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .guide-description {
+    margin-bottom: 1.5rem;
+  }
+  .guide-description p {
+    font-size: 0.9rem;
+  }
+
+  /* Padding reductions for platform sections and content */
+  .platform-section {
+    padding: 1.5rem 0.5rem !important; /* Reduced padding significantly */
+  }
+
+  .platform-header {
+    padding: 0.75rem 0.5rem !important; /* Reduced padding */
+  }
+
+  /* Ensure these content paddings are applied */
+  .settings-guide-content .settings-content,
+  .privacy-tips-content,
+  .boundary-tips-content {
+    padding: 1rem 0.5rem !important; /* Reduced padding */
+  }
+
+  .tab-navigation {
+    padding: 0.75rem 0.5rem 0 !important; /* Reduced horizontal padding */
+  }
+
+  .sub-tab-navigation {
+    padding: 0.5rem !important; /* Ensured consistent 0.5rem padding */
+  }
+
+  /* Adjust Quick View button positioning and style */
+  .settings-content-area > .quick-view {
+    top: 0.75rem !important;
+    right: 0.5rem !important;
+  }
+
+  .quick-view button {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ... Rest of the platform specific styles will go here ... */
 </style>

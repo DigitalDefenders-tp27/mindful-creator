@@ -274,8 +274,7 @@ const closeMenu = () => {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding-top: 100px; /* Adjust top padding to accommodate taller navbar */
     z-index: 90; /* Increase z-index to ensure it's on top */
-    gap: 2rem;
-    justify-content: flex-start;
+    justify-content: space-around; /* Distribute items evenly */
     backdrop-filter: blur(10px);
   }
 
@@ -319,6 +318,7 @@ const closeMenu = () => {
     animation: fadeIn 0.3s ease forwards;
     animation-delay: calc(0.1s * var(--i, 1));
     position: relative; /* Ensure positioning context */
+    padding: 0.75rem 0; /* Adjust padding for spacing between items */
   }
 
   .navbar-center .nav-link {

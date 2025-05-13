@@ -1351,7 +1351,7 @@
     }
     .subtitle {
       font-size: 1.875rem;
-      white-space: nowrap;
+      white-space: nowrap; /* Keep nowrap for very large screens only */
     }
   }
 
@@ -1442,7 +1442,9 @@
     }
     
     .subtitle {
-      white-space: normal;
+      white-space: normal; 
+      overflow-wrap: break-word; 
+      max-width: 100%; 
     }
   }
 
@@ -1477,6 +1479,32 @@
     
     .subtitle {
       @apply text-xl;
+      /* Ensure wrapping properties from 1280px are maintained or re-asserted if @apply overrides them */
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .emotions {
+      gap: 30px;
+    }
+    
+    .emoji-img {
+      width: 140px;
+      height: 140px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 150px;
+      height: 150px;
+    }
+    .banner-content {
+      padding: 0 3rem;
+    }
+    .banner-title {
+      font-size: 2rem;
     }
   }
 
@@ -1497,6 +1525,13 @@
       margin-left: 1rem;
       max-width: 90%;
     }
+
+    .subtitle {
+      white-space: normal; 
+      overflow-wrap: break-word; 
+      max-width: 100%; 
+      @apply text-lg;
+    }
     
     .decorative-elements {
       opacity: 0.1;
@@ -1513,6 +1548,33 @@
     
     .subtitle {
       @apply text-lg;
+    }
+
+    /* MODIFIED: Adjustments for feeling box and emojis on smaller tablets/large phones */
+    .feeling-box {
+      margin-top: 70px; 
+    }
+
+    /* Bell size adjustments for 768px if needed, for now, focusing on 480px */
+
+    .feeling-box h2 {
+      font-size: 28px; 
+      margin-top: 50px; 
+      margin-bottom: 25px;
+    }
+
+    .emotions {
+      gap: 20px; 
+    }
+    
+    .emoji-img {
+      width: 120px; 
+      height: 120px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 130px;
+      height: 130px;
     }
   }
 
@@ -1548,6 +1610,10 @@
     
     .subtitle {
       @apply text-base;
+      /* Ensure wrapping properties from 768px are maintained or re-asserted */
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
   }
 
@@ -1564,6 +1630,48 @@
     
     .hero-content {
       min-height: 16vh;
+    }
+
+    .subtitle {
+      white-space: normal;
+      overflow-wrap: break-word; 
+      max-width: 100%;
+      font-size: 0.875rem; /* MODIFIED: Explicitly smaller font size */
+      line-height: 1.3;    /* MODIFIED: Adjusted line height */
+    }
+
+    /* MODIFIED: Bell icon and container size */
+    .bell-container {
+      width: 80px;
+      height: 80px;
+      top: -40px; /* Half of new height */
+    }
+
+    .bell-icon {
+      width: 80px;
+    }
+
+    .feeling-box h2 {
+      font-size: 22px; /* MODIFIED: Adjusted font size */
+      margin-top: 50px; /* MODIFIED: Adjusted for new bell positioning */
+      margin-bottom: 20px; 
+    }
+
+    .emotions {
+      gap: 15px; /* MODIFIED: Adjusted gap */
+      flex-wrap: wrap; 
+      justify-content: center;
+    }
+    
+    .emoji-img {
+      width: 90px; /* MODIFIED: Adjusted size */
+      height: 90px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 100px; /* MODIFIED: Adjusted size */
+      height: 100px;
+      margin-top: 0; 
     }
   }
 
@@ -3270,7 +3378,7 @@
     max-width: 45%; /* Ensure they don't get too wide, adjust as needed */
     display: flex; 
     flex-direction: column; 
-    min-height: 200px; /* Ensure a minimum height */
+    /* min-height: 200px; */ /* REMOVED: Allow content to define height */
   }
 
   .constructive:hover, .cyberbullying:hover {
