@@ -189,40 +189,40 @@ const activities = [
 
 // Adding layout classes to create different card sizes
 const activitiesWithLayout = computed(() => [
-  // Left column
+  // 第一组：呼吸练习 + 引导冥想（2卡）
   { 
     ...activities[0], 
-    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 xl:h-[28rem]' // Breathing Exercise - tall card
+    class: 'lg:col-span-2 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 呼吸练习 - 大屏宽卡片
   }, 
-  { 
-    ...activities[2], 
-    class: 'lg:col-span-1 row-span-1 md:col-span-1 lg:h-[16rem]' // Sensory Grounding - standard height
-  }, 
-  
-  // Middle column - Meditation as a super tall card
   { 
     ...activities[1], 
-    class: 'lg:col-span-1 row-span-1 lg:row-span-3 md:col-span-2 xl:h-[44rem]' // Guided Meditation - super tall card
-  },
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 引导冥想
+  }, 
   
-  // Right column - Affirmation in the middle position
+  // 第二组：感官训练 + 大自然声音（2卡）
+  { 
+    ...activities[2], 
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 感官训练
+  },
   { 
     ...activities[3], 
-    class: 'lg:col-span-1 row-span-1 md:col-span-1 lg:h-[14rem]' // Nature Sounds - small card
-  },
-  { 
-    ...activities[6], 
-    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 lg:h-[34rem]' // Affirmation Reflection - extended card
-  },
-  { 
-    ...activities[4], 
-    class: 'lg:col-span-1 row-span-1 lg:row-span-1 md:col-span-1 lg:h-[18rem]' // Stretching Routine - adjusted height
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 大自然声音
   },
   
-  // Bottom row
+  // 第三组：伸展练习 + 颜色呼吸（2卡）
+  { 
+    ...activities[4], 
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 伸展练习
+  },
   { 
     ...activities[5], 
-    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 lg:h-[34rem]' // Colour Breathing - same size as Affirmation
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-1 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem]' // 颜色呼吸
+  },
+  
+  // 第四组：肯定反思（1卡 - 居中）
+  { 
+    ...activities[6], 
+    class: 'lg:col-span-2 md:col-span-2 sm:col-span-2 row-span-1 lg:h-[22rem] md:h-[20rem] sm:h-[18rem] mx-auto' // 肯定反思 - 居中宽卡片
   }
 ]);
 
