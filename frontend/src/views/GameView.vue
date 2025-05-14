@@ -73,12 +73,24 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showPasswordInput" class="password-protect">
+      <h2>Enter Password</h2>
+      <input v-model="password" type="password" placeholder="Password" @keyup.enter="checkPassword" />
+      <button @click="checkPassword">Submit</button>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MemoryMatch from '@/components/Games/MemoryMatch.vue'
+
+const router = useRouter()
+const password = ref('')
+const correctPassword = 'your_password_here' // TODO: Replace with your real password
+const showPasswordInput = ref(false)
 
 // Game state
 const showGameModal = ref(false)
@@ -143,7 +155,20 @@ onMounted(() => {
       titleElement.style.transform = 'translateY(-0.05em)'
     })
   }
+
+  if (sessionStorage.getItem('authenticated') !== 'true') {
+    router.push({ name: 'password' })
+  }
 })
+
+function checkPassword() {
+  if (password.value === correctPassword) {
+    localStorage.setItem('authenticated', 'true')
+    router.push('/')
+  } else {
+    alert('Incorrect password!')
+  }
+}
 </script>
 
 <style scoped>
@@ -700,5 +725,26 @@ onMounted(() => {
   .portal-info h2 {
     font-size: 1.5rem;
   }
+}
+
+.password-protect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4rem;
+}
+.password-protect input {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  font-size: 1.1rem;
+}
+.password-protect button {
+  padding: 0.5rem 1.5rem;
+  font-size: 1.1rem;
+  background: #e573a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style> 

@@ -1,119 +1,129 @@
 <template>
-  <div class="relaxation-container">
-    <section class="hero-section">
-      <div class="hero-content">
-        <div class="slogan">
-          <div class="title-group">
-            <h1>Relaxation Zone</h1>
-            <h2>Mindfulness Moments for Creators</h2>
+  <div v-if="showPasswordInput" class="password-protect">
+    <h2>Enter Password</h2>
+    <input v-model="password" type="password" placeholder="Password" @keyup.enter="checkPassword" />
+    <button @click="checkPassword">Submit</button>
+  </div>
+  <div v-else>
+    <div class="relaxation-container">
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="slogan">
+            <div class="title-group">
+              <h1>Relaxation Zone</h1>
+              <h2>Mindfulness Moments for Creators</h2>
+            </div>
+            <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
           </div>
-          <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
+          <div class="decorative-elements">
+            <!-- 右上角第一排 / Top Row Right -->
+            <div class="top-row">
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              </div>
+              <div class="element-wrapper">
+                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="decorative-elements">
-          <!-- 右上角第一排 / Top Row Right -->
-          <div class="top-row">
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+      </section>
+
+      <!-- Activities -->
+      <div class="activities-container">
+        <h2 class="activities-title">Featured Relaxation Activities</h2>
+        <p class="activities-subtitle">Choose any activity to give yourself a moment of calm</p>
+        <BentoGrid class="activities-bento">
+          <BentoGridCard
+            v-for="(activity, index) in activitiesWithLayout"
+            :key="index"
+            :name="activity.title"
+            :description="activity.description"
+            :class="activity.class"
+            @click="startActivity(activity.type)"
+          >
+            <template v-if="activity.image" #background>
+              <div
+                class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
+                :style="`background-image: url('/bentoImages/${activity.image}')`"
+              ></div>
+            </template>
+          </BentoGridCard>
+        </BentoGrid>
+      </div>
+
+      <!-- Activity Modal -->
+      <div v-if="showActivityModal" class="modal">
+        <div class="modal-content activity-modal">
+          <span class="close" @click="closeModal">&times;</span>
+          
+          <!-- Activity Content -->
+          <div class="activity-content">
+            <div class="activity-inner-content">
+              <component 
+                :is="currentActivityComponent" 
+                v-if="currentActivityComponent"
+                @journal-submitted="onJournalSubmitted"
+              />
             </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+          </div>
+          <div class="activity-divider"></div>
+          <!-- Journal Feedback -->
+          <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
+            <div class="encouragement">
+              <h3>{{ currentEncouragement }}</h3>
+              <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. ��</p>
             </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+          </div>
+          
+          <!-- Rating Section -->
+          <div class="feedback">
+            <h2>How effective was this relaxation activity?</h2>
+            <p class="total-ratings">{{ totalRatings }} people have rated this activity</p>
+            <div class="stars">
+              <span v-for="n in 5" :key="n" @click="rating = n" class="star-wrapper">
+                <img :src="n <= rating ? starFilledIcon : starEmptyIcon" 
+                     alt="star" 
+                     class="star"
+                     @mouseover="hoverRating = n"
+                     @mouseleave="hoverRating = 0" />
+              </span>
             </div>
+            <button @click="submitFeedback" 
+                    :disabled="rating === 0" 
+                    class="submit-button"
+                    :class="{ 'button-disabled': rating === 0 }">
+              Submit Feedback
+            </button>
+          </div>
+
+          <!-- Thank You Message -->
+          <div v-if="submitted" class="thank-you">
+            <h3>Thank you for your feedback!</h3>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- Activities -->
-    <div class="activities-container">
-      <h2 class="activities-title">Featured Relaxation Activities</h2>
-      <p class="activities-subtitle">Choose any activity to give yourself a moment of calm</p>
-      <BentoGrid class="activities-bento">
-        <BentoGridCard
-          v-for="(activity, index) in activitiesWithLayout"
-          :key="index"
-          :name="activity.title"
-          :description="activity.description"
-          :class="activity.class"
-          @click="startActivity(activity.type)"
-        >
-          <template v-if="activity.image" #background>
-            <div
-              class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
-              :style="`background-image: url('/bentoImages/${activity.image}')`"
-            ></div>
-          </template>
-        </BentoGridCard>
-      </BentoGrid>
-    </div>
-
-    <!-- Activity Modal -->
-    <div v-if="showActivityModal" class="modal">
-      <div class="modal-content activity-modal">
-        <span class="close" @click="closeModal">&times;</span>
-        
-        <!-- Activity Content -->
-        <div class="activity-content">
-          <component 
-            :is="currentActivityComponent" 
-            v-if="currentActivityComponent"
-            @journal-submitted="onJournalSubmitted"
-          />
-        </div>
-        
-        <!-- Journal Feedback -->
-        <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
-          <div class="encouragement">
-            <h3>{{ currentEncouragement }}</h3>
-            <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. 💫</p>
-          </div>
-        </div>
-        
-        <!-- Rating Section -->
-        <div class="feedback">
-          <h2>How effective was this relaxation activity?</h2>
-          <p class="total-ratings">{{ totalRatings }} people have rated this activity</p>
-          <div class="stars">
-            <span v-for="n in 5" :key="n" @click="rating = n" class="star-wrapper">
-              <img :src="n <= rating ? starFilledIcon : starEmptyIcon" 
-                   alt="star" 
-                   class="star"
-                   @mouseover="hoverRating = n"
-                   @mouseleave="hoverRating = 0" />
-            </span>
-          </div>
-          <button @click="submitFeedback" 
-                  :disabled="rating === 0" 
-                  class="submit-button"
-                  :class="{ 'button-disabled': rating === 0 }">
-            Submit Feedback
-          </button>
-        </div>
-
-        <!-- Thank You Message -->
-        <div v-if="submitted" class="thank-you">
-          <h3>Thank you for your feedback!</h3>
-        </div>
+      <!-- Continue Buttons -->
+      <div class="continue-section">
+        <router-link to="/critical-response">
+          <button class="continue-btn">Jump to Critical Response</button>
+        </router-link>
+        <router-link to="/creator-wellbeing">
+          <button class="continue-btn wellbeing-btn">Jump to Creator Wellbeing</button>
+        </router-link>
       </div>
-    </div>
-
-    <!-- Continue Buttons -->
-    <div class="continue-section">
-      <router-link to="/critical-response">
-        <button class="continue-btn">Jump to Critical Response</button>
-      </router-link>
-      <router-link to="/creator-wellbeing">
-        <button class="continue-btn wellbeing-btn">Jump to Creator Wellbeing</button>
-      </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, markRaw, shallowRef } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
 import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
 
@@ -135,7 +145,7 @@ import MeditationAudio from '../components/Activities/MeditationAudio.vue'
 const activities = [
   {
     title: 'Breathing Exercise',
-    description: 'Follow a guided 4-7-8 breathing pattern to calm your mind.',
+    description: 'Follow a guided breathing pattern to calm your mind.',
     type: 'breathing',
     image: 'BreathingExercise.png'
   },
@@ -153,7 +163,7 @@ const activities = [
   },
   {
     title: 'Nature Sounds',
-    description: 'Listen to calming sounds like rain, ocean waves, or forest.',
+    description: 'Listen to calming sounds like rain or forest.',
     type: 'nature',
     image: 'NatureSounds.jpg'
   },
@@ -174,12 +184,6 @@ const activities = [
     description: 'Read and reflect on positive affirmations for a mental reset.',
     type: 'affirmation',
     image: 'Affirmation.jpg'
-  },
-  {
-    title: 'Mini Journal Prompt',
-    description: 'Write one sentence about how you are feeling right now.',
-    type: 'journal',
-    image: 'MiniJournalPrompt.png'
   }
 ]
 
@@ -218,11 +222,7 @@ const activitiesWithLayout = computed(() => [
   // Bottom row
   { 
     ...activities[5], 
-    class: 'lg:col-span-2 row-span-1 md:col-span-1 lg:h-[20rem] lg:col-start-2' // Colour Breathing - right-aligned
-  },
-  { 
-    ...activities[7], 
-    class: 'lg:col-span-3 row-span-1 md:col-span-2 lg:h-[16rem]' // Mini Journal Prompt - full width card
+    class: 'lg:col-span-1 row-span-1 lg:row-span-2 md:col-span-1 lg:h-[34rem]' // Colour Breathing - same size as Affirmation
   }
 ]);
 
@@ -246,7 +246,7 @@ const rating = ref(0)
 const hoverRating = ref(0)
 const submitted = ref(false)
 const currentActivity = ref(null)
-const currentActivityComponent = ref(null)
+const currentActivityComponent = shallowRef(null)
 const totalRatings = ref(0)
 const journalSubmitted = ref(false)
 const currentEncouragement = ref('')
@@ -254,19 +254,18 @@ const currentEncouragement = ref('')
 const activityRatings = ref({
   'breathing': 0,
   'meditation': 0,
-  'journal': 0,
   'grounding': 0
 })
 
 const activityComponents = {
-  breathing: BreathingVideo,
-  meditation: MeditationAudio,
-  grounding: GroundingGuide,
-  nature: NatureSounds,
-  stretching: StretchingRoutine,
-  'color-breathing': ColorBreathing,
-  affirmation: AffirmationReflection,
-  journal: JournalPrompt
+  breathing: markRaw(BreathingVideo),
+  meditation: markRaw(MeditationAudio),
+  grounding: markRaw(GroundingGuide),
+  nature: markRaw(NatureSounds),
+  stretching: markRaw(StretchingRoutine),
+  'color-breathing': markRaw(ColorBreathing),
+  affirmation: markRaw(AffirmationReflection),
+  journal: markRaw(JournalPrompt)
 }
 
 // Actions
@@ -312,6 +311,26 @@ const submitFeedback = async () => {
   } catch (error) {
     console.error('Error submitting rating:', error)
     alert('Failed to submit rating. Please try again.')
+  }
+}
+
+const router = useRouter()
+const password = ref('')
+const correctPassword = 'your_password_here' // TODO: Replace with your real password
+const showPasswordInput = ref(false)
+
+onMounted(() => {
+  if (sessionStorage.getItem('authenticated') !== 'true') {
+    router.push({ name: 'password' })
+  }
+})
+
+function checkPassword() {
+  if (password.value === correctPassword) {
+    localStorage.setItem('authenticated', 'true')
+    router.push('/')
+  } else {
+    alert('Incorrect password!')
   }
 }
 </script>
@@ -586,12 +605,87 @@ section:not(:last-child)::after {
   padding-bottom: 2rem;
 }
 
+.activity-content-topline { display: none !important; }
 .activity-content {
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 2rem;
+  background: #fff;
+  border-radius: 22px;
+  margin-top: 2.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  padding: 2.5rem 2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: none;
+  min-width: 0;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 2;
+  color: #222;
+  letter-spacing: 0.01em;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
+.activity-inner-content {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.activity-content h1, .activity-content h2 {
+  font-size: 2.7rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+  color: #1a232b;
+  letter-spacing: 0.01em;
+}
+.activity-content h3 {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  margin-top: 0.5rem;
+  color: #2a3a3f;
+}
+.activity-content p {
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 1rem 0 1rem 0;
+  line-height: 1.7;
+  color: #444;
+}
+.activity-content ul {
+  margin: 1.1rem 0 1.1rem 1.2rem;
+  padding-left: 1.2rem;
+  text-align: left;
+  display: block;
+}
+.activity-content li {
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 0.4rem 0 0.4rem 0;
+  color: #444;
+  line-height: 1.6;
+}
+.activity-content span, .activity-content div {
+  font-size: 1.18rem;
+  font-weight: 400;
+  color: #222;
+}
+.activity-divider {
+  width: 100%;
+  max-width: 700px;
+  height: 0;
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 2.5rem auto 2.5rem auto;
+  border-radius: 1px;
+  box-shadow: none;
+  background: none;
+}
 .modal-content {
   background-color: white;
   padding: 2rem;
@@ -599,7 +693,6 @@ section:not(:last-child)::after {
   position: relative;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .close {
   position: absolute;
   right: 1rem;
@@ -607,7 +700,6 @@ section:not(:last-child)::after {
   font-size: 1.5rem;
   cursor: pointer;
 }
-
 .feedback {
   text-align: center;
   padding: 2rem;
@@ -616,49 +708,41 @@ section:not(:last-child)::after {
   margin-top: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
-
 .feedback h2 {
   font-size: 1.8rem;
   color: #333;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
-
 .total-ratings {
   color: #666;
   font-size: 1rem;
   margin: 0.5rem 0 1.5rem;
   font-style: italic;
 }
-
 .stars {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin: 1.5rem 0;
 }
-
 .star-wrapper {
   cursor: pointer;
   padding: 8px;
   transition: transform 0.3s ease;
 }
-
 .star-wrapper:hover {
   transform: scale(1.15);
 }
-
 .star {
   width: 36px;
   height: 36px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   transition: transform 0.2s ease, filter 0.2s ease;
 }
-
 .star:hover {
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
-
 .submit-button {
   background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
@@ -672,19 +756,16 @@ section:not(:last-child)::after {
   margin-top: 1rem;
   box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
 }
-
 .submit-button:hover:not(.button-disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
   background: linear-gradient(135deg, #357abd 0%, #4a90e2 100%);
 }
-
 .button-disabled {
   background: linear-gradient(135deg, #cccccc 0%, #bbbbbb 100%);
   cursor: not-allowed;
   box-shadow: none;
 }
-
 .thank-you {
   text-align: center;
   padding: 1.5rem;
@@ -693,7 +774,6 @@ section:not(:last-child)::after {
   font-weight: 500;
   animation: fadeInUp 0.5s ease;
 }
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -704,7 +784,6 @@ section:not(:last-child)::after {
     transform: translateY(0);
   }
 }
-
 .continue-section {
   margin-top: 2rem;
   margin-bottom: 6rem;
@@ -714,7 +793,6 @@ section:not(:last-child)::after {
   align-items: center;
   gap: 1.5rem;
 }
-
 .continue-btn {
   background: linear-gradient(135deg, #8E2DE2 0%, #FF6B9B 100%);
   color: white;
@@ -729,22 +807,18 @@ section:not(:last-child)::after {
   letter-spacing: 0.5px;
   width: 340px;
 }
-
 .continue-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(142, 45, 226, 0.4);
 }
-
 .wellbeing-btn {
   background: linear-gradient(135deg, #F9F871 0%, #7ECE73 100%);
   color: #333;
   box-shadow: 0 4px 15px rgba(126, 206, 115, 0.25);
 }
-
 .wellbeing-btn:hover {
   box-shadow: 0 8px 20px rgba(126, 206, 115, 0.4);
 }
-
 /* Animation */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
@@ -758,7 +832,6 @@ section:not(:last-child)::after {
   opacity: 1;
   transform: translateY(0);
 }
-
 @media (max-width: 1800px) {
   .decorative-elements {
     width: 840px;
@@ -767,7 +840,6 @@ section:not(:last-child)::after {
     transform: translateX(-1.5rem);
   }
 }
-
 @media (max-width: 1536px) {
   .decorative-elements {
     width: 720px;
@@ -776,7 +848,6 @@ section:not(:last-child)::after {
     transform: translateX(-1rem);
   }
 }
-
 @media (max-width: 1280px) {
   .decorative-elements {
     width: 600px;
@@ -791,7 +862,6 @@ section:not(:last-child)::after {
     white-space: normal;
   }
 }
-
 @media (max-width: 1024px) {
   .hero-section {
     min-height: 40vh;
@@ -827,7 +897,6 @@ section:not(:last-child)::after {
     white-space: normal;
   }
 }
-
 @media (max-width: 768px) {
   .hero-section {
     min-height: 22vh;
@@ -866,7 +935,6 @@ section:not(:last-child)::after {
     white-space: normal;
   }
 }
-
 @media (max-width: 640px) {
   .hero-section {
     min-height: 18vh;
@@ -904,7 +972,6 @@ section:not(:last-child)::after {
     white-space: normal;
   }
 }
-
 @media (max-width: 480px) {
   .decorative-elements {
     opacity: 0;
@@ -935,7 +1002,6 @@ section:not(:last-child)::after {
     white-space: normal;
   }
 }
-
 @media (min-width: 640px) {
   .title-group h1 {
     font-size: 3rem;
@@ -947,7 +1013,6 @@ section:not(:last-child)::after {
     font-size: 1.125rem;
   }
 }
-
 @media (min-width: 768px) {
   .title-group h1 {
     font-size: 3.75rem;
@@ -959,7 +1024,6 @@ section:not(:last-child)::after {
     font-size: 1.25rem;
   }
 }
-
 @media (min-width: 1024px) {
   .title-group h1 {
     font-size: 4.5rem;
@@ -972,7 +1036,6 @@ section:not(:last-child)::after {
     white-space: nowrap;
   }
 }
-
 @media (min-width: 1280px) {
   .title-group h1 {
     font-size: 6rem;
@@ -985,7 +1048,6 @@ section:not(:last-child)::after {
     white-space: nowrap;
   }
 }
-
 .journal-feedback {
   text-align: center;
   padding: 2rem;
@@ -994,24 +1056,41 @@ section:not(:last-child)::after {
   margin-top: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-
 .encouragement {
   max-width: 600px;
   margin: 0 auto;
 }
-
 .encouragement h3 {
   font-size: 1.5rem;
   color: #6c63ff;
   margin-bottom: 1rem;
   line-height: 1.4;
 }
-
 .privacy-notice {
   color: #666;
   font-size: 0.95rem;
   margin-top: 1.5rem;
   font-style: italic;
   line-height: 1.5;
+}
+.password-protect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4rem;
+}
+.password-protect input {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  font-size: 1.1rem;
+}
+.password-protect button {
+  padding: 0.5rem 1.5rem;
+  font-size: 1.1rem;
+  background: #e573a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style>

@@ -86,14 +86,54 @@ div[role="button"] {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   height: 100%;
+  box-shadow: 0 4px 24px rgba(76, 201, 240, 0.08), 0 1.5px 8px rgba(0,0,0,0.06);
 }
 
-/* 按钮点击效果 / Button click effect */
+div[role="button"]:hover {
+  box-shadow: 0 8px 32px 0 rgba(76, 201, 240, 0.18), 0 4px 24px rgba(0,0,0,0.12);
+  border: 2.5px solid #6CBDB5;
+  transform: scale(1.035) translateY(-6px);
+  z-index: 2;
+}
+
 div[role="button"]:active {
-  transform: translateY(0);
+  transform: scale(1) translateY(0);
 }
 
-/* 限制描述文本行数 / Limit description text lines */
+/* 内容区增强分割和阴影 */
+.relative.z-10.p-6.text-left {
+  background: rgba(255,255,255,0.10);
+  border-radius: 1.25rem 1.25rem 0 0;
+  box-shadow: 0 2px 16px 0 rgba(108,189,181,0.10);
+  border-bottom: 2px solid rgba(108,189,181,0.18);
+  transition: background 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100px;
+  padding-bottom: 1.2rem;
+  text-align: left;
+}
+
+.relative.z-10.p-6.text-left h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.38);
+  margin-bottom: 0.45rem;
+  margin-top: 0;
+  text-align: left;
+}
+
+.relative.z-10.p-6.text-left p {
+  font-size: 1.01rem;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.28);
+  margin: 0;
+  line-height: 1.45;
+  text-align: left;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
