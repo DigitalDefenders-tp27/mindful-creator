@@ -185,7 +185,7 @@ const activities = [
     title: 'Colour Breathing',
     description: 'Visualise breathing in calming colours and breathing out stress.',
     type: 'color-breathing',
-    image: 'ColorBreathing.jpg'
+    image: 'ColorBreathing.png'
   },
   {
     title: 'Affirmation Reflection',
