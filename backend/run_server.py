@@ -17,7 +17,7 @@ logger = logging.getLogger('server')
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Start the Mindful Creator backend server")
-    parser.add_argument("--port", type=int, default=8080, help="Port to run the server on (default: 8080)")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
     args = parser.parse_args()
     
     logger.info("=== Starting Mindful Creator Backend Service ===")

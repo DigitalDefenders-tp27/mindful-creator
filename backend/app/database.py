@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 使用环境变量中的 DATABASE_URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:LLDhBhwcYsqcuTnhxqNwIZkGrgYNdwmY@shuttle.proxy.rlwy.net:39231/railway")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://username:password@host:port/dbname")
 
 # 创建数据库引擎
 engine = create_engine(
@@ -39,3 +39,12 @@ def create_tables():
 if __name__ == "__main__":
     create_tables()
     print("Database tables created successfully!")
+
+# Import for backwards compatibility
+try:
+    from backend.database import get_connection
+except ImportError:
+    # Fallback implementation if needed
+    def get_connection():
+        """Fallback implementation of get_connection"""
+        pass

@@ -53,10 +53,7 @@
 
 <script lang="ts" setup>
 // 导入工具函数和类型 / Import utility functions and types
-// 内部定义cn函数，避免导入错误
-const cn = (...classes: any[]) => {
-  return classes.filter(Boolean).join(' ');
-};
+import { cn } from "@/lib/utils";
 import type { HTMLAttributes } from "vue";
 
 // 组件属性接口定义 / Component props interface definition
@@ -208,6 +205,12 @@ div[role="button"]:hover .absolute.inset-0.bg-gradient-to-t {
   }
 }
 
+/* 按钮点击效果 / Button click effect */
+div[role="button"]:active {
+  transform: translateY(0);
+}
+
+/* 限制描述文本行数 / Limit description text lines */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
