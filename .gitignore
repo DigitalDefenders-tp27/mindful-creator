@@ -67,3 +67,6 @@ server.log
 # NLP Model files - keep only __init__.py
 backend/app/nlp/*
 !backend/app/nlp/__init__.py
+# Large media files
+docs/media/color_breathing_VIDEO.mp4
+frontend/public/media/color_breathing_VIDEO.mp4
