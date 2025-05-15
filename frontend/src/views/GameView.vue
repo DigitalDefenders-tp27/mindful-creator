@@ -349,7 +349,7 @@ onMounted(() => {
   }
   .subtitle {
     font-size: 1.5rem;
-    white-space: nowrap;
+    white-space: normal;
   }
 }
 
@@ -362,7 +362,7 @@ onMounted(() => {
   }
   .subtitle {
     font-size: 1.875rem;
-    white-space: nowrap;
+    white-space: normal;
   }
 }
 
@@ -409,6 +409,12 @@ onMounted(() => {
   
   .slogan {
     margin-left: 1.5rem;
+  }
+  
+  .title-group h1,
+  .title-group h2,
+  .subtitle {
+    white-space: normal;
   }
   
   .decorative-elements {

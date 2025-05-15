@@ -10,6 +10,19 @@
           </div>
           <p class="subtitle" style="background: none; border: none;">Try to prevent your privacy follow these privacy setting steps across differenct platforms</p>
         </div>
+        <div class="decorative-elements">
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+            </div>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     
@@ -2899,24 +2912,6 @@ onUnmounted(() => {
   transform: translateY(-5px);
 }
 
-/* 删除按钮样式，不再需要 */
-/* .quick-view-content button {
-  position: absolute;
-  top: -30px;
-  right: -10px;
-  font-size: 2rem;
-  font-weight: bold;
-  color: white;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.quick-view-content button:hover {
-  color: #ccc;
-} */
 
 .quick-view-content div {
   color: #444; /* 深色文本 */
@@ -3051,6 +3046,121 @@ onUnmounted(() => {
 }
 /* ADD TAB NAVIGATION STYLES END */
 
+/* Decorative Elements Styles (Copied from HomeView.vue) */
+.decorative-elements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 160px);
+  grid-template-rows: auto;
+  row-gap: 1rem;
+  padding: 2rem 0;
+  z-index: 1; /* Ensure it's behind hero content if needed, but above background */
+  pointer-events: none;
+  transform: translateX(-2rem);
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 160px);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 4 / 7; /* Position to the right */
+  grid-row: 1;
+  justify-self: end;
+}
+
+.element-wrapper {
+  width: 160px;
+  height: 120px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; /* Allow hover on individual elements */
+  transition: transform 0.5s ease;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: all 0.5s ease;
+}
+
+.top-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* Responsive adjustments for Decorative Elements */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(-1rem);
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+}
+
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+}
+/* End Decorative Elements Styles */
+
 /* Adjust content area positioning */
 .settings-content-area {
   position: relative; 
@@ -3065,4 +3175,101 @@ onUnmounted(() => {
   margin-top: 0; 
   z-index: 10; 
 }
+
+@media (max-width: 500px) {
+  .hero-section {
+    padding: 5rem 0 0.5rem; /* Ensure navbar doesn't overlap too much */
+    min-height: auto; /* Let content define height */
+    margin-bottom: 0.5rem;
+  }
+  .hero-content {
+    padding: 0 1rem; /* Reduced padding */
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .slogan {
+    margin-left: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  .title-group h1 {
+    font-size: 1.8rem; 
+    white-space: normal; 
+    word-break: break-word;
+    line-height: 1.2;
+  }
+  .title-group h2 {
+    font-size: 1.1rem; 
+    white-space: normal; 
+    word-break: break-word;
+    line-height: 1.3;
+    margin-top: 0.25rem;
+  }
+  .slogan .subtitle {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .decorative-elements { /* Ensure hidden on small mobile */
+    display: none;
+  }
+
+  .privacy-section {
+    padding: 1rem 0;
+  }
+  /* Ensure this specific rule is applied */
+  .privacy-section .container {
+    padding: 0 0.5rem !important; /* Further reduced horizontal padding */
+  }
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .guide-description {
+    margin-bottom: 1.5rem;
+  }
+  .guide-description p {
+    font-size: 0.9rem;
+  }
+
+  /* Padding reductions for platform sections and content */
+  .platform-section {
+    padding: 1.5rem 0.5rem !important; /* Reduced padding significantly */
+  }
+
+  .platform-header {
+    padding: 0.75rem 0.5rem !important; /* Reduced padding */
+  }
+
+  /* Ensure these content paddings are applied */
+  .settings-guide-content .settings-content,
+  .privacy-tips-content,
+  .boundary-tips-content {
+    padding: 1rem 0.5rem !important; /* Reduced padding */
+  }
+
+  .tab-navigation {
+    padding: 0.75rem 0.5rem 0 !important; /* Reduced horizontal padding */
+  }
+
+  .sub-tab-navigation {
+    padding: 0.5rem !important; /* Ensured consistent 0.5rem padding */
+  }
+
+  /* Adjust Quick View button positioning and style */
+  .settings-content-area > .quick-view {
+    top: 0.75rem !important;
+    right: 0.5rem !important;
+  }
+
+  .quick-view button {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ... Rest of the platform specific styles will go here ... */
 </style>

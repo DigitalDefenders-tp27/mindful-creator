@@ -224,6 +224,7 @@
 
 <script setup>
 import { FlipCard } from '@/components/ui/flip-card'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const scrollToTop = () => {
   window.scrollTo({
@@ -231,6 +232,67 @@ const scrollToTop = () => {
     behavior: 'instant'
   })
 }
+
+// --- Start of Auto-Flip Journey Cards Logic ---
+const journeyCardsRef = ref([]);
+let throttledScrollHandler = null;
+
+console.log('Auto-Flip: Script initialized'); // Log: Script start
+
+const isElementInViewport = (el) => {
+  if (!el) return false;
+  const rect = el.getBoundingClientRect();
+  const verticalThreshold = rect.height * 0.3;
+  return (
+    rect.top <= (window.innerHeight || document.documentElement.clientHeight) - verticalThreshold &&
+    rect.bottom >= verticalThreshold &&
+    rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+    rect.right >= 0
+  );
+};
+
+const handleScroll = () => {
+  console.log('Auto-Flip: Scroll event triggered'); // Log: Scroll handler runs
+  journeyCardsRef.value.forEach(cardEl => {
+    if (cardEl && !cardEl.classList.contains('auto-flipped') && isElementInViewport(cardEl)) {
+      console.log('Auto-Flip: Card in view, adding auto-flipped class to:', cardEl); // Log: Card detected in view
+      cardEl.classList.add('auto-flipped');
+    }
+  });
+};
+
+const throttle = (func, limit) => {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+};
+
+onMounted(() => {
+  const cards = document.querySelectorAll('.journey-section .journey-card');
+  journeyCardsRef.value = Array.from(cards);
+  console.log('Auto-Flip: Cards found on mount:', journeyCardsRef.value.length, journeyCardsRef.value); // Log: Cards found
+
+  throttledScrollHandler = throttle(handleScroll, 150);
+  window.addEventListener('scroll', throttledScrollHandler);
+  
+  console.log('Auto-Flip: Scroll listener attached. Performing initial check.'); // Log: Listener attached
+  handleScroll(); 
+});
+
+onUnmounted(() => {
+  if (throttledScrollHandler) {
+    window.removeEventListener('scroll', throttledScrollHandler);
+    console.log('Auto-Flip: Scroll listener removed.'); // Log: Listener removed
+  }
+});
+// --- End of Auto-Flip Journey Cards Logic ---
 </script>
 
 <style scoped>
@@ -404,8 +466,7 @@ const scrollToTop = () => {
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(0);
-  justify-content: end;
+  transform: translateX(-2rem);
 }
 
 .top-row {
@@ -445,7 +506,7 @@ const scrollToTop = () => {
 
 /* Hover效果增强 */
 .top-row .element:hover {
-  transform: none;
+  transform: rotate(-15deg) scale(1.1);
 }
 
 /* Responsive adjustments */
@@ -454,8 +515,7 @@ const scrollToTop = () => {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1.5rem);
   }
 }
 
@@ -464,8 +524,7 @@ const scrollToTop = () => {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1rem);
   }
 }
 
@@ -474,9 +533,8 @@ const scrollToTop = () => {
     width: 600px;
     grid-template-columns: repeat(6, 100px);
     opacity: 0.7;
-    transform: translateX(0);
+    transform: translateX(-0.5rem);
     row-gap: 0.75rem;
-    justify-content: end;
   }
 }
 
@@ -498,7 +556,6 @@ const scrollToTop = () => {
     transform: translateX(0) scale(0.9);
     opacity: 0.5;
     row-gap: 0.5rem;
-    justify-content: end;
   }
   
   .title-group h1 {
@@ -585,19 +642,141 @@ const scrollToTop = () => {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
   .hero-section {
     min-height: 16vh;
-    padding: 8rem 0 0.5rem;
+    padding: 6rem 0 0.5rem;
   }
   
   .hero-content {
     min-height: 16vh;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
-  .decorative-elements {
+  .slogan {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .title-group h1 {
+    font-size: 2rem;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.2;
+  }
+
+  .title-group h2 {
+    font-size: 1.25rem;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    margin-top: 0.5rem;
+  }
+  
+  .decorative-elements { 
     opacity: 0;
     display: none;
+  }
+
+  /* Subtitle adjustments for narrow screens */
+  .slogan .subtitle {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 100%;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 0.75rem;
+  }
+  /* End of Subtitle adjustments */
+
+  /* Consolidated "About" section styles for 500px and below */
+  .about-section .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+    margin-top: 2rem;
+  }
+
+  .about-section .feature {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 0.75rem;
+    row-gap: 0.3rem;
+    padding: 0.5rem 0;
+    text-align: left;
+    align-items: start;
+    flex-direction: unset;
+  }
+
+  .about-section .feature-icon {
+    grid-row: 1 / span 2;
+    grid-column: 1 / 2;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    align-self: start;
+  }
+
+  .about-section .feature h3 {
+    grid-row: 1 / 2;
+    grid-column: 2 / 3;
+    text-align: left;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .about-section .feature p {
+    grid-row: 2 / 3;
+    grid-column: 2 / 3;
+    text-align: left;
+    margin: 0;
+    max-width: none;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #666;
+  }
+
+  /* Journey cards adjustments for narrow screens */
+  .journey-content {
+    padding: 2rem 1rem 0;
+  }
+
+  .journey-grid .top-row,
+  .journey-grid .bottom-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .journey-grid .journey-link {
+    width: 90%;
+    max-width: 380px;
+    padding: 0;
+  }
+
+  .journey-card {
+    min-height: auto;
+    aspect-ratio: unset;
+  }
+  
+  .journey-card .card-text h3 {
+      font-size: 1.5rem; 
+  }
+  .journey-card .feature-list {
+      font-size: 0.9rem;
+  }
+  .journey-card .card-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1rem;
   }
 }
 
@@ -1219,46 +1398,6 @@ const scrollToTop = () => {
   }
 }
 
-/* 添加480px的媒体查询，针对特别小的屏幕 */
-@media (max-width: 480px) {
-  .journey-card {
-    min-height: 250px;
-  }
-  
-  .feature-list {
-    font-size: 0.7rem;
-    padding: 0 0.1rem;
-  }
-  
-  .feature-list li {
-    line-height: 1.05;
-    padding-left: 0.55rem;
-    margin-bottom: 0.2rem;
-  }
-  
-  .card-content {
-    padding: 0.25rem 0.1rem;
-  }
-  
-  .card-icon {
-    width: 55px;
-    height: 55px;
-    margin-bottom: 0.6rem;
-  }
-  
-  .card-text h3 {
-    font-size: 1rem;
-  }
-  
-  .journey-link {
-    padding: 2px;
-  }
-  
-  .top-row, .bottom-row {
-    gap: 0.4rem;
-  }
-}
-
 /* Testimonials Section */
 .testimonials-section {
   position: relative;
@@ -1535,6 +1674,11 @@ p {
 /* White filter for SVG images */
 .white-filter {
   filter: brightness(0) invert(1);
+}
+
+/* For programmatic auto-flip on scroll */
+.journey-card.auto-flipped :deep(.flip-card) {
+  transform: rotateY(180deg) !important;
 }
 </style>
 

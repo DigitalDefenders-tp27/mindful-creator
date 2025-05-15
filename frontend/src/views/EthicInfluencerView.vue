@@ -976,12 +976,15 @@ onMounted(() => {
   flex-direction: column;
   border: none;
   background-color: rgb(255, 255, 255);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  border-radius: 16px;
+  position: relative;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .main-card {
-  border-radius: 16px;
   width: 300px;
   justify-content: center;
   align-items: center;
@@ -991,7 +994,6 @@ onMounted(() => {
 }
 
 .long-card {
-  border-radius: 16px;
   width: 100%;
   justify-content: center;
   align-items: flex-start;
@@ -1002,23 +1004,51 @@ onMounted(() => {
   cursor: pointer;
 }
 
+/* Remove hover effects for Understanding Your Impact card */
+.content-row:nth-child(1) .main-card:hover {
+  transform: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.content-row:nth-child(1) .main-card:hover .card-text h3 {
+  color: inherit;
+}
+
+/* Remove hover effects for Building Authentic Relationships card */
+.content-row:nth-child(2) .main-card:hover {
+  transform: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.content-row:nth-child(2) .main-card:hover .card-text h3 {
+  color: inherit;
+}
+
+/* Remove hover effects for Ethical Content Creation card */
+.content-row:nth-child(3) .main-card:hover {
+  transform: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.content-row:nth-child(3) .main-card:hover .card-text h3 {
+  color: inherit;
+}
+
+/* Keep hover effects for long cards */
 .long-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
   background-color: rgba(255, 255, 255, 0.9);
 }
 
+/* Remove previous hover effects */
 .main-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  transform: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .main-card:hover .card-text h3 {
-  color: #1E6A42;
-}
-
-.long-card:hover .preview-text :deep(h1) {
-  color: #1E6A42;
+  color: inherit;
 }
 
 .preview-content {

@@ -57,19 +57,46 @@
         </div>
       </div>
 
-      <!-- Comparison Section -->
-      <div class="comparison">
-        <div class="comparison-header">
-          <div class="col">Constructive Criticism<br /><span>(Helpful Feedback 👍)</span></div>
-          <div class="col label">What's the goal?</div>
-          <div class="col">Cyberbullying<br /><span>(Harmful Attacks 🚨)</span></div>
-        </div>
+      <!-- Banner Sections -->
+      <div class="banners-container">
+        <button class="banner-nav prev-banner" @click="prevBanner">
+          <span class="arrow-icon">❮</span>
+        </button>
+        
+        <transition name="slide-fade">
+          <div 
+            :key="currentBannerIndex" 
+            class="banner-section"
+            :style="{ background: bannerData[currentBannerIndex].gradient }"
+            ref="bannerSection"
+          >
+            <div class="banner-content">
+              <h2 class="banner-title">{{ bannerData[currentBannerIndex].title }}</h2>
+              <div class="comparison-content">
+                <div class="constructive">
+                  <h3>Constructive Criticism</h3>
+                  <p>{{ bannerData[currentBannerIndex].constructive }}</p>
+                </div>
+                <div class="cyberbullying">
+                  <h3>Cyberbullying</h3>
+                  <p>{{ bannerData[currentBannerIndex].cyberbullying }}</p>
+                </div>
+              </div>
+              <div class="banner-pagination">
+                <span 
+                  v-for="(_, index) in bannerData" 
+                  :key="index" 
+                  :class="['dot', { active: currentBannerIndex === index }]"
+                  @click="setBanner(index)"
+                ></span>
+              </div>
+            </div>
+          </div>
+        </transition>
 
-        <div class="comparison-row" v-for="(label, i) in labels" :key="i">
-          <div class="cell left">{{ leftCol[i] }}</div>
-          <div class="cell label">{{ label }}</div>
-          <div class="cell right">{{ rightCol[i] }}</div>
-        </div>
+        <button class="banner-nav next-banner" @click="nextBanner">
+          <span class="arrow-icon">❯</span>  
+        </button>
       </div>
 
       <!-- Seek Help Link -->
@@ -93,7 +120,7 @@
         </p>
         
         <div class="cards-container">
-          <div class="process-card">
+          <div class="process-card no-hover">
             <div class="card-number">1</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/video.png" alt="Smartphone icon" class="card-icon">
@@ -101,7 +128,7 @@
             </div>
           </div>
           
-          <div class="process-card">
+          <div class="process-card no-hover">
             <div class="card-number">2</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/copy.png" alt="Copy icon" class="card-icon">
@@ -109,7 +136,7 @@
             </div>
           </div>
           
-          <div class="process-card">
+          <div class="process-card no-hover">
             <div class="card-number">3</div>
             <div class="card-content">
               <img src="/src/assets/icons/elements/paste.png" alt="Link icon" class="card-icon">
@@ -492,7 +519,7 @@
   </template>
 
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
   import { useRouter } from 'vue-router'
   import InteractiveHoverButton from '@/components/ui/interactive-hover-button.vue'
   import RippleButton from '@/components/ui/ripple-button.vue'
@@ -513,6 +540,84 @@
   const router = useRouter()
   const showCheckIn = ref(false)
   const selectedEmotion = ref(null)
+
+  // Banner carousel variables and functions
+  const currentBannerIndex = ref(0)
+  const autoplayInterval = ref(null)
+  
+  // Banner data
+  const bannerData = [
+    {
+      title: "What's the goal? 🎯",
+      constructive: "To help you improve. The person wants to share advice or opinions to make your content better. ✨",
+      cyberbullying: "To hurt, embarrass, or bring you down. The person is trying to make you feel bad. 👎",
+      gradient: "linear-gradient(135deg, #FFD1D1, #A2FFEF, #FFF5B0)" // Light Pink -> Light Aqua -> Soft Yellow
+    },
+    {
+      title: "How does it sound? 🗣️",
+      constructive: "Respectful, clear, and focused on your content. 🤝",
+      cyberbullying: "Mean, rude, and often personal. 😠",
+      gradient: "linear-gradient(135deg, #D1FFF8, #c1fba4, #B0CFFF)" // Light Aqua -> Soft Mint -> Pale Blue
+    },
+    {
+      title: "What do they say? 💬",
+      constructive: "\"Your video is great, but the sound could be clearer. Maybe try using a different mic?\" 🎤",
+      cyberbullying: "\"Your voice is so annoying, just stop making videos!\" ❌",
+      gradient: "linear-gradient(135deg, #ffdab9, #ffefd5, #FFFBD1)" // Soft Peach -> Light Orange -> Pale Yellow
+    },
+    {
+      title: "Where does it happen? 📍",
+      constructive: "Often in a thoughtful comment, private message, or a discussion space. 📱",
+      cyberbullying: "Usually in public comments, DMs, or even shared posts to mock you. 📢",
+      gradient: "linear-gradient(135deg, #FFF5B0, #b0f2c2, #a2d2ff)" // Light Yellow -> Pale Green -> Light Sky Blue
+    },
+    {
+      title: "How does it make you feel? 😊",
+      constructive: "Encouraged to improve and learn. 🌱",
+      cyberbullying: "Upset, anxious, or even scared to post again. 😔",
+      gradient: "linear-gradient(135deg, #F0D1FF, #ffc0cb, #e8e0ff)" // Light Lavender -> Soft Pink -> Pale Lilac
+    }
+  ]
+  
+  // Banner navigation functions
+  const nextBanner = () => {
+    currentBannerIndex.value = (currentBannerIndex.value + 1) % bannerData.length
+    resetAutoplay()
+  }
+  
+  const prevBanner = () => {
+    currentBannerIndex.value = (currentBannerIndex.value - 1 + bannerData.length) % bannerData.length
+    resetAutoplay()
+  }
+  
+  const setBanner = (index) => {
+    currentBannerIndex.value = index
+    resetAutoplay()
+  }
+  
+  const resetAutoplay = () => {
+    if (autoplayInterval.value) {
+      clearInterval(autoplayInterval.value)
+    }
+    startAutoplay()
+  }
+  
+  const startAutoplay = () => {
+    autoplayInterval.value = setInterval(() => {
+      nextBanner()
+    }, 5000) // Change banner every 5 seconds
+  }
+  
+  // Setup and cleanup
+  onMounted(() => {
+    startAutoplay()
+  })
+  
+  onBeforeUnmount(() => {
+    if (autoplayInterval.value) {
+      clearInterval(autoplayInterval.value)
+    }
+  })
 
   // YouTube analysis variables
   const youtubeUrl = ref('')
@@ -1246,7 +1351,7 @@
     }
     .subtitle {
       font-size: 1.875rem;
-      white-space: nowrap;
+      white-space: nowrap; /* Keep nowrap for very large screens only */
     }
   }
 
@@ -1337,7 +1442,9 @@
     }
     
     .subtitle {
-      white-space: normal;
+      white-space: normal; 
+      overflow-wrap: break-word; 
+      max-width: 100%; 
     }
   }
 
@@ -1372,6 +1479,32 @@
     
     .subtitle {
       @apply text-xl;
+      /* Ensure wrapping properties from 1280px are maintained or re-asserted if @apply overrides them */
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .emotions {
+      gap: 30px;
+    }
+    
+    .emoji-img {
+      width: 140px;
+      height: 140px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 150px;
+      height: 150px;
+    }
+    .banner-content {
+      padding: 0 3rem;
+    }
+    .banner-title {
+      font-size: 2rem;
     }
   }
 
@@ -1392,6 +1525,13 @@
       margin-left: 1rem;
       max-width: 90%;
     }
+
+    .subtitle {
+      white-space: normal; 
+      overflow-wrap: break-word; 
+      max-width: 100%; 
+      @apply text-lg;
+    }
     
     .decorative-elements {
       opacity: 0.1;
@@ -1408,6 +1548,33 @@
     
     .subtitle {
       @apply text-lg;
+    }
+
+    /* MODIFIED: Adjustments for feeling box and emojis on smaller tablets/large phones */
+    .feeling-box {
+      margin-top: 70px; 
+    }
+
+    /* Bell size adjustments for 768px if needed, for now, focusing on 480px */
+
+    .feeling-box h2 {
+      font-size: 28px; 
+      margin-top: 50px; 
+      margin-bottom: 25px;
+    }
+
+    .emotions {
+      gap: 20px; 
+    }
+    
+    .emoji-img {
+      width: 120px; 
+      height: 120px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 130px;
+      height: 130px;
     }
   }
 
@@ -1443,6 +1610,10 @@
     
     .subtitle {
       @apply text-base;
+      /* Ensure wrapping properties from 768px are maintained or re-asserted */
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
   }
 
@@ -1459,6 +1630,48 @@
     
     .hero-content {
       min-height: 16vh;
+    }
+
+    .subtitle {
+      white-space: normal;
+      overflow-wrap: break-word; 
+      max-width: 100%;
+      font-size: 0.875rem; /* MODIFIED: Explicitly smaller font size */
+      line-height: 1.3;    /* MODIFIED: Adjusted line height */
+    }
+
+    /* MODIFIED: Bell icon and container size */
+    .bell-container {
+      width: 80px;
+      height: 80px;
+      top: -40px; /* Half of new height */
+    }
+
+    .bell-icon {
+      width: 80px;
+    }
+
+    .feeling-box h2 {
+      font-size: 22px; /* MODIFIED: Adjusted font size */
+      margin-top: 50px; /* MODIFIED: Adjusted for new bell positioning */
+      margin-bottom: 20px; 
+    }
+
+    .emotions {
+      gap: 15px; /* MODIFIED: Adjusted gap */
+      flex-wrap: wrap; 
+      justify-content: center;
+    }
+    
+    .emoji-img {
+      width: 90px; /* MODIFIED: Adjusted size */
+      height: 90px;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 100px; /* MODIFIED: Adjusted size */
+      height: 100px;
+      margin-top: 0; 
     }
   }
 
@@ -1894,6 +2107,16 @@
   
   .card-icon {
     transition: transform 0.3s ease;
+  }
+
+  /* CSS to disable hover effect for specific cards */
+  .process-card.no-hover:hover {
+    transform: translateY(0); /* Reset transform */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Reset to original box-shadow */
+  }
+
+  .process-card.no-hover:hover .card-icon {
+    transform: scale(1); /* Reset icon transform */
   }
 
   /* Comments Response Scripts Section styles */
@@ -3069,6 +3292,330 @@
       width: 100px;
       height: 100px;
       margin-top: 0;
+    }
+  }
+
+  /* Banner Section Styles */
+  .banners-container {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 3rem 0;
+    height: 480px; /* Ensure this height accommodates content */
+    overflow: hidden; /* To contain the sliding animation */
+  }
+
+  .banner-section {
+    width: 100vw; 
+    margin-left: calc(-50vw + 50%); 
+    height: 480px; 
+    position: relative; 
+    z-index: 1; 
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    /* Removed max-width, margin: 0 auto, and padding from here */
+    /* Removed overflow: hidden as it's on banners-container */
+  }
+
+  .banner-background {
+    /* This class is no longer strictly needed for background, 
+       but could be kept if other shared styles were on it. 
+       For now, we remove its specific background properties if any existed.
+    */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  .banner-content {
+    width: 100%; /* Take full width of its positioning context */
+    max-width: 1200px; /* Constrain actual content */
+    margin: 0 auto; /* Center the content block */
+    padding: 2rem 4rem; /* Add vertical padding and keep horizontal */
+    position: relative; 
+    z-index: 1; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    text-align: center; 
+    height: 100%; /* Try to fill parent banner-section's height */
+  }
+
+  .banner-title {
+    font-size: 2.8rem; 
+    font-weight: 800;
+    margin-bottom: 2.5rem; 
+    color: #333; 
+    /* Layered text-shadow: Lighter, wider, softer glow effect */
+    
+    letter-spacing: 0.05em; 
+    line-height: 1.2;
+  }
+
+  .comparison-content {
+    display: flex;
+    justify-content: space-around; /* Changed from space-between for better centering if max-width is hit */
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: stretch; /* Key for making cards same height */
+  }
+
+  .constructive, .cyberbullying {
+    flex: 1 1 0px; /* Allow shrink, but base on 0px for equal distribution */
+    padding: 1.5rem; /* Slightly reduced padding */
+    border-radius: 12px; /* Slightly smaller radius */
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent white for depth */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    /* overflow: hidden; // Can sometimes clip desired shadows or effects */
+    max-width: 45%; /* Ensure they don't get too wide, adjust as needed */
+    display: flex; 
+    flex-direction: column; 
+    /* min-height: 200px; */ /* REMOVED: Allow content to define height */
+  }
+
+  .constructive:hover, .cyberbullying:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+  }
+
+  .constructive {
+    border-top: 5px solid #4CAF50;
+  }
+
+  .constructive::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, #4CAF50, #8BC34A);
+    border-top-left-radius: 12px; /* Match card radius */
+    border-top-right-radius: 12px; /* Match card radius */
+  }
+
+  .cyberbullying {
+    border-top: 5px solid #F44336;
+  }
+
+  .cyberbullying::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, #F44336, #FF5722);
+    border-top-left-radius: 12px; /* Match card radius */
+    border-top-right-radius: 12px; /* Match card radius */
+  }
+
+  .constructive h3, .cyberbullying h3 {
+    font-size: 1.3rem; /* Adjusted size */
+    margin-bottom: 0.75rem; /* Adjusted spacing */
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .constructive h3 {
+    color: #388E3C; /* Darker green for better contrast on light bg */
+  }
+
+  .cyberbullying h3 {
+    color: #D32F2F; /* Darker red */
+  }
+
+  .constructive p, .cyberbullying p {
+    font-size: 1rem; 
+    line-height: 1.5;
+    color: #333;
+    text-align: center;
+    flex-grow: 1; 
+    display: flex; /* Added for vertical centering */
+    align-items: center; /* Added for vertical centering */
+    justify-content: center; /* Ensures horizontal centering of the text block itself if p has width constraints */
+    padding: 0.5rem 0; /* Add some padding if needed */
+  }
+
+  .banner-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+    transition: all 0.3s ease;
+  }
+
+  .banner-nav:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background: #f8f8f8;
+  }
+
+  .prev-banner {
+    left: 20px;
+  }
+
+  .next-banner {
+    right: 20px;
+  }
+
+  .arrow-icon {
+    font-size: 20px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .banner-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1.5rem; /* Added margin-top to move dots down */
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .dot.active {
+    background: white;
+    transform: scale(1.2);
+  }
+
+  @media (max-width: 992px) {
+    .banner-content {
+      padding: 0 3rem;
+    }
+    
+    .banner-title {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .comparison-content {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .banner-section {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+      height: auto;
+      min-height: 660px;
+    }
+    
+    .banners-container {
+      height: auto;
+      min-height: 660px;
+    }
+
+    .banner-title {
+      font-size: 1.8rem;
+    }
+
+    .constructive h3, .cyberbullying h3 {
+      font-size: 1.3rem;
+    }
+
+    .constructive p, .cyberbullying p {
+      font-size: 1rem;
+    }
+    
+    .banner-nav {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .prev-banner {
+      left: 10px;
+    }
+    
+    .next-banner {
+      right: 10px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .banner-content {
+      padding: 0 1.5rem;
+    }
+    
+    .banner-title {
+      font-size: 1.5rem;
+    }
+    
+    .constructive, .cyberbullying {
+      padding: 1.5rem;
+    }
+    
+    .banner-nav {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .arrow-icon {
+      font-size: 16px;
+    }
+  }
+
+  /* Transition animations for banners */
+  /* Ensure these are at the root of your <style scoped> or in a global style if preferred */
+
+  .slide-fade-enter-active,
+  .slide-fade-leave-active {
+    transition: transform 0.5s ease-in-out; /* MODIFIED: Using ease-in-out */
+    position: absolute;
+    width: 100%;
+    top: 0; /* Ensure they align vertically */
+    left: 0;
+  }
+
+  .slide-fade-enter-from {
+    /* Opacity is 1 by default */
+    transform: translateX(100%); /* Start off-screen to the right */
+  }
+
+  .slide-fade-leave-to {
+    /* Opacity is 1 by default, will be removed from DOM after */
+    transform: translateX(-100%); /* Exit off-screen to the left */
+  }
+
+  /* Ensure the element that is not actively entering/leaving is at translateX(0) */
+  .slide-fade-enter-to,
+  .slide-fade-leave-from {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 992px) {
+    .banner-content {
+      padding: 0 3rem;
+    }
+    
+    .banner-title {
+      font-size: 2rem;
     }
   }
   </style>
