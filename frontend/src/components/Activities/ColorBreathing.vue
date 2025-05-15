@@ -23,7 +23,7 @@
   color: #222;
   text-align: center;
   max-width: 600px;
-  background-image: url('/media/Color breathing.png');
+  background-image: url('/docs/media/Color-breathing.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

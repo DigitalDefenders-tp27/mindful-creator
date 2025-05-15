@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
 # Import for backwards compatibility
 try:
-    from backend.database import get_connection
+from backend.database import get_connection
 except ImportError:
     # Fallback implementation if needed
     def get_connection():
