@@ -191,7 +191,7 @@
                 <div class="clinic-details-card info-section">
                   <div class="rating">
                     <span class="rating-score">{{ selectedClinic.rating }}</span>
-                    <div class="stars">★★★★★</div>
+                    <div class="stars" v-html="generateStars(selectedClinic.rating)"></div>
                     <span class="reviews">({{ selectedClinic.reviews }})</span>
                   </div>
 
@@ -200,13 +200,18 @@
                     <span>{{ selectedClinic.address }}</span>
                   </div>
 
+                  <div class="resource-phone" v-if="selectedClinic.phone">
+                    <img src="@/assets/icons/elements/phone.svg" alt="Phone" class="phone-icon">
+                    <a :href="`tel:${selectedClinic.phone}`">{{ selectedClinic.phone }}</a>
+                  </div>
+
                   <div class="resource-website">
                     <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
                     <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
                   </div>
                 </div> 
 
-                <div class="opening-hours info-section"> {/*Ensuring opening hours also has info-section for consistent styling as a card */}
+                <div class="opening-hours info-section"> 
                   <h4>Opening hours</h4>
                   <div class="hours-grid">
                     <template v-if="selectedClinic && selectedClinic.openingHours && selectedClinic.openingHours.weekday_text && selectedClinic.openingHours.weekday_text.length">
@@ -716,13 +721,20 @@ const findAndDisplayNearbyClinics = (location) => {
     return;
   }
 
+  // Store the current clinic details to maintain UI during loading
+  const currentClinic = selectedClinic.value;
+  
   isSearching.value = true;
-  selectedClinic.value = null; // Clear previous selection
+  // Don't clear selectedClinic immediately to maintain UI
+  // selectedClinic.value = null; // Clear previous selection - REMOVED
+  
   // Clear existing clinic markers
   if (markers.value && markers.value.length > 0) {
     markers.value.forEach(marker => marker.setMap(null));
     markers.value = [];
   }
+  // Store current clinics before clearing
+  const previousClinics = [...displayedClinics.value];
   displayedClinics.value = [];
 
   const request = {
@@ -733,7 +745,6 @@ const findAndDisplayNearbyClinics = (location) => {
   };
 
   placesService.nearbySearch(request, (results, status) => {
-    isSearching.value = false;
     if (status === googleInstance.maps.places.PlacesServiceStatus.OK && results) {
       displayedClinics.value = results
         .filter(place => place.business_status === 'OPERATIONAL') // Filter for operational places
@@ -757,15 +768,21 @@ const findAndDisplayNearbyClinics = (location) => {
         selectClinic(displayedClinics.value[0]); // Auto-select the first one
       } else {
         alert('No operational psychology clinics found nearby with the current filters.');
+        // Restore previous clinic if no results found
+        selectedClinic.value = currentClinic;
       }
     } else if (status === googleInstance.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
       alert('No psychology clinics found nearby.');
-      displayedClinics.value = [];
+      displayedClinics.value = previousClinics; // Restore previous clinics
       updateMarkers();
+      selectedClinic.value = currentClinic; // Restore previous selection
     } else {
       alert('Nearby search failed. Status: ' + status);
       console.error('PlacesService.nearbySearch failed with status:', status);
+      displayedClinics.value = previousClinics; // Restore previous clinics
+      selectedClinic.value = currentClinic; // Restore previous selection
     }
+    isSearching.value = false;
   });
 };
 
@@ -855,6 +872,9 @@ onMounted(() => {
 // Get user position
 const getMyPosition = () => {
   if (navigator.geolocation) {
+    // Store the current selected clinic before starting the loading process
+    const previousClinic = selectedClinic.value;
+    
     isSearching.value = true;
     navigator.geolocation.getCurrentPosition(
       position => {
@@ -890,12 +910,16 @@ const getMyPosition = () => {
           findAndDisplayNearbyClinics(userLocation.value);
         } else {
           isSearching.value = false; // Map not ready
+          // Restore previous clinic if map is not ready
+          selectedClinic.value = previousClinic;
         }
       },
       error => {
         isSearching.value = false;
         console.error('Error getting location:', error)
         alert('Unable to obtain your location. Please check your location permissions settings.')
+        // Restore previous clinic on error
+        selectedClinic.value = previousClinic;
       }
     )
   } else {
@@ -1336,11 +1360,11 @@ const tabs = [
 // Update the search button to show loading state
 const searchBtnContent = computed(() => {
   if (isSearching.value) {
-    return `<svg class="loading-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    return `<svg class="loading-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12" stroke="white" stroke-width="2"/>
     </svg>`
   }
-  return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="white"/>
   </svg>`
 })
@@ -1445,6 +1469,33 @@ const onSearch = () => {
       }
     }
   );
+};
+
+// Generate stars based on rating
+const generateStars = (rating) => {
+  if (!rating) return 'No Rating';
+  
+  // Round to nearest 0.5
+  const roundedRating = Math.round(rating * 2) / 2;
+  
+  // Create stars string
+  let starsHTML = '';
+  
+  // Full stars
+  for (let i = 1; i <= 5; i++) {
+    if (i <= roundedRating) {
+      // Full star
+      starsHTML += '<span class="star filled">★</span>';
+    } else if (i - 0.5 === roundedRating) {
+      // Half star
+      starsHTML += '<span class="star half">★</span>';
+    } else {
+      // Empty star
+      starsHTML += '<span class="star empty">☆</span>';
+    }
+  }
+  
+  return starsHTML;
 };
 
 </script>
@@ -2152,82 +2203,82 @@ section:not(:last-child)::after {
   background-color: #fffcf5;
 }
 
-/* Styles for the new floating tab bar container */
+/* Apple TV-style Floating Tab Bar */
 .resource-tabs {
-  display: flex;
-  justify-content: center; /* Center the bar itself if it has a max-width */
-  margin-bottom: 2.5rem; /* Keep existing bottom margin */
-  padding: 0; /* Reset padding, will be on inner items or bar background */
-  background-color: #f0f0f0; /* Light grey background for the bar - similar to current inactive online tab */
-  border-radius: 25px;      /* Rounded ends for the bar */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); /* Floating shadow */
-  max-width: 450px; /* Adjust as needed for the desired length */
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden; /* Ensures inner active tab shadow doesn't spill */
-  gap: 0; /* No gap, segments will touch */
+  display: inline-flex;
+  margin-bottom: 2.5rem;
+  background-color: rgba(230, 230, 230, 0.8);
+  border-radius: 50px;
+  padding: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* Reset and new base styles for individual tab items within the bar */
 .resource-tab {
-  flex: 1; /* Make tabs share space equally */
-  padding: 0.75rem 1.5rem; /* Adjust padding for a balanced look */
-  font-size: 1.1rem;    /* Slightly smaller font for a sleeker bar */
+  flex: 1 1 auto;
+  padding: 10px 25px;
+  font-size: 1.05rem;
   font-weight: 500;
-  color: #555;          /* Default text color for inactive tabs */
+  color: #333;
   text-align: center;
   cursor: pointer;
-  background: transparent; /* Transparent by default, active state will change this */
-  border: none;          /* Remove individual borders */
-  border-radius: 0; /* No individual rounding, bar itself is rounded */
-  box-shadow: none;      /* Remove individual shadows */
-  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  background-color: transparent;
+  border: none;
+  border-radius: 40px;
+  transition: all 0.25s ease;
   outline: none;
-  letter-spacing: 0.01em;
   white-space: nowrap;
-  position: relative; /* For potential pseudo-elements if needed for separators, though not planned now */
+  margin: 0;
+  position: relative;
+  z-index: 2;
 }
 
-/* Remove hover effect that changes background for the general tab if it's not active */
-.resource-tab:not(.active):hover {
-  background-color: rgba(0,0,0,0.05); /* Slight darken on hover for inactive */
-  color: #333;
-  transform: none; /* No transform on hover for inactive */
-  box-shadow: none;
-}
-
-/* Styling for the ACTIVE tab segment */
 .resource-tab.active {
-  background-color: #ffffff;  /* White background for the active segment */
-  color: #E91E63;             /* Pink text color for active segment */
+  background-color: #FCE4EC;
+  color: #E91E63;
   font-weight: 600;
-  border-radius: 22px; /* Rounded corners for the active segment itself, slightly inset */
-  margin: 3px; /* Small margin to create the inset effect from the parent bar */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
-  transform: scale(1); /* Reset any previous scaling */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease; /* Slightly longer transition for smoother effect */
 }
 
-/* Remove specific styling for .resource-tab-online as it's now part of the unified bar */
-/* We'll let the general .resource-tab and .resource-tab.active handle all states. */
-/* Any !important overrides on .resource-tab-online might need to be explicitly undone or the class removed if it's not needed for other logic */
-.resource-tab-online,
-.resource-tab-online.active,
-.resource-tab-online:hover {
-  background-color: transparent !important; /* Try to override existing grey backgrounds */
-  border: none !important;                 /* Remove border */
-  box-shadow: none !important;             /* Remove shadow */
-  /* Text color will be inherited from .resource-tab or .resource-tab.active */
+/* Hover effect for inactive tabs */
+.resource-tab:not(.active):hover {
+  background-color: rgba(200, 200, 200, 0.4);
+  color: #000;
 }
 
-/* Ensure the .active class on .resource-tab-online also uses the new active style */
+/* Make sure to remove the below styles if they appear elsewhere in the file */
+.resource-tab-online {
+  /* No separate styling - we're using consistent styling for both tabs */
+}
+
 .resource-tab-online.active {
-  background-color: #ffffff !important;  /* White background for the active segment */
-  color: #E91E63 !important;             /* Pink text color for active segment */
-  font-weight: 600 !important;
-  border-radius: 22px !important; /* Rounded corners for the active segment itself, slightly inset */
-  margin: 3px !important; /* Small margin to create the inset effect from the parent bar */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important; /* Inner shadow for depth */
-  transform: scale(1) !important;
+  /* No separate styling - active state should be handled by .resource-tab.active */
+}
+
+/* Responsive design for tabs */
+@media (max-width: 768px) {
+  .resource-tabs {
+    max-width: 90%;
+  }
+  
+  .resource-tab {
+    padding: 8px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .resource-tabs {
+    width: 95%;
+  }
+  
+  .resource-tab {
+    padding: 8px 15px;
+    font-size: 0.95rem;
+  }
 }
 
 .resource-content {
@@ -2241,7 +2292,8 @@ section:not(:last-child)::after {
   border: 1px solid rgba(230, 239, 182, 0.4);
   position: relative;
   z-index: 2;
-  min-height: 560px;
+  min-height: 800px; /* Increased from 700px */
+  height: 800px; /* Increased from 700px */
   padding: 0;
 }
 
@@ -2266,16 +2318,15 @@ section:not(:last-child)::after {
 .map-container {
   position: relative;
   width: 100%;
-  height: 100%; /* Changed from 500px to take full available height in the grid cell */
-  border-radius: 16px; /* Retaining this, but it might be visually superseded by #google-map's radius or resource-content's clipping */
-  /* box-shadow: 0 4px 15px rgba(0,0,0,0.08); */ /* Commented out as #google-map has its own */
-  /* overflow: hidden; */ /* Potentially useful, but resource-content has overflow:hidden */
+  height: 100%; 
+  border-radius: 16px;
+  min-height: 800px; /* Increased from 700px */
 }
 
 #google-map {
   width: 100% !important;
   height: 100% !important;
-  min-height: 560px;
+  min-height: 800px; /* Increased from 700px */
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.08);
   position: absolute;
@@ -2287,13 +2338,80 @@ section:not(:last-child)::after {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100%;
+  min-height: 800px; /* Increased from 700px */
   background: #fff;
+  overflow-y: auto; /* Kept for very large content */
 }
 
 .resource-info-content {
   flex: 1;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.resource-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+  justify-content: center;
+  width: 100%;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 140px;
+  max-width: 200px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 48px; /* Increased height */
+  white-space: nowrap;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+/* Responsive adjustments for the increased height */
+@media (max-width: 768px) {
+  .map-container {
+    min-height: 400px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  #google-map {
+    min-height: 400px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .resource-content {
+    min-height: 1000px; /* Increased to account for stacked layout */
+    height: auto; /* Allow auto height for stacked layout */
+  }
+  
+  .resource-details {
+    min-height: 600px;
+  }
+  
+  .resource-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .action-btn {
+    flex: 1 1 auto;
+    width: 100%;
+  }
 }
 
 .resource-name {
@@ -2323,6 +2441,48 @@ section:not(:last-child)::after {
   letter-spacing: -1px;
   line-height: 1;
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.star {
+  display: inline-block;
+  margin-right: 1px;
+}
+
+.star.filled {
+  color: #FFB800; /* Gold color for filled stars */
+}
+
+.star.half {
+  position: relative;
+  background: linear-gradient(90deg, #FFB800 50%, #D1D1D1 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (background-clip: text) {
+  .star.half {
+    color: #FFB800;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .star.half::after {
+    content: '☆';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 50%;
+    color: #D1D1D1;
+  }
+}
+
+.star.empty {
+  color: #D1D1D1; /* Light gray for empty stars */
 }
 
 .reviews {
@@ -2346,6 +2506,21 @@ section:not(:last-child)::after {
   opacity: 0.7;
 }
 
+.resource-phone {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.phone-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.7;
+}
+
 .resource-website {
   display: flex;
   align-items: center;
@@ -2358,6 +2533,16 @@ section:not(:last-child)::after {
   width: 24px;
   height: 24px;
   opacity: 0.7;
+}
+
+.resource-phone a {
+  color: #e75a97;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.resource-phone a:hover {
+  text-decoration: underline;
 }
 
 .resource-website a {
@@ -2784,63 +2969,63 @@ section:not(:last-child)::after {
 /* Search bar styles */
 .search-bar {
   position: absolute;
-  top: 20px;
+  top: 15px;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 80px);
-  max-width: 600px;
+  width: calc(100% - 60px);
+  max-width: 500px;
   z-index: 10;
-  background-color: #fff; /* The capsule background */
-  border-radius: 50px;    /* Capsule shape */
-  padding-left: 20px;     /* More padding on the left for text start */
-  padding-right: 8px;      /* Padding for the button */
-  padding-top: 8px;
-  padding-bottom: 8px;
-  /* box-shadow: none; */ /* Already removed */
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 0 0 2px rgba(255,255,255,0.7);
+  height: 40px; /* Even more compact */
   display: flex;
   align-items: center;
-  gap: 8px; /* Spacing between input and button */
+  padding: 0 0px 0 0px; /* Reduced inner padding */
 }
 
 .search-input {
   flex-grow: 1;
-  padding: 8px 0; /* Vertical padding, horizontal comes from parent's padding-left */
-  font-size: 1rem;
-  border: none;             /* No border for the input itself */
-  outline: none;            /* No outline */
-  background-color: transparent; /* Input is transparent, showing search-bar background */
+  height: 100%;
+  font-size: 0.9rem;
+  border: none;
+  outline: none;
+  background-color: transparent;
   color: #333;
-}
-
-.search-input:focus {
-  /* border-color: #E91E63; */ /* No border to color, focus handled by cursor/system */
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-btn {
-  width: 40px;   /* Diameter of the circle button */
-  height: 40px;  /* Diameter of the circle button */
-  min-width: 40px; /* Ensure it maintains this width */
-  padding: 0;    /* Remove padding, icon will be centered by flex */
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
   background-color: #E91E63;
   color: white;
   border: none;
-  border-radius: 50%; /* Makes it a circle */
+  border-radius: 50%;
   cursor: pointer;
-  /* font-size: 1rem; */ /* Not relevant for icon button */
-  /* font-weight: 500; */ /* Not relevant for icon button */
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0; /* Prevent button from shrinking */
+  flex-shrink: 0;
+  margin: 5px 5px 5px 0px; /* Equal spacing on all sides */
 }
 
 .search-btn:hover:not(:disabled) {
-  background-color: #c2185b; /* Darker shade for hover */
+  background-color: #d81b60; /* Slightly darker pink on hover */
+  transform: scale(1.05);
+}
+
+.search-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .search-btn.is-loading {
-  background-color: #cccccc; /* Different style for loading */
+  background-color: #e0e0e0;
   cursor: not-allowed;
 }
 
@@ -3767,37 +3952,7 @@ section:not(:last-child)::after {
   color: #F44336; /* Red */
 }
 
-.resource-tab-online {
-  background-color: #f5f5f5 !important; /* Override other background styles */
-  color: #666 !important; /* Override other text colors */
-  border: 1px solid #ddd !important; /* Add border */
-  padding: 0.75rem 2rem !important; /* Adjust padding */
-  font-size: 1.1rem !important; /* Adjust font size */
-  font-weight: 500 !important;
-  border-radius: 25px !important; /* Match button border-radius */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; /* Subtle shadow */
-  transform: scale(1) !important; /* Reset transform from .active if any */
-}
 
-.resource-tab-online:hover {
-  background-color: #ebebeb !important;
-  box-shadow: 0 3px 7px rgba(0,0,0,0.08) !important;
-}
-
-/* Ensure the active state for online tab doesn't use the pink gradient */
-.resource-tab-online.active {
-  background-color: #e0e0e0 !important; /* Slightly darker grey when active */
-  color: #555 !important;
-  border-color: #ccc !important;
-  transform: scale(1.02) !important; /* Subtle scale for active */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-}
-
-.resource-tab:not(.active):hover {
-  background: #ececec;
-  color: #e75a97;
-  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
-}
 
 .search-bar {
   padding: 1rem;          /* Padding around the input and button - RETAINED */
@@ -3818,5 +3973,14 @@ section:not(:last-child)::after {
 .search-btn:not(:disabled):active {
   transform: translateY(0);
 }
-</style>
 
+.search-input::placeholder {
+  color: #9e9e9e;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.search-input:focus::placeholder {
+  opacity: 0.5;
+}
+</style>
