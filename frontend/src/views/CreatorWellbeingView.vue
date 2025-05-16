@@ -207,10 +207,27 @@
                 <div class="opening-hours">
                   <h4>Opening hours</h4>
                   <div class="hours-grid">
-                    <div v-for="(hours, day) in selectedClinic.openingHours" :key="day">
-                      <div class="day">{{ day }}</div>
-                      <div class="hours">{{ hours }}</div>
-                    </div>
+                    <template v-if="selectedClinic && selectedClinic.openingHours && selectedClinic.openingHours.weekday_text && selectedClinic.openingHours.weekday_text.length">
+                      <div v-for="line in selectedClinic.openingHours.weekday_text" :key="line" class="hours-line">
+                        <span>{{ line }}</span>
+                      </div>
+                      <div v-if="selectedClinic.openingHours.open_now !== undefined" 
+                           :class="['open-status', selectedClinic.openingHours.open_now ? 'open' : 'closed']">
+                        {{ selectedClinic.openingHours.open_now ? 'Open now' : 'Closed now' }}
+                      </div>
+                    </template>
+                    <template v-else-if="selectedClinic && selectedClinic.place_id && (!selectedClinic.openingHours || !selectedClinic.openingHours.weekday_text)">
+                       <div><span>Opening hours not available.</span></div>
+                    </template>
+                    <template v-else-if="selectedClinic && !selectedClinic.place_id">
+                        <div><span>Select a clinic to see details.</span></div>
+                    </template>
+                     <template v-else-if="isSearching && !selectedClinic">
+                        <div><span>Finding nearby clinics...</span></div>
+                    </template>
+                    <template v-else>
+                       <div><span>Select a clinic from the map.</span></div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -462,11 +479,11 @@ import ScrollIsland from '@/components/ScrollIsland.vue'
 // State variables
 const currentTab = ref(0)
 let chartInstance = null
-const selectedClinic = ref(null)
+const selectedClinic = ref(null) // Initialize as null
 const showGuide = ref(false)
 const mapCenter = ref({ lat: -37.8136, lng: 144.9631 }) // Default Melbourne centre coordinates
 const userLocation = ref(null)
-const displayedClinics = ref([])
+const displayedClinics = ref([]) // Initialize as empty
 const activeTab = ref('offline')
 const searchAddress = ref('')
 const userIcon = { url: '../assets/icons/elements/user-location.svg', scaledSize: { width: 32, height: 32 } }
@@ -494,6 +511,7 @@ const router = useRouter()
 
 // Add global Google object reference
 let googleInstance = null;
+let placesService = null; // Added for Places API
 
 // Initialize Google Maps
 const initMap = async () => {
@@ -533,7 +551,7 @@ const initMap = async () => {
     const loader = new Loader({
       apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
       version: "weekly",
-      libraries: ["places"],
+      libraries: ["places", "maps", "marker"], // Ensure maps and marker libraries are loaded
       language: "en",
       region: "AU"
     });
@@ -541,69 +559,64 @@ const initMap = async () => {
     // Load Google Maps
     googleInstance = await loader.load();
     const { Map } = await googleInstance.maps.importLibrary("maps");
+    // const { AdvancedMarkerElement } = await googleInstance.maps.importLibrary("marker"); // For advanced markers if needed
 
     // Initialize map
     map.value = new Map(mapElement, {
-      center: { lat: -37.8136, lng: 144.9631 },
+      center: mapCenter.value, // Use mapCenter ref
       zoom: 13,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
+      mapId: 'MINDFUL_CREATOR_MAP_ID', // Optional: for cloud-based map styling
       styles: [
         {
           featureType: "poi",
           elementType: "labels",
           stylers: [{ visibility: "off" }]
-        }
+        },
+        { // Hide most business POIs to de-clutter, we will add our own.
+          featureType: "poi.business",
+          stylers: [{ visibility: "off" }],
+        },
       ]
     });
-
-    // Trigger resize event to ensure map renders correctly
+    
+    placesService = new googleInstance.maps.places.PlacesService(map.value);
     googleInstance.maps.event.trigger(map.value, 'resize');
 
+
     // Initialize Places Autocomplete
-    const input = document.querySelector('.search-input');
+    const input = document.querySelector('.search-input'); // Ensure this selector is correct
     if (input) {
       const autocomplete = new googleInstance.maps.places.Autocomplete(input, {
+        // bounds for Melbourne area as an example, adjust as needed or remove for broader search
         bounds: new googleInstance.maps.LatLngBounds(
-          new googleInstance.maps.LatLng(-38.5, 144.5),
+          new googleInstance.maps.LatLng(-38.5, 144.5), 
           new googleInstance.maps.LatLng(-37.5, 145.5)
         ),
         componentRestrictions: { country: 'au' },
-        fields: ['geometry'],
+        fields: ['geometry', 'name', 'formatted_address', 'place_id'], // Request needed fields
         types: ['address']
       });
 
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace();
         if (place.geometry) {
+          searchAddress.value = place.formatted_address || place.name; // Update search input text
           handlePlaceSelection(place);
         }
       });
     }
 
-    // Show clinic markers
-    if (clinics.length > 0) {
-      displayedClinics.value = [...clinics];
-      await updateMarkers();
-      
-      if (!selectedClinic.value) {
-        selectedClinic.value = displayedClinics.value[0];
-      }
-      
-      // Set map center to selected clinic
-      if (selectedClinic.value) {
-        map.value.setCenter({ 
-          lat: selectedClinic.value.lat, 
-          lng: selectedClinic.value.lng 
-        });
-        map.value.setZoom(14);
-      }
-    }
+    // Initial search for clinics around the map center
+    findAndDisplayNearbyClinics(map.value.getCenter());
+
 
   } catch (error) {
     console.error("Error initializing map:", error);
     alert(error.message || 'Error loading map. Please refresh the page and try again.');
+    isSearching.value = false;
   }
 };
 
@@ -611,29 +624,36 @@ const initMap = async () => {
 const updateMarkers = async () => {
   try {
     if (!map.value || !googleInstance) {
-      throw new Error('Map not initialized');
+      console.warn("Map or googleInstance not ready for updateMarkers");
+      return;
     }
 
-    // Clear existing markers
+    // Clear existing clinic markers (markers ref stores clinic markers)
     if (markers.value && markers.value.length > 0) {
       markers.value.forEach(marker => marker.setMap(null));
-      markers.value = [];
+      markers.value = []; // Reset the array
     }
 
-    // Add marker for each clinic
+    // Add marker for each clinic from displayedClinics
     displayedClinics.value.forEach(clinic => {
       const marker = new googleInstance.maps.Marker({
         position: { lat: clinic.lat, lng: clinic.lng },
         map: map.value,
         title: clinic.name,
+        icon: {
+          path: googleInstance.maps.SymbolPath.CIRCLE,
+          scale: 8, // size
+          fillColor: "red", // Red dot for clinics
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: "white"
+        },
         animation: googleInstance.maps.Animation.DROP
       });
 
       marker.addListener('click', () => {
-        selectedClinic.value = clinic;
-        map.value.panTo({ lat: clinic.lat, lng: clinic.lng });
+        selectClinic(clinic);
       });
-
       markers.value.push(marker);
     });
   } catch (error) {
@@ -642,30 +662,26 @@ const updateMarkers = async () => {
 };
 
 // Handle place selection from autocomplete or search
-const handlePlaceSelection = async (place) => {
-  if (!place.geometry) {
-    alert('Could not find the specified address. Please try again.');
+const handlePlaceSelection = async (place) => { // place is PlaceResult or GeocoderResult
+  isSearching.value = true;
+  if (!place.geometry || !place.geometry.location) {
+    alert('Could not find the specified address details. Please try again.');
+    isSearching.value = false;
     return;
   }
 
-  const location = {
-    lat: place.geometry.location.lat(),
-    lng: place.geometry.location.lng()
-  };
+  const location = place.geometry.location;
 
-  // Clear previous search marker
   if (searchMarker.value) {
     searchMarker.value.setMap(null);
   }
-
-  // Add new search marker
   searchMarker.value = new googleInstance.maps.Marker({
     position: location,
     map: map.value,
     icon: {
       path: googleInstance.maps.SymbolPath.CIRCLE,
       scale: 8,
-      fillColor: "#e75a97",
+      fillColor: "#e75a97", // Pink for searched location
       fillOpacity: 1,
       strokeColor: "#ffffff",
       strokeWeight: 2,
@@ -673,47 +689,144 @@ const handlePlaceSelection = async (place) => {
     animation: googleInstance.maps.Animation.DROP
   });
 
-  // Center map on search location
   map.value.setCenter(location);
-  map.value.setZoom(14);
+  map.value.setZoom(14); // Zoom in a bit more
+  
+  findAndDisplayNearbyClinics(location);
+};
 
-  // Sort clinics by distance
-  displayedClinics.value = clinics
-    .map(clinic => ({
-      ...clinic,
-      distance: getDistance(
-        location.lat,
-        location.lng,
-        clinic.lat,
-        clinic.lng
-      )
-    }))
-    .sort((a, b) => a.distance - b.distance);
+// Calculate distance between two points using Haversine formula (No longer used for clinic sorting, but kept for now if needed elsewhere)
+// const getDistance = (lat1, lon1, lat2, lon2) => { ... }; // Can be removed if not used
 
-  // Update markers and select nearest clinic
-  updateMarkers();
-  if (displayedClinics.value.length > 0) {
-    selectedClinic.value = displayedClinics.value[0];
+const findAndDisplayNearbyClinics = (location) => {
+  if (!placesService || !map.value) {
+    console.error('PlacesService or map not initialized.');
+    alert('Map service is not ready. Please try searching again.');
+    isSearching.value = false;
+    return;
+  }
+  if (!location) {
+    console.error('Location not provided for nearby search.');
+    alert('A location is required to find nearby clinics.');
+    isSearching.value = false;
+    return;
+  }
+
+  isSearching.value = true;
+  selectedClinic.value = null; // Clear previous selection
+  // Clear existing clinic markers
+  if (markers.value && markers.value.length > 0) {
+    markers.value.forEach(marker => marker.setMap(null));
+    markers.value = [];
+  }
+  displayedClinics.value = [];
+
+  const request = {
+    location: location,
+    radius: 5000, // 5km radius
+    keyword: 'psychologist OR "mental health clinic" OR therapy',
+    // type: ['health'] // Optional: can make search broader or narrower. Test with keyword first.
+  };
+
+  placesService.nearbySearch(request, (results, status) => {
+    isSearching.value = false;
+    if (status === googleInstance.maps.places.PlacesServiceStatus.OK && results) {
+      displayedClinics.value = results
+        .filter(place => place.business_status === 'OPERATIONAL') // Filter for operational places
+        .map(place => ({
+        id: place.place_id,
+        name: place.name,
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        address: place.vicinity,
+        website: place.website || null,
+        rating: place.rating || 0,
+        reviews: place.user_ratings_total || 0,
+        openingHours: place.opening_hours ? { open_now: place.opening_hours.open_now } : null, // Basic info from nearby
+        photos: place.photos || null,
+        place_id: place.place_id,
+      }));
+
+      updateMarkers();
+
+      if (displayedClinics.value.length > 0) {
+        selectClinic(displayedClinics.value[0]); // Auto-select the first one
+      } else {
+        alert('No operational psychology clinics found nearby with the current filters.');
+      }
+    } else if (status === googleInstance.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+      alert('No psychology clinics found nearby.');
+      displayedClinics.value = [];
+      updateMarkers();
+    } else {
+      alert('Nearby search failed. Status: ' + status);
+      console.error('PlacesService.nearbySearch failed with status:', status);
+    }
+  });
+};
+
+const selectClinic = (clinic) => {
+  if (!clinic) return;
+  selectedClinic.value = clinic; // Show basic info immediately
+  if (map.value && clinic.lat && clinic.lng) {
+    map.value.panTo({ lat: clinic.lat, lng: clinic.lng });
+  }
+
+  if (clinic.place_id) {
+    fetchClinicDetails(clinic.place_id);
   }
 };
 
-// Calculate distance between two points using Haversine formula
-const getDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
+const fetchClinicDetails = (placeId) => {
+  if (!placesService || !placeId) return;
+  isSearching.value = true; // Indicate loading details
+
+  const request = {
+    placeId: placeId,
+    fields: ['name', 'vicinity', 'formatted_address', 'geometry', 'website', 
+             'formatted_phone_number', 'rating', 'user_ratings_total', 
+             'opening_hours', 'photos', 'url', 'business_status', 'place_id']
+  };
+
+  placesService.getDetails(request, (place, status) => {
+    isSearching.value = false;
+    if (status === googleInstance.maps.places.PlacesServiceStatus.OK && place) {
+      selectedClinic.value = {
+        // Spread existing data from nearbySearch first, then override with details
+        ...displayedClinics.value.find(c => c.place_id === placeId),
+        id: place.place_id,
+        name: place.name,
+        address: place.formatted_address || place.vicinity,
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        website: place.website || null,
+        phone: place.formatted_phone_number || null,
+        rating: place.rating || 0,
+        reviews: place.user_ratings_total || 0,
+        openingHours: place.opening_hours ? {
+            weekday_text: place.opening_hours.weekday_text || ["Opening hours not available"],
+            open_now: typeof place.opening_hours.isOpen === 'function' ? place.opening_hours.isOpen() : undefined
+        } : { weekday_text: ["Opening hours not available"] },
+        photos: place.photos || null,
+        googleMapsUrl: place.url,
+        business_status: place.business_status,
+        place_id: place.place_id
+      };
+    } else {
+      console.error('PlacesService.getDetails failed for ' + placeId + '. Status:', status);
+      // Optionally, keep the basic info if details fetch fails but clinic was already partially loaded
+      if (!selectedClinic.value || selectedClinic.value.place_id !== placeId) {
+        // If this is a new selection that failed, clear it or show error
+         selectedClinic.value = { ...selectedClinic.value, openingHours: { weekday_text: ["Could not load details."] } };
+      }
+    }
+  });
 };
+
 
 onMounted(() => {
   renderChart()
   
-  // Update filters visibility based on screen size
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
       filtersVisible.value = true
@@ -722,21 +835,23 @@ onMounted(() => {
   
   window.addEventListener('resize', handleResize)
   
-  // Clean up event listener on component unmount
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
+    // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
+    if (map.value && googleInstance) {
+        // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
+    }
   })
   
-  // If current is offline tab, initialize map
   if (activeTab.value === 'offline') {
-    nextTick()
-    initMap()
+    nextTick(initMap)
   }
 })
 
 // Get user position
 const getMyPosition = () => {
   if (navigator.geolocation) {
+    isSearching.value = true;
     navigator.geolocation.getCurrentPosition(
       position => {
         userLocation.value = {
@@ -745,21 +860,18 @@ const getMyPosition = () => {
         }
         mapCenter.value = userLocation.value
         
-        // Center map on user location
-        if (map.value) {
+        if (map.value && googleInstance) {
           map.value.setCenter(userLocation.value)
           map.value.setZoom(14)
           
-          // Clear previous user marker if exists
           if (userMarker.value) {
             userMarker.value.setMap(null)
           }
           
-          // Create a new marker for user location
           userMarker.value = new googleInstance.maps.Marker({
             position: userLocation.value,
             map: map.value,
-            icon: {
+            icon: { // Blue for user location
               path: googleInstance.maps.SymbolPath.CIRCLE,
               scale: 10,
               fillColor: "#4285F4",
@@ -771,735 +883,22 @@ const getMyPosition = () => {
             title: "Your Location"
           })
           
-          // Sort clinics by distance from user location
-          displayedClinics.value = clinics
-            .map(clinic => ({
-              ...clinic,
-              distance: getDistance(
-                userLocation.value.lat,
-                userLocation.value.lng,
-                clinic.lat,
-                clinic.lng
-              )
-            }))
-            .sort((a, b) => a.distance - b.distance)
-          
-          // Update markers and select nearest clinic
-          updateMarkers()
-          if (displayedClinics.value.length > 0) {
-            selectedClinic.value = displayedClinics.value[0]
-          }
+          findAndDisplayNearbyClinics(userLocation.value);
+        } else {
+          isSearching.value = false; // Map not ready
         }
       },
       error => {
+        isSearching.value = false;
         console.error('Error getting location:', error)
         alert('Unable to obtain your location. Please check your location permissions settings.')
       }
     )
   } else {
+    isSearching.value = false;
     alert('Your browser does not support geolocation.')
   }
 }
-
-const clinics = [
-  {
-    id: 1,
-    name: "Melbourne Psychology Centre",
-    lat: -37.8136,
-    lng: 144.9631,
-    address: "123 Collins Street, Melbourne VIC 3000",
-    website: "https://melbournepsychologyclinic.com/",
-    rating: 4.8,
-    reviews: 128,
-    openingHours: {
-      Monday: "9:00 AM - 5:00 PM",
-      Tuesday: "9:00 AM - 5:00 PM",
-      Wednesday: "9:00 AM - 5:00 PM",
-      Thursday: "9:00 AM - 5:00 PM",
-      Friday: "9:00 AM - 5:00 PM",
-      Saturday: "Closed",
-      Sunday: "Closed"
-    }
-  },
-  {
-    id: 2,
-    name: "The Mind Room",
-    lat: -37.8079,
-    lng: 144.9780,
-    address: "320 Smith St, Collingwood VIC 3066",
-    website: "https://themindroom.com.au/",
-    rating: 4.8,
-    reviews: 12,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 4pm"
-    }
-  },
-  {
-    id: 3,
-    name: "Axtara Health Psychology",
-    lat: -37.8150,
-    lng: 144.9700,
-    address: "200 Queen St, Melbourne VIC 3000",
-    website: "https://axtarahealth.com.au/",
-    rating: 4.9,
-    reviews: 8,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 5pm",
-      Tuesday: "8am - 5pm",
-      Wednesday: "8am - 5pm",
-      Thursday: "8am - 5pm",
-      Friday: "8am - 5pm",
-      Saturday: "Closed"
-    }
-  },
-  // ... 30 more real clinics below ...
-  {
-    id: 4,
-    name: "Inner Melbourne Clinical Psychology",
-    lat: -37.8105,
-    lng: 144.9626,
-    address: "Level 1/370 Little Bourke St, Melbourne VIC 3000",
-    website: "https://www.imcp.com.au/",
-    rating: 4.7,
-    reviews: 22,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 5,
-    name: "Melbourne Psychology & Counselling",
-    lat: -37.8132,
-    lng: 144.9652,
-    address: "Suite 2, Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://www.melbournepsychology.com.au/",
-    rating: 4.6,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 6,
-    name: "The Talk Shop Psychology Melbourne CBD",
-    lat: -37.8157,
-    lng: 144.9666,
-    address: "Level 8/350 Collins St, Melbourne VIC 3000",
-    website: "https://www.thetalkshop.com.au/",
-    rating: 4.8,
-    reviews: 30,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 8pm",
-      Tuesday: "8am - 8pm",
-      Wednesday: "8am - 8pm",
-      Thursday: "8am - 8pm",
-      Friday: "8am - 8pm",
-      Saturday: "9am - 5pm"
-    }
-  },
-  {
-    id: 7,
-    name: "Mindview Psychology",
-    lat: -37.8032,
-    lng: 144.9787,
-    address: "Suite 2/19-35 Gertrude St, Fitzroy VIC 3065",
-    website: "https://www.mindviewpsychology.com.au/",
-    rating: 4.9,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 8,
-    name: "Northside Clinic Psychology",
-    lat: -37.7826,
-    lng: 144.9832,
-    address: "370 St Georges Rd, Fitzroy North VIC 3068",
-    website: "https://www.northsideclinic.net.au/",
-    rating: 4.7,
-    reviews: 19,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 9,
-    name: "Collins Street Psychology",
-    lat: -37.8151,
-    lng: 144.9702,
-    address: "Level 10/446 Collins St, Melbourne VIC 3000",
-    website: "https://www.collinspsychology.com.au/",
-    rating: 4.8,
-    reviews: 21,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 10,
-    name: "Melbourne Mindfulness Centre",
-    lat: -37.8139,
-    lng: 144.9731,
-    address: "Level 1/161 Collins St, Melbourne VIC 3000",
-    website: "https://melbournemindfulness.com/",
-    rating: 4.7,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 5pm",
-      Tuesday: "9am - 5pm",
-      Wednesday: "9am - 5pm",
-      Thursday: "9am - 5pm",
-      Friday: "9am - 5pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 11,
-    name: "CBD Psychology Melbourne",
-    lat: -37.8142,
-    lng: 144.9633,
-    address: "Level 2/488 Bourke St, Melbourne VIC 3000",
-    website: "https://cbdpsychology.com.au/",
-    rating: 4.6,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 12,
-    name: "Fitzroy Psychology Clinic",
-    lat: -37.8005,
-    lng: 144.9789,
-    address: "Suite 1/166 Gertrude St, Fitzroy VIC 3065",
-    website: "https://www.fitzroypsychology.com/",
-    rating: 4.8,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 13,
-    name: "Melbourne Psychology Group",
-    lat: -37.8137,
-    lng: 144.9658,
-    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://melbournepsychologygroup.com.au/",
-    rating: 4.7,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 14,
-    name: "Positive Wellbeing Psychology",
-    lat: -37.8135,
-    lng: 144.9650,
-    address: "Level 2/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://positivewellbeingpsychology.com.au/",
-    rating: 4.9,
-    reviews: 20,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 15,
-    name: "Melbourne City Psychology",
-    lat: -37.8138,
-    lng: 144.9642,
-    address: "Level 1/517 Flinders Ln, Melbourne VIC 3000",
-    website: "https://melbournecitypsychology.com.au/",
-    rating: 4.8,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 16,
-    name: "The Melbourne Clinic Psychology",
-    lat: -37.8250,
-    lng: 144.9830,
-    address: "130 Church St, Richmond VIC 3121",
-    website: "https://themelbourneclinic.com.au/",
-    rating: 4.7,
-    reviews: 22,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 6pm",
-      Tuesday: "8am - 6pm",
-      Wednesday: "8am - 6pm",
-      Thursday: "8am - 6pm",
-      Friday: "8am - 6pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 17,
-    name: "North Melbourne Psychology",
-    lat: -37.8000,
-    lng: 144.9540,
-    address: "1/452 Victoria St, North Melbourne VIC 3051",
-    website: "https://northmelbournepsychology.com.au/",
-    rating: 4.6,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 5pm",
-      Tuesday: "9am - 5pm",
-      Wednesday: "9am - 5pm",
-      Thursday: "9am - 5pm",
-      Friday: "9am - 5pm",
-      Saturday: "Closed"
-    }
-  },
-  {
-    id: 18,
-    name: "South Yarra Psychology",
-    lat: -37.8380,
-    lng: 144.9930,
-    address: "Level 1/12 Yarra St, South Yarra VIC 3141",
-    website: "https://southyarrapsychology.com.au/",
-    rating: 4.8,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 19,
-    name: "Port Melbourne Psychology",
-    lat: -37.8390,
-    lng: 144.9430,
-    address: "1/120 Bay St, Port Melbourne VIC 3207",
-    website: "https://portmelbournepsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 20,
-    name: "Prahran Psychology Clinic",
-    lat: -37.8490,
-    lng: 144.9930,
-    address: "Level 1/201 High St, Prahran VIC 3181",
-    website: "https://prahranpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 21,
-    name: "Hawthorn Psychology",
-    lat: -37.8190,
-    lng: 145.0350,
-    address: "Level 1/673 Glenferrie Rd, Hawthorn VIC 3122",
-    website: "https://hawthornpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 22,
-    name: "Brunswick Psychology",
-    lat: -37.7700,
-    lng: 144.9630,
-    address: "1/601 Sydney Rd, Brunswick VIC 3056",
-    website: "https://brunswickpsychology.com.au/",
-    rating: 4.8,
-    reviews: 18,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 23,
-    name: "Carlton Psychology",
-    lat: -37.8000,
-    lng: 144.9660,
-    address: "Level 1/255 Drummond St, Carlton VIC 3053",
-    website: "https://carltonpsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 24,
-    name: "St Kilda Psychology Clinic",
-    lat: -37.8670,
-    lng: 144.9800,
-    address: "1/201 Fitzroy St, St Kilda VIC 3182",
-    website: "https://stkildapsychology.com.au/",
-    rating: 4.8,
-    reviews: 17,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 25,
-    name: "Richmond Psychology Clinic",
-    lat: -37.8230,
-    lng: 144.9980,
-    address: "Level 1/266 Bridge Rd, Richmond VIC 3121",
-    website: "https://richmondpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 26,
-    name: "Footscray Psychology Clinic",
-    lat: -37.7990,
-    lng: 144.9010,
-    address: "1/81 Paisley St, Footscray VIC 3011",
-    website: "https://footscraypsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 27,
-    name: "Docklands Psychology",
-    lat: -37.8160,
-    lng: 144.9460,
-    address: "Level 1/800 Bourke St, Docklands VIC 3008",
-    website: "https://docklandspsychology.com.au/",
-    rating: 4.7,
-    reviews: 13,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 28,
-    name: "Southbank Psychology",
-    lat: -37.8230,
-    lng: 144.9650,
-    address: "Level 1/120 City Rd, Southbank VIC 3006",
-    website: "https://southbankpsychology.com.au/",
-    rating: 4.8,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 29,
-    name: "Toorak Psychology",
-    lat: -37.8420,
-    lng: 145.0170,
-    address: "Level 1/521 Toorak Rd, Toorak VIC 3142",
-    website: "https://toorakpsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 30,
-    name: "Brighton Psychology Clinic",
-    lat: -37.9090,
-    lng: 144.9930,
-    address: "1/181 Bay St, Brighton VIC 3186",
-    website: "https://brightonpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 31,
-    name: "Camberwell Psychology",
-    lat: -37.8360,
-    lng: 145.0700,
-    address: "Level 1/684 Burke Rd, Camberwell VIC 3124",
-    website: "https://camberwellpsychology.com.au/",
-    rating: 4.7,
-    reviews: 15,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 32,
-    name: "Essendon Psychology",
-    lat: -37.7470,
-    lng: 144.9110,
-    address: "1/902 Mt Alexander Rd, Essendon VIC 3040",
-    website: "https://essendonpsychology.com.au/",
-    rating: 4.8,
-    reviews: 16,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "8am - 7pm",
-      Tuesday: "8am - 7pm",
-      Wednesday: "8am - 7pm",
-      Thursday: "8am - 7pm",
-      Friday: "8am - 7pm",
-      Saturday: "9am - 1pm"
-    }
-  },
-  {
-    id: 33,
-    name: "Glen Iris Psychology",
-    lat: -37.8570,
-    lng: 145.0660,
-    address: "Level 1/173 Burke Rd, Glen Iris VIC 3146",
-    website: "https://glenirispsychology.com.au/",
-    rating: 4.7,
-    reviews: 14,
-    openingHours: {
-      Sunday: "Closed",
-      Monday: "9am - 6pm",
-      Tuesday: "9am - 6pm",
-      Wednesday: "9am - 6pm",
-      Thursday: "9am - 6pm",
-      Friday: "9am - 6pm",
-      Saturday: "10am - 2pm"
-    }
-  },
-  {
-    id: 34,
-    name: "Calm 'n' Caring Psychology Melbourne",
-    lat: -37.8136,
-    lng: 144.9631,
-    address: "101 Collins St, Melbourne VIC 3000",
-    website: "https://calmandcaring.com/melbourne",
-    rating: 5.0,
-    reviews: 5,
-    openingHours: {
-      Sunday: "Open 24 hours",
-      Monday: "Open 24 hours",
-      Tuesday: "Open 24 hours",
-      Wednesday: "Open 24 hours",
-      Thursday: "Open 24 hours",
-      Friday: "Open 24 hours",
-      "Good Friday": "Hours might differ",
-      Saturday: "Hours might differ"
-    }
-  },
-  {
-      id: 35,
-      name: 'Brisbane Mind Health',
-      rating: 4.9,
-      reviews: 76,
-      address: '789 Queen Street, Brisbane QLD 4000',
-      website: 'https://example.com/brisbane-mind',
-      lat: -27.4698,
-      lng: 153.0251,
-      openingHours: {
-        'Monday': '9:00 AM - 5:30 PM',
-        'Tuesday': '9:00 AM - 5:30 PM',
-        'Wednesday': '9:00 AM - 5:30 PM',
-        'Thursday': '9:00 AM - 7:30 PM',
-        'Friday': '9:00 AM - 5:30 PM',
-        'Saturday': '10:00 AM - 1:00 PM',
-        'Sunday': 'Closed'
-      }
-    },
-    {
-      id: 36,
-      name: 'Sydney Wellness Clinic',
-      rating: 4.6,
-      reviews: 95,
-      address: '456 George Street, Sydney NSW 2000',
-      website: 'https://example.com/sydney-wellness',
-      lat: -33.8688,
-      lng: 151.2093,
-      openingHours: {
-        'Monday': '8:30 AM - 6:00 PM',
-        'Tuesday': '8:30 AM - 6:00 PM',
-        'Wednesday': '8:30 AM - 6:00 PM',
-        'Thursday': '8:30 AM - 8:00 PM',
-        'Friday': '8:30 AM - 6:00 PM',
-        'Saturday': '9:00 AM - 3:00 PM',
-        'Sunday': 'Closed'
-      }
-    }
-];
-
-// Initialize displayed clinics
-displayedClinics.value = [...clinics];
-
-selectedClinic.value = clinics[0];
-
-activeTab.value = 'offline';
-
-searchAddress.value = '';
-
-showGuide.value = false;
 
 const switchTab = (index) => {
   currentTab.value = index
@@ -2013,6 +1412,34 @@ const scrollIslandRef = ref(null);
 const toggleFilters = () => {
   filtersVisible.value = !filtersVisible.value
 }
+
+const onSearch = () => {
+  if (!searchAddress.value.trim()) {
+    alert('Please enter an address or location to search.');
+    return;
+  }
+  if (!googleInstance || !placesService) { // Check for placesService too
+    alert('Map services are not yet loaded. Please wait a moment and try again.');
+    isSearching.value = false;
+    return;
+  }
+
+  isSearching.value = true;
+  const geocoder = new googleInstance.maps.Geocoder();
+  geocoder.geocode(
+    { address: searchAddress.value, componentRestrictions: { country: 'AU' } },
+    (results, status) => {
+      if (status === googleInstance.maps.GeocoderStatus.OK && results && results[0]) {
+        // Update searchAddress input with the geocoded result for consistency
+        searchAddress.value = results[0].formatted_address;
+        handlePlaceSelection(results[0]); // This will trigger findAndDisplayNearbyClinics
+      } else {
+        isSearching.value = false;
+        alert('Address not found or geocoding failed. Please try a different address or use autocomplete. Status: ' + status);
+      }
+    }
+  );
+};
 
 </script>
 
@@ -4642,6 +4069,24 @@ section:not(:last-child)::after {
     padding: 0.5rem 0;
     margin-bottom: 0.75rem;
   }
+}
+
+.hours-grid .hours-line {
+  padding: 0.25rem 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.hours-grid .open-status {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+.hours-grid .open-status.open {
+  color: #4CAF50; /* Green */
+}
+.hours-grid .open-status.closed {
+  color: #F44336; /* Red */
 }
 </style>
 
