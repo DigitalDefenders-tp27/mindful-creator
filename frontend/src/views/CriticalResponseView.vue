@@ -68,6 +68,11 @@
         </div>
       </div>
 
+      <!-- Banner Section Title -->
+      <div class="banner-section-title-container">
+        <h2 class="banner-section-title">Criticism VS. Cyberbully</h2>
+      </div>
+
       <!-- Banner Sections -->
       <div class="banners-container">
         <button class="banner-nav prev-banner" @click="prevBanner">
@@ -1689,7 +1694,7 @@
     }
     
     .next-banner {
-      right: 10px;
+      right: 15px;
     }
   }
   
@@ -3622,21 +3627,35 @@
 
   /* Banner Section Styles */
   .banners-container {
-    max-width: 1100px;
-    width: 90%;
-    margin: 0 auto 5rem;
+    width: 100%;
+    margin: 0 0 5rem;
     position: relative;
+    height: 400px; /* Fixed height to prevent content shifting */
+    overflow: hidden;
   }
   
   .banner-section {
-    position: relative;
-    padding: 2rem;
-    border-radius: 16px;
+    position: absolute; /* Position absolutely within container */
+    padding: 3rem 0;
+    border-radius: 0;
     overflow: hidden;
     width: 100%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(230, 239, 182, 0.3);
+    box-shadow: none;
+    border: none;
     transition: all 0.3s ease;
+    top: 0;
+    left: 0;
+    height: 100%;
+  }
+  
+  .banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   
   .banner-title {
@@ -3656,14 +3675,94 @@
   }
   
   .constructive, .cyberbullying {
-    background-color: #fff;
-    background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.98));
-    padding: 1.5rem;
+    padding: 1.8rem;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(230, 239, 182, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: relative;
+    transition: transform 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
   }
-
+  
+  .constructive {
+    background: linear-gradient(135deg, #f1f9ea, #e5f4d5);
+    border-left: 5px solid #65c9a4;
+    color: #2c4a30;
+  }
+  
+  .constructive::before {
+    content: "👍";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.6rem;
+    opacity: 0.2;
+  }
+  
+  .cyberbullying {
+    background: linear-gradient(135deg, #fff1f0, #ffe4e1);
+    border-left: 5px solid #ff7d6e;
+    color: #742f29;
+  }
+  
+  .cyberbullying::before {
+    content: "👎";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.6rem;
+    opacity: 0.2;
+  }
+  
+  .constructive h3, .cyberbullying h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+  }
+  
+  .constructive h3 {
+    color: #1a7652;
+  }
+  
+  .constructive h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #65c9a4;
+    border-radius: 1.5px;
+  }
+  
+  .cyberbullying h3 {
+    color: #d44333;
+  }
+  
+  .cyberbullying h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ff7d6e;
+    border-radius: 1.5px;
+  }
+  
+  .constructive p, .cyberbullying p {
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+  
+  .constructive:hover, .cyberbullying:hover {
+    transform: translateY(-3px);
+  }
+  
   .banner-nav {
     background-color: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(230, 239, 182, 0.3);
@@ -3683,11 +3782,11 @@
   }
   
   .prev-banner {
-    left: -20px;
+    left: 20px;
   }
   
   .next-banner {
-    right: -20px;
+    right: 20px;
   }
   
   .banner-nav:hover {
@@ -3735,7 +3834,7 @@
 
   @media (max-width: 768px) {
     .comparison-content {
-      flex-direction: column;
+      grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
@@ -3801,41 +3900,32 @@
   }
 
   /* Transition animations for banners */
-  /* Ensure these are at the root of your <style scoped> or in a global style if preferred */
-
   .slide-fade-enter-active,
   .slide-fade-leave-active {
-    transition: transform 0.5s ease-in-out; /* MODIFIED: Using ease-in-out */
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     position: absolute;
     width: 100%;
-    top: 0; /* Ensure they align vertically */
+    height: 100%;
+    top: 0;
     left: 0;
+    backface-visibility: hidden;
+    will-change: transform;
   }
 
   .slide-fade-enter-from {
-    /* Opacity is 1 by default */
-    transform: translateX(100%); /* Start off-screen to the right */
+    transform: translateX(100%);
+    opacity: 1;
   }
 
   .slide-fade-leave-to {
-    /* Opacity is 1 by default, will be removed from DOM after */
-    transform: translateX(-100%); /* Exit off-screen to the left */
+    transform: translateX(-100%);
+    opacity: 1;
   }
 
-  /* Ensure the element that is not actively entering/leaving is at translateX(0) */
   .slide-fade-enter-to,
   .slide-fade-leave-from {
     transform: translateX(0);
-  }
-
-  @media (max-width: 992px) {
-    .banner-content {
-      padding: 0 3rem;
-    }
-    
-    .banner-title {
-      font-size: 2rem;
-    }
+    opacity: 1;
   }
 
   /* Positive popup styling */
@@ -3938,6 +4028,47 @@
     z-index: 2;
   }
 
+  /* Banner Section Title Styling */
+  .banner-section-title-container {
+    text-align: center;
+    margin: 3rem auto 2rem;
+    position: relative;
+  }
+
+  .banner-section-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #333;
+    display: inline-block;
+    position: relative;
+    margin: 0 auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .banner-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #7e78d2, #65c9a4);
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .banner-section-title {
+      font-size: 2.2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .banner-section-title {
+      font-size: 1.8rem;
+    }
+  }
+
   .section-title {
     font-size: 2.5rem;
     color: #000;
@@ -3968,6 +4099,53 @@
 
   section:not(:last-child)::after {
     display: none;
+  }
+
+  .next-banner {
+    right: 15px;
+  }
+  
+  .banner-nav:hover {
+    background-color: #65c9a4;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .arrow-icon {
+    font-size: 1rem;
+    display: inline-block;
+  }
+  
+  /* Banner pagination dots */
+  .banner-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .dot.active {
+    background-color: #65c9a4;
+    transform: scale(1.3);
+  }
+
+  @media (max-width: 992px) {
+    .banner-content {
+      padding: 0 3rem;
+    }
+    
+    .banner-title {
+      font-size: 2rem;
+    }
   }
   </style>
 
