@@ -281,21 +281,36 @@
           <div class="search-bar">
             <input type="text" v-model="searchQuery" placeholder="Search by name" class="search-input">
           </div>
-          <div class="event-filters">
+          
+          <div class="filter-header">
+            <h3>Filters</h3>
+            <button class="filter-toggle" @click="toggleFilters">
+              <span>{{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}</span>
+              <span class="toggle-icon">{{ filtersVisible ? '▲' : '▼' }}</span>
+            </button>
+          </div>
+          
+          <div class="event-filters" :class="{ 'filters-collapsed': !filtersVisible }">
             <div class="filter-group">
               <label>Location:</label>
               <select v-model="selectedLocation">
                 <option>All locations</option>
-                <option>Brisbane</option>
-                <option>Flinders Blowhole</option>
-                <option>Geelong</option>
-                <option>Little River</option>
-                <option>Melbourne</option>
-                <option>Narrabeen</option>
-                <option>Sydney</option>
-                <option>Torquay Beach</option>
-                <option>Warrnambool</option>
-                <option>West End</option>
+                <optgroup label="Queensland">
+                  <option>Brisbane</option>
+                  <option>West End</option>
+                </optgroup>
+                <optgroup label="New South Wales">
+                  <option>Narrabeen</option>
+                  <option>Sydney</option>
+                </optgroup>
+                <optgroup label="Victoria">
+                  <option>Flinders Blowhole</option>
+                  <option>Geelong</option>
+                  <option>Little River</option>
+                  <option>Melbourne</option>
+                  <option>Torquay Beach</option>
+                  <option>Warrnambool</option>
+                </optgroup>
               </select>
             </div>
             <div class="filter-group">
@@ -464,6 +479,7 @@ const selectedCategory = ref('All types')
 const selectedMonth = ref('Any time')
 const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
+const filtersVisible = ref(window.innerWidth > 768) // Collapsed by default on mobile
 
 // Add new ref
 const showOnlineConfirm = ref(false)
@@ -694,15 +710,29 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-onMounted(async () => {
-  renderChart();
+onMounted(() => {
+  renderChart()
+  
+  // Update filters visibility based on screen size
+  const handleResize = () => {
+    if (window.innerWidth > 768 && !filtersVisible.value) {
+      filtersVisible.value = true
+    }
+  }
+  
+  window.addEventListener('resize', handleResize)
+  
+  // Clean up event listener on component unmount
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+  })
   
   // If current is offline tab, initialize map
   if (activeTab.value === 'offline') {
-    await nextTick();
-    await initMap();
+    nextTick()
+    initMap()
   }
-});
+})
 
 // Get user position
 const getMyPosition = () => {
@@ -1978,12 +2008,98 @@ const scrollToSection = (sectionId) => {
 
 // Reference to the ScrollIsland component
 const scrollIslandRef = ref(null);
+
+// Add toggle filters function
+const toggleFilters = () => {
+  filtersVisible.value = !filtersVisible.value
+}
+
 </script>
 
 <style scoped>
 /* Modal z-index overrides to fix layering issues */
 :deep(.modal-overlay) {
   z-index: 9999 !important;
+}
+
+/* Filter styles */
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-header h3 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #333;
+}
+
+.filter-toggle {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+}
+
+.filter-toggle:hover {
+  color: #e75a97;
+  background: #f0f0f0;
+  border-color: #d0d0d0;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.event-filters {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+  max-height: 800px;
+  opacity: 1;
+  margin-bottom: 2.5rem;
+}
+
+.event-filters.filters-collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+@media (min-width: 769px) {
+  .filter-toggle {
+    display: none;
+  }
+  
+  .filter-header {
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+  }
+  
+  .event-filters.filters-collapsed {
+    max-height: 800px;
+    opacity: 1;
+    margin-bottom: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-header {
+    padding: 0.5rem 0;
+    margin-bottom: 0.75rem;
+  }
 }
 
 .preparation-guide-wrapper {
@@ -2052,11 +2168,68 @@ const scrollIslandRef = ref(null);
   border-radius: 20px;
   font-weight: 500;
   margin: 0 0.5rem;
-  background-color: white;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
   transition: all 0.3s ease;
+  white-space: normal; /* Allow text to wrap */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  text-align: center;
+}
+
+.tab span {
+  display: block;
+  line-height: 1.3;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+  .tabs {
+    gap: 0.75rem;
+  }
+  
+  .tab {
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    min-width: 120px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    gap: 0.5rem;
+  }
+  
+  .tab {
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
+    min-width: 110px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Make resource tabs responsive as well */
+@media (max-width: 768px) {
+  .resource-tabs {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .resource-tab {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+  }
 }
 
 .tab.active {
@@ -2084,13 +2257,6 @@ const scrollIslandRef = ref(null);
 
 .creator-wellbeing {
   padding: 2rem;
-}
-
-.tabs {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 2rem;
 }
 
 .tab {
@@ -2582,7 +2748,7 @@ section:not(:last-child)::after {
 }
 
 .tab {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   cursor: pointer;
   color: white;
   position: relative;
@@ -2590,11 +2756,25 @@ section:not(:last-child)::after {
   border-radius: 20px;
   font-weight: 500;
   margin: 0 0.5rem;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 145px;
+}
+
+.tab span {
+  display: block;
+  line-height: 1.3;
+  white-space: normal;
 }
 
 .tab.active {
-  color: white;
+  color: #e75a97;
   font-weight: 600;
+  background-color: transparent;
 }
 
 .tab.active::after {
@@ -2605,6 +2785,34 @@ section:not(:last-child)::after {
   right: 0;
   height: 2px;
   background-color: #e75a97;
+}
+
+@media (max-width: 768px) {
+  .dashboard-section .tabs {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .dashboard-section .tab {
+    min-width: 130px;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem 0.5rem;
+    min-height: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-section .tabs {
+    gap: 0.5rem;
+  }
+  
+  .dashboard-section .tab {
+    min-width: calc(50% - 1rem); /* Two tabs per row */
+    padding: 0.5rem;
+    margin: 0 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 50px;
+  }
 }
 
 .dashboard-content {
@@ -2687,6 +2895,7 @@ section:not(:last-child)::after {
   gap: 1.5rem;
   margin-bottom: 2.5rem;
   justify-content: center;
+  flex-wrap: wrap; /* Allow tabs to wrap if needed */
 }
 
 .resource-tab {
@@ -2702,6 +2911,9 @@ section:not(:last-child)::after {
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
   outline: none;
   letter-spacing: 0.01em;
+  min-width: 180px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .resource-tab.active {
@@ -3236,6 +3448,8 @@ section:not(:last-child)::after {
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -3248,6 +3462,77 @@ section:not(:last-child)::after {
   top: 0;
   background-color: #fff;
   z-index: 10;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-content {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Event filters responsive improvements */
+@media (max-width: 768px) {
+  .event-filters {
+    flex-direction: column;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+  
+  .filter-group, 
+  .filter-actions {
+    width: 100%;
+  }
+  
+  .clear-filters-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .activities-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+  }
+  
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-filters {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .activities-modal {
+    width: 98%;
+    max-height: 92vh;
+  }
+  
+  .modal-content {
+    padding: 1rem;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .close-modal-btn {
+    font-size: 1.75rem;
+  }
 }
 
 .modal-header h2 {
@@ -3267,10 +3552,6 @@ section:not(:last-child)::after {
 
 .close-modal-btn:hover {
   color: #e75a97;
-}
-
-.modal-content {
-  padding: 2rem;
 }
 
 /* Search bar styles */
@@ -4093,16 +4374,20 @@ section:not(:last-child)::after {
 
 @media (max-width: 480px) {
   .resource-tabs {
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row; /* Keep as row for small screens */
+    gap: 0.75rem;
+    width: 100%;
     align-items: stretch;
   }
 
   .resource-tab {
-    width: 100%;
-    text-align: center;
+    width: calc(50% - 0.375rem); /* Two tabs per row with gap */
+    min-width: unset;
     padding: 0.75rem 1rem;
     font-size: 1rem;
+    border-radius: 2rem;
+    white-space: normal; /* Allow wrapping in very small screens */
+    flex: 1;
   }
 
   .search-bar {
@@ -4222,6 +4507,18 @@ section:not(:last-child)::after {
   font-weight: 500;
   margin: 0 0.5rem;
   transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 145px;
+}
+
+.dashboard-section .tab span {
+  display: block;
+  line-height: 1.3;
+  white-space: normal;
 }
 
 .dashboard-section .tab.active {
@@ -4238,6 +4535,113 @@ section:not(:last-child)::after {
   right: 0;
   height: 2px;
   background-color: #e75a97;
+}
+
+@media (max-width: 768px) {
+  .dashboard-section .tabs {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .dashboard-section .tab {
+    min-width: 130px;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem 0.5rem;
+    min-height: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-section .tabs {
+    gap: 0.5rem;
+  }
+  
+  .dashboard-section .tab {
+    min-width: calc(50% - 1rem); /* Two tabs per row */
+    padding: 0.5rem;
+    margin: 0 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 50px;
+  }
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-header h3 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #333;
+}
+
+.filter-toggle {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+}
+
+.filter-toggle:hover {
+  color: #e75a97;
+  background: #f0f0f0;
+  border-color: #d0d0d0;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.event-filters {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+  max-height: 800px;
+  opacity: 1;
+  margin-bottom: 2.5rem;
+}
+
+.event-filters.filters-collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+@media (min-width: 769px) {
+  .filter-toggle {
+    display: none;
+  }
+  
+  .filter-header {
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+  }
+  
+  .event-filters.filters-collapsed {
+    max-height: 800px;
+    opacity: 1;
+    margin-bottom: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-header {
+    padding: 0.5rem 0;
+    margin-bottom: 0.75rem;
+  }
 }
 </style>
 
