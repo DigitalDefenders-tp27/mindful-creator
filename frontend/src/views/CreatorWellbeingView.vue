@@ -111,7 +111,7 @@
                   id="address-search"
                   v-model="searchAddress" 
                   @keyup.enter="onSearch"
-                  placeholder="Enter your location..." 
+                  
                   class="search-input"
                   :disabled="isSearching"
                 />
@@ -207,7 +207,7 @@
 
                   <div class="resource-website">
                     <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                    <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                    <a :href="selectedClinic.website" target="_blank">Click to visit</a>
                   </div>
                 </div> 
 
@@ -2978,10 +2978,10 @@ section:not(:last-child)::after {
   background-color: #fff;
   border-radius: 30px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 0 0 2px rgba(255,255,255,0.7);
-  height: 40px; /* Even more compact */
+  height: 40px;
   display: flex;
   align-items: center;
-  padding: 0 0px 0 0px; /* Reduced inner padding */
+  padding: 0 3px 0 10px; /* Reduced padding */
 }
 
 .search-input {
@@ -2996,12 +2996,19 @@ section:not(:last-child)::after {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0; /* Ensure text fits in container */
+}
+
+.search-input::placeholder {
+  opacity: 0.75;
+  color: #666;
+  text-overflow: ellipsis;
 }
 
 .search-btn {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
   background-color: #E91E63;
   color: white;
   border: none;
@@ -3012,7 +3019,27 @@ section:not(:last-child)::after {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin: 5px 5px 5px 0px; /* Equal spacing on all sides */
+  margin-left: auto;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .search-bar {
+    width: calc(100% - 20px);
+    top: 10px;
+    height: 36px;
+    padding: 0 2px 0 8px; /* Even smaller padding for mobile */
+  }
+  
+  .search-input {
+    font-size: 0.85rem;
+  }
+  
+  .search-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+  }
 }
 
 .search-btn:hover:not(:disabled) {
@@ -3982,5 +4009,82 @@ section:not(:last-child)::after {
 
 .search-input:focus::placeholder {
   opacity: 0.5;
+}
+
+/* Mobile-specific search bar */
+@media (max-width: 480px) {
+  .search-bar {
+    width: calc(100% - 20px);
+    top: 10px;
+    height: 36px;
+  }
+  
+  .search-input {
+    font-size: 0.85rem;
+    padding-left: 10px;
+  }
+  
+  .search-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    margin: 0 5px 0 0;
+  }
+  
+  /* Reduce padding in the map container for mobile */
+  .map-container {
+    border-radius: 10px;
+  }
+  
+  #google-map {
+    border-radius: 10px;
+  }
+  
+  /* Fix resource container padding for mobile */
+  .resource-finder-section .container {
+    padding: 0 0.5rem;
+  }
+  
+  .resource-content {
+    border-radius: 10px;
+  }
+  
+  /* Fix button positioning at bottom */
+  .position-btn {
+    bottom: 15px;
+  }
+  
+  /* Reduce padding in section titles */
+  .section-title {
+    margin-bottom: 0.3rem;
+  }
+  
+  .section-subtitle {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Reduce tab margins */
+  .resource-tabs {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Resource finder section general adjustments */
+.resource-finder-section .container {
+  padding: 0 1rem;
+  max-width: 1150px;
+}
+
+/* Resource finder section */
+.resource-finder-section {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+@media (max-width: 480px) {
+  .resource-finder-section {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
 }
 </style>
