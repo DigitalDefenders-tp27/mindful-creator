@@ -318,12 +318,8 @@
           <button class="close-modal-btn" @click="closeModal">×</button>
         </div>
         <div class="modal-content">
-          <div class="search-bar">
-            <input type="text" v-model="searchQuery" placeholder="Search by name" class="search-input">
-          </div>
-          
           <div class="filter-header">
-            <h3>Filters</h3>
+            <h3>Event Filters</h3>
             <button class="filter-toggle" @click="toggleFilters">
               <span>{{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}</span>
               <span class="toggle-icon">{{ filtersVisible ? '▲' : '▼' }}</span>
@@ -331,66 +327,72 @@
           </div>
           
           <div class="event-filters" :class="{ 'filters-collapsed': !filtersVisible }">
-            <div class="filter-group">
-              <label>Location:</label>
-              <select v-model="selectedLocation">
-                <option>All locations</option>
-                <optgroup label="Queensland">
-                  <option>Brisbane</option>
-                  <option>West End</option>
-                </optgroup>
-                <optgroup label="New South Wales">
-                  <option>Narrabeen</option>
-                  <option>Sydney</option>
-                </optgroup>
-                <optgroup label="Victoria">
-                  <option>Flinders Blowhole</option>
-                  <option>Geelong</option>
-                  <option>Little River</option>
-                  <option>Melbourne</option>
-                  <option>Torquay Beach</option>
-                  <option>Warrnambool</option>
-                </optgroup>
-              </select>
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Location:</label>
+                <select v-model="selectedLocation">
+                  <option>All locations</option>
+                  <optgroup label="Queensland">
+                    <option>Brisbane</option>
+                    <option>West End</option>
+                  </optgroup>
+                  <optgroup label="New South Wales">
+                    <option>Narrabeen</option>
+                    <option>Sydney</option>
+                  </optgroup>
+                  <optgroup label="Victoria">
+                    <option>Flinders Blowhole</option>
+                    <option>Geelong</option>
+                    <option>Little River</option>
+                    <option>Melbourne</option>
+                    <option>Torquay Beach</option>
+                    <option>Warrnambool</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Category:</label>
+                <select v-model="selectedCategory">
+                  <option>All types</option>
+                  <option>Festival</option>
+                  <option>Mental Health</option>
+                  <option>Outdoor Wellness</option>
+                  <option>physical wellness practice</option>
+                  <option>Workplace Wellbeing</option>
+                </select>
+              </div>
             </div>
-            <div class="filter-group">
-              <label>Category:</label>
-              <select v-model="selectedCategory">
-                <option>All types</option>
-                <option>Festival</option>
-                <option>Mental Health</option>
-                <option>Outdoor Wellness</option>
-                <option>physical wellness practice</option>
-                <option>Workplace Wellbeing</option>
-              </select>
+            
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Month:</label>
+                <select v-model="selectedMonth">
+                  <option>Any time</option>
+                  <option>April</option>
+                  <option>May</option>
+                  <option>June</option>
+                  <option>October</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Price:</label>
+                <select v-model="selectedPrice">
+                  <option>Any price</option>
+                  <option>Free</option>
+                  <option>Paid</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Sort by:</label>
+                <select v-model="sortOption">
+                  <option value="dateAsc">Date (Earliest first)</option>
+                  <option value="dateDesc">Date (Latest first)</option>
+                  <option value="name">Name (A-Z)</option>
+                  <option value="location">Location (A-Z)</option>
+                </select>
+              </div>
             </div>
-            <div class="filter-group">
-              <label>Month:</label>
-              <select v-model="selectedMonth">
-                <option>Any time</option>
-                <option>April</option>
-                <option>May</option>
-                <option>June</option>
-                <option>October</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label>Price:</label>
-              <select v-model="selectedPrice">
-                <option>Any price</option>
-                <option>Free</option>
-                <option>Paid</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label>Sort by:</label>
-              <select v-model="sortOption">
-                <option value="dateAsc">Date (Earliest first)</option>
-                <option value="dateDesc">Date (Latest first)</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="location">Location (A-Z)</option>
-              </select>
-            </div>
+            
             <div class="filter-actions">
               <button @click="resetFilters" class="clear-filters-btn">Clear All Filters</button>
             </div>
@@ -519,7 +521,7 @@ const selectedCategory = ref('All types')
 const selectedMonth = ref('Any time')
 const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
-const filtersVisible = ref(window.innerWidth > 768) // Collapsed by default on mobile
+const filtersVisible = ref(false) // Hidden by default regardless of screen size
 
 // Add new ref for online confirmation
 const showOnlineConfirm = ref(false)
@@ -4295,5 +4297,77 @@ section:not(:last-child)::after {
   margin-bottom: 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Add CSS for the filters collapsed state */
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-toggle {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.event-filters {
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+  max-height: 300px;
+  opacity: 1;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.event-filters.filters-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .event-filters {
+    max-height: 500px;
+  }
 }
 </style>
