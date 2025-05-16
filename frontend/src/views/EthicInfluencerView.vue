@@ -148,7 +148,10 @@
     <div v-if="isCardExpanded" class="expanded-card-container" @click.self="closeCard">
       <div class="expanded-card">
         <div class="card-content">
-          <h3>{{ getExpandedCardTitle }}</h3>
+          <div class="card-header">
+            <h3>{{ getExpandedCardTitle }}</h3>
+            <button class="close-button" @click="closeCard" aria-label="Close">×</button>
+          </div>
           <div class="full-content">
             <div
               v-html="marked(getExpandedCardContent)"
@@ -203,6 +206,14 @@ const expandCard = (cardId) => {
   selectedCard.value = cardId
   isCardExpanded.value = true
   document.body.style.overflow = 'hidden'
+  
+  // Add a small delay to allow the entrance animation to play
+  setTimeout(() => {
+    const fullContent = document.querySelector('.expanded-card .full-content')
+    if (fullContent) {
+      fullContent.scrollTop = 0
+    }
+  }, 100)
 }
 
 const closeCard = () => {
@@ -1351,6 +1362,13 @@ onMounted(() => {
   z-index: 99999;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  padding: 0 1rem; /* Add padding to prevent edge-to-edge on mobile */
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .expanded-card {
@@ -1362,28 +1380,175 @@ onMounted(() => {
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   border-radius: 20px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+  transform-origin: center bottom;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .expanded-card .card-content {
   height: 100%;
   padding: 2rem;
   background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.close-button {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+  border: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
 }
 
 .expanded-card h3 {
   font-size: 1.8rem;
-  margin-bottom: 2rem;
   color: #232323;
+  position: relative;
+  margin: 0;
+  padding-right: 1rem;
+  flex: 1;
 }
 
 .expanded-card .full-content {
   height: calc(100% - 4rem);
   overflow-y: auto;
   padding-right: 1rem;
+  -webkit-overflow-scrolling: touch; /* Improve scrolling on iOS */
+  overscroll-behavior: contain; /* Prevent overscroll effects on Android */
+  position: relative;
+  z-index: 1; /* Ensure content is above any background elements */
+  flex: 1;
 }
 
 .expanded-card .markdown-content {
   padding: 0 1rem;
+}
+
+/* Add mobile-specific styling for the expanded card modal */
+@media (max-width: 768px) {
+  .expanded-card {
+    width: 95vw;
+    height: 85vh;
+    max-height: 85vh;
+  }
+  
+  .expanded-card .card-content {
+    padding: 1.5rem;
+  }
+  
+  .card-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .close-button {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1.8rem;
+  }
+  
+  .expanded-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .expanded-card .full-content {
+    height: calc(100% - 3.5rem);
+    padding-right: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expanded-card-container {
+    padding: 0 0.5rem;
+    align-items: flex-start;
+    padding-top: 3rem; /* Ensure it's below the navigation bar */
+  }
+  
+  .expanded-card {
+    width: 100%;
+    height: 82vh;
+    border-radius: 15px;
+    animation: slideUp 0.25s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0.8;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .card-header {
+    margin-bottom: 1rem;
+  }
+
+  .close-button {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.5rem;
+  }
+  
+  .expanded-card h3 {
+    font-size: 1.3rem;
+    padding-right: 0.5rem;
+  }
+  
+  .expanded-card .full-content {
+    height: calc(100% - 2.5rem);
+    padding-right: 0.25rem;
+  }
+  
+  .expanded-card .full-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .expanded-card .full-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  .expanded-card .full-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
 }
 
 /* Markdown content styles / Markdown content styles */

@@ -53,10 +53,12 @@
                 </button>
                 <div 
                   v-if="showAnswer && (key === currentQuestion.correctAnswer || selectedAnswer === key)" 
-                  class="option-explanation"
+                  :class="['option-explanation', 
+                    key === currentQuestion.correctAnswer ? 'correct' : 'incorrect'
+                  ]"
                 >
                   <div class="explanation-content">
-                    {{ getExplanationForOption(currentQuestionIndex, key) }}
+                    <strong>Explanation: </strong>{{ getExplanationForOption(currentQuestionIndex, key) }}
                   </div>
                 </div>
               </div>
@@ -94,44 +96,7 @@
           <div class="review-section">
             <h4>Review Your Answers</h4>
             
-            <div class="review-categories">
-              <div 
-                v-for="(category, index) in reviewCategories" 
-                :key="index"
-                class="review-category"
-              >
-                <h5>{{ category.name }}</h5>
-                <div 
-                  v-for="questionIndex in category.questions" 
-                  :key="questionIndex"
-                  :class="['review-question', getQuestionReviewClass(questionIndex)]"
-                >
-                  <div class="review-question-header">
-                    <span class="review-question-number">Question {{ questionIndex + 1 }}</span>
-                    <span 
-                      :class="['review-status', userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? 'correct' : 'incorrect']"
-                    >
-                      {{ userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? '✓' : '✗' }}
-                    </span>
-                  </div>
-                  
-                  <div class="review-question-content">
-                    <p class="review-question-text">{{ questions[questionIndex].question }}</p>
-                    <div class="review-answer">
-                      <span class="user-answer">Your answer: <strong>{{ getUserAnswerText(questionIndex) }}</strong></span>
-                      <span 
-                        v-if="userAnswers[questionIndex] !== questions[questionIndex].correctAnswer"
-                        class="correct-answer"
-                      >
-                        Correct answer: <strong>{{ getCorrectAnswerText(questionIndex) }}</strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Recommendations Section -->
+            <!-- Recommendations Section - Moved to top -->
             <div v-if="recommendedCategories.length > 0" class="recommendations">
               <h4>Recommended Review</h4>
               <p>Based on your answers, we recommend reviewing these topics:</p>
@@ -144,6 +109,80 @@
                   {{ category }}
                 </li>
               </ul>
+            </div>
+            
+            <div class="review-categories">
+              <div 
+                v-for="(category, index) in reviewCategories" 
+                :key="index"
+                class="review-category"
+              >
+                <h5>{{ category.name }}</h5>
+                <div 
+                  v-for="questionIndex in category.questions" 
+                  :key="questionIndex"
+                  :class="['review-question', getQuestionReviewClass(questionIndex)]"
+                  @click="toggleQuestionExpanded(questionIndex)"
+                >
+                  <div class="review-question-header">
+                    <span class="review-question-number">Question {{ questionIndex + 1 }}</span>
+                    <div class="review-header-right">
+                      <span 
+                        :class="['review-status', userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? 'correct' : 'incorrect']"
+                      >
+                        {{ userAnswers[questionIndex] === questions[questionIndex].correctAnswer ? '✓' : '✗' }}
+                      </span>
+                      <span class="expand-icon">{{ isQuestionExpanded(questionIndex) ? '▼' : '▶' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="review-question-content">
+                    <p class="review-question-text">{{ questions[questionIndex].question }}</p>
+                    
+                    <!-- Basic answer info always visible -->
+                    <div class="review-answer" v-if="!isQuestionExpanded(questionIndex)">
+                      <span class="user-answer">Your answer: <strong>{{ getUserAnswerText(questionIndex) }}</strong></span>
+                    </div>
+                    
+                    <!-- Expanded content with all options and explanations -->
+                    <div v-if="isQuestionExpanded(questionIndex)" class="question-expanded-content">
+                      <div 
+                        v-for="(option, key) in questions[questionIndex].options" 
+                        :key="key"
+                        :class="['review-option', {
+                          'selected-option': userAnswers[questionIndex] === key,
+                          'correct-option': key === questions[questionIndex].correctAnswer,
+                          'incorrect-option': userAnswers[questionIndex] === key && key !== questions[questionIndex].correctAnswer
+                        }]"
+                      >
+                        <div class="option-text">
+                          <span class="option-key">{{ key }}.</span> {{ option }}
+                          <span 
+                            v-if="key === questions[questionIndex].correctAnswer" 
+                            class="option-check correct"
+                          >✓</span>
+                          <span 
+                            v-else-if="userAnswers[questionIndex] === key" 
+                            class="option-check incorrect"
+                          >✗</span>
+                        </div>
+                        
+                        <!-- Show explanation for all options -->
+                        <div 
+                          :class="['option-explanation', 
+                            key === questions[questionIndex].correctAnswer ? 'correct' : 
+                            userAnswers[questionIndex] === key ? 'incorrect' : 'neutral'
+                          ]"
+                        >
+                          <div class="explanation-content">
+                            <strong>Explanation: </strong>{{ getExplanationForOption(questionIndex, key) }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -164,6 +203,7 @@ const showAnswer = ref(false)
 const score = ref(0)
 const quizCompleted = ref(false)
 const userAnswers = ref([])
+const expandedQuestions = ref([])
 
 // 从 Markdown 文件加载问题 / Load questions from Markdown file
 const questions = ref([
@@ -389,6 +429,19 @@ const getCorrectAnswerText = (questionIndex) => {
   const correctKey = questions.value[questionIndex].correctAnswer
   return `${correctKey}. ${questions.value[questionIndex].options[correctKey]}`
 }
+
+const isQuestionExpanded = (questionIndex) => {
+  return expandedQuestions.value.includes(questionIndex)
+}
+
+const toggleQuestionExpanded = (questionIndex) => {
+  const index = expandedQuestions.value.indexOf(questionIndex)
+  if (index === -1) {
+    expandedQuestions.value.push(questionIndex)
+  } else {
+    expandedQuestions.value.splice(index, 1)
+  }
+}
 </script>
 
 <style scoped>
@@ -605,65 +658,113 @@ const getCorrectAnswerText = (questionIndex) => {
   color: #555;
 }
 
-/* Modal styles */
+/* Modal styles - updated for modern flat look */
 .quiz-modal {
-  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2;
+  @apply fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+  padding-top: 70px; /* Add top padding to move the modal down */
 }
 
 .quiz-modal-content {
-  @apply bg-white dark:bg-neutral-800 rounded-xl shadow-2xl max-w-[1200px] w-full max-h-[90vh] overflow-y-auto;
-  height: 840px; /* 进一步增大问答窗口高度 */
+  @apply bg-white dark:bg-neutral-900 rounded-xl shadow-lg max-w-[1000px] w-full max-h-[90vh] overflow-y-auto;
+  height: 840px;
+  border: none;
 }
 
 .quiz-header {
-  @apply flex items-center justify-between py-6 px-8 border-b border-neutral-200 dark:border-neutral-700;
-  height: 100px; /* 增大头部高度 */
+  @apply flex items-center justify-between py-5 px-6;
+  height: 80px;
   flex-shrink: 0;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  background-color: #fff;
+  position: relative;
+}
+
+.quiz-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background-color: #f5f5f5;
 }
 
 .quiz-header h2 {
-  @apply text-3xl font-bold text-neutral-900 dark:text-white;
+  @apply text-2xl font-bold text-neutral-800 dark:text-white;
 }
 
 .close-button {
-  @apply text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 text-3xl;
+  @apply text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 text-2xl;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 .quiz-body {
-  @apply p-8;
-  height: calc(100% - 100px - 60px); /* 总高度减去头部高度和进度条高度 */
-  overflow: hidden; /* 防止滚动条出现 */
+  @apply p-6;
+  height: calc(100% - 80px - 50px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
+.quiz-progress {
+  @apply px-6 py-3;
+  height: 50px;
+  border: none;
+  background-color: #fafafa;
+}
+
+.progress-text {
+  @apply text-sm text-neutral-500 dark:text-neutral-400 mb-2;
+}
+
+.progress-bar {
+  @apply h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full bg-blue-500 transition-all duration-300 ease-in-out;
+}
+
+/* Question container styles */
 .question-container {
   @apply space-y-4;
   height: 100%;
   width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: visible; /* 允许内容溢出 */
-  position: relative; /* 添加相对定位，便于绝对定位按钮 */
-  padding-bottom: 80px; /* 为按钮预留空间 */
+  overflow: visible;
+  position: relative;
+  padding-bottom: 70px;
 }
 
 .question-content {
   flex: 1;
-  overflow: visible; /* 改为visible以避免滚动 */
+  overflow: visible;
   padding-right: 8px;
-  margin-bottom: 0; /* 移除内容与按钮之间的距离 */
+  margin-bottom: 0;
 }
 
 .question-container h3 {
-  @apply text-xl font-semibold text-neutral-900 dark:text-white;
+  @apply text-xl font-semibold text-neutral-800 dark:text-white;
   margin-bottom: 1.5rem;
 }
 
+/* Options styling */
 .options {
-  @apply space-y-4; /* 减少选项之间的间距 */
-  min-height: auto; /* 移除固定高度约束 */
-  padding-bottom: 0; /* 移除底部留白 */
+  @apply space-y-3;
+  min-height: auto;
+  padding-bottom: 0;
 }
 
 .option-wrapper {
@@ -671,66 +772,109 @@ const getCorrectAnswerText = (questionIndex) => {
 }
 
 .option-button {
-  @apply w-full p-4 text-left rounded-lg border border-neutral-200 dark:border-neutral-700 text-base;
-  @apply bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white;
-  @apply hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors;
+  @apply w-full p-4 text-left rounded-lg text-base;
+  border: none;
+  background-color: #f9f9f9;
+  color: #333;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.option-button:hover:not(:disabled) {
+  @apply bg-neutral-100;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Add specific hover styles for selected, correct, and incorrect options */
+.option-button.selected:hover {
+  background-color: #c13072; /* Keep the same dark pink background on hover */
+  color: white;
+  box-shadow: 0 1px 3px rgba(193, 48, 114, 0.4); /* Slightly stronger shadow on hover */
+}
+
+.option-button.correct:hover {
+  background-color: rgba(16, 185, 129, 0.08); /* Keep the same correct background */
+  color: black; /* Ensure text is black for correct answers */
+}
+
+.option-button.incorrect:hover {
+  background-color: rgba(255, 216, 216, 1); /* Keep the light red background */
+  color: black;
 }
 
 .option-button.selected {
-  @apply border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+  background-color: #c13072; /* Darker, more saturated pink for better contrast */
+  color: white;
+  box-shadow: 0 1px 3px rgba(193, 48, 114, 0.3);
 }
 
 .option-button.correct {
-  @apply border-green-500 bg-green-50 dark:bg-green-900/20;
+  background-color: rgba(16, 185, 129, 0.08);
+  color: black; /* Ensure text is black for correct answers */
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.1);
 }
 
 .option-button.incorrect {
-  @apply border-red-500 bg-red-50 dark:bg-red-900/20;
+  background-color: rgba(255, 216, 216, 1); /* Light red background */
+  color: black; /* Black text */
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
 }
 
-.option-explanation {
-  @apply mt-2 px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-900/50;
-  @apply border-l-4 border-neutral-400 dark:border-neutral-600;
-  @apply text-sm text-neutral-700 dark:text-neutral-300;
-  margin-bottom: 6px; /* 减少解释框底部留白 */
-}
-
-.explanation-content {
-  @apply text-sm text-neutral-700 dark:text-neutral-300;
-  line-height: 1.4;
-}
-
+/* Quiz controls */
 .quiz-controls {
   @apply flex justify-end;
-  height: 60px; /* 减小按钮区域高度 */
-  margin-top: 0; /* 移除按钮区域的上方留白 */
-  padding-bottom: 0; /* 移除底部留白 */
-  flex-shrink: 0; /* 防止按钮区域被压缩 */
-  position: absolute; /* 使用绝对定位 */
-  bottom: 0; /* 固定在底部 */
-  right: 0; /* 右对齐 */
-  width: 100%; /* 宽度占满 */
+  height: 60px;
+  margin-top: 0;
+  padding-bottom: 0;
+  flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
 }
 
 .submit-button, .next-button, .restart-button {
-  @apply px-8 py-3 rounded-lg font-medium transition-colors text-lg;
+  @apply px-8 py-2.5 rounded-lg font-medium transition-colors;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 50px; /* 减小按钮高度 */
+  font-size: 1rem;
+  height: 45px;
   line-height: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: none;
 }
 
 .submit-button {
-  @apply bg-blue-500 text-white hover:bg-blue-600;
+  background-color: #3b82f6;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.submit-button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
 }
 
 .next-button {
-  @apply bg-green-500 text-white hover:bg-green-600;
+  background-color: #10b981;
+  color: white;
+}
+
+.next-button:hover {
+  background-color: #059669;
 }
 
 .restart-button {
-  @apply bg-blue-500 text-white hover:bg-blue-600;
+  background-color: #3b82f6;
+  color: white;
+}
+
+.restart-button:hover {
+  background-color: #2563eb;
 }
 
 .quiz-results {
@@ -748,119 +892,179 @@ const getCorrectAnswerText = (questionIndex) => {
   @apply text-lg text-neutral-600 dark:text-neutral-400 mb-3;
 }
 
-.quiz-progress {
-  @apply px-8 py-4 border-b border-neutral-200 dark:border-neutral-700;
-  height: 60px; /* 增大进度条高度 */
-}
-
-.progress-text {
-  @apply text-base text-neutral-600 dark:text-neutral-400 mb-2;
-}
-
-.progress-bar {
-  @apply h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden;
-}
-
-.progress-fill {
-  @apply h-full bg-blue-500 transition-all duration-300 ease-in-out;
-}
-
 .quiz-button {
   display: none;
 }
 
-/* Review Section Styles */
+/* Modern flat review section styles */
 .review-section {
   @apply mt-4 text-left;
 }
 
+.review-section h4:first-child {
+  @apply mb-6;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
 .review-section h4 {
-  @apply text-lg font-semibold text-neutral-900 dark:text-white mb-4;
+  @apply mb-4;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
 }
 
 .review-categories {
-  @apply space-y-5;
+  @apply space-y-4;
   display: block;
 }
 
 .review-category {
-  @apply p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg mb-5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  @apply p-4 rounded-lg mb-4;
+  background-color: #fcfcfc;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .review-category h5 {
-  @apply text-base font-semibold text-neutral-900 dark:text-white mb-3;
-  color: #1E6A42;
+  @apply text-base mb-3;
+  font-weight: 600;
+  color: #5E6AD2;
 }
 
 .review-question {
-  @apply mb-4 p-3 rounded-md;
-  @apply bg-neutral-50 dark:bg-neutral-800;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  @apply mb-3 p-3 rounded-lg;
+  background-color: white;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.review-question:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  background-color: #fcfcfc;
 }
 
 .review-question.correct-question {
-  @apply bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500;
+  border: none;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.04);
+  position: relative;
+}
+
+.review-question.correct-question::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #10b981;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
 .review-question.incorrect-question {
-  @apply bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500;
+  border: none;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.04);
+  position: relative;
 }
 
-.review-question-header {
-  @apply flex justify-between items-center mb-2;
+.review-question.incorrect-question::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #ef4444;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
-.review-question-number {
-  @apply font-semibold text-neutral-700 dark:text-neutral-300;
+/* Option styling for review */
+.review-option {
+  @apply rounded-md p-3;
+  background-color: #fafafa;
+  border: none;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
 
-.review-status {
-  @apply font-bold text-xl;
+.review-option.selected-option {
+  background-color: rgba(193, 48, 114, 0.15);
+  box-shadow: 0 1px 2px rgba(193, 48, 114, 0.2);
 }
 
-.review-status.correct {
-  @apply text-green-600 dark:text-green-400;
+.review-option.correct-option {
+  background-color: rgba(16, 185, 129, 0.05);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.1);
 }
 
-.review-status.incorrect {
-  @apply text-red-600 dark:text-red-400;
+.review-option.incorrect-option {
+  background-color: rgba(255, 216, 216, 0.8);
+  color: black;
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.15);
 }
 
-.review-question-content {
-  @apply ml-0;
+/* Explanation box - modern and flat */
+.option-explanation {
+  @apply mt-2 px-3 py-2 rounded;
+  @apply text-sm;
+  background-color: rgba(224, 242, 254, 0.6);
+  border: none;
+  margin-top: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  position: relative;
 }
 
-.review-question-text {
-  @apply font-medium text-base text-neutral-800 dark:text-neutral-200 mb-2;
+.option-explanation.correct::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #10b981;
+  border-radius: 2px 0 0 2px;
 }
 
-.review-answer {
-  @apply space-y-1;
+.option-explanation.incorrect::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #ef4444;
+  border-radius: 2px 0 0 2px;
 }
 
-.user-answer, .correct-answer {
-  @apply block text-sm;
+.option-explanation.neutral::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #cbd5e0;
+  border-radius: 2px 0 0 2px;
 }
 
-.user-answer {
-  @apply text-neutral-700 dark:text-neutral-300;
-}
-
-.correct-answer {
-  @apply text-green-600 dark:text-green-400;
-}
-
-/* Recommendations styles */
+/* Recommendations box in modern flat style */
 .recommendations {
-  @apply mt-4 p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg;
-  @apply bg-blue-50 dark:bg-blue-900/20;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  @apply mb-6 p-4 rounded-lg;
+  background-color: rgba(224, 242, 254, 0.5);
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .recommendations h4 {
   @apply text-base font-semibold text-neutral-900 dark:text-white mb-2;
-  color: #1E6A42;
+  color: #2563eb; /* Blue color */
 }
 
 .recommendations p {
@@ -895,68 +1099,226 @@ const getCorrectAnswerText = (questionIndex) => {
 /* 响应式调整 / Responsive Adjustments for review section */
 @media (max-width: 768px) {
   .quiz-modal-content {
-    height: 520px;
+    height: auto;
+    max-height: 85vh;
+    margin: 0 0.5rem;
+    width: calc(100% - 1rem);
   }
-  
+
   .quiz-header {
-    height: 70px;
+    height: 60px;
+    padding: 0.75rem 1rem;
   }
-  
+
+  .quiz-header h2 {
+    font-size: 1.25rem;
+  }
+
   .quiz-body {
-    height: calc(100% - 70px - 40px);
+    padding: 1rem;
+    height: auto;
   }
-  
+
   .quiz-progress {
+    padding: 0.5rem 1rem;
     height: 40px;
   }
-  
-  .options {
-    min-height: 220px;
+
+  .progress-text {
+    font-size: 0.75rem;
   }
-  
+
+  .progress-bar {
+    height: 4px;
+  }
+
+  .question-container {
+    padding-bottom: 60px;
+  }
+
+  .question-container h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .option-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .option-explanation {
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.35rem;
+  }
+
+  .explanation-content {
+    font-size: 0.8rem;
+    padding-left: 20px;
+  }
+
+  .explanation-content::before {
+    font-size: 14px;
+  }
+
+  .submit-button, .next-button, .restart-button {
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    height: 38px;
+  }
+
+  /* Review section responsive */
+  .review-section h4 {
+    font-size: 1rem;
+  }
+
+  .review-category {
+    padding: 0.75rem;
+  }
+
+  .review-category h5 {
+    font-size: 0.9rem;
+  }
+
+  .review-question {
+    padding: 0.75rem;
+  }
+
+  .review-question-text {
+    font-size: 0.85rem;
+  }
+
   .review-question-header {
-    @apply flex-col items-start space-y-1;
+    margin-bottom: 0.5rem;
   }
-  
-  .review-status {
-    @apply self-end;
-  }
-  
-  .user-answer, .correct-answer {
+
+  .review-question-number {
     font-size: 0.8rem;
   }
-  
-  .review-question-text {
-    font-size: 0.9rem;
+
+  .review-status {
+    font-size: 1rem;
+  }
+
+  .expand-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 0.6rem;
+  }
+
+  .option-text {
+    font-size: 0.85rem;
+  }
+
+  .recommendations {
+    padding: 0.75rem;
+  }
+
+  .recommended-topic {
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 640px) {
+/* Small mobile screens */
+@media (max-width: 480px) {
   .quiz-modal-content {
-    height: 480px;
+    max-height: 90vh;
+    margin: 0;
+    width: 100%;
+    border-radius: 0;
   }
-  
+
   .quiz-header {
-    height: 65px;
-    padding: 1rem;
+    padding: 0.5rem 0.75rem;
+    height: 50px;
   }
-  
+
+  .quiz-header h2 {
+    font-size: 1rem;
+  }
+
   .quiz-body {
-    height: calc(100% - 65px - 36px);
-    padding: 1rem;
-  }
-  
-  .quiz-progress {
-    height: 36px;
-    padding: 0.75rem 1rem;
-  }
-  
-  .options {
-    min-height: 200px;
-  }
-  
-  .option-button {
     padding: 0.75rem;
+  }
+
+  .quiz-progress {
+    padding: 0.4rem 0.75rem;
+    height: 35px;
+  }
+
+  .question-container h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .option-button {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 0.375rem;
+  }
+
+  .options {
+    @apply space-y-2;
+  }
+
+  .option-explanation {
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.25rem;
+  }
+
+  .explanation-content {
+    font-size: 0.75rem;
+    padding-left: 18px;
+  }
+
+  .explanation-content::before {
+    font-size: 12px;
+  }
+
+  .submit-button, .next-button, .restart-button {
+    padding: 0 0.75rem;
+    font-size: 0.8rem;
+    height: 34px;
+    border-radius: 0.375rem;
+  }
+
+  /* Review section phone size */
+  .review-section h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .review-category {
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .review-question {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .question-expanded-content {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .review-option {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Fix for desktop when there's enough vertical space */
+@media (min-width: 769px) and (min-height: 700px) {
+  .quiz-modal-content {
+    height: 700px;
+  }
+}
+
+/* Fix for small height desktop screens */
+@media (min-width: 769px) and (max-height: 700px) {
+  .quiz-modal-content {
+    height: 90vh;
   }
 }
 
@@ -981,5 +1343,214 @@ const getCorrectAnswerText = (questionIndex) => {
 .question-content::-webkit-scrollbar-thumb:hover,
 .quiz-results::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+.review-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-icon {
+  font-size: 0.75rem;
+  color: #888;
+  transition: transform 0.2s ease;
+}
+
+.review-option {
+  @apply mb-3 p-2 rounded-md;
+  @apply bg-white dark:bg-neutral-700;
+  border: 1px solid #eee;
+}
+
+.review-option.selected-option {
+  @apply border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+}
+
+.review-option.correct-option {
+  @apply border-green-500 bg-green-50 dark:bg-green-900/20;
+}
+
+.review-option.incorrect-option {
+  @apply border-red-500 bg-red-50 dark:bg-red-900/20;
+}
+
+.option-text {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-right: 25px;
+}
+
+.option-key {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.option-check {
+  position: absolute;
+  right: 0.5rem;
+  font-weight: bold;
+}
+
+.option-check.correct {
+  color: #10b981;
+}
+
+.option-check.incorrect {
+  color: #ef4444;
+}
+
+.question-expanded-content {
+  @apply mt-3 space-y-2;
+}
+
+.review-question-header {
+  @apply flex justify-between items-center mb-2;
+}
+
+.review-question-number {
+  @apply font-medium text-neutral-700 dark:text-neutral-300;
+  font-size: 0.95rem;
+}
+
+.review-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-status {
+  @apply font-bold text-lg;
+  line-height: 1;
+}
+
+.review-status.correct {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.review-status.incorrect {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.expand-icon {
+  font-size: 0.7rem;
+  color: #aaa;
+  transition: transform 0.2s ease;
+  background: #f5f5f5;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Question content styles */
+.review-question-content {
+  @apply ml-0;
+}
+
+.review-question-text {
+  @apply text-sm text-neutral-800 dark:text-neutral-200 mb-2;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Option styles in expanded mode */
+.question-expanded-content {
+  @apply mt-4 space-y-3;
+  border-top: 1px solid #f5f5f5;
+  padding-top: 0.75rem;
+}
+
+.option-text {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-right: 25px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.option-key {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  color: #666;
+}
+
+.option-check {
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+  font-weight: bold;
+}
+
+.option-check.correct {
+  color: #10b981;
+}
+
+.option-check.incorrect {
+  color: #ef4444;
+}
+
+.explanation-content {
+  @apply text-sm text-neutral-700 dark:text-neutral-300;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 24px; /* Space for the icon */
+}
+
+.explanation-content::before {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.option-explanation.correct .explanation-content::before {
+  content: "✓";
+  color: #10b981; /* Green color */
+}
+
+.option-explanation.incorrect .explanation-content::before {
+  content: "✗";
+  color: #ef4444; /* Red color */
+}
+
+.option-explanation.neutral .explanation-content::before {
+  content: "ℹ";
+  color: #6b7280; /* Gray color */
+}
+
+.review-answer {
+  @apply space-y-1;
+}
+
+.user-answer, .correct-answer {
+  @apply block text-sm;
+}
+
+.user-answer {
+  @apply text-neutral-700 dark:text-neutral-300;
+}
+
+.correct-answer {
+  @apply text-green-600 dark:text-green-400;
+}
+
+/* For mobile screens, adjust the top padding */
+@media (max-width: 768px) {
+  .quiz-modal {
+    padding-top: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quiz-modal {
+    padding-top: 50px;
+  }
 }
 </style> 
