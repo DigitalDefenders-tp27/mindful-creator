@@ -42,10 +42,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="allowed">✓ Commercial use allowed</li>
-              <li class="allowed">✓ Modification allowed</li>
-              <li class="allowed">✓ Free distribution</li>
-              <li class="required">! Must credit author</li>
+              <li class="allowed">Commercial use allowed</li>
+              <li class="allowed">Modification allowed</li>
+              <li class="allowed">Free distribution</li>
+              <li class="required">Must credit author</li>
             </ul>
           </div>
         </div>
@@ -59,10 +59,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="prohibited">✗ No commercial use</li>
-              <li class="allowed">✓ Modification allowed</li>
-              <li class="allowed">✓ Educational sharing OK</li>
-              <li class="required">! Must credit author</li>
+              <li class="prohibited">No commercial use</li>
+              <li class="allowed">Modification allowed</li>
+              <li class="allowed">Educational sharing OK</li>
+              <li class="required">Must credit author</li>
             </ul>
           </div>
         </div>
@@ -76,10 +76,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="allowed">✓ Commercial use allowed</li>
-              <li class="allowed">✓ Modification allowed</li>
-              <li class="required">! Derivatives use same license</li>
-              <li class="required">! Must credit author</li>
+              <li class="allowed">Commercial use allowed</li>
+              <li class="allowed">Modification allowed</li>
+              <li class="required">Derivatives use same license</li>
+              <li class="required">Must credit author</li>
             </ul>
           </div>
         </div>
@@ -93,10 +93,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="allowed">✓ Completely free to use</li>
-              <li class="allowed">✓ No attribution needed</li>
-              <li class="allowed">✓ Unlimited commercial use</li>
-              <li class="info">ℹ️ Copyright expired works</li>
+              <li class="allowed">Completely free to use</li>
+              <li class="allowed">No attribution needed</li>
+              <li class="allowed">Unlimited commercial use</li>
+              <li class="info">Copyright expired works</li>
             </ul>
           </div>
         </div>
@@ -110,10 +110,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="prohibited">✗ No unauthorized use</li>
-              <li class="prohibited">✗ No modification or distribution</li>
-              <li class="required">! Explicit permission required</li>
-              <li class="info">📝 Contact copyright holder</li>
+              <li class="prohibited">No unauthorized use</li>
+              <li class="prohibited">No modification or distribution</li>
+              <li class="required">Explicit permission required</li>
+              <li class="info">Contact copyright holder</li>
             </ul>
           </div>
         </div>
@@ -127,10 +127,10 @@
           </div>
           <div class="card-back">
             <ul class="license-details">
-              <li class="info">📚 Educational purposes</li>
-              <li class="info">📰 News reporting</li>
-              <li class="info">⚖️ Court evidence</li>
-              <li class="required">! Case-by-case determination</li>
+              <li class="info">Educational purposes</li>
+              <li class="info">News reporting</li>
+              <li class="info">Court evidence</li>
+              <li class="required">Case-by-case determination</li>
             </ul>
           </div>
         </div>
@@ -144,6 +144,9 @@
       
       <div class="generator-container">
         <div class="preview-section">
+          <div class="image-watermark-disclaimer">
+            <p><strong>Reminder:</strong> Only apply watermarks to your own original content. Using watermarks on images you don't own is not permissible.</p>
+          </div>
           <div class="image-preview">
             <div v-if="!uploadedImage" class="placeholder-upload" @click="triggerFileUpload">
               <div class="upload-icon">
@@ -160,6 +163,10 @@
             <canvas v-else ref="previewCanvas" class="preview-canvas"></canvas>
             <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;">
           </div>
+          <button v-if="uploadedImage" class="action-button secondary-button reset-image-preview-btn" @click="resetImage">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path></svg>
+            Reset Image
+          </button>
           
           <div class="copyright-preview" :style="{ fontFamily: selectedFont }">
             {{ copyrightText }}
@@ -219,6 +226,25 @@
                 @click="selectedFont = font.value"
               >
                 {{ font.label }}
+              </div>
+            </div>
+            <div class="color-selector">
+              <label>Watermark Color</label>
+              <div class="color-options">
+                <div 
+                  v-for="color in colorOptions" 
+                  :key="color"
+                  class="color-option"
+                  :class="{ active: watermarkColor === color }"
+                  :style="{ backgroundColor: color }"
+                  @click="selectColor(color)"
+                ></div>
+                <input 
+                  type="color" 
+                  v-model="watermarkColor" 
+                  class="color-picker"
+                  @input="handleColorChange"
+                >
               </div>
             </div>
           </div>
@@ -290,10 +316,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                 {{ isCreatingSvg ? 'Processing...' : 'Download Transparent Watermark' }}
               </button>
-              <button class="action-button secondary-button" @click="resetImage">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path></svg>
-                Reset Image
-              </button>
             </div>
           </div>
         </div>
@@ -301,77 +323,41 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container">
-      <section class="content-section">
-        <h2>Copyright in Australia</h2>
-        <p>G'day! As a content creator in Australia, it's important to understand that copyright protection is automatic when you create original content. No need to register or apply for it — ripper!</p>
-        
-        <p>Copyright in Australia is governed by the Copyright Act 1968, which gives you exclusive rights to:</p>
-        
-        <ul class="rights-list">
-          <li>Reproduce your work</li>
-          <li>Publish your work</li>
-          <li>Perform your work in public</li>
-          <li>Communicate your work to the public (including online)</li>
-          <li>Make adaptations of your work</li>
-        </ul>
-        
-        <p>For most works, copyright lasts for the life of the creator plus 70 years. Fair dinkum!</p>
-      </section>
-      
-      <section class="content-section">
-        <h2>Fair Dealing Exceptions</h2>
-        <p>The Copyright Act allows others to use your content without permission in certain circumstances, known as "fair dealing" exceptions:</p>
-        
-        <ul class="exception-list">
-          <li><strong>Research or study</strong> - Limited use for educational purposes</li>
-          <li><strong>Criticism or review</strong> - Commenting on or assessing content</li>
-          <li><strong>Parody or satire</strong> - Using content for humour or commentary</li>
-          <li><strong>Reporting news</strong> - Using content in news reporting</li>
-        </ul>
-        
-        <p>These exceptions are a bit different from the American "fair use" doctrine, so don't get them mixed up, mate!</p>
-      </section>
-      
-      <section class="content-section">
-        <h2>Protecting Your Content</h2>
-        <p>While copyright is automatic, here are some bonza ways to protect your content:</p>
-        
-        <ul class="protection-list">
-          <li>Include a copyright notice: © [Year] [Your Name]</li>
-          <li>Use watermarks on images and videos</li>
-          <li>Include terms and conditions on your website or platform</li>
-          <li>Monitor for unauthorized use of your content</li>
-          <li>Consider Creative Commons licenses if you want to allow certain uses</li>
-        </ul>
-      </section>
-      
-      <section class="content-section">
-        <h2>Using Others' Content</h2>
-        <p>When using content created by others, remember:</p>
-        
-        <ul class="usage-list">
-          <li>Always get permission unless a fair dealing exception applies</li>
-          <li>Credit the original creator appropriately</li>
-          <li>Consider licensing content through stock image/video sites</li>
-          <li>Look for Creative Commons licensed material</li>
-          <li>Be especially careful with music in your videos</li>
-        </ul>
-        
-        <p>Getting permission is always better than copping a copyright strike. No dramas!</p>
-      </section>
-      
-      <section class="content-section">
-        <h2>Further Resources</h2>
-        <p>For more information about copyright in Australia, check out these resources:</p>
-        
-        <ul class="resources-list">
-          <li><a href="https://www.ipaustralia.gov.au/ip-for-digital-business/develop-ip-strategy/copyright" target="_blank">IP Australia</a></li>
-          <li><a href="https://www.artslaw.com.au/information-sheet/copyright/" target="_blank">Arts Law Centre of Australia</a></li>
-          <li><a href="https://www.copyright.org.au/" target="_blank">Australian Copyright Council</a></li>
-        </ul>
-      </section>
-      
+    <div class="container" style="max-width: 100%; padding: 0;">
+      <!-- Interactive Content Carousel Section -->
+      <div class="interactive-content-carousel">
+        <div class="carousel-header-panel">
+          <h2 class="carousel-main-title">Copyright Tips</h2>
+        </div>
+
+        <div class="carousel-container">
+          <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
+            <div v-for="(slide, index) in slidesData" :key="index" class="carousel-slide">
+              <div class="content-section">
+                <h2>{{ slide.title }}</h2>
+                <div v-html="slide.content"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="carousel-dots">
+          <span
+            v-for="(_slide, index) in slidesData"
+            :key="`dot-${index}`"
+            :class="{ active: index === currentSlideIndex }"
+            @click="goToSlide(index)"
+            class="dot"
+            :aria-label="`Go to slide ${index + 1}`"
+          ></span>
+        </div>
+
+        <!-- Arrows are now positioned absolutely relative to interactive-content-carousel -->
+        <button @click="prevSlide" class="carousel-nav-button prev" aria-label="Previous slide">&lt;</button>
+        <button @click="nextSlide" class="carousel-nav-button next" aria-label="Next slide">&gt;</button>
+      </div>
+
+      <!-- Disclaimer Section (now a direct child of the full-width container) -->
       <section class="content-section disclaimer">
         <h3>Disclaimer</h3>
         <p>This information is general in nature and should not be taken as legal advice. If you need specific guidance on copyright matters, consult a legal professional with expertise in intellectual property law.</p>
@@ -381,7 +367,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { applyWatermark, createSvgWatermark } from '../services/CopyrightService';
 
 // License card data
@@ -416,6 +402,7 @@ const originalImage = ref(null);
 const watermarkOpacity = ref(0.7);
 const watermarkSize = ref(24);
 const watermarkPosition = ref('bottom-right');
+const watermarkColor = ref('#FFFFFF');
 const fileInput = ref(null);
 const previewCanvas = ref(null);
 
@@ -446,10 +433,109 @@ const copyrightText = computed(() => {
   }
 });
 
-// Initialize transparent canvas
+// Carousel data and logic
+const slidesData = ref([
+  {
+    title: 'Copyright in Australia',
+    content: `
+      <p>G'day! As a content creator in Australia, it's important to understand that copyright protection is automatic when you create original content. No need to register or apply for it — ripper!</p>
+      <p>Copyright in Australia is governed by the Copyright Act 1968, which gives you exclusive rights to:</p>
+      <ul class="rights-list">
+        <li>Reproduce your work</li>
+        <li>Publish your work</li>
+        <li>Perform your work in public</li>
+        <li>Communicate your work to the public (including online)</li>
+        <li>Make adaptations of your work</li>
+      </ul>
+      <p>For most works, copyright lasts for the life of the creator plus 70 years. Fair dinkum!</p>
+    `
+  },
+  {
+    title: 'Fair Dealing Exceptions',
+    content: `
+      <p>The Copyright Act allows others to use your content without permission in certain circumstances, known as "fair dealing" exceptions:</p>
+      <ul class="exception-list">
+        <li><strong>Research or study</strong> - Limited use for educational purposes</li>
+        <li><strong>Criticism or review</strong> - Commenting on or assessing content</li>
+        <li><strong>Parody or satire</strong> - Using content for humour or commentary</li>
+        <li><strong>Reporting news</strong> - Using content in news reporting</li>
+      </ul>
+      <p>These exceptions are a bit different from the American "fair use" doctrine, so don't get them mixed up, mate!</p>
+    `
+  },
+  {
+    title: 'Protecting Your Content',
+    content: `
+      <p>While copyright is automatic, here are some bonza ways to protect your content:</p>
+      <ul class="protection-list">
+        <li>Include a copyright notice: © [Year] [Your Name]</li>
+        <li>Use watermarks on images and videos</li>
+        <li>Include terms and conditions on your website or platform</li>
+        <li>Monitor for unauthorized use of your content</li>
+        <li>Consider Creative Commons licenses if you want to allow certain uses</li>
+      </ul>
+    `
+  },
+  {
+    title: 'Using Others\' Content',
+    content: `
+      <p>When using content created by others, remember:</p>
+      <ul class="usage-list">
+        <li>Always get permission unless a fair dealing exception applies</li>
+        <li>Credit the original creator appropriately</li>
+        <li>Consider licensing content through stock image/video sites</li>
+        <li>Look for Creative Commons licensed material</li>
+        <li>Be especially careful with music in your videos</li>
+      </ul>
+      <p>Getting permission is always better than copping a copyright strike. No dramas!</p>
+    `
+  },
+  {
+    title: 'Further Resources',
+    content: `
+      <p>For more information about copyright in Australia, check out these resources:</p>
+      <ul class="resources-list">
+        <li><a href="https://www.ipaustralia.gov.au/ip-for-digital-business/develop-ip-strategy/copyright" target="_blank">IP Australia</a></li>
+        <li><a href="https://www.artslaw.com.au/information-sheet/copyright/" target="_blank">Arts Law Centre of Australia</a></li>
+        <li><a href="https://www.copyright.org.au/" target="_blank">Australian Copyright Council</a></li>
+      </ul>
+    `
+  }
+]);
+
+const currentSlideIndex = ref(0);
+const totalSlides = computed(() => slidesData.value.length);
+const currentSlideTitle = computed(() => slidesData.value[currentSlideIndex.value].title);
+
+const goToSlide = (index) => {
+  currentSlideIndex.value = index;
+};
+
+const nextSlide = () => {
+  currentSlideIndex.value = (currentSlideIndex.value + 1) % totalSlides.value;
+};
+
+const prevSlide = () => {
+  currentSlideIndex.value = (currentSlideIndex.value - 1 + totalSlides.value) % totalSlides.value;
+};
+
+const handleKeydown = (event) => {
+  if (event.key === 'ArrowRight') {
+    nextSlide();
+  } else if (event.key === 'ArrowLeft') {
+    prevSlide();
+  }
+};
+
+// Initialize transparent canvas & keyboard listeners
 onMounted(() => {
   transparentCanvas.value = document.createElement('canvas');
   transparentCtx.value = transparentCanvas.value.getContext('2d');
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 // Trigger file upload dialog
@@ -512,7 +598,7 @@ const updateWatermark = () => {
   
   // Set watermark style
   ctx.font = `${watermarkSize.value}px ${selectedFont.value}`;
-  ctx.fillStyle = `rgba(255, 255, 255, ${watermarkOpacity.value})`;
+  ctx.fillStyle = `${watermarkColor.value}${Math.round(watermarkOpacity.value * 255).toString(16).padStart(2, '0')}`;
   ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
   ctx.shadowBlur = 4;
   
@@ -624,30 +710,65 @@ const downloadWatermarkedImage = async () => {
     isSuccess.value = true;
     errorMessage.value = '';
     
-    // Convert canvas to Blob
-    const canvas = previewCanvas.value;
-    const blob = await new Promise(resolve => canvas.toBlob(resolve));
+    // Create a temporary canvas for the final image
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
     
-    // Create File object from Blob
-    const imageFile = new File([blob], 'image.png', { type: 'image/png' });
+    // Set canvas size to match original image
+    tempCanvas.width = originalImage.value.width;
+    tempCanvas.height = originalImage.value.height;
     
-    // Call API to apply watermark
-    const watermarkedBlob = await applyWatermark(
-      imageFile,
-      copyrightText.value,
-      watermarkPosition.value,
-      watermarkOpacity.value,
-      watermarkSize.value
-    );
+    // Draw original image
+    tempCtx.drawImage(originalImage.value, 0, 0);
     
-    // Create download link
-    const url = URL.createObjectURL(watermarkedBlob);
+    // Add watermark with current settings
+    tempCtx.save();
+    tempCtx.font = `${watermarkSize.value}px ${selectedFont.value}`;
+    tempCtx.fillStyle = `${watermarkColor.value}${Math.round(watermarkOpacity.value * 255).toString(16).padStart(2, '0')}`;
+    tempCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    tempCtx.shadowBlur = 4;
+    
+    // Calculate text metrics
+    const text = copyrightText.value;
+    const metrics = tempCtx.measureText(text);
+    const textWidth = metrics.width;
+    const textHeight = watermarkSize.value;
+    
+    // Calculate position
+    let x, y;
+    const width = tempCanvas.width;
+    const height = tempCanvas.height;
+    
+    if (watermarkPosition.value.includes('left')) {
+      x = 20;
+    } else if (watermarkPosition.value.includes('right')) {
+      x = width - textWidth - 20;
+    } else {
+      x = (width - textWidth) / 2;
+    }
+    
+    if (watermarkPosition.value.includes('top')) {
+      y = textHeight + 20;
+    } else if (watermarkPosition.value.includes('bottom')) {
+      y = height - 20;
+    } else {
+      y = height / 2;
+    }
+    
+    // Draw watermark text
+    tempCtx.fillText(text, x, y);
+    tempCtx.restore();
+    
+    // Convert to blob and download
+    const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `watermarked-image-${creatorName.value.replace(/\s+/g, '-')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
     statusMessage.value = 'Watermarked image downloaded successfully';
     isSuccess.value = true;
@@ -668,13 +789,14 @@ const downloadTransparentWatermark = async () => {
     isSuccess.value = true;
     errorMessage.value = '';
     
-    // Get SVG content from API
+    // Get SVG content from API with current color
     const svgContent = await createSvgWatermark(
       copyrightText.value,
       originalImage.value ? originalImage.value.width : 800,
       originalImage.value ? originalImage.value.height : 600,
       watermarkPosition.value,
-      watermarkSize.value
+      watermarkSize.value,
+      watermarkColor.value // Pass the current color
     );
     
     // Create download link
@@ -686,6 +808,7 @@ const downloadTransparentWatermark = async () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
     statusMessage.value = 'SVG watermark downloaded successfully';
     isSuccess.value = true;
@@ -706,6 +829,30 @@ const resetImage = () => {
   statusMessage.value = 'Image reset';
   isSuccess.value = true;
   errorMessage.value = '';
+};
+
+// Add this in the script setup section
+const colorOptions = [
+  '#FFFFFF', // White
+  '#000000', // Black
+  '#FF6B98', // Pink
+  '#4ECDC4', // Teal
+  '#FFD166', // Yellow
+  '#06D6A0', // Green
+  '#118AB2', // Blue
+  '#EF476F', // Red
+  '#073B4C', // Dark Blue
+];
+
+// Add these new methods in the script setup section
+const selectColor = (color) => {
+  watermarkColor.value = color;
+  updateWatermark();
+};
+
+const handleColorChange = (event) => {
+  watermarkColor.value = event.target.value;
+  updateWatermark();
 };
 </script>
 
@@ -742,18 +889,14 @@ const resetImage = () => {
 .slogan {
   max-width: 800px;
   position: relative;
-  z-index: 3;
+  z-index: 2;
   margin-left: 2rem;
   text-align: left;
-  width: 100%;
 }
 
 .title-group {
-  position: relative;
-  z-index: 3;
   margin-bottom: 0.5rem;
   text-align: left;
-  width: 100%;
 }
 
 .title-group h1 {
@@ -785,8 +928,8 @@ const resetImage = () => {
 
 .title-group h1:hover {
   filter: drop-shadow(0 0 2px rgba(216, 161, 229, 0.5));
-  transform: none;
-  animation: liquidFlow 2s linear infinite;
+  transform: scale(1.02);
+  animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
 }
 
 @keyframes liquidFlow {
@@ -799,77 +942,24 @@ const resetImage = () => {
 }
 
 .title-group h2 {
-  font-size: 2.5rem;
+  font-size: 3.8rem;
   font-weight: bold;
   color: #333;
   line-height: 1.2;
   display: block;
-  white-space: normal;
+  white-space: nowrap;
   text-align: left;
   overflow: visible;
-  max-width: 100%;
-  word-wrap: break-word;
 }
 
 .subtitle {
-  font-size: 1.25rem;
+  font-size: 1.8rem;
   color: #666;
   line-height: 1.4;
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
   white-space: normal;
   text-align: left;
   max-width: 100%;
-  word-wrap: break-word;
-}
-
-@media (min-width: 640px) {
-  .title-group h1 {
-    font-size: 3rem;
-  }
-  .title-group h2 {
-    font-size: 1.875rem;
-  }
-  .subtitle {
-    font-size: 1.125rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .title-group h1 {
-    font-size: 3.75rem;
-  }
-  .title-group h2 {
-    font-size: 2.25rem;
-  }
-  .subtitle {
-    font-size: 1.25rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .title-group h1 {
-    font-size: 4.5rem;
-  }
-  .title-group h2 {
-    font-size: 3rem;
-  }
-  .subtitle {
-    font-size: 1.5rem;
-    white-space: nowrap;
-  }
-}
-
-@media (min-width: 1280px) {
-  .title-group h1 {
-    font-size: 6rem;
-  }
-  .title-group h2 {
-    font-size: 3.75rem;
-  }
-  .subtitle {
-    font-size: 1.875rem;
-    white-space: nowrap;
-  }
 }
 
 .decorative-elements {
@@ -887,8 +977,6 @@ const resetImage = () => {
   pointer-events: none;
   transform: translateX(0);
   justify-content: end;
-  opacity: 1;
-  transition: opacity 0.3s ease;
 }
 
 .top-row {
@@ -928,431 +1016,6 @@ const resetImage = () => {
 
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
-}
-
-@media (max-width: 1280px) {
-  .decorative-elements {
-    opacity: 0.6;
-  }
-}
-
-@media (max-width: 1024px) {
-  .decorative-elements {
-    opacity: 0.4;
-  }
-}
-
-@media (max-width: 768px) {
-  .decorative-elements {
-    opacity: 0.1;
-  }
-}
-
-@media (max-width: 640px) {
-  .decorative-elements {
-    opacity: 0;
-  }
-}
-
-.preview-canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.font-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 0.75rem;
-}
-
-.font-option {
-  padding: 0.75rem;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.font-option:hover {
-  border-color: #c8e600;
-  transform: translateY(-2px);
-}
-
-.font-option.active {
-  background-color: #dbff00;
-  border-color: #dbff00;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider-group {
-  margin-bottom: 1.25rem;
-}
-
-.slider-group label {
-  display: block;
-  margin-bottom: 0.75rem;
-  text-align: left;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #ddd;
-  outline: none;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ff6b98;
-  cursor: pointer;
-  border: none;
-}
-
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ff6b98;
-  cursor: pointer;
-  border: none;
-}
-
-.position-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.position-option {
-  width: 36px;
-  height: 36px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.position-option:hover {
-  border-color: #ff6b98;
-  transform: scale(1.1);
-}
-
-.position-option.active {
-  background-color: #ff6b98;
-  border-color: #ff6b98;
-}
-
-.action-buttons-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.action-button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: #dbff00;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.action-button:hover {
-  background-color: #c8e600;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.action-button.secondary-button {
-  background-color: #f1f3f5;
-  color: #333;
-}
-
-.action-button.secondary-button:hover {
-  background-color: #e9ecef;
-}
-
-.status-messages {
-  margin-top: 1rem;
-  width: 100%;
-}
-
-.status-message {
-  padding: 0.75rem;
-  border-radius: 6px;
-  background-color: #f8f9fa;
-  margin-bottom: 0.5rem;
-}
-
-.status-message.success {
-  background-color: #d1e7dd;
-  color: #0f5132;
-}
-
-.error-message {
-  padding: 0.75rem;
-  border-radius: 6px;
-  background-color: #f8d7da;
-  color: #842029;
-  margin-bottom: 0.5rem;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@media (min-width: 1281px) {
-  .decorative-elements {
-    opacity: 1;
-  }
-}
-
-@media (max-width: 1800px) {
-  .decorative-elements {
-    width: 840px;
-    grid-template-columns: repeat(6, 140px);
-    opacity: 0.9;
-    transform: translateX(0);
-    justify-content: end;
-  }
-}
-
-@media (max-width: 1536px) {
-  .decorative-elements {
-    width: 720px;
-    grid-template-columns: repeat(6, 120px);
-    opacity: 0.8;
-    transform: translateX(0);
-    justify-content: end;
-  }
-}
-
-@media (max-width: 1280px) {
-  .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
-    opacity: 0.6;
-    transform: translateX(0);
-    row-gap: 0.75rem;
-    justify-content: end;
-  }
-  
-  .title-group h2,
-  .subtitle {
-    white-space: normal;
-  }
-}
-
-@media (max-width: 1024px) {
-  .hero-section {
-    min-height: 40vh;
-    padding: 6rem 0 1rem;
-  }
-  
-  .hero-content {
-    min-height: 40vh;
-  }
-  
-  .slogan {
-    margin-left: 1.5rem;
-    width: 90%;
-  }
-  
-  .decorative-elements {
-    opacity: 0.4;
-    transform: translateX(0) scale(0.9);
-    row-gap: 0.5rem;
-  }
-  
-  .title-group h1 {
-    font-size: 3rem;
-    white-space: normal;
-  }
-  
-  .title-group h2 {
-    font-size: 2.5rem;
-    white-space: normal;
-    hyphens: auto;
-  }
-  
-  .subtitle {
-    font-size: 1.25rem;
-    white-space: normal;
-    overflow-wrap: break-word;
-    max-width: 100%;
-  }
-  
-  .decorative-elements {
-    opacity: 0.25;
-    transform: scale(0.8);
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-section {
-    min-height: 22vh;
-    padding: 7rem 0 0.5rem;
-  }
-  
-  .hero-content {
-    min-height: 22vh;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-top: 0.75rem;
-  }
-  
-  .slogan {
-    margin-left: 1rem;
-    max-width: 95%;
-    width: 95%;
-  }
-
-  .title-group {
-    width: 100%;
-  }
-
-  .title-group h1 {
-    font-size: 2.5rem;
-    white-space: normal;
-    max-width: 100%;
-    display: block;
-    overflow-wrap: break-word;
-    hyphens: auto;
-  }
-  
-  .title-group h2 {
-    font-size: 2rem;
-    white-space: normal;
-    max-width: 100%;
-    overflow-wrap: break-word;
-    display: block;
-  }
-  
-  .subtitle {
-    font-size: 1.125rem;
-    white-space: normal;
-    overflow-wrap: break-word;
-    max-width: 100%;
-  }
-
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
-  }
-}
-
-@media (max-width: 640px) {
-  .hero-section {
-    min-height: 18vh;
-    padding: 7.5rem 0 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .hero-content {
-    padding: 0 1rem;
-    min-height: 18vh;
-    padding-top: 0.25rem;
-  }
-
-  .slogan {
-    padding-top: 0;
-  }
-
-  .decorative-elements {
-    opacity: 0;
-    transform: translateX(0) scale(0.7);
-  }
-
-  .title-group h1 {
-    font-size: 3rem;
-    white-space: nowrap;
-  }
-  
-  .title-group h2 {
-    font-size: 2rem;
-    white-space: normal;
-  }
-  
-  .subtitle {
-    font-size: 1rem;
-    white-space: normal;
-  }
-}
-
-@media (max-width: 480px) {
-  .decorative-elements {
-    opacity: 0;
-    display: none;
-  }
-  
-  .hero-section {
-    min-height: 16vh;
-    padding: 8rem 0 0.5rem;
-  }
-  
-  .hero-content {
-    min-height: 16vh;
-    width: 100%;
-  }
-  
-  .slogan {
-    width: 95%;
-    margin-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  .title-group {
-    width: 95%;
-  }
-
-  .title-group h1 {
-    font-size: 2.5rem;
-    white-space: normal;
-    max-width: 100%;
-    line-height: 1.2;
-    display: block;
-    word-break: break-word;
-  }
-  
-  .title-group h2 {
-    font-size: 1.5rem;
-    line-height: 1.3;
-    white-space: normal;
-    max-width: 100%;
-    display: block;
-    word-break: break-word;
-  }
-
-  .subtitle {
-    white-space: normal;
-    overflow-wrap: break-word; 
-    max-width: 100%;
-    font-size: 1rem;
-    line-height: 1.3;
-  }
 }
 
 /* License Cards Section */
@@ -1501,18 +1164,20 @@ button:disabled {
 .copyright-generator-section {
   max-width: 1200px;
   margin: 3rem auto;
-  padding: 2rem;
+  box-sizing: border-box;
 }
 
 .generator-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  margin-top: 2rem;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 2rem;
+  max-width: 1200px;
+  margin: 2rem auto 0;
+  box-sizing: border-box;
 }
 
 .preview-section {
@@ -1526,15 +1191,36 @@ button:disabled {
   min-height: 400px;
 }
 
+.image-watermark-disclaimer {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px dotted #ff6b98;
+  border-radius: 6px;
+  background-color: rgba(255, 107, 152, 0.05);
+  text-align: left;
+}
+
+.image-watermark-disclaimer p {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.image-watermark-disclaimer p strong {
+  color: #333;
+}
+
 .image-preview {
-  width: 300px;
-  height: 200px;
+  width: 450px;
+  height: 300px;
   background-color: #fff;
   border: 2px dashed #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -1589,14 +1275,14 @@ button:disabled {
   padding: 1.5rem;
   background-color: #f8f9fa;
   border-radius: 12px;
-  padding-left: 3rem;
+  padding-top: 2.5rem;
 }
 
 .step-number {
   position: absolute;
-  left: -10px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 36px;
   height: 36px;
   background-color: #ff6b98;
@@ -1668,6 +1354,18 @@ input[type="text"] {
   margin-top: 1rem;
   display: flex;
   justify-content: flex-end;
+}
+
+.action-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .download-button {
@@ -1758,6 +1456,13 @@ input[type="text"] {
 .disclaimer {
   background-color: #fff8e8;
   border-left: 4px solid #ffd166;
+  max-width: 1200px;
+  margin: 3rem auto;
+  display: block;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .disclaimer h3 {
@@ -1766,10 +1471,115 @@ input[type="text"] {
   margin-bottom: 1rem;
 }
 
-/* 响应式样式 */
+/* Responsive styles */
+@media (max-width: 1800px) {
+  .decorative-elements {
+    width: 840px;
+    grid-template-columns: repeat(6, 140px);
+    opacity: 0.9;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1536px) {
+  .decorative-elements {
+    width: 720px;
+    grid-template-columns: repeat(6, 120px);
+    opacity: 0.8;
+    transform: translateX(0);
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1280px) {
+  .decorative-elements {
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(0);
+    row-gap: 0.75rem;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+    justify-content: end;
+  }
+  
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  
+  .title-group h2 {
+    font-size: 3rem;
+  }
+  
+  .subtitle {
+    font-size: 1.5rem;
+  }
+  
+  .license-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  .generator-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .license-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .hero-section {
+    min-height: 30vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 30vh;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+    max-width: 90%;
+  }
+  
+  .decorative-elements {
+    opacity: 0.3;
+    transform: translateX(0) scale(0.8);
+  }
+  
+  .title-group h1 {
+    font-size: 4.2rem;
+  }
+  
+  .title-group h2 {
+    font-size: 2.6rem;
+  }
+  
+  .subtitle {
+    font-size: 1.5rem;
+    margin-top: 1.8rem;
   }
   
   .container {
@@ -1792,23 +1602,103 @@ input[type="text"] {
   .resources-list li {
     font-size: 1rem;
   }
-  
-  .generator-container {
-    grid-template-columns: 1fr;
+
+  /* Carousel adjustments for tablets and smaller */
+  .interactive-content-carousel {
+    padding: 1.5rem; /* Slightly reduce overall padding */
+  }
+  .carousel-nav-button {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+  .carousel-nav-button.prev {
+    left: 10px;
+  }
+  .carousel-nav-button.next {
+    right: 10px;
+  }
+  .carousel-header-panel,
+  .carousel-container,
+  .carousel-dots {
+    margin-left: 30px; /* Reduced side margin for content */
+    margin-right: 30px;
+  }
+  .carousel-main-title {
+    font-size: 2rem;
+  }
+  .carousel-slide .content-section h2 {
+    font-size: 1.6rem;
+  }
+  .carousel-slide .content-section :deep(p),
+  .carousel-slide .content-section :deep(li) {
+    font-size: 1rem !important; /* Slightly smaller for better fit */
+  }
+}
+
+@media (max-width: 640px) {
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.7);
+  }
+
+  .hero-section {
+    min-height: 25vh;
+    padding: 7rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Image preview size for smaller mobiles */
+  .image-preview {
+    width: 100%; /* Full width of its container */
+    max-width: 320px; /* Cap max width */
+    height: auto; /* Maintain aspect ratio */
+    /* If you want a fixed aspect ratio, e.g., 3:2 for 320px width: */
+    /* height: calc(320px * (2 / 3)); */ 
+  }
+  .preview-canvas {
+    max-height: 220px; /* Prevent overly tall canvas if image is portrait */
+  }
+  .placeholder-upload {
+    /* Ensure placeholder also respects potential new height constraints */
+    min-height: 150px; 
   }
 }
 
 @media (max-width: 480px) {
-  .section-title {
-    font-size: 1.8rem;
-  }
-  
-  .section-description {
-    font-size: 1rem;
-  }
-  
   .license-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .hero-section {
+    min-height: 25vh;
+  }
+  
+  .hero-content {
+    min-height: 25vh;
+    padding-left: 1rem;
+  }
+  
+  .slogan {
+    margin-left: 0.5rem;
+  }
+  
+  .title-group h1 {
+    font-size: 3.2rem;
+  }
+  
+  .title-group h2 {
+    font-size: 2.2rem;
+  }
+  
+  .subtitle {
+    font-size: 1.3rem;
+    margin-top: 1.5rem;
+  }
+  
+  .decorative-elements {
+    opacity: 0.05;
+    transform: translateX(0) scale(0.6);
   }
   
   .container {
@@ -1823,5 +1713,514 @@ input[type="text"] {
   .content-section h2 {
     font-size: 1.4rem;
   }
+  
+  .section-title {
+    font-size: 1.8rem;
+  }
+  
+  .section-description {
+    font-size: 1rem;
+  }
+
+  /* Carousel adjustments for very small screens */
+  .interactive-content-carousel {
+    padding: 1rem; /* Further reduce overall padding */
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  .carousel-header-panel,
+  .carousel-container,
+  .carousel-dots {
+    margin-left: 0; /* Remove side margins, arrows will move */
+    margin-right: 0;
+  }
+  .carousel-navigation-mobile-wrapper { /* New wrapper for centered arrows */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 1rem; /* Space between arrows if using this wrapper */
+  }
+  .carousel-nav-button {
+    position: static; /* Stack them below content */
+    transform: none;
+    margin: 0; /* Reset margins if using wrapper gap */
+    /* If not using a wrapper, might need margin: 0.5rem auto; */
+  }
+  .carousel-main-title {
+    font-size: 1.8rem;
+  }
+  .current-slide-display-title { /* If it were still used */
+    font-size: 1.3rem;
+  }
+  .carousel-slide .content-section h2 {
+    font-size: 1.4rem;
+  }
+  .carousel-slide .content-section :deep(p),
+  .carousel-slide .content-section :deep(li) {
+    font-size: 0.9rem !important; 
+    line-height: 1.6;
+  }
+  .carousel-slide .content-section :deep(ul),
+  .carousel-slide .content-section :deep(ol) {
+    padding-left: 1.5rem; /* Reduce list indentation */
+  }
+
+  /* Generator controls adjustments for very small screens */
+  .control-step {
+    padding: 1rem;
+    padding-top: 2rem; /* Maintain space for top number */
+  }
+  .step-title {
+    font-size: 1.1rem;
+  }
+  .input-group label {
+    font-size: 0.85rem;
+  }
+  input[type="text"], .font-select {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+  .license-option, .font-option {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .action-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  .action-buttons-group {
+    flex-direction: column; /* Stack download buttons */
+    align-items: stretch; /* Make buttons full width of their small container */
+  }
+  .action-buttons-group .action-button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+.preview-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.font-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.font-option {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.font-option:hover {
+  border-color: #c8e600;
+  transform: translateY(-2px);
+}
+
+.font-option.active {
+  background-color: #dbff00;
+  border-color: #dbff00;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider-group {
+  margin-bottom: 1.25rem;
+}
+
+.slider-group label {
+  display: block;
+  margin-bottom: 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ff6b98;
+  cursor: pointer;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ff6b98;
+  cursor: pointer;
+  border: none;
+}
+
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.position-option {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.position-option:hover {
+  border-color: #ff6b98;
+  transform: scale(1.1);
+}
+
+.position-option.active {
+  background-color: #ff6b98;
+  border-color: #ff6b98;
+}
+
+.action-buttons-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+.action-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dbff00;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-button:hover {
+  background-color: #c8e600;
+  transform: translateY(-2px);
+}
+
+.action-button.secondary-button {
+  background-color: #f1f3f5;
+  color: #333;
+}
+
+.action-button.secondary-button:hover {
+  background-color: #e9ecef;
+}
+
+.status-messages {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.status-message {
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  margin-bottom: 0.5rem;
+}
+
+.status-message.success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.error-message {
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: #f8d7da;
+  color: #842029;
+  margin-bottom: 0.5rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.color-selector {
+  margin-top: 1.5rem;
+}
+
+.color-selector label {
+  display: block;
+  margin-bottom: 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.color-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.color-option {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option.active {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+.color-picker {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  background: none;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-picker::-moz-color-swatch {
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles for the new Interactive Content Carousel */
+.interactive-content-carousel {
+  max-width: 1200px;
+  margin: 3rem auto;
+  position: relative;
+  background-color: #fff0f5;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.carousel-header-panel {
+  padding: 0 0 1.5rem 0;
+  text-align: center;
+  margin-left: 42px;
+  margin-right: 42px;
+}
+
+.carousel-main-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.carousel-container {
+  overflow: hidden;
+  border-radius: 0;
+  margin: 0;
+  margin-left: 42px;
+  margin-right: 42px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.carousel-wrapper {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+}
+
+.carousel-slide .content-section {
+  margin-bottom: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.carousel-slide .content-section h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.carousel-slide .content-section h2:after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #FF6B6B, #4ECDC4);
+  border-radius: 3px;
+}
+
+.carousel-slide .content-section :deep(p) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 1.2rem;
+}
+
+.carousel-slide .content-section :deep(li) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 0.6rem;
+}
+
+.carousel-slide .content-section :deep(ul),
+.carousel-slide .content-section :deep(ol) {
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Styling for links within the carousel's resources list */
+.carousel-slide .content-section :deep(ul.resources-list li a) {
+  color: #007bff; /* Standard blue for links */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.carousel-slide .content-section :deep(ul.resources-list li a:hover) {
+  color: #0056b3; /* Darker blue on hover */
+}
+
+.carousel-slide .content-section :deep(strong) {
+  font-weight: 600;
+}
+
+.carousel-navigation {
+}
+
+.carousel-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ff6b98;
+  color: white;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.8rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+
+.carousel-nav-button.prev {
+  left: 20px;
+}
+
+.carousel-nav-button.next {
+  right: 20px;
+}
+
+.carousel-nav-button:hover {
+  background-color: #e0527e;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.carousel-nav-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-left: 42px;
+  margin-right: 42px;
+}
+
+.carousel-dots .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin: 0 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.carousel-dots .dot:hover {
+  background-color: #ccc;
+  transform: scale(1.1);
+}
+
+.carousel-dots .dot.active {
+  background-color: #ff6b98;
+  transform: scale(1.25);
+}
+
+/* Style for the reset button in preview area */
+.reset-image-preview-btn {
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  /* Other styles are inherited from .action-button.secondary-button */
 }
 </style> 

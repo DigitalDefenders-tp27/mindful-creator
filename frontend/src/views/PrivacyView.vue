@@ -110,10 +110,12 @@
                 </div>
                 <!-- ADD TABS END -->
 
-                <!-- Quick View Button -->
+                <!-- Quick View Button - THIS ENTIRE DIV BLOCK IS REMOVED/COMMENTED -->
+                <!--
                 <div class="quick-view">
                    <button @click="showQuickView('youtube')">Quick view</button>
                 </div>
+                -->
 
                 <div class="settings-guide-content" v-if="activeGuide === 'settings'">
               <div class="settings-content">
@@ -125,6 +127,10 @@
                       <div class="section-content" v-show="activeYoutubeSection === 'default'">
                   <p>If you use Youtube in your browser</p>
                   <span class="update-date">Update to: 04/14/2025</span>
+                  <!-- ADDING THIS QUICK VIEW BUTTON HERE -->
+                  <div class="quick-view-inline">
+                     <button @click="showQuickView('youtube')">Quick view</button>
+                  </div>
                 <div class="settings-steps">
                   <div class="step">
                     <h4>Step 1:</h4>
@@ -177,6 +183,9 @@
                         <span class="toggle-icon" :class="{ 'rotated': activeYoutubeSection === 'perVideo' }">▼</span>
                       </div>
                       <div class="section-content" v-show="activeYoutubeSection === 'perVideo'">
+                        <div class="quick-view-inline">
+                           <button @click="showQuickView('youtube')">Quick view</button>
+                        </div>
                         <div class="settings-steps">
                           <div class="step">
                             <h4>Step 1:</h4>
@@ -216,6 +225,9 @@
                         <span class="toggle-icon" :class="{ 'rotated': activeYoutubeSection === 'playlists' }">▼</span>
                       </div>
                       <div class="section-content" v-show="activeYoutubeSection === 'playlists'">
+                        <div class="quick-view-inline">
+                           <button @click="showQuickView('youtube')">Quick view</button>
+                        </div>
                         <div class="settings-steps">
                           <div class="step">
                             <h4>Step 1:</h4>
@@ -263,6 +275,9 @@
                         <span class="toggle-icon" :class="{ 'rotated': activeYoutubeSection === 'comments' }">▼</span>
                       </div>
                       <div class="section-content" v-show="activeYoutubeSection === 'comments'">
+                        <div class="quick-view-inline">
+                           <button @click="showQuickView('youtube')">Quick view</button>
+                        </div>
                         <div class="settings-steps">
                           <div class="step">
                             <h4>Step 1:</h4>
@@ -311,6 +326,9 @@
                         <span class="toggle-icon" :class="{ 'rotated': activeYoutubeMobileSection === 'iosSettings' }">▼</span>
                       </div>
                       <div class="section-content" v-show="activeYoutubeMobileSection === 'iosSettings'">
+                        <div class="quick-view-inline">
+                           <button @click="showQuickView('youtube')">Quick view</button>
+                        </div>
                         <div class="settings-steps">
                           <div class="step">
                             <h4>Step 1:</h4>
@@ -349,6 +367,9 @@
                         <span class="toggle-icon" :class="{ 'rotated': activeYoutubeMobileSection === 'videoChannel' }">▼</span>
                       </div>
                       <div class="section-content" v-show="activeYoutubeMobileSection === 'videoChannel'">
+                        <div class="quick-view-inline">
+                           <button @click="showQuickView('youtube')">Quick view</button>
+                        </div>
                         <p><strong>Note:</strong> For most creator controls on iOS, YouTube will redirect you to YouTube Studio or prompt you to download the YouTube Studio app.</p>
                         <div class="settings-steps">
                           <div class="step">
@@ -390,6 +411,9 @@
                 <!-- Privacy Tips Content -->
                 <div class="privacy-tips-content" v-if="activeGuide === 'tips'">
                   <h3>Privacy Tips</h3>
+                  <div class="quick-view-inline">
+                     <button @click="showQuickView('youtube')">Quick view</button>
+                  </div>
                   <div class="tip-item">
                     <h4>Two-Factor Authentication</h4>
                     <p>YouTube offers enhanced security through two-factor authentication linked to your Google account. This prevents account takeovers even if someone obtains your password. The "cost" is slightly slower login and needing your phone nearby whenever you sign in to new devices.</p>
@@ -423,6 +447,9 @@
                  <!-- Boundary Tips Content -->
                 <div class="boundary-tips-content" v-if="activeGuide === 'boundary'">
                   <h3>Boundary Tips</h3>
+                  <div class="quick-view-inline">
+                     <button @click="showQuickView('youtube')">Quick view</button>
+                  </div>
                   <div class="tip-item">
                     <h4>Comment Filter Customization</h4>
                     <p>YouTube allows custom comment filtering under YouTube Studio -> Settings -> Community Moderation -> Automated filters. Add specific terms, phrases, or questions that frequently cross your boundaries. Comments containing these will be held for review. The "cost" is potentially delayed posting of legitimate comments that happen to contain filtered words.</p>
@@ -539,10 +566,12 @@
                 </div>
                 <!-- ADD TABS END -->
 
-                <!-- Quick View Button -->
+                <!-- Quick View Button - REMOVE THIS ENTIRE DIV FOR TIKTOK -->
+                <!--
                 <div class="quick-view">
                    <button @click="showQuickView('tiktok')">Quick view</button>
                 </div>
+                -->
 
                 <div class="settings-guide-content" v-if="activeGuide === 'settings'">
                    <div class="settings-content"> 
@@ -555,6 +584,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeTiktokSection === 'account' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeTiktokSection === 'account'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('tiktok')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -606,6 +638,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeTiktokSection === 'perVideo' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeTiktokSection === 'perVideo'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('tiktok')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -668,6 +703,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeTiktokMobileSection === 'iosSettings' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeTiktokMobileSection === 'iosSettings'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('tiktok')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -706,6 +744,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeTiktokMobileSection === 'basic' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeTiktokMobileSection === 'basic'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('tiktok')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -761,6 +802,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeTiktokMobileSection === 'perVideo' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeTiktokMobileSection === 'perVideo'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('tiktok')">Quick view</button>
+                         </div>
                          <p>When posting a new video, you can set privacy for individual posts:</p>
                          <div class="settings-steps">
                             <div class="step">
@@ -793,6 +837,9 @@
                 
                 <div class="privacy-tips-content" v-if="activeGuide === 'tips'">
                    <h3>Privacy Tips - TikTok</h3>
+                   <div class="quick-view-inline">
+                     <button @click="showQuickView('tiktok')">Quick view</button>
+                   </div>
                    <!-- Replacing the placeholder below -->
                    <div class="tip-item">
                      <h4>Two-Factor Authentication</h4>
@@ -830,6 +877,9 @@
 
                 <div class="boundary-tips-content" v-if="activeGuide === 'boundary'">
                   <h3>Boundary Tips - TikTok</h3>
+                  <div class="quick-view-inline">
+                     <button @click="showQuickView('tiktok')">Quick view</button>
+                  </div>
                   <!-- Replacing placeholder below -->
                    <div class="tip-item">
                     <h4>Scheduled Posting Times</h4>
@@ -952,16 +1002,17 @@
                 </div>
                 <!-- ADD TABS END -->
                 
-                <!-- Quick View Button -->
+                <!-- Quick View Button - REMOVE THIS ENTIRE DIV FOR INSTAGRAM -->
+                <!--
                 <div class="quick-view">
                    <button @click="showQuickView('instagram')">Quick view</button>
                 </div>
+                -->
 
                  <!-- Settings Guide Content (v-if="activeGuide === 'settings'") -->
                 <div class="settings-guide-content" v-if="activeGuide === 'settings'">
                    <div class="settings-content"> 
-                      <!-- Browser Settings (Conditional) -->
-                     <div v-if="activeVersion === 'browser'">
+                      <div v-if="activeVersion === 'browser'">
                        <span class="update-date">Update: 26/04/2025</span>
                        
                        <!-- Instagram Section 1: General Privacy Settings -->
@@ -970,6 +1021,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeInstaSection === 'general' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeInstaSection === 'general'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('instagram')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -1013,6 +1067,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeInstaSection === 'perVideo' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeInstaSection === 'perVideo'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('instagram')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                             <div class="step">
                              <h4>Step 1:</h4>
@@ -1068,6 +1125,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeInstaMobileSection === 'iosSettings' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeInstaMobileSection === 'iosSettings'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('instagram')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                             <div class="step">
                              <h4>Step 1:</h4>
@@ -1106,6 +1166,9 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeInstaMobileSection === 'basic' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeInstaMobileSection === 'basic'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('instagram')">Quick view</button>
+                         </div>
                          <div class="settings-steps">
                            <div class="step">
                              <h4>Step 1:</h4>
@@ -1115,15 +1178,13 @@
                            <div class="step">
                              <h4>Step 2:</h4>
                              <p>Tap on "Profile" in the bottom right corner and tap on the three lines (hamburger menu) in the top right corner.</p>
-                             <div class="step-image">
-                               <img src="../assets/screenshots/insta_mobile_basic_1.svg" alt="Instagram Basic Mobile Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_basic_1.svg')">
+                              <div class="step-image">
+                                <img src="../assets/screenshots/insta_mobile_basic_1.svg" alt="Instagram Basic Mobile Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_basic_1.svg')">
                              </div>
                            </div>
                            <div class="step">
                              <h4>Step 3:</h4>
                              <p>Here you'll find the privacy controls, tap on each of these options to manage who can interact with you:</p>
-                             <!-- MOVE LIST HERE -->
-                             <!-- Beautified Privacy Controls List -->
                              <div class="privacy-control-list">
                                <div class="privacy-control-group">
                                  <h5>Comments</h5>
@@ -1133,7 +1194,6 @@
                                    <li>Add specific words to hide in comments</li>
                                  </ul>
                                </div>
-
                                <div class="privacy-control-group">
                                  <h5>Story and live</h5>
                                   <ul>
@@ -1142,7 +1202,6 @@
                                    <li>Manage close friends list for exclusive content</li>
                                  </ul>
                                </div>
-
                                <div class="privacy-control-group">
                                  <h5>Messages</h5>
                                   <ul>
@@ -1150,7 +1209,6 @@
                                    <li>Manage message requests</li>
                                  </ul>
                                </div>
-
                                <div class="privacy-control-group">
                                  <h5>Restricted accounts</h5>
                                   <ul>
@@ -1158,7 +1216,6 @@
                                    <li>Restricted accounts' comments are only visible to them</li>
                                  </ul>
                                </div>
-
                                <div class="privacy-control-group">
                                  <h5>Hidden words</h5>
                                   <ul>
@@ -1166,7 +1223,6 @@
                                    <li>Add custom words to filter</li>
                                  </ul>
                                </div>
-
                                <div class="privacy-control-group">
                                  <h5>Posts you've liked</h5>
                                  <ul>
@@ -1174,65 +1230,9 @@
                                  </ul>
                                </div>
                              </div>
-                             <!-- End Beautified List -->
-                             <!-- Image comes AFTER the list -->
                              <div class="step-image">
                                <img src="../assets/screenshots/insta_mobile_basic_2.svg" alt="Instagram Basic Mobile Step 3" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_basic_2.svg')">
                              </div>
-                             
-                             <!-- REMOVE LIST FROM HERE -->
-                             <!-- Beautified Privacy Controls List -->
-                             <!-- <div class="privacy-control-list">
-                               <div class="privacy-control-group">
-                                 <h5>Comments</h5>
-                                 <ul>
-                                   <li>Control who can comment on your posts</li>
-                                   <li>Filter out offensive comments</li>
-                                   <li>Add specific words to hide in comments</li>
-                                 </ul>
-                               </div>
-
-                               <div class="privacy-control-group">
-                                 <h5>Story and live</h5>
-                                  <ul>
-                                   <li>Hide stories from specific people</li>
-                                   <li>Control who can reply to your stories</li>
-                                   <li>Manage close friends list for exclusive content</li>
-                                 </ul>
-                               </div>
-
-                               <div class="privacy-control-group">
-                                 <h5>Messages</h5>
-                                  <ul>
-                                   <li>Control who can message you directly</li>
-                                   <li>Manage message requests</li>
-                                 </ul>
-                               </div>
-
-                               <div class="privacy-control-group">
-                                 <h5>Restricted accounts</h5>
-                                  <ul>
-                                   <li>Add accounts to a restricted list (they won't know they're restricted)</li>
-                                   <li>Restricted accounts' comments are only visible to them</li>
-                                 </ul>
-                               </div>
-
-                               <div class="privacy-control-group">
-                                 <h5>Hidden words</h5>
-                                  <ul>
-                                   <li>Filter out potentially offensive content in DM requests</li>
-                                   <li>Add custom words to filter</li>
-                                 </ul>
-                               </div>
-
-                               <div class="privacy-control-group">
-                                 <h5>Posts you've liked</h5>
-                                 <ul>
-                                   <li>Control who can see posts you've liked</li>
-                                 </ul>
-                               </div>
-                             </div> -->
-                             <!-- End Beautified List -->
                            </div>
                          </div>
                        </div>
@@ -1242,15 +1242,17 @@
                          <span class="toggle-icon" :class="{ 'rotated': activeInstaMobileSection === 'perVideo' }">▼</span>
                        </div>
                        <div class="section-content" v-show="activeInstaMobileSection === 'perVideo'">
+                         <div class="quick-view-inline">
+                           <button @click="showQuickView('instagram')">Quick view</button>
+                         </div>
                          <p>When posting new content, you can set privacy for individual posts:</p>
                          <div class="settings-steps">
                             <div class="step">
                              <h4>Step 1:</h4>
                              <p>Begin creating a story, reel, or live.</p>
                                 <div class="step-image insta-pervideo-image">
-                                  <img src="../assets/screenshots/insta_mobile_pervideo_1.svg" alt="Instagram Per-Video Mobile Step 2a" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_pervideo_1.svg')">
+                                  <img src="../assets/screenshots/insta_mobile_pervideo_1.svg" alt="Instagram Per-Video Mobile Step 1" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_pervideo_1.svg')">
                                 </div>
-                             <!-- No image for step 1 -->
                            </div>
                            <div class="step">
                              <h4>Step 2:</h4>
@@ -1264,7 +1266,7 @@
                              </ul>
                               <div class="step-image-row">
                                  <div class="step-image insta-pervideo-image">
-                                  <img src="../assets/screenshots/insta_mobile_pervideo_2.svg" alt="Instagram Per-Video Mobile Step 2b" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_pervideo_2.svg')">
+                                  <img src="../assets/screenshots/insta_mobile_pervideo_2.svg" alt="Instagram Per-Video Mobile Step 2" onerror="this.src='../assets/icons/elements/screenshot-placeholder.svg'" @click="enlargeImage('../assets/screenshots/insta_mobile_pervideo_2.svg')">
                                 </div>
                               </div>
                            </div>
@@ -1276,9 +1278,11 @@
                    </div>
                 </div>
                 
-                <!-- Privacy Tips Content (v-if="activeGuide === 'tips'") -->
                 <div class="privacy-tips-content" v-if="activeGuide === 'tips'">
                    <h3>Privacy Tips - Instagram</h3>
+                   <div class="quick-view-inline">
+                     <button @click="showQuickView('instagram')">Quick view</button>
+                   </div>
                    <!-- Start Replace -->
                     <div class="tip-item">
                      <h4>Two-Factor Authentication</h4>
@@ -1326,6 +1330,9 @@
                 <!-- Boundary Tips Content (v-if="activeGuide === 'boundary'") -->
                 <div class="boundary-tips-content" v-if="activeGuide === 'boundary'">
                   <h3>Boundary Tips - Instagram</h3> 
+                  <div class="quick-view-inline">
+                    <button @click="showQuickView('instagram')">Quick view</button>
+                  </div>
                   <!-- Replacing placeholder below -->
                   <div class="tip-item">
                     <h4>Comment Filtering System</h4>
@@ -2045,7 +2052,7 @@ const showQuickView = (platform) => {
             break;
           case 'perVideo': // Note: This is mostly for Stories/Reels/Live during creation
             summary += `
-              <h5>Per-Content Privacy (Mobile Creation)</h5>
+              <h5>Per-Content Privacy (Mobile)</h5>
               <ul>
                 <li><strong>Stories/Live:</strong> Choose audience (Your Story, Close Friends, Hide From) before posting.</li>
                 <li><strong>Stories:</strong> Toggle sharing options before posting.</li>
@@ -2493,19 +2500,21 @@ onUnmounted(() => {
 }
 
 .quick-view button {
-  background-color: #e75a97;
+  background-color: #ff6b98; /* Theme pink */
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem; /* Larger padding */
+  font-size: 1rem; /* Larger font size */
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .quick-view button:hover {
-  background-color: #d4407f;
+  background-color: #e0527e; /* Darker pink on hover */
+  transform: translateY(-2px);
 }
 
 .coming-soon {
@@ -3272,4 +3281,36 @@ onUnmounted(() => {
 }
 
 /* ... Rest of the platform specific styles will go here ... */
+
+/* Original .quick-view button style (if any, for reference, will be adapted) */
+/* We might need to see existing styles for .quick-view button if they exist below line 250 */
+/* For now, creating new/overriding styles for the inline version */
+
+.quick-view-inline {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: right; /* Changed from left to right */
+}
+
+.quick-view-inline button {
+  background-color: #ff6b98; /* Example: Using a theme pink */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem; /* INCREASED padding for larger size */
+  font-size: 1rem; /* INCREASED font size */
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.quick-view-inline button:hover {
+  background-color: #e0527e; /* Darker pink on hover */
+  transform: translateY(-2px);
+}
+
+.platform-section {
+  margin-bottom: 2rem;
+}
 </style>
