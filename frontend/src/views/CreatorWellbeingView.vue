@@ -96,32 +96,32 @@
               @click="switchResourceTab('offline')"
             >Medical Clinic</div>
             <div 
-              class="resource-tab" 
+              class="resource-tab resource-tab-online"
               :class="{ active: activeTab === 'online' }"
-              @click="onOnlineTabClick"
+              @click="switchResourceTab('online')"
             >Online Resources</div>
           </div>
           
-          <!-- Search bar for address -->
-          <div class="search-bar">
-            <input 
-              id="address-search"
-              v-model="searchAddress" 
-              @keyup.enter="onSearch"
-              placeholder="Enter your location..." 
-              class="search-input"
-              :disabled="isSearching"
-            />
-            <button 
-              @click="onSearch" 
-              class="search-btn"
-              :class="{ 'is-loading': isSearching }"
-              :disabled="isSearching"
-              v-html="searchBtnContent"
-            ></button>
-          </div>
-
           <div class="resource-content" :class="{ 'online-only': activeTab === 'online' }">
+            <!-- Search bar for address (MOVED HERE) -->
+            <div class="search-bar" v-if="activeTab === 'offline'" style="grid-column: 1 / -1;">
+              <input 
+                id="address-search"
+                v-model="searchAddress" 
+                @keyup.enter="onSearch"
+                placeholder="Enter your location..." 
+                class="search-input"
+                :disabled="isSearching"
+              />
+              <button 
+                @click="onSearch" 
+                class="search-btn"
+                :class="{ 'is-loading': isSearching }"
+                :disabled="isSearching"
+                v-html="searchBtnContent"
+              ></button>
+            </div>
+
             <!-- Google Map display -->
             <div class="map-container" v-if="activeTab === 'offline'">
               <div id="google-map" style="width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
@@ -187,24 +187,25 @@
             <div class="resource-details" v-if="selectedClinic && activeTab === 'offline'">
               <div class="resource-info-content">
                 <h3 class="resource-name">{{ selectedClinic.name }}</h3>
-                <div class="rating">
-                  <span class="rating-score">{{ selectedClinic.rating }}</span>
-                  <div class="stars">★★★★★</div>
-                  <span class="reviews">({{ selectedClinic.reviews }})</span>
-                </div>
+                <div class="clinic-details-card info-section">
+                  <div class="rating">
+                    <span class="rating-score">{{ selectedClinic.rating }}</span>
+                    <div class="stars">★★★★★</div>
+                    <span class="reviews">({{ selectedClinic.reviews }})</span>
+                  </div>
 
-                <div class="resource-location">
-                  <img src="@/assets/icons/elements/location.svg" alt="Location" class="location-icon">
-                  <span>{{ selectedClinic.address }}</span>
-                </div>
+                  <div class="resource-location">
+                    <img src="@/assets/icons/elements/location.svg" alt="Location" class="location-icon">
+                    <span>{{ selectedClinic.address }}</span>
+                  </div>
 
-                <div class="resource-website">
-                  <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                  <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
-                  <button class="online-switch" @click="switchToOnline">Switch to Online</button>
-                </div>
+                  <div class="resource-website">
+                    <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
+                    <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                  </div>
+                </div> 
 
-                <div class="opening-hours">
+                <div class="opening-hours info-section"> {/*Ensuring opening hours also has info-section for consistent styling as a card */}
                   <h4>Opening hours</h4>
                   <div class="hours-grid">
                     <template v-if="selectedClinic && selectedClinic.openingHours && selectedClinic.openingHours.weekday_text && selectedClinic.openingHours.weekday_text.length">
@@ -437,7 +438,7 @@
     </Modal>
   </div>
 
-  <!-- 添加确认对话框 -->
+  <!-- 添加确认对话框 (Restored Confirmation Dialog) -->
   <div v-if="showOnlineConfirm" class="confirmation-dialog-overlay">
     <div class="confirmation-dialog">
       <div class="dialog-header">
@@ -454,14 +455,14 @@
     </div>
   </div>
 
-  <!-- Online confirmation dialog -->
-  <div v-if="showOnlineConfirm" class="modal-overlay">
-    <div class="modal-content">
+  <!-- Online confirmation dialog (Alternative/Original - kept for reference, might be the one intended) -->
+  <div v-if="showOnlineConfirm" class="modal-overlay"> <!-- This uses .modal-overlay, might be different style -->
+    <div class="modal-content"> <!-- This uses .modal-content -->
       <h3>Switch to Online Resources?</h3>
       <p>Are you sure you want to switch to online resources? This will help you find professional help from the comfort of your home.</p>
       <div class="modal-actions">
-        <button class="cancel-btn" @click="handleCancel">Cancel</button>
-        <button class="confirm-btn" @click="handleConfirm">Continue</button>
+        <button class="cancel-btn" @click="handleCancel">Cancel</button> <!-- handleCancel would make them stay on online resources -->
+        <button class="confirm-btn" @click="handleConfirm">Continue</button> <!-- handleConfirm would take them to /relaxation -->
       </div>
     </div>
   </div>
@@ -498,8 +499,10 @@ const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
 const filtersVisible = ref(window.innerWidth > 768) // Collapsed by default on mobile
 
-// Add new ref
+// Add new ref for online confirmation
 const showOnlineConfirm = ref(false)
+
+// Map-related states
 const isSearching = ref(false)
 const map = ref(null)
 const markers = ref([])
@@ -1059,10 +1062,13 @@ const switchResourceTab = async (tabName) => {
 };
 
 const handleCancel = () => {
-  showOnlineConfirm.value = false
-  activeTab.value = 'online'
-  selectedClinic.value = null
-}
+  showOnlineConfirm.value = false;
+  // User chose to stay, so make sure online tab is visually active if it wasn't
+  if (activeTab.value !== 'online') {
+    activeTab.value = 'online';
+    selectedClinic.value = null; // Clear clinic details if switching to online
+  }
+};
 
 // Function to get directions to selected clinic
 const getDirections = () => {
@@ -1080,8 +1086,13 @@ const getDirections = () => {
 };
 
 const onOnlineTabClick = () => {
-  showOnlineConfirm.value = true
-}
+  showOnlineConfirm.value = true;
+};
+
+const handleConfirm = () => {
+  showOnlineConfirm.value = false;
+  router.push('/relaxation'); // Navigate to relaxation page
+};
 
 const events = [
   {
@@ -1286,12 +1297,6 @@ const featuredActivities = computed(() => {
   return [april, may, june].filter(Boolean).slice(0, 3)
 })
 
-// 添加确认和取消函数
-const handleConfirm = () => {
-  showOnlineConfirm.value = false
-  router.push('/relaxation')
-}
-
 const tabs = [
   { 
     name: 'Screen Time and Emotional Wellbeing', 
@@ -1459,11 +1464,6 @@ const onSearch = () => {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.filter-header h3 {
-  font-size: 1.2rem;
-  margin: 0;
-  color: #333;
-}
 
 .filter-toggle {
   background: #f8f8f8;
@@ -1478,11 +1478,6 @@ const onSearch = () => {
   align-items: center;
 }
 
-.filter-toggle:hover {
-  color: #e75a97;
-  background: #f0f0f0;
-  border-color: #d0d0d0;
-}
 
 .toggle-icon {
   font-size: 0.8rem;
@@ -1497,36 +1492,13 @@ const onSearch = () => {
   margin-bottom: 2.5rem;
 }
 
-.event-filters.filters-collapsed {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
 
 @media (min-width: 769px) {
-  .filter-toggle {
-    display: none;
-  }
   
-  .filter-header {
-    border-bottom: none;
-    margin-bottom: 0.5rem;
-  }
   
-  .event-filters.filters-collapsed {
-    max-height: 800px;
-    opacity: 1;
-    margin-bottom: 2.5rem;
-  }
 }
 
 @media (max-width: 768px) {
-  .filter-header {
-    padding: 0.5rem 0;
-    margin-bottom: 0.75rem;
-  }
 }
 
 .preparation-guide-wrapper {
@@ -1605,44 +1577,15 @@ const onSearch = () => {
   text-align: center;
 }
 
-.tab span {
-  display: block;
-  line-height: 1.3;
-}
 
-.tabs {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
-}
 
 /* Responsive adjustments for tabs */
 @media (max-width: 768px) {
-  .tabs {
-    gap: 0.75rem;
-  }
   
-  .tab {
-    padding: 0.5rem 1rem;
-    margin: 0 0.25rem;
-    min-width: 120px;
-    font-size: 0.9rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .tabs {
-    gap: 0.5rem;
-  }
   
-  .tab {
-    padding: 0.5rem 0.75rem;
-    margin: 0 0.125rem;
-    min-width: 110px;
-    font-size: 0.85rem;
-  }
 }
 
 /* Make resource tabs responsive as well */
@@ -1659,21 +1602,7 @@ const onSearch = () => {
   }
 }
 
-.tab.active {
-  color: #e75a97;
-  font-weight: 600;
-  background-color: transparent;
-}
 
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
-}
 
 .chart-wrapper {
   width: 100%;
@@ -1686,27 +1615,8 @@ const onSearch = () => {
   padding: 2rem;
 }
 
-.tab {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  color: #e75a97;
-  position: relative;
-}
 
-.tab.active {
-  color: #e75a97;
-  font-weight: 600;
-}
 
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
-}
 
 .chart-area {
   max-width: 800px;
@@ -2152,94 +2062,18 @@ section:not(:last-child)::after {
 }
 
 /* Dashboard section */
-.dashboard-section {
-  padding: 3rem 0 5rem;
-  position: relative;
-  margin-bottom: 5rem;
-  background-color: #fffcf5;
-}
 
-.tabs,
-.resource-tabs,
-.activities-header,
-.activities-grid {
-  position: relative;
-  z-index: 2;
-}
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
 
-.tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 145px;
-}
 
-.tab span {
-  display: block;
-  line-height: 1.3;
-  white-space: normal;
-}
 
-.tab.active {
-  color: #e75a97;
-  font-weight: 600;
-  background-color: transparent;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
-}
 
 @media (max-width: 768px) {
-  .dashboard-section .tabs {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
   
-  .dashboard-section .tab {
-    min-width: 130px;
-    padding: 0.5rem 1rem;
-    margin: 0 0.25rem 0.5rem;
-    min-height: 55px;
-  }
 }
 
 @media (max-width: 480px) {
-  .dashboard-section .tabs {
-    gap: 0.5rem;
-  }
   
-  .dashboard-section .tab {
-    min-width: calc(50% - 1rem); /* Two tabs per row */
-    padding: 0.5rem;
-    margin: 0 0.25rem 0.5rem;
-    font-size: 0.85rem;
-    min-height: 50px;
-  }
 }
 
 .dashboard-content {
@@ -2500,21 +2334,11 @@ section:not(:last-child)::after {
   text-decoration: underline;
 }
 
-.online-switch {
-  background-color: transparent;
-  border: 1px solid #e0e0e0;
-  padding: 0.4rem 0.8rem;
-  border-radius: 15px;
-  margin-left: 0.5rem;
-  color: #666;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.online-switch:hover {
-  background-color: #f5f5f5;
-  border-color: #d0d0d0;
+.info-section {
+  background: #f8f8f8;
+  padding: 1.2rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
 }
 
 .opening-hours {
@@ -2585,10 +2409,6 @@ section:not(:last-child)::after {
   transition: all 0.2s ease;
 }
 
-.action-btn:hover {
-  background-color: #d4407f;
-  transform: translateY(-2px);
-}
 
 .btn-icon {
   opacity: 0.9;
@@ -2596,18 +2416,8 @@ section:not(:last-child)::after {
 
 /* 添加响应式布局 */
 @media (max-width: 480px) {
-  .resource-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-  }
 
 
-  .action-btn {
-    width: 100%;
-    max-width: none;
-    height: 44px;
-  }
 
   .position-btn {
     width: auto;
@@ -2616,49 +2426,12 @@ section:not(:last-child)::after {
   }
 }
 
-.action-btn {
-  flex: 1;
-  min-width: 140px;
-  max-width: 200px;
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0 1.5rem;
-  border-radius: 25px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  height: 44px;
-  white-space: nowrap;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
 
-.action-btn:hover {
-  background-color: #d4407f;
-  transform: translateY(-2px);
-}
 
-.btn-icon {
-  opacity: 0.9;
-}
 
 /* 添加响应式布局 */
 @media (max-width: 480px) {
-  .resource-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-  }
 
-  .action-btn {
-    width: 100%;
-    max-width: none;
-    height: 44px;
-  }
 
   .position-btn {
     width: auto;
@@ -2900,11 +2673,6 @@ section:not(:last-child)::after {
 
 /* Event filters responsive improvements */
 @media (max-width: 768px) {
-  .event-filters {
-    flex-direction: column;
-    padding: 1.25rem;
-    gap: 1rem;
-  }
   
   .filter-group, 
   .filter-actions {
@@ -2935,10 +2703,6 @@ section:not(:last-child)::after {
 }
 
 @media (max-width: 480px) {
-  .event-filters {
-    padding: 1rem;
-    gap: 0.75rem;
-  }
   
   .activities-modal {
     width: 98%;
@@ -3054,16 +2818,6 @@ section:not(:last-child)::after {
 }
 
 /* Filter styles */
-.event-filters {
-  display: flex;
-  gap: 1.25rem;
-  margin-bottom: 2.5rem;
-  flex-wrap: wrap;
-  background-color: #fafafa;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-}
 
 .filter-group {
   flex: 1;
@@ -3141,11 +2895,6 @@ section:not(:last-child)::after {
 }
 
 @media (max-width: 768px) {
-  .event-filters {
-    flex-direction: column;
-    padding: 1.25rem;
-    gap: 1rem;
-  }
   
   .filter-group, 
   .filter-actions {
@@ -3283,9 +3032,6 @@ section:not(:last-child)::after {
     height: 200px;
   }
 
-  .event-filters {
-    flex-direction: column;
-  }
 
   .filter-group {
     width: 100%;
@@ -3338,12 +3084,6 @@ section:not(:last-child)::after {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.tab.active {
-  background: #e75a97;
-  color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
-}
 
 .resource-btn:hover {
   background-color: #d4407f;
@@ -3924,151 +3664,31 @@ section:not(:last-child)::after {
 
 
 
-.dashboard-section .tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 145px;
-}
 
-.dashboard-section .tab span {
-  display: block;
-  line-height: 1.3;
-  white-space: normal;
-}
 
-.dashboard-section .tab.active {
-  color: #e75a97;
-  font-weight: 600;
-  background-color: transparent;
-}
 
-.dashboard-section .tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #e75a97;
-}
 
 @media (max-width: 768px) {
-  .dashboard-section .tabs {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
   
-  .dashboard-section .tab {
-    min-width: 130px;
-    padding: 0.5rem 1rem;
-    margin: 0 0.25rem 0.5rem;
-    min-height: 55px;
-  }
 }
 
 @media (max-width: 480px) {
-  .dashboard-section .tabs {
-    gap: 0.5rem;
-  }
   
-  .dashboard-section .tab {
-    min-width: calc(50% - 1rem); /* Two tabs per row */
-    padding: 0.5rem;
-    margin: 0 0.25rem 0.5rem;
-    font-size: 0.85rem;
-    min-height: 50px;
-  }
 }
 
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
 
-.filter-header h3 {
-  font-size: 1.2rem;
-  margin: 0;
-  color: #333;
-}
 
-.filter-toggle {
-  background: #f8f8f8;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  padding: 0.4rem 1rem;
-  font-size: 0.9rem;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-}
 
-.filter-toggle:hover {
-  color: #e75a97;
-  background: #f0f0f0;
-  border-color: #d0d0d0;
-}
 
-.toggle-icon {
-  font-size: 0.8rem;
-  margin-left: 0.5rem;
-}
 
-.event-filters {
-  overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
-  max-height: 800px;
-  opacity: 1;
-  margin-bottom: 2.5rem;
-}
 
-.event-filters.filters-collapsed {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
 
 @media (min-width: 769px) {
-  .filter-toggle {
-    display: none;
-  }
   
-  .filter-header {
-    border-bottom: none;
-    margin-bottom: 0.5rem;
-  }
   
-  .event-filters.filters-collapsed {
-    max-height: 800px;
-    opacity: 1;
-    margin-bottom: 2.5rem;
-  }
 }
 
 @media (max-width: 768px) {
-  .filter-header {
-    padding: 0.5rem 0;
-    margin-bottom: 0.75rem;
-  }
 }
 
 .hours-grid .hours-line {
@@ -4087,6 +3707,58 @@ section:not(:last-child)::after {
 }
 .hours-grid .open-status.closed {
   color: #F44336; /* Red */
+}
+
+.resource-tab-online {
+  background-color: #f5f5f5 !important; /* Override other background styles */
+  color: #666 !important; /* Override other text colors */
+  border: 1px solid #ddd !important; /* Add border */
+  padding: 0.75rem 2rem !important; /* Adjust padding */
+  font-size: 1.1rem !important; /* Adjust font size */
+  font-weight: 500 !important;
+  border-radius: 25px !important; /* Match button border-radius */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; /* Subtle shadow */
+  transform: scale(1) !important; /* Reset transform from .active if any */
+}
+
+.resource-tab-online:hover {
+  background-color: #ebebeb !important;
+  box-shadow: 0 3px 7px rgba(0,0,0,0.08) !important;
+}
+
+/* Ensure the active state for online tab doesn't use the pink gradient */
+.resource-tab-online.active {
+  background-color: #e0e0e0 !important; /* Slightly darker grey when active */
+  color: #555 !important;
+  border-color: #ccc !important;
+  transform: scale(1.02) !important; /* Subtle scale for active */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.resource-tab:not(.active):hover {
+  background: #ececec;
+  color: #e75a97;
+  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
+}
+
+.search-bar {
+  padding: 1rem;          /* Padding around the input and button - RETAINED */
+  margin-bottom: 1.5rem;  /* Space below the search bar - RETAINED */
+  position: relative;     /* For positioning the search button absolutely if needed - RETAINED */
+}
+
+.search-btn:disabled {
+  background: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.search-btn:not(:disabled):hover {
+  background: #d4407f;
+  transform: translateY(-1px);
+}
+
+.search-btn:not(:disabled):active {
+  transform: translateY(0);
 }
 </style>
 

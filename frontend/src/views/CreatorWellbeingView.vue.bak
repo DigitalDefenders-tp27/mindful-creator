@@ -90,20 +90,22 @@
         <div class="resource-finder-content">
           <!-- Tabs for resource type -->
           <div class="resource-tabs">
-            <div 
-              class="resource-tab" 
-              :class="{ active: activeTab === 'offline' }"
-              @click="switchResourceTab('offline')"
-            >Medical Clinic</div>
-            <div 
-              class="resource-tab" 
-              :class="{ active: activeTab === 'online' }"
-              @click="onOnlineTabClick"
-            >Online Resources</div>
+            <div class="resource-tab-container">
+              <div 
+                class="resource-tab" 
+                :class="{ active: activeTab === 'offline' }"
+                @click="switchResourceTab('offline')"
+              >Medical Clinic</div>
+              <div 
+                class="resource-tab-online" 
+                :class="{ active: activeTab === 'online' }"
+                @click="switchResourceTab('online')"
+              >Online Resources</div>
+            </div>
           </div>
           
-          <!-- Search bar for address -->
-          <div class="search-bar">
+          <!-- Search bar for address - only visible in clinic tab -->
+          <div class="search-bar" v-if="activeTab === 'offline'">
             <input 
               id="address-search"
               v-model="searchAddress" 
@@ -187,21 +189,24 @@
             <div class="resource-details" v-if="selectedClinic && activeTab === 'offline'">
               <div class="resource-info-content">
                 <h3 class="resource-name">{{ selectedClinic.name }}</h3>
-                <div class="rating">
-                  <span class="rating-score">{{ selectedClinic.rating }}</span>
-                  <div class="stars">★★★★★</div>
-                  <span class="reviews">({{ selectedClinic.reviews }})</span>
-                </div>
+                
+                <!-- Combine all info sections into one container -->
+                <div class="combined-info-section">
+                  <div class="rating">
+                    <span class="rating-score">{{ selectedClinic.rating }}</span>
+                    <div class="stars">★★★★★</div>
+                    <span class="reviews">({{ selectedClinic.reviews }})</span>
+                  </div>
 
-                <div class="resource-location">
-                  <img src="@/assets/icons/elements/location.svg" alt="Location" class="location-icon">
-                  <span>{{ selectedClinic.address }}</span>
-                </div>
+                  <div class="resource-location">
+                    <img src="@/assets/icons/elements/location.svg" alt="Location" class="location-icon">
+                    <span>{{ selectedClinic.address }}</span>
+                  </div>
 
-                <div class="resource-website">
-                  <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
-                  <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
-                  <button class="online-switch" @click="switchToOnline">Switch to Online</button>
+                  <div class="resource-website">
+                    <img src="@/assets/icons/elements/globe.svg" alt="Website" class="website-icon">
+                    <a :href="selectedClinic.website" target="_blank">{{ selectedClinic.website }}</a>
+                  </div>
                 </div>
 
                 <div class="opening-hours">
@@ -432,31 +437,6 @@
           <li>✓ Schedule your next appointment if needed.</li>
           <li>✓ Take care of yourself and reach out if you have questions.</li>
         </ul>
-        <p style="margin-top:1.2rem; color:#666;">Wishing you a positive and supportive experience!</p>
-      </template>
-    </Modal>
-  </div>
-
-  <!-- 添加确认对话框 -->
-  <div v-if="showOnlineConfirm" class="confirmation-dialog-overlay">
-    <div class="confirmation-dialog">
-      <div class="dialog-header">
-        <h2>Switch to Relaxation Page?</h2>
-      </div>
-      <div class="dialog-content">
-        <p>Would you like to explore our relaxation techniques and exercises?</p>
-        <p>You can also stay here to check out our online resources.</p>
-      </div>
-      <div class="dialog-actions">
-        <button class="cancel-btn" @click="handleCancel">Stay Here</button>
-        <button class="confirm-btn" @click="handleConfirm">Go to Relaxation</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Online confirmation dialog -->
-  <div v-if="showOnlineConfirm" class="modal-overlay">
-    <div class="modal-content">
       <h3>Switch to Online Resources?</h3>
       <p>Are you sure you want to switch to online resources? This will help you find professional help from the comfort of your home.</p>
       <div class="modal-actions">
@@ -498,8 +478,7 @@ const selectedPrice = ref('Any price')
 const sortOption = ref('dateAsc')
 const filtersVisible = ref(window.innerWidth > 768) // Collapsed by default on mobile
 
-// Add new ref
-const showOnlineConfirm = ref(false)
+// Map-related states
 const isSearching = ref(false)
 const map = ref(null)
 const markers = ref([])
@@ -1040,7 +1019,7 @@ const resetFilters = () => {
 }
 
 // Function to switch resource tab
-const switchResourceTab = async (tabName) => {
+const switchResourceTab = (tabName) => {
   activeTab.value = tabName;
   
   // When switching to offline tab
@@ -1051,18 +1030,13 @@ const switchResourceTab = async (tabName) => {
     }
     
     // Wait for DOM update
-    await nextTick();
-    
-    // Force reinitialize map
-    await initMap();
+    nextTick(async () => {
+      // Force reinitialize map
+      await initMap();
+    });
   }
 };
 
-const handleCancel = () => {
-  showOnlineConfirm.value = false
-  activeTab.value = 'online'
-  selectedClinic.value = null
-}
 
 // Function to get directions to selected clinic
 const getDirections = () => {
@@ -1443,7 +1417,6 @@ const onSearch = () => {
 
 </script>
 
-<style scoped>
 <style scoped>
 /* Modal z-index overrides to fix layering issues */
 :deep(.modal-overlay) {
@@ -2155,35 +2128,102 @@ section:not(:last-child)::after {
   flex-wrap: wrap; /* Allow tabs to wrap if needed */
 }
 
+.resource-tab-container {
+  display: flex;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
 .resource-tab {
+  flex: 1;
   padding: 1rem 2.5rem;
   background: #f4f4f6;
-  border-radius: 2.5rem;
   color: #666;
   font-size: 1.25rem;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
   border: none;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
   outline: none;
   letter-spacing: 0.01em;
-  min-width: 180px;
   text-align: center;
   white-space: nowrap;
+  border-radius: 25px 0 0 25px;
+}
+
+.resource-tab-online {
+  flex: 1;
+  padding: 1rem 2.5rem;
+  background: transparent;
+  color: #666;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+  outline: none;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: 0 25px 25px 0;
 }
 
 .resource-tab.active {
   background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
   color: #fff;
   box-shadow: 0 4px 16px rgba(231,90,151,0.10);
-  transform: scale(1.04);
+}
+
+.resource-tab-online.active {
+  background: #f5f5f5;
+  color: #e75a97;
+  border-color: #d0d0d0;
+  font-weight: 600;
 }
 
 .resource-tab:not(.active):hover {
   background: #ececec;
   color: #e75a97;
   box-shadow: 0 2px 12px rgba(231,90,151,0.08);
+}
+
+.resource-tab-online:not(.active):hover {
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.combined-info-section {
+  background: #f8f8f8;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.combined-info-section .rating {
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.combined-info-section .resource-location {
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.combined-info-section .resource-website {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .resource-tab, .resource-tab-online {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+  }
 }
 
 .resource-content {
@@ -2330,21 +2370,11 @@ section:not(:last-child)::after {
   text-decoration: underline;
 }
 
-.online-switch {
-  background-color: transparent;
-  border: 1px solid #e0e0e0;
-  padding: 0.4rem 0.8rem;
-  border-radius: 15px;
-  margin-left: 0.5rem;
-  color: #666;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.online-switch:hover {
-  background-color: #f5f5f5;
-  border-color: #d0d0d0;
+.info-section {
+  background: #f8f8f8;
+  padding: 1.2rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
 }
 
 .opening-hours {
@@ -3714,6 +3744,5 @@ section:not(:last-child)::after {
 .hours-grid .open-status.closed {
   color: #F44336; /* Red */
 }
-</style>
 </style>
 
