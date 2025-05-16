@@ -6,6 +6,7 @@ import os
 import sys
 import uvicorn
 import logging
+import argparse
 from dotenv import load_dotenv
 
 # Configure logging
@@ -14,6 +15,11 @@ logger = logging.getLogger('server')
 
 
 def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Start the Mindful Creator backend server")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
+    args = parser.parse_args()
+    
     logger.info("=== Starting Mindful Creator Backend Service ===")
     
     # Load environment variables
@@ -27,11 +33,11 @@ def main():
     logger.info(f"- CORS_ORIGIN: {'Set' if os.getenv('CORS_ORIGIN') else 'Not Set'}")
     
     # Start the FastAPI server
-    logger.info("Starting FastAPI server, listening on 0.0.0.0:8000...")
+    logger.info(f"Starting FastAPI server, listening on 0.0.0.0:{args.port}...")
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=args.port,
         reload=True
     )
 

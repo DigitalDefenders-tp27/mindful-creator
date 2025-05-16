@@ -16,7 +16,7 @@ import platform
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.routers import affirmations, breaths, journals, memes
+from app.routers import affirmations, breaths, journals, memes, ratings
 
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
@@ -225,13 +225,18 @@ ADDITIONAL_ROUTES = [
     ("app.routers.affirmations", "/api/affirmations"),
     ("app.routers.breaths", "/api/breaths"),
     ("app.routers.journals", "/api/journals"),
-    ("app.routers.memes", "/api/memes")
+    ("app.routers.memes", "/api/memes"),
+    ("app.routers.ratings", "/api/ratings")
     # ("app.api.games", "/api/games") # Removed from dynamic list
 ]
 
 # Explicitly include the games router
 app.include_router(games_api_router, prefix="/api/games")
 logger.info("Explicitly included games_api_router at prefix /api/games")
+
+# Explicitly include the ratings router
+app.include_router(ratings.router, prefix="/api/ratings")
+logger.info("Explicitly included ratings router at prefix /api/ratings")
 
 logger.info("Loading additional routes...")
 for route_module, prefix in ADDITIONAL_ROUTES:
