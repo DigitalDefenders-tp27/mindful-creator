@@ -42,6 +42,7 @@
               :class="{ selected: selectedEmotion === emoji.alt }"
               @click="handleDotClick(emoji.alt)"
             />
+            <div class="emoji-label">{{ emoji.alt }}</div>
           </div>
         </div>
       </div>
@@ -53,6 +54,16 @@
           <div class="buttons">
             <button @click="goToRelaxation">Yes, let me try</button>
             <button @click="closePopup">No, thanks. I'm ok to continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Positive Emotion Popup -->
+      <div v-if="showPositiveMessage" class="overlay">
+        <div class="popup positive-popup">
+          <h2>Great to know you're feeling good! Let's continue with our journey.</h2>
+          <div class="buttons">
+            <button @click="closePopup">Let's go!</button>
           </div>
         </div>
       </div>
@@ -539,6 +550,7 @@
 
   const router = useRouter()
   const showCheckIn = ref(false)
+  const showPositiveMessage = ref(false) // New state for positive emotion message
   const selectedEmotion = ref(null)
 
   // Banner carousel variables and functions
@@ -954,10 +966,21 @@
     showResults.value = false;  // Add this line to close the results container
   }
 
-  const closePopup = () => (showCheckIn.value = false)
+  const closePopup = () => {
+    showCheckIn.value = false
+    showPositiveMessage.value = false
+  }
+  
   const handleDotClick = (emotion) => {
     selectedEmotion.value = emotion
-    showCheckIn.value = true
+    // Show different popups based on emotion type
+    if (emotion === 'Angry' || emotion === 'Sad' || emotion === 'Mad') {
+      showCheckIn.value = true
+      showPositiveMessage.value = false
+    } else if (emotion === 'Happy' || emotion === 'Peace') {
+      showPositiveMessage.value = true
+      showCheckIn.value = false
+    }
   }
 
   const handleSeekHelp = () => {
@@ -966,10 +989,10 @@
 
   const emojis = [
     { src: happy, alt: 'Happy' },
-    { src: peace, alt: 'Sad' },
+    { src: peace, alt: 'Peace' },
     { src: angry, alt: 'Angry' },
-    { src: sad, alt: 'Confused' },
-    { src: mda, alt: 'Frustrated' },
+    { src: sad, alt: 'Sad' },
+    { src: mda, alt: 'Mad' },
   ]
 
   const labels = [
@@ -1232,14 +1255,16 @@
   .slogan {
     max-width: 800px;
     position: relative;
-    z-index: 2;
+    z-index: 3; /* 增加z-index值 */
     margin-left: 2rem;
     text-align: left;
+    width: 100%; /* Ensure full width */
   }
 
   .title-group {
     margin-bottom: 0.5rem;
     text-align: left;
+    width: 100%; /* Full width container */
   }
 
   .title-group h1 {
@@ -1248,10 +1273,10 @@
     position: relative;
     background: linear-gradient(
       to right,
-      #FF6B6B 20%,
-      #4ECDC4 40%,
-      #4ECDC4 60%,
-      #FF6B6B 80%
+      #65c9a4 20%,
+      #7e78d2 40%,
+      #7e78d2 60%,
+      #65c9a4 80%
     );
     background-size: 200% auto;
     color: transparent;
@@ -1263,14 +1288,16 @@
     line-height: 1.3;
     display: inline-block;
     margin-bottom: 1rem;
-    white-space: nowrap;
+    white-space: normal; /* Allow wrapping */
     text-align: left;
     padding: 0 0 0.15em;
     transform: translateY(-0.05em);
+    max-width: 100%; /* Ensure text doesn't overflow */
+    overflow-wrap: break-word; /* Break long words if needed */
   }
 
   .title-group h1:hover {
-    filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.5));
+    filter: drop-shadow(0 0 2px rgba(101, 201, 164, 0.5));
     transform: none;
     animation: liquidFlow 2s linear infinite; /* Speed up animation on hover */
   }
@@ -1290,9 +1317,11 @@
     color: #333;
     line-height: 1.2;
     display: block;
-    white-space: nowrap;
+    white-space: normal; /* Enable text wrapping */
     text-align: left;
     overflow: visible;
+    max-width: 100%; /* Ensure text doesn't overflow container */
+    word-wrap: break-word; /* Allow long words to be broken */
   }
 
   .subtitle {
@@ -1303,6 +1332,7 @@
     white-space: normal;
     text-align: left;
     max-width: 100%;
+    word-wrap: break-word;
   }
 
   @media (min-width: 640px) {
@@ -1370,8 +1400,16 @@
     pointer-events: none;
     transform: translateX(0);
     justify-content: end;
+    opacity: 1; /* 默认完全显示 */
+    transition: opacity 0.3s ease; /* 添加过渡效果 */
   }
 
+  /* 确保文字内容在装饰元素上层 */
+  .slogan, .title-group {
+    position: relative;
+    z-index: 3; /* 增加z-index值，确保文字在装饰元素上方 */
+  }
+  
   .top-row {
     display: grid;
     grid-template-columns: repeat(3, 160px);
@@ -1410,7 +1448,15 @@
   .top-row .element:hover {
     transform: rotate(-15deg) scale(1.1);
   }
+  
+  /* 大屏幕：正常显示装饰元素 */
+  @media (min-width: 1281px) {
+    .decorative-elements {
+      opacity: 1;
+    }
+  }
 
+  /* 响应式调整 */
   @media (max-width: 1800px) {
     .decorative-elements {
       width: 840px;
@@ -1430,21 +1476,21 @@
       justify-content: end;
     }
   }
-
+  
+  /* 中等屏幕：淡化装饰元素 */
   @media (max-width: 1280px) {
     .decorative-elements {
       width: 600px;
       grid-template-columns: repeat(6, 100px);
-      opacity: 0.7;
+      opacity: 0.6; /* 淡化效果 */
       transform: translateX(0);
       row-gap: 0.75rem;
       justify-content: end;
     }
     
+    .title-group h2,
     .subtitle {
-      white-space: normal; 
-      overflow-wrap: break-word; 
-      max-width: 100%; 
+      white-space: normal;
     }
   }
 
@@ -1460,33 +1506,34 @@
     
     .slogan {
       margin-left: 1.5rem;
+      width: 90%; /* Constrain width for better readability */
     }
     
     .decorative-elements {
+      opacity: 0.4; /* 更加淡化 */
       transform: translateX(0) scale(0.9);
-      opacity: 0.5;
       row-gap: 0.5rem;
-      justify-content: end;
     }
     
     .title-group h1 {
-      @apply text-5xl;
+      font-size: 3rem;
+      white-space: normal; /* Allow wrapping */
     }
     
     .title-group h2 {
-      @apply text-4xl;
+      font-size: 2.5rem;
+      white-space: normal; /* Allow wrapping */
+      hyphens: auto; /* Enable hyphenation */
     }
     
     .subtitle {
-      @apply text-xl;
-      /* Ensure wrapping properties from 1280px are maintained or re-asserted if @apply overrides them */
+      font-size: 1.25rem;
       white-space: normal;
       overflow-wrap: break-word;
       max-width: 100%;
     }
-  }
-
-  @media (max-width: 992px) {
+    
+    /* 从992px移至这里的样式 */
     .emotions {
       gap: 30px;
     }
@@ -1500,14 +1547,21 @@
       width: 150px;
       height: 150px;
     }
+    
     .banner-content {
       padding: 0 3rem;
     }
+    
     .banner-title {
       font-size: 2rem;
     }
+    
+    .decorative-elements {
+      opacity: 0.25; /* 更低的透明度 */
+      transform: scale(0.8);
+    }
   }
-
+  
   @media (max-width: 768px) {
     .hero-section {
       min-height: 22vh;
@@ -1523,52 +1577,50 @@
     
     .slogan {
       margin-left: 1rem;
-      max-width: 90%;
+      max-width: 95%;
+      width: 95%;
     }
 
-    .subtitle {
-      white-space: normal; 
-      overflow-wrap: break-word; 
-      max-width: 100%; 
-      @apply text-lg;
-    }
-    
-    .decorative-elements {
-      opacity: 0.1;
-      transform: translateX(0) scale(0.8);
+    .title-group {
+      width: 100%;
     }
 
     .title-group h1 {
-      @apply text-4xl;
+      font-size: 2.5rem;
+      white-space: normal;
+      max-width: 100%; /* Enforce max width */
+      display: block; /* Change to block for full width */
+      overflow-wrap: break-word; /* Break words if needed */
+      hyphens: auto; /* Enable hyphenation */
     }
     
     .title-group h2 {
-      @apply text-3xl;
+      font-size: 2rem;
+      white-space: normal;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      display: block; /* Change to block for full width */
     }
     
     .subtitle {
-      @apply text-lg;
+      font-size: 1.125rem;
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
-
-    /* MODIFIED: Adjustments for feeling box and emojis on smaller tablets/large phones */
-    .feeling-box {
-      margin-top: 70px; 
-    }
-
-    /* Bell size adjustments for 768px if needed, for now, focusing on 480px */
-
-    .feeling-box h2 {
-      font-size: 28px; 
-      margin-top: 50px; 
-      margin-bottom: 25px;
-    }
-
+    
     .emotions {
-      gap: 20px; 
+      gap: 20px;
+      justify-content: space-evenly;
+    }
+    
+    .emoji-option {
+      min-width: 110px;
+      margin-bottom: 1rem;
     }
     
     .emoji-img {
-      width: 120px; 
+      width: 120px;
       height: 120px;
     }
     
@@ -1576,14 +1628,72 @@
       width: 130px;
       height: 130px;
     }
-  }
+    
+    .emoji-label {
+      font-size: 1rem;
+      margin-top: 8px;
+    }
 
-  @media (max-width: 640px) {
+    /* Bell size adjustments for 768px */
+    .feeling-box {
+      margin-top: 70px; 
+    }
+
+    .feeling-box h2 {
+      font-size: 28px; 
+      margin-top: 50px; 
+      margin-bottom: 25px;
+    }
+
     .decorative-elements {
-      opacity: 0;
-      transform: translateX(0) scale(0.7);
+      opacity: 0.1;
+      transform: translateX(0) scale(0.8);
     }
     
+    .comparison-content {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .banner-section {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+      height: auto;
+      min-height: 660px;
+    }
+    
+    .banners-container {
+      height: auto;
+      min-height: 660px;
+    }
+
+    .banner-title {
+      font-size: 1.8rem;
+    }
+
+    .constructive h3, .cyberbullying h3 {
+      font-size: 1.3rem;
+    }
+
+    .constructive p, .cyberbullying p {
+      font-size: 1rem;
+    }
+    
+    .banner-nav {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .prev-banner {
+      left: 10px;
+    }
+    
+    .next-banner {
+      right: 10px;
+    }
+  }
+  
+  @media (max-width: 640px) {
     .hero-section {
       min-height: 18vh;
       padding: 7.5rem 0 0.5rem;
@@ -1595,28 +1705,79 @@
       min-height: 18vh;
       padding-top: 0.25rem;
     }
-    
+
     .slogan {
       padding-top: 0;
     }
-    
+
+    .decorative-elements {
+      opacity: 0;
+      transform: translateX(0) scale(0.7);
+    }
+
     .title-group h1 {
-      @apply text-3xl;
+      font-size: 3rem;
+      white-space: nowrap;
     }
     
     .title-group h2 {
-      @apply text-2xl;
+      font-size: 2rem;
+      white-space: normal;
     }
     
     .subtitle {
-      @apply text-base;
-      /* Ensure wrapping properties from 768px are maintained or re-asserted */
+      font-size: 1rem;
       white-space: normal;
-      overflow-wrap: break-word;
-      max-width: 100%;
+    }
+    
+    .emotions {
+      gap: 15px;
+    }
+    
+    .emoji-img {
+      width: 100px;
+      height: 100px;
+      padding: 4px;
+      border: 3px solid transparent;
+    }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .emoji-img.selected {
+      border: 3px solid rgb(212, 238, 90);
+      box-shadow: 0 0 0 5px rgba(212, 238, 90, 0.4);
+    }
+    
+    .emoji-label {
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+    
+    .banner-content {
+      padding: 0 1.5rem;
+    }
+    
+    .banner-title {
+      font-size: 1.5rem;
+    }
+    
+    .constructive, .cyberbullying {
+      padding: 1.5rem;
+    }
+    
+    .banner-nav {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .arrow-icon {
+      font-size: 16px;
     }
   }
-
+  
   @media (max-width: 480px) {
     .decorative-elements {
       opacity: 0;
@@ -1630,62 +1791,86 @@
     
     .hero-content {
       min-height: 16vh;
+      width: 100%;
+    }
+    
+    .slogan {
+      width: 95%;
+      margin-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    .title-group {
+      width: 95%;
+    }
+
+    .title-group h1 {
+      font-size: 2.5rem;
+      white-space: normal;
+      max-width: 100%;
+      line-height: 1.2;
+      display: block;
+      word-break: break-word;
+    }
+    
+    .title-group h2 {
+      font-size: 1.5rem;
+      line-height: 1.3;
+      white-space: normal;
+      max-width: 100%;
+      display: block;
+      word-break: break-word;
     }
 
     .subtitle {
       white-space: normal;
       overflow-wrap: break-word; 
       max-width: 100%;
-      font-size: 0.875rem; /* MODIFIED: Explicitly smaller font size */
-      line-height: 1.3;    /* MODIFIED: Adjusted line height */
+      font-size: 1rem;
+      line-height: 1.3;
     }
-
-    /* MODIFIED: Bell icon and container size */
-    .bell-container {
-      width: 80px;
-      height: 80px;
-      top: -40px; /* Half of new height */
-    }
-
-    .bell-icon {
-      width: 80px;
-    }
-
-    .feeling-box h2 {
-      font-size: 22px; /* MODIFIED: Adjusted font size */
-      margin-top: 50px; /* MODIFIED: Adjusted for new bell positioning */
-      margin-bottom: 20px; 
-    }
-
+    
     .emotions {
-      gap: 15px; /* MODIFIED: Adjusted gap */
-      flex-wrap: wrap; 
-      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
+    }
+    
+    .emoji-option {
+      min-width: 70px;
+      margin-bottom: 1.5rem;
     }
     
     .emoji-img {
-      width: 90px; /* MODIFIED: Adjusted size */
-      height: 90px;
+      width: 80px;
+      height: 80px;
     }
     
     .emoji-option:last-child .emoji-img {
-      width: 100px; /* MODIFIED: Adjusted size */
+      width: 100px;
       height: 100px;
-      margin-top: 0; 
+      margin-top: 0;
+    }
+    
+    .emoji-label {
+      font-size: 0.85rem;
+      margin-top: 5px;
+      white-space: nowrap;
     }
   }
 
+  /* Feeling box styling */
   .feeling-box {
-    border: 2px solid #333;
+    border: 2px solid black;
     padding: 2rem 1rem 1rem;
     border-radius: 24px;
     width: 90%;
     max-width: 1200px;
-    margin: 30px auto 4rem;
+    margin: 100px auto 4rem;  /* Increased from 60px to 100px */
     position: relative;
-    background: white;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    z-index: 5;
+    background-color: #fff;
+    background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.95));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   }
 
   .bell-container {
@@ -1738,8 +1923,33 @@
     font-size: 36px;
     font-weight: 700;
     margin-top: 60px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     letter-spacing: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .feeling-box h2 {
+      font-size: 28px; 
+      margin-top: 50px; 
+      margin-bottom: 35px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .feeling-box h2 {
+      font-size: 24px;
+      margin-top: 45px;
+      margin-bottom: 30px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .feeling-box h2 {
+      font-size: 22px;
+      margin-top: 40px;
+      margin-bottom: 25px;
+      padding: 0 10px;
+    }
   }
 
   .emotions {
@@ -1747,12 +1957,16 @@
     justify-content: center;
     gap: 48px;
     margin: 2rem 0 1.5rem;
+    flex-wrap: wrap;
   }
 
   .emoji-option {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: auto;
+    min-width: 90px;
+    margin-bottom: 1rem;
   }
 
   .emoji-img {
@@ -1779,9 +1993,19 @@
   }
 
   .emoji-option:last-child .emoji-img {
-    width: 190px;
-    height: 190px;
+    width: 200px;
+    height: 200px;
     margin-top: -12px;
+  }
+
+  /* Emoji label styles */
+  .emoji-label {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    white-space: nowrap;
   }
 
   /* Hide dot styles and don't display dots */
@@ -1871,13 +2095,28 @@
   }
 
   .seek-help {
-    margin-top: 2rem;
-    margin-bottom: 3rem;
-    font-weight: bold;
-    font-size: 18px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    margin: 2rem auto 4rem;
+  }
+
+  .help-button {
+    padding: 0.75rem 2rem;
+    background-color: #7e78d2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .help-button:hover {
+    background-color: #65c9a4;
+    transform: translateY(-2px);
   }
 
   .overlay {
@@ -1886,56 +2125,161 @@
     left: 0;
     height: 100vh;
     width: 100vw;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
+  /* Popup styling */
   .popup {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    max-width: 400px;
+    background: linear-gradient(135deg, #7e78d2 0%, #9b94e3 100%);
+    padding: 2.5rem;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
     text-align: center;
+    box-shadow: 0 8px 32px rgba(126, 120, 210, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: translateY(0);
+    animation: slideUp 0.4s ease;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 
   .popup h2 {
-    margin-bottom: 1.5rem;
-  }
-
-  .popup .buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-  }
-
-  .popup .buttons button {
-    margin: 0;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    background-color: #6c63ff;
+    margin-top: 0;
     color: white;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1.4;
+  }
+  
+  .positive-popup {
+    background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+    box-shadow: 0 8px 32px rgba(126, 120, 210, 0.25);
+    border-radius: 20px;
+    border: 1px solid rgba(126, 120, 210, 0.2);
+    color: #4c1d95;
+  }
+  
+  .positive-popup h2 {
+    color: #6d28d9;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+    line-height: 1.3;
+    text-shadow: none;
+  }
+  
+  .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .buttons button {
+    padding: 0.9rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    min-width: 180px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .buttons button:first-child {
+    background: rgba(255, 255, 255, 0.95);
+    color: #7e78d2;
+    border-color: transparent;
+  }
+  
+  .buttons button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .buttons button:first-child:hover {
+    background: white;
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+  }
+  
+  .positive-popup .buttons button {
+    background: linear-gradient(90deg, #7e78d2, #9b94e3);
+    color: white;
+    font-weight: 700;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(126, 120, 210, 0.4);
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 200px;
+    cursor: pointer;
+    transition: all 0.3s ease;
   }
 
-  .popup .buttons button:hover {
-    background-color: #5a52d5;
-    transform: translateY(-2px);
+  .positive-popup .buttons button:hover {
+    background: linear-gradient(90deg, #9b94e3, #7e78d2);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(126, 120, 210, 0.5);
   }
-
-  .popup .buttons button:first-child {
-    background-color: #7963ff;
+  
+  @media (max-width: 768px) {
+    .popup {
+      padding: 2rem;
+      width: 85%;
+    }
+    
+    .popup h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .buttons {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .buttons button {
+      width: 100%;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      min-width: unset;
+    }
   }
-
-  .popup .buttons button:last-child {
-    background-color: #9290a6;
+  
+  @media (max-width: 480px) {
+    .popup {
+      padding: 1.5rem;
+      width: 90%;
+    }
+    
+    .popup h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1.2rem;
+    }
   }
 
   /* Add styles for InteractiveHoverButton component */
@@ -1986,27 +2330,6 @@
     .read-more-button {
       margin-right: 1rem;
     }
-  }
-
-  .help-button {
-    font-size: 26px;
-    font-weight: 700;
-    padding: 1.25rem 4rem;
-    background-color: #FF6B6B;
-    color: white;
-    border: 2px solid black;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    min-width: 300px;
-    text-align: center;
-  }
-
-  .help-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
-    background-color: #FF5252;
   }
 
   .comment-section-checker {
@@ -2473,12 +2796,18 @@
   .youtube-analysis-section {
     width: 100%;
     max-width: 970px;
-    margin: 0 auto 12rem;
+    margin: 0 auto 6rem;
   }
 
   .analysis-container {
     width: 100%;
     text-align: center;
+    background-color: #fff;
+    background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.98));
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(230, 239, 182, 0.3);
   }
 
   .analysis-container h3 {
@@ -2497,7 +2826,7 @@
   .youtube-input {
     flex: 1;
     padding: 1rem;
-    border: 1px solid #ddd;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
     outline: none;
@@ -2505,29 +2834,29 @@
   }
 
   .youtube-input:focus {
-    border-color: #7db3d9;
-    box-shadow: 0 0 0 2px rgba(125, 179, 217, 0.2);
+    border-color: #65c9a4;
+    box-shadow: 0 0 0 2px rgba(101, 201, 164, 0.2);
   }
 
   .analyze-button {
-    padding: 0.5rem 1.5rem;
-    background-color: #e75a97; /* Changed from blue to pink */
+    padding: 0.75rem 1.5rem;
+    background-color: #7e78d2;
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: all 0.3s ease;
   }
 
   .analyze-button:not(:disabled):hover {
-    background-color: #d4407f; /* Changed from darker blue to darker pink */
+    background-color: #65c9a4;
     transform: translateY(-2px);
   }
 
   .analyze-button:disabled {
-    background-color: #f5a5c4; /* Changed from light blue to light pink */
+    background-color: #b4b0e2;
     cursor: not-allowed;
   }
 
@@ -3215,17 +3544,18 @@
     }
     
     .emoji-img {
-      width: 160px;
-      height: 160px;
-    }
-    
-    .emoji-option:last-child .emoji-img {
       width: 170px;
       height: 170px;
     }
+    
+    .emoji-option:last-child .emoji-img {
+      width: 190px;
+      height: 190px;
+    }
   }
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
+    /* 从992px移至这里的样式 */
     .emotions {
       gap: 30px;
     }
@@ -3236,14 +3566,20 @@
     }
     
     .emoji-option:last-child .emoji-img {
-      width: 150px;
-      height: 150px;
+      width: 160px;
+      height: 160px;
     }
   }
   
   @media (max-width: 768px) {
     .emotions {
       gap: 20px;
+      justify-content: space-evenly;
+    }
+    
+    .emoji-option {
+      min-width: 110px;
+      margin-bottom: 1rem;
     }
     
     .emoji-img {
@@ -3252,12 +3588,12 @@
     }
     
     .emoji-option:last-child .emoji-img {
-      width: 130px;
-      height: 130px;
+      width: 140px;
+      height: 140px;
     }
   }
   
-  @media (max-width: 576px) {
+  @media (max-width: 640px) {
     .emoji-img {
       width: 100px;
       height: 100px;
@@ -3266,26 +3602,15 @@
     }
     
     .emoji-option:last-child .emoji-img {
-      width: 110px;
-      height: 110px;
-    }
-    
-    .emoji-img.selected {
-      border: 3px solid rgb(212, 238, 90);
-      box-shadow: 0 0 0 5px rgba(212, 238, 90, 0.4);
+      width: 120px;
+      height: 120px;
     }
   }
   
   @media (max-width: 480px) {
-    .emotions {
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    
     .emoji-img {
-      width: 90px;
-      height: 90px;
+      width: 80px;
+      height: 80px;
     }
     
     .emoji-option:last-child .emoji-img {
@@ -3297,211 +3622,105 @@
 
   /* Banner Section Styles */
   .banners-container {
-    width: 100%;
+    max-width: 1100px;
+    width: 90%;
+    margin: 0 auto 5rem;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 3rem 0;
-    height: 480px; /* Ensure this height accommodates content */
-    overflow: hidden; /* To contain the sliding animation */
   }
-
+  
   .banner-section {
-    width: 100vw; 
-    margin-left: calc(-50vw + 50%); 
-    height: 480px; 
-    position: relative; 
-    z-index: 1; 
-    display: flex; 
-    flex-direction: column;
-    justify-content: center;
-    /* Removed max-width, margin: 0 auto, and padding from here */
-    /* Removed overflow: hidden as it's on banners-container */
-  }
-
-  .banner-background {
-    /* This class is no longer strictly needed for background, 
-       but could be kept if other shared styles were on it. 
-       For now, we remove its specific background properties if any existed.
-    */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-  }
-
-  .banner-content {
-    width: 100%; /* Take full width of its positioning context */
-    max-width: 1200px; /* Constrain actual content */
-    margin: 0 auto; /* Center the content block */
-    padding: 2rem 4rem; /* Add vertical padding and keep horizontal */
-    position: relative; 
-    z-index: 1; 
-    display: flex;
-    flex-direction: column;
-    justify-content: center; 
-    text-align: center; 
-    height: 100%; /* Try to fill parent banner-section's height */
-  }
-
-  .banner-title {
-    font-size: 2.8rem; 
-    font-weight: 800;
-    margin-bottom: 2.5rem; 
-    color: #333; 
-    /* Layered text-shadow: Lighter, wider, softer glow effect */
-    
-    letter-spacing: 0.05em; 
-    line-height: 1.2;
-  }
-
-  .comparison-content {
-    display: flex;
-    justify-content: space-around; /* Changed from space-between for better centering if max-width is hit */
-    gap: 2rem;
-    margin-bottom: 2rem;
-    align-items: stretch; /* Key for making cards same height */
-  }
-
-  .constructive, .cyberbullying {
-    flex: 1 1 0px; /* Allow shrink, but base on 0px for equal distribution */
-    padding: 1.5rem; /* Slightly reduced padding */
-    border-radius: 12px; /* Slightly smaller radius */
-    background: rgba(255, 255, 255, 0.9); /* Slightly transparent white for depth */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-    /* overflow: hidden; // Can sometimes clip desired shadows or effects */
-    max-width: 45%; /* Ensure they don't get too wide, adjust as needed */
-    display: flex; 
-    flex-direction: column; 
-    /* min-height: 200px; */ /* REMOVED: Allow content to define height */
-  }
-
-  .constructive:hover, .cyberbullying:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
-  }
-
-  .constructive {
-    border-top: 5px solid #4CAF50;
-  }
-
-  .constructive::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
+    padding: 2rem;
+    border-radius: 16px;
+    overflow: hidden;
     width: 100%;
-    height: 5px;
-    background: linear-gradient(to right, #4CAF50, #8BC34A);
-    border-top-left-radius: 12px; /* Match card radius */
-    border-top-right-radius: 12px; /* Match card radius */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(230, 239, 182, 0.3);
+    transition: all 0.3s ease;
   }
-
-  .cyberbullying {
-    border-top: 5px solid #F44336;
-  }
-
-  .cyberbullying::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: linear-gradient(to right, #F44336, #FF5722);
-    border-top-left-radius: 12px; /* Match card radius */
-    border-top-right-radius: 12px; /* Match card radius */
-  }
-
-  .constructive h3, .cyberbullying h3 {
-    font-size: 1.3rem; /* Adjusted size */
-    margin-bottom: 0.75rem; /* Adjusted spacing */
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .constructive h3 {
-    color: #388E3C; /* Darker green for better contrast on light bg */
-  }
-
-  .cyberbullying h3 {
-    color: #D32F2F; /* Darker red */
-  }
-
-  .constructive p, .cyberbullying p {
-    font-size: 1rem; 
-    line-height: 1.5;
+  
+  .banner-title {
+    font-size: 1.8rem;
     color: #333;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
     text-align: center;
-    flex-grow: 1; 
-    display: flex; /* Added for vertical centering */
-    align-items: center; /* Added for vertical centering */
-    justify-content: center; /* Ensures horizontal centering of the text block itself if p has width constraints */
-    padding: 0.5rem 0; /* Add some padding if needed */
+  }
+  
+  .comparison-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 0 auto;
+    max-width: 950px;
+  }
+  
+  .constructive, .cyberbullying {
+    background-color: #fff;
+    background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.98));
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(230, 239, 182, 0.2);
   }
 
   .banner-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: white;
-    border: none;
-    width: 50px;
-    height: 50px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(230, 239, 182, 0.3);
     border-radius: 50%;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    z-index: 5;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
   }
-
-  .banner-nav:hover {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    background: #f8f8f8;
-  }
-
+  
   .prev-banner {
-    left: 20px;
+    left: -20px;
   }
-
+  
   .next-banner {
-    right: 20px;
+    right: -20px;
   }
-
+  
+  .banner-nav:hover {
+    background-color: #65c9a4;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
   .arrow-icon {
-    font-size: 20px;
-    font-weight: bold;
-    color: #555;
+    font-size: 1rem;
+    display: inline-block;
   }
-
+  
+  /* Banner pagination dots */
   .banner-pagination {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-top: 1.5rem; /* Added margin-top to move dots down */
+    gap: 0.75rem;
+    margin-top: 2rem;
   }
-
+  
   .dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background-color: #ddd;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-block;
   }
-
+  
   .dot.active {
-    background: white;
-    transform: scale(1.2);
+    background-color: #65c9a4;
+    transform: scale(1.3);
   }
 
   @media (max-width: 992px) {
@@ -3618,5 +3837,138 @@
       font-size: 2rem;
     }
   }
+
+  /* Positive popup styling */
+  .positive-popup {
+    border: none;
+    background: linear-gradient(135deg, #f0f8ff, #f5fbff);
+    box-shadow: 0 8px 32px rgba(79, 195, 247, 0.3);
+    border-radius: 16px;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+  }
+
+  .positive-popup h2 {
+    color: #42a5f5;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Remove the h2:after pseudo-element for positive-popup */
+  .positive-popup h2:after {
+    display: none;
+  }
+
+  .positive-popup .buttons button {
+    background: linear-gradient(90deg, #29b6f6, #4fc3f7);
+    color: white;
+    font-weight: 700;
+    padding: 12px 28px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(41, 182, 246, 0.3);
+    border: none;
+  }
+
+  .positive-popup .buttons button:hover {
+    background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(41, 182, 246, 0.4);
+  }
+
+  @media (max-width: 480px) {
+    .decorative-elements {
+      opacity: 0;
+      display: none;
+    }
+    
+    .hero-section {
+      min-height: 16vh;
+      padding: 8rem 0 0.5rem;
+    }
+    
+    .hero-content {
+      min-height: 16vh;
+      width: 100%;
+    }
+    
+    .slogan {
+      width: 95%;
+      margin-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    .title-group {
+      width: 95%;
+    }
+
+    .title-group h1 {
+      font-size: 2rem;
+      white-space: normal;
+      max-width: 100%;
+      line-height: 1.2;
+      display: block;
+      word-break: break-word;
+    }
+    
+    .title-group h2 {
+      font-size: 1.5rem;
+      line-height: 1.3;
+      white-space: normal;
+      max-width: 100%;
+      display: block;
+      word-break: break-word;
+    }
+
+    .subtitle {
+      white-space: normal;
+      overflow-wrap: break-word; 
+      max-width: 100%;
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+  }
+
+  /* Common section styles */
+  .section-title,
+  .section-subtitle {
+    position: relative;
+    z-index: 2;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    color: #000;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .section-subtitle {
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 3rem;
+    line-height: 1.5;
+    white-space: normal;
+  }
+
+  section {
+    padding: 3rem 0 5rem;
+    position: relative;
+    border-bottom: none;
+    margin-bottom: 5rem;
+  }
+
+  section:last-child {
+    margin-bottom: 3rem;
+  }
+
+  section:not(:last-child)::after {
+    display: none;
+  }
   </style>
+
 
