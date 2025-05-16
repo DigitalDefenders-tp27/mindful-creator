@@ -2152,43 +2152,82 @@ section:not(:last-child)::after {
   background-color: #fffcf5;
 }
 
+/* Styles for the new floating tab bar container */
 .resource-tabs {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-  justify-content: center;
-  flex-wrap: wrap; /* Allow tabs to wrap if needed */
+  justify-content: center; /* Center the bar itself if it has a max-width */
+  margin-bottom: 2.5rem; /* Keep existing bottom margin */
+  padding: 0; /* Reset padding, will be on inner items or bar background */
+  background-color: #f0f0f0; /* Light grey background for the bar - similar to current inactive online tab */
+  border-radius: 25px;      /* Rounded ends for the bar */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); /* Floating shadow */
+  max-width: 450px; /* Adjust as needed for the desired length */
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden; /* Ensures inner active tab shadow doesn't spill */
+  gap: 0; /* No gap, segments will touch */
 }
 
+/* Reset and new base styles for individual tab items within the bar */
 .resource-tab {
-  padding: 1rem 2.5rem;
-  background: #f4f4f6;
-  border-radius: 2.5rem;
-  color: #666;
-  font-size: 1.25rem;
+  flex: 1; /* Make tabs share space equally */
+  padding: 0.75rem 1.5rem; /* Adjust padding for a balanced look */
+  font-size: 1.1rem;    /* Slightly smaller font for a sleeker bar */
   font-weight: 500;
+  color: #555;          /* Default text color for inactive tabs */
+  text-align: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(231,90,151,0.04);
-  border: none;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  background: transparent; /* Transparent by default, active state will change this */
+  border: none;          /* Remove individual borders */
+  border-radius: 0; /* No individual rounding, bar itself is rounded */
+  box-shadow: none;      /* Remove individual shadows */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
   outline: none;
   letter-spacing: 0.01em;
-  min-width: 180px;
-  text-align: center;
   white-space: nowrap;
+  position: relative; /* For potential pseudo-elements if needed for separators, though not planned now */
 }
 
-.resource-tab.active {
-  background: linear-gradient(90deg, #e75a97 0%, #d4407f 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(231,90,151,0.10);
-  transform: scale(1.04);
-}
-
+/* Remove hover effect that changes background for the general tab if it's not active */
 .resource-tab:not(.active):hover {
-  background: #ececec;
-  color: #e75a97;
-  box-shadow: 0 2px 12px rgba(231,90,151,0.08);
+  background-color: rgba(0,0,0,0.05); /* Slight darken on hover for inactive */
+  color: #333;
+  transform: none; /* No transform on hover for inactive */
+  box-shadow: none;
+}
+
+/* Styling for the ACTIVE tab segment */
+.resource-tab.active {
+  background-color: #ffffff;  /* White background for the active segment */
+  color: #E91E63;             /* Pink text color for active segment */
+  font-weight: 600;
+  border-radius: 22px; /* Rounded corners for the active segment itself, slightly inset */
+  margin: 3px; /* Small margin to create the inset effect from the parent bar */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
+  transform: scale(1); /* Reset any previous scaling */
+}
+
+/* Remove specific styling for .resource-tab-online as it's now part of the unified bar */
+/* We'll let the general .resource-tab and .resource-tab.active handle all states. */
+/* Any !important overrides on .resource-tab-online might need to be explicitly undone or the class removed if it's not needed for other logic */
+.resource-tab-online,
+.resource-tab-online.active,
+.resource-tab-online:hover {
+  background-color: transparent !important; /* Try to override existing grey backgrounds */
+  border: none !important;                 /* Remove border */
+  box-shadow: none !important;             /* Remove shadow */
+  /* Text color will be inherited from .resource-tab or .resource-tab.active */
+}
+
+/* Ensure the .active class on .resource-tab-online also uses the new active style */
+.resource-tab-online.active {
+  background-color: #ffffff !important;  /* White background for the active segment */
+  color: #E91E63 !important;             /* Pink text color for active segment */
+  font-weight: 600 !important;
+  border-radius: 22px !important; /* Rounded corners for the active segment itself, slightly inset */
+  margin: 3px !important; /* Small margin to create the inset effect from the parent bar */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important; /* Inner shadow for depth */
+  transform: scale(1) !important;
 }
 
 .resource-content {
@@ -2225,12 +2264,12 @@ section:not(:last-child)::after {
 }
 
 .map-container {
-  position: relative; /* Establishes a positioning context for the search bar */
-  width: 100%; /* Or specific width */
-  height: 500px; /* Or specific height */
-  border-radius: 16px; /* Match map's border-radius if map itself won't have one */
-  /* box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Match map's box-shadow if map itself won't have one */
-  /* overflow: hidden; */ /* if the map has its own border-radius, this prevents search bar shadow from being clipped if search bar is too close to edge */
+  position: relative;
+  width: 100%;
+  height: 100%; /* Changed from 500px to take full available height in the grid cell */
+  border-radius: 16px; /* Retaining this, but it might be visually superseded by #google-map's radius or resource-content's clipping */
+  /* box-shadow: 0 4px 15px rgba(0,0,0,0.08); */ /* Commented out as #google-map has its own */
+  /* overflow: hidden; */ /* Potentially useful, but resource-content has overflow:hidden */
 }
 
 #google-map {
@@ -2745,49 +2784,55 @@ section:not(:last-child)::after {
 /* Search bar styles */
 .search-bar {
   position: absolute;
-  top: 20px; /* Adjust as needed */
-  left: 20px; /* Adjust as needed */
-  right: 20px; /* Adjust as needed, or use width */
-  /* width: calc(100% - 40px); */ /* Alternative to left/right for specific width and centering if needed */
-  z-index: 10; /* Ensures it's above the map */
-  background-color: #fff;
-  padding: 15px;
-  border-radius: 12px; /* Slightly smaller or same as map container's radius */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 80px);
+  max-width: 600px;
+  z-index: 10;
+  background-color: #fff; /* The capsule background */
+  border-radius: 50px;    /* Capsule shape */
+  padding-left: 20px;     /* More padding on the left for text start */
+  padding-right: 8px;      /* Padding for the button */
+  padding-top: 8px;
+  padding-bottom: 8px;
+  /* box-shadow: none; */ /* Already removed */
   display: flex;
   align-items: center;
-  gap: 10px; /* Spacing between input and button */
-  /* visibility will be controlled by v-if="activeTab === 'offline'" */
+  gap: 8px; /* Spacing between input and button */
 }
 
 .search-input {
   flex-grow: 1;
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 8px 0; /* Vertical padding, horizontal comes from parent's padding-left */
   font-size: 1rem;
-  outline: none;
-  transition: border-color 0.3s ease;
+  border: none;             /* No border for the input itself */
+  outline: none;            /* No outline */
+  background-color: transparent; /* Input is transparent, showing search-bar background */
+  color: #333;
 }
 
 .search-input:focus {
-  border-color: #E91E63; /* Or your primary theme color */
+  /* border-color: #E91E63; */ /* No border to color, focus handled by cursor/system */
 }
 
 .search-btn {
-  padding: 10px 15px;
-  background-color: #E91E63; /* Main accent color */
+  width: 40px;   /* Diameter of the circle button */
+  height: 40px;  /* Diameter of the circle button */
+  min-width: 40px; /* Ensure it maintains this width */
+  padding: 0;    /* Remove padding, icon will be centered by flex */
+  background-color: #E91E63;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 50%; /* Makes it a circle */
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
+  /* font-size: 1rem; */ /* Not relevant for icon button */
+  /* font-weight: 500; */ /* Not relevant for icon button */
   transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 100px; /* Ensure button has a decent width */
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .search-btn:hover:not(:disabled) {
