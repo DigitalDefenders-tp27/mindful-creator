@@ -230,9 +230,11 @@ const scrollToTop = () => {
 // --- Start of Auto-Flip Journey Cards Logic ---
 const journeyCardsRef = ref([]);
 let throttledScrollHandler = null;
-const autoFlipTimeout = ref({});  // Change to object to track multiple timeouts
+const autoFlipTimeout = ref({});  // Track timeouts by card index
+const demonstrationDone = ref({}); // Track which cards have shown their initial demonstration
+const journeySectionDemoShown = ref(false); // Track if journey section demo has been shown
 
-console.log('Auto-Flip: Script initialized'); // Log: Script start
+console.log('Auto-Flip: Script initialized');
 
 const isElementInViewport = (el) => {
   if (!el) return false;
@@ -246,24 +248,89 @@ const isElementInViewport = (el) => {
   );
 };
 
+const isSectionInViewport = () => {
+  const journeySection = document.querySelector('.journey-section');
+  if (!journeySection) return false;
+  
+  const rect = journeySection.getBoundingClientRect();
+  // Section is considered in viewport when at least 30% of it is visible
+  return (
+    rect.top < (window.innerHeight * 0.7) &&
+    rect.bottom > (window.innerHeight * 0.3)
+  );
+};
+
+const isMobileDevice = () => {
+  return window.innerWidth < 768;
+};
+
 const handleScroll = () => {
-  console.log('Auto-Flip: Scroll event triggered'); // Log: Scroll handler runs
-  journeyCardsRef.value.forEach((cardWrapper, index) => {
-    if (cardWrapper && isElementInViewport(cardWrapper)) {
-      if (!cardWrapper.classList.contains('auto-flip-trigger')) {
-        console.log('Auto-Flip: Card in view, adding auto-flip class to:', index);
-        cardWrapper.classList.add('auto-flip-trigger');
+  console.log('Auto-Flip: Scroll event triggered');
+  const isMobile = isMobileDevice();
+  
+  // For wide screens, only do the demonstration once when the section comes into view
+  if (!isMobile) {
+    const isSectionVisible = isSectionInViewport();
+    
+    // If journey section just came into view and demonstration hasn't been shown yet
+    if (isSectionVisible && !journeySectionDemoShown.value) {
+      console.log('Auto-Flip: Journey section in view, doing one-time demonstration');
+      
+      // Mark the journey section as having shown the demonstration
+      journeySectionDemoShown.value = true;
+      
+      // Do a sequential demonstration of all cards
+      journeyCardsRef.value.forEach((cardWrapper, index) => {
+        if (!cardWrapper) return;
         
-        // For mobile devices, set a timeout to remove the class
-        if (window.innerWidth < 768) {
+        // Add a slight delay for each card for a sequential effect
+        setTimeout(() => {
+          console.log('Auto-Flip: Starting demonstration for card:', index);
+          cardWrapper.classList.add('auto-flip-trigger');
+          
+          // Flip back after a short delay
           if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
           autoFlipTimeout.value[index] = setTimeout(() => {
             cardWrapper.classList.remove('auto-flip-trigger');
-            console.log('Auto-Flip: Removing auto-flip class (mobile timeout):', index);
-          }, 3000);
-        }
+            console.log('Auto-Flip: Demonstration complete for card:', index);
+          }, 500);
+        }, index * 200); // Stagger the start by 200ms per card
+      });
+      
+      return; // Exit early after starting the demonstration
+    }
+    
+    // If section is no longer in view, reset the flag so it will demonstrate again when user returns
+    if (!isSectionVisible && journeySectionDemoShown.value) {
+      journeySectionDemoShown.value = false;
+    }
+    
+    return; // For wide screens, we don't do per-card flipping on scroll
+  }
+  
+  // Mobile behavior - flip cards individually as they come into viewport
+  journeyCardsRef.value.forEach((cardWrapper, index) => {
+    if (!cardWrapper) return;
+    
+    const isInView = isElementInViewport(cardWrapper);
+    const hasAutoFlipClass = cardWrapper.classList.contains('auto-flip-trigger');
+    
+    // Card is in viewport (mobile only)
+    if (isInView && isMobile) {
+      if (!hasAutoFlipClass) {
+        console.log('Auto-Flip: Card in view (mobile), adding auto-flip class to:', index);
+        cardWrapper.classList.add('auto-flip-trigger');
+        
+        // Auto flip-back after 3 seconds on mobile
+        if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+        autoFlipTimeout.value[index] = setTimeout(() => {
+          cardWrapper.classList.remove('auto-flip-trigger');
+          console.log('Auto-Flip: Removing auto-flip class (mobile timeout):', index);
+        }, 3000);
       }
-    } else if (cardWrapper && cardWrapper.classList.contains('auto-flip-trigger')) {
+    } 
+    // Card is no longer in viewport
+    else if (hasAutoFlipClass) {
       console.log('Auto-Flip: Card out of view, removing auto-flip class:', index); 
       cardWrapper.classList.remove('auto-flip-trigger');
       if (autoFlipTimeout.value[index]) {
@@ -290,15 +357,16 @@ onMounted(() => {
   // Select the journey-link elements which are the wrappers for FlipCards
   const cards = document.querySelectorAll('.journey-section .journey-link');
   journeyCardsRef.value = Array.from(cards);
-  console.log('Auto-Flip: Cards found on mount:', journeyCardsRef.value.length); // Log: Cards found
+  console.log('Auto-Flip: Cards found on mount:', journeyCardsRef.value.length);
 
   throttledScrollHandler = throttle(handleScroll, 150);
   window.addEventListener('scroll', throttledScrollHandler);
+  window.addEventListener('resize', throttledScrollHandler);
   
-  console.log('Auto-Flip: Scroll listener attached. Performing initial check.'); // Log: Listener attached
+  console.log('Auto-Flip: Scroll listener attached. Performing initial check.');
   
   // Add touch events for mobile
-  if (window.innerWidth < 768) {
+  if (isMobileDevice()) {
     journeyCardsRef.value.forEach((card, index) => {
       card.addEventListener('touchstart', (e) => {
         // Toggle auto-flip-trigger class on touch
@@ -316,41 +384,17 @@ onMounted(() => {
     });
   }
   
-  handleScroll(); 
-  
-  // Use IntersectionObserver if available
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        const index = journeyCardsRef.value.indexOf(entry.target);
-        if (entry.isIntersecting) {
-          entry.target.classList.add('auto-flip-trigger');
-          if (window.innerWidth < 768) {
-            if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
-            autoFlipTimeout.value[index] = setTimeout(() => {
-              entry.target.classList.remove('auto-flip-trigger');
-            }, 3000);
-          }
-        } else {
-          entry.target.classList.remove('auto-flip-trigger');
-          if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
-        }
-      });
-    }, {
-      threshold: 0.5,
-      rootMargin: '0px'
-    });
-    
-    journeyCardsRef.value.forEach(card => {
-      observer.observe(card);
-    });
-  }
+  // After a short delay, run the initial check to show demonstrations
+  setTimeout(() => {
+    handleScroll(); 
+  }, 500);
 });
 
 onUnmounted(() => {
   if (throttledScrollHandler) {
     window.removeEventListener('scroll', throttledScrollHandler);
-    console.log('Auto-Flip: Scroll listener removed.'); // Log: Listener removed
+    window.removeEventListener('resize', throttledScrollHandler);
+    console.log('Auto-Flip: Scroll listener removed.');
   }
   
   // Clear all timeouts
@@ -359,7 +403,7 @@ onUnmounted(() => {
   });
   
   // Remove touch listeners
-  if (window.innerWidth < 768) {
+  if (isMobileDevice()) {
     journeyCardsRef.value.forEach(card => {
       card.removeEventListener('touchstart', () => {});
     });
