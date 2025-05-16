@@ -84,7 +84,6 @@
                     <ul class="feature-list">
                       <li>Promote truth and accountability in your content.</li>
                       <li>Engage respectfully, encouraging constructive discussions.</li>
-                      <li>Influence responsibly, considering the ethical implications of your message.</li>
                     </ul>
                   </div>
                 </template>
@@ -104,8 +103,7 @@
                   <div class="card-content">
                     <ul class="feature-list">
                       <li>Balance online presence with offline activities.</li>
-                      <li>Recognize signs of digital fatigue and burnout.</li>
-                      <li>Foster healthy habits, such as setting content creation boundaries and managing screen time.</li>
+                      <li>Manage digital fatigue and set content creation boundaries.</li>
                     </ul>
                   </div>
                 </template>
@@ -125,8 +123,7 @@
                   <div class="card-content">
                     <ul class="feature-list">
                       <li>Address feedback professionally and objectively.</li>
-                      <li>Manage criticism constructively without compromising integrity.</li>
-                      <li>Turn challenging conversations into opportunities for growth and learning.</li>
+                      <li>Turn criticism into opportunities for growth.</li>
                     </ul>
                   </div>
                 </template>
@@ -146,9 +143,8 @@
                 <template #back>
                   <div class="card-content">
                     <ul class="feature-list">
-                      <li>Understand and manage personal data sharing practices.</li>
-                      <li>Utilize privacy settings effectively across platforms.</li>
-                      <li>Encourage your audience to value and protect their online privacy.</li>
+                      <li>Understand and manage personal data sharing.</li>
+                      <li>Use privacy settings effectively across platforms.</li>
                     </ul>
                   </div>
                 </template>
@@ -166,9 +162,8 @@
                 <template #back>
                   <div class="card-content">
                     <ul class="feature-list">
-                      <li>Create original content or appropriately credit sources.</li>
-                      <li>Learn about fair use guidelines to navigate content sharing responsibly.</li>
-                      <li>Protect your own content and respect the intellectual property of others.</li>
+                      <li>Create original content or properly credit sources.</li>
+                      <li>Understand fair use and protect intellectual property.</li>
                     </ul>
                   </div>
                 </template>
@@ -188,8 +183,7 @@
                   <div class="card-content">
                     <ul class="feature-list">
                       <li>Take mindful breaks to reset your creative energy.</li>
-                      <li>Learn techniques to manage digital stress and anxiety.</li>
-                      <li>Discover activities designed for creators' mental wellbeing.</li>
+                      <li>Learn techniques to manage digital stress.</li>
                     </ul>
                   </div>
                 </template>
@@ -236,6 +230,7 @@ const scrollToTop = () => {
 // --- Start of Auto-Flip Journey Cards Logic ---
 const journeyCardsRef = ref([]);
 let throttledScrollHandler = null;
+const autoFlipTimeout = ref({});  // Change to object to track multiple timeouts
 
 console.log('Auto-Flip: Script initialized'); // Log: Script start
 
@@ -253,10 +248,27 @@ const isElementInViewport = (el) => {
 
 const handleScroll = () => {
   console.log('Auto-Flip: Scroll event triggered'); // Log: Scroll handler runs
-  journeyCardsRef.value.forEach(cardEl => {
-    if (cardEl && !cardEl.classList.contains('auto-flipped') && isElementInViewport(cardEl)) {
-      console.log('Auto-Flip: Card in view, adding auto-flipped class to:', cardEl); // Log: Card detected in view
-      cardEl.classList.add('auto-flipped');
+  journeyCardsRef.value.forEach((cardWrapper, index) => {
+    if (cardWrapper && isElementInViewport(cardWrapper)) {
+      if (!cardWrapper.classList.contains('auto-flip-trigger')) {
+        console.log('Auto-Flip: Card in view, adding auto-flip class to:', index);
+        cardWrapper.classList.add('auto-flip-trigger');
+        
+        // For mobile devices, set a timeout to remove the class
+        if (window.innerWidth < 768) {
+          if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+          autoFlipTimeout.value[index] = setTimeout(() => {
+            cardWrapper.classList.remove('auto-flip-trigger');
+            console.log('Auto-Flip: Removing auto-flip class (mobile timeout):', index);
+          }, 3000);
+        }
+      }
+    } else if (cardWrapper && cardWrapper.classList.contains('auto-flip-trigger')) {
+      console.log('Auto-Flip: Card out of view, removing auto-flip class:', index); 
+      cardWrapper.classList.remove('auto-flip-trigger');
+      if (autoFlipTimeout.value[index]) {
+        clearTimeout(autoFlipTimeout.value[index]);
+      }
     }
   });
 };
@@ -275,21 +287,82 @@ const throttle = (func, limit) => {
 };
 
 onMounted(() => {
-  const cards = document.querySelectorAll('.journey-section .journey-card');
+  // Select the journey-link elements which are the wrappers for FlipCards
+  const cards = document.querySelectorAll('.journey-section .journey-link');
   journeyCardsRef.value = Array.from(cards);
-  console.log('Auto-Flip: Cards found on mount:', journeyCardsRef.value.length, journeyCardsRef.value); // Log: Cards found
+  console.log('Auto-Flip: Cards found on mount:', journeyCardsRef.value.length); // Log: Cards found
 
   throttledScrollHandler = throttle(handleScroll, 150);
   window.addEventListener('scroll', throttledScrollHandler);
   
   console.log('Auto-Flip: Scroll listener attached. Performing initial check.'); // Log: Listener attached
+  
+  // Add touch events for mobile
+  if (window.innerWidth < 768) {
+    journeyCardsRef.value.forEach((card, index) => {
+      card.addEventListener('touchstart', (e) => {
+        // Toggle auto-flip-trigger class on touch
+        if (!card.classList.contains('auto-flip-trigger')) {
+          card.classList.add('auto-flip-trigger');
+          if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+          autoFlipTimeout.value[index] = setTimeout(() => {
+            card.classList.remove('auto-flip-trigger');
+          }, 3000);
+        } else {
+          card.classList.remove('auto-flip-trigger');
+          if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+        }
+      });
+    });
+  }
+  
   handleScroll(); 
+  
+  // Use IntersectionObserver if available
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        const index = journeyCardsRef.value.indexOf(entry.target);
+        if (entry.isIntersecting) {
+          entry.target.classList.add('auto-flip-trigger');
+          if (window.innerWidth < 768) {
+            if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+            autoFlipTimeout.value[index] = setTimeout(() => {
+              entry.target.classList.remove('auto-flip-trigger');
+            }, 3000);
+          }
+        } else {
+          entry.target.classList.remove('auto-flip-trigger');
+          if (autoFlipTimeout.value[index]) clearTimeout(autoFlipTimeout.value[index]);
+        }
+      });
+    }, {
+      threshold: 0.5,
+      rootMargin: '0px'
+    });
+    
+    journeyCardsRef.value.forEach(card => {
+      observer.observe(card);
+    });
+  }
 });
 
 onUnmounted(() => {
   if (throttledScrollHandler) {
     window.removeEventListener('scroll', throttledScrollHandler);
     console.log('Auto-Flip: Scroll listener removed.'); // Log: Listener removed
+  }
+  
+  // Clear all timeouts
+  Object.values(autoFlipTimeout.value).forEach(timeout => {
+    clearTimeout(timeout);
+  });
+  
+  // Remove touch listeners
+  if (window.innerWidth < 768) {
+    journeyCardsRef.value.forEach(card => {
+      card.removeEventListener('touchstart', () => {});
+    });
   }
 });
 // --- End of Auto-Flip Journey Cards Logic ---
@@ -783,7 +856,7 @@ onUnmounted(() => {
 /* About Section */
 .about-section {
   position: relative;
-  padding: 0 0rem 4rem;
+  padding: 0 0rem 2rem;
   color: #232323;
   background-color: rgb(255, 252, 244);
 }
@@ -907,7 +980,7 @@ onUnmounted(() => {
   margin: 0 auto;
   position: relative;
   z-index: 1;
-  padding: 4rem 2rem 0;
+  padding: 2rem 2rem 0;
 }
 
 .journey-content h2 {
@@ -1190,7 +1263,7 @@ onUnmounted(() => {
 }
 
 .card-text h3 {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
@@ -1200,7 +1273,7 @@ onUnmounted(() => {
   @apply text-left space-y-4;
   color: inherit;
   padding: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   width: 100%;
   font-weight: 700;
 }
@@ -1212,6 +1285,7 @@ onUnmounted(() => {
   width: 100%;
   padding-right: 0.1rem;
   font-weight: 700;
+  font-size: 1.3rem;
 }
 
 .feature-list li::before {
@@ -1678,6 +1752,17 @@ p {
 
 /* For programmatic auto-flip on scroll */
 .journey-card.auto-flipped :deep(.flip-card) {
+  transform: rotateY(180deg) !important;
+}
+
+/* Add new styles for auto-flip-trigger */
+.journey-link.auto-flip-trigger :deep(.flip-card-inner),
+.journey-link.auto-flip-trigger :deep(.relative) {
+  transform: rotateY(180deg) !important;
+}
+
+/* Override hover in auto-flip mode to prevent conflicts */
+.auto-flip-trigger:hover :deep(.relative) {
   transform: rotateY(180deg) !important;
 }
 </style>
