@@ -103,28 +103,29 @@
           </div>
           
           <div class="resource-content" :class="{ 'online-only': activeTab === 'online' }">
-            <!-- Search bar for address (MOVED HERE) -->
-            <div class="search-bar" v-if="activeTab === 'offline'" style="grid-column: 1 / -1;">
-              <input 
-                id="address-search"
-                v-model="searchAddress" 
-                @keyup.enter="onSearch"
-                placeholder="Enter your location..." 
-                class="search-input"
-                :disabled="isSearching"
-              />
-              <button 
-                @click="onSearch" 
-                class="search-btn"
-                :class="{ 'is-loading': isSearching }"
-                :disabled="isSearching"
-                v-html="searchBtnContent"
-              ></button>
-            </div>
-
             <!-- Google Map display -->
             <div class="map-container" v-if="activeTab === 'offline'">
+              <!-- Search bar for address (MOVED INSIDE map-container) -->
+              <div class="search-bar" v-if="activeTab === 'offline'">
+                <input 
+                  id="address-search"
+                  v-model="searchAddress" 
+                  @keyup.enter="onSearch"
+                  placeholder="Enter your location..." 
+                  class="search-input"
+                  :disabled="isSearching"
+                />
+                <button 
+                  @click="onSearch" 
+                  class="search-btn"
+                  :class="{ 'is-loading': isSearching }"
+                  :disabled="isSearching"
+                  v-html="searchBtnContent"
+                ></button>
+              </div>
+
               <div id="google-map" style="width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"></div>
+              
               <button class="position-btn" @click="getMyPosition">
                 <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="white"/>
@@ -2224,16 +2225,12 @@ section:not(:last-child)::after {
 }
 
 .map-container {
-  position: relative;
-  height: 100%;
-  min-height: 560px;
-  display: flex;
-  flex-direction: column;
-  grid-column: 1 / 2;
-  width: 100%;
-  background-color: #f5f5f5;
-  border-radius: 16px;
-  overflow: hidden;
+  position: relative; /* Establishes a positioning context for the search bar */
+  width: 100%; /* Or specific width */
+  height: 500px; /* Or specific height */
+  border-radius: 16px; /* Match map's border-radius if map itself won't have one */
+  /* box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Match map's box-shadow if map itself won't have one */
+  /* overflow: hidden; */ /* if the map has its own border-radius, this prevents search bar shadow from being clipped if search bar is too close to edge */
 }
 
 #google-map {
@@ -2747,53 +2744,69 @@ section:not(:last-child)::after {
 
 /* Search bar styles */
 .search-bar {
-  position: relative;
-  margin-bottom: 1.5rem;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto 1.5rem;
+  position: absolute;
+  top: 20px; /* Adjust as needed */
+  left: 20px; /* Adjust as needed */
+  right: 20px; /* Adjust as needed, or use width */
+  /* width: calc(100% - 40px); */ /* Alternative to left/right for specific width and centering if needed */
+  z-index: 10; /* Ensures it's above the map */
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 12px; /* Slightly smaller or same as map container's radius */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Spacing between input and button */
+  /* visibility will be controlled by v-if="activeTab === 'offline'" */
 }
 
 .search-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 50px 0 16px;
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 24px;
-  background: white;
-  transition: all 0.2s ease;
+  outline: none;
+  transition: border-color 0.3s ease;
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: #e75a97;
-  box-shadow: 0 0 0 3px rgba(231, 90, 151, 0.1);
+  border-color: #E91E63; /* Or your primary theme color */
 }
 
 .search-btn {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  width: 40px;
-  height: 40px;
+  padding: 10px 15px;
+  background-color: #E91E63; /* Main accent color */
+  color: white;
   border: none;
-  border-radius: 20px;
-  background: #e75a97;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  min-width: 100px; /* Ensure button has a decent width */
 }
 
-.search-btn:hover {
-  background: #d4407f;
-  transform: translateY(-1px);
+.search-btn:hover:not(:disabled) {
+  background-color: #c2185b; /* Darker shade for hover */
 }
 
-.search-btn:active {
-  transform: translateY(0);
+.search-btn.is-loading {
+  background-color: #cccccc; /* Different style for loading */
+  cursor: not-allowed;
+}
+
+.search-btn .loader {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #E91E63;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  margin-right: 5px; /* If you want text next to loader */
 }
 
 /* Google Places Autocomplete customization */
