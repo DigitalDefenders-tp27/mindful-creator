@@ -131,7 +131,7 @@ class WatermarkHandler:
         """
         try:
             # Create SVG drawing
-            dwg = svgwrite.Drawing(size=(width, height), profile='tiny')
+            dwg = svgwrite.Drawing(size=(width, height), profile='full', debug=False)
             
             # Calculate position (approximate since SVG text metrics are different)
             # We'll assume the text width is roughly 10 pixels per character
