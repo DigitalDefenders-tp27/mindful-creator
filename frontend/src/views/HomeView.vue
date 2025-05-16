@@ -577,8 +577,25 @@ onUnmounted(() => {
   transition: all 0.5s ease;
 }
 
-/* Hover效果增强 */
+/* Removing hover enlargement effects */
 .top-row .element:hover {
+  transform: none;
+}
+
+.top-row-2 .element:hover {
+  transform: none;
+}
+
+.bottom-row-1 .element:hover {
+  transform: none;
+}
+
+.bottom-row-2 .element:hover {
+  transform: none;
+}
+
+/* Also update card icon hover effect to remove enlargement */
+.main-card:hover .card-icon {
   transform: none;
 }
 

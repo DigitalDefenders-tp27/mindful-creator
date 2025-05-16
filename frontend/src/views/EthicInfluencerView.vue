@@ -580,7 +580,7 @@ onMounted(() => {
 }
 
 .top-row .element:hover {
-  transform: rotate(-15deg) scale(1.1);
+  transform: none;
 }
 
 /* Responsive adjustments */
@@ -871,19 +871,19 @@ onMounted(() => {
 
 /* Enhanced hover effect */
 .top-row .element:hover {
-  transform: rotate(-15deg) scale(1.1);
+  transform: none;
 }
 
 .top-row-2 .element:hover {
-  transform: rotate(15deg) scale(1.1);
+  transform: none;
 }
 
 .bottom-row-1 .element:hover {
-  transform: rotate(15deg) scale(1.1);
+  transform: none;
 }
 
 .bottom-row-2 .element:hover {
-  transform: rotate(-10deg) scale(1.1);
+  transform: none;
 }
 
 .content-section {
@@ -1308,7 +1308,7 @@ onMounted(() => {
 }
 
 .main-card:hover .card-icon {
-  transform: translateY(-3px);
+  transform: none;
 }
 
 .card-text h3 {
