@@ -506,7 +506,7 @@ onUnmounted(() => {
 
 /* Hover效果增强 */
 .top-row .element:hover {
-  transform: rotate(-15deg) scale(1.1);
+  transform: none;
 }
 
 /* Responsive adjustments */

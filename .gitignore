@@ -3,17 +3,70 @@ node_modules
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
 venv/
-.venv/
+.env
+.venv
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite3
+*.db
+
+# Datasets and large files
+backend/datasets/meme/memotion_dataset_7k/
+backend/datasets/meme/memotion_sample.csv
+backend/datasets/meme/*.jpg
+backend/datasets/meme/*.jpeg
+backend/datasets/meme/*.png
+backend/datasets/meme/*.gif
+
+# Local configuration
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Node / Vite
 .vite/
 
 # secrets
-.env
 backend/server.log
 server.log
 
 # NLP Model files - keep only __init__.py
 backend/app/nlp/*
 !backend/app/nlp/__init__.py
+# Large media files
+docs/media/color_breathing_VIDEO.mp4
+frontend/public/media/color_breathing_VIDEO.mp4
