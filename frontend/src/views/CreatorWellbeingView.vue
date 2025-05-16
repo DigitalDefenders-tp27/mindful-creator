@@ -1,16 +1,16 @@
 <template>
   <div class="creator-wellbeing">
     <!-- Scroll Island -->
-    <ScrollIsland title="Creator Wellbeing" ref="scrollIslandRef">
+    <ScrollIsland :title="currentSection" ref="scrollIslandRef">
       <div class="island-sections">
         <div class="island-section" @click="scrollToSection('dashboard-section')">
-          <h4>Digital Impact Analysis Dashboard</h4>
+          <h4>Analysis Dashboard</h4>
         </div>
         <div class="island-section" @click="scrollToSection('resource-finder-section')">
-          <h4>Wellbeing Resource Finder</h4>
+          <h4>Resource Finder</h4>
         </div>
         <div class="island-section" @click="scrollToSection('activities-section')">
-          <h4>Wellbeing Activities Hub</h4>
+          <h4>Activities Hub</h4>
         </div>
       </div>
     </ScrollIsland>
@@ -137,6 +137,22 @@
             <!-- Online Resources -->
             <div class="online-resources-container" :class="{ 'full-width': activeTab === 'online' }" v-if="activeTab === 'online'">
               <div class="online-resources-list">
+                <!-- New Relaxation Card - First Position -->
+                <div class="online-resource-card rainbow-border">
+                  <div class="resource-logo">
+                    <img src="@/assets/icons/elements/relaxation-icon.svg" alt="Relaxation" class="resource-icon">
+                  </div>
+                  <div class="resource-info">
+                    <h3>Mindful Relaxation</h3>
+                    <p>Access guided meditation, breathing exercises, and relaxation techniques to reduce stress and anxiety.</p>
+                    <div class="resource-tags">
+                      <span class="tag">Relaxation</span>
+                      <span class="tag">Mental Wellness</span>
+                    </div>
+                    <router-link to="/relaxation" class="resource-link-btn">Explore Techniques</router-link>
+                  </div>
+                </div>
+                
                 <div class="online-resource-card">
                   <div class="resource-logo">
                     <img src="@/assets/icons/elements/online-therapy.svg" alt="BetterHelp" class="resource-icon">
@@ -250,7 +266,7 @@
                   <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H9V9H7V7ZM7 11H9V13H7V11ZM7 15H9V17H7V15ZM17 17H11V15H17V17ZM17 13H11V11H17V13ZM17 9H11V7H17V9Z" fill="white"/>
                   </svg>
-                  Get Preparation Guide
+                  Preparation
                 </button>
               </div>
             </div>
@@ -1428,6 +1444,15 @@ const scrollToSection = (sectionId) => {
       behavior: 'smooth'
     });
     
+    // Update current section immediately
+    if (sectionId === 'dashboard-section') {
+      currentSection.value = 'Analysis Dashboard';
+    } else if (sectionId === 'resource-finder-section') {
+      currentSection.value = 'Resource Finder';
+    } else if (sectionId === 'activities-section') {
+      currentSection.value = 'Activities Hub';
+    }
+    
     // Close the island after navigation
     if (scrollIslandRef.value) {
       scrollIslandRef.value.closeIsland();
@@ -1496,6 +1521,74 @@ const generateStars = (rating) => {
   }
   
   return starsHTML;
+};
+
+// Now, add the currentSection ref and logic to track the current section
+// Add this to the script section
+const currentSection = ref('Analysis Dashboard');
+
+// Add this function to update the current section based on scroll position
+const updateCurrentSection = () => {
+  const dashboardSection = document.querySelector('.dashboard-section');
+  const resourceFinderSection = document.querySelector('.resource-finder-section');
+  const activitiesSection = document.querySelector('#wellbeing-activities');
+  
+  const scrollPosition = window.scrollY + window.innerHeight / 3;
+  
+  if (activitiesSection && scrollPosition >= activitiesSection.offsetTop) {
+    currentSection.value = 'Activities Hub';
+  } else if (resourceFinderSection && scrollPosition >= resourceFinderSection.offsetTop) {
+    currentSection.value = 'Resource Finder';
+  } else {
+    currentSection.value = 'Analysis Dashboard';
+  }
+};
+
+// Update the onMounted hook to include the scroll event listener
+onMounted(() => {
+  renderChart();
+  
+  const handleResize = () => {
+    if (window.innerWidth > 768 && !filtersVisible.value) {
+      filtersVisible.value = true;
+    }
+  };
+  
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('scroll', updateCurrentSection);
+  
+  // Initial call to set the correct section
+  updateCurrentSection();
+  
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+    window.removeEventListener('scroll', updateCurrentSection);
+    // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
+    if (map.value && googleInstance) {
+        // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
+    }
+  });
+  
+  if (activeTab.value === 'offline') {
+    nextTick(initMap);
+  }
+});
+
+// Add to the script section
+const callClinic = () => {
+  if (selectedClinic.value && selectedClinic.value.phone) {
+    window.open(`tel:${selectedClinic.value.phone}`);
+  } else {
+    alert('No phone number available for this clinic.');
+  }
+};
+
+const visitWebsite = () => {
+  if (selectedClinic.value && selectedClinic.value.website) {
+    window.open(selectedClinic.value.website, '_blank');
+  } else {
+    alert('No website available for this clinic.');
+  }
 };
 
 </script>
@@ -2352,8 +2445,8 @@ section:not(:last-child)::after {
 
 .resource-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 20px;
+  margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid #f0f0f0;
   justify-content: center;
@@ -2361,9 +2454,64 @@ section:not(:last-child)::after {
 }
 
 .action-btn {
-  flex: 1;
-  min-width: 140px;
-  max-width: 200px;
+  min-width: 200px;
+  max-width: 250px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0 24px;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 50px;
+  white-space: nowrap;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(231, 90, 151, 0.25);
+}
+
+.btn-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(231, 90, 151, 0.35);
+  background-color: #d4407f;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .resource-actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .action-btn {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-btn {
+    height: 46px;
+    font-size: 0.95rem;
+  }
+}
+
+.position-btn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #e75a97;
   color: white;
   border: none;
@@ -2375,42 +2523,47 @@ section:not(:last-child)::after {
   gap: 8px;
   cursor: pointer;
   font-weight: 500;
-  height: 48px; /* Increased height */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  height: 48px;
   white-space: nowrap;
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  line-height: 48px;
+  transition: all 0.3s ease;
+  bottom: 15px;
 }
 
-/* Responsive adjustments for the increased height */
+/* Make sure the resource-actions container stays at the bottom */
+.resource-details {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 800px; /* Previously increased from 700px */
+  background: #fff;
+  overflow-y: auto;
+}
+
+.resource-info-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
 @media (max-width: 768px) {
-  .map-container {
-    min-height: 400px;
-    border-radius: 16px 16px 0 0;
-  }
-
-  #google-map {
-    min-height: 400px;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .resource-content {
-    min-height: 1000px; /* Increased to account for stacked layout */
-    height: auto; /* Allow auto height for stacked layout */
-  }
-  
-  .resource-details {
-    min-height: 600px;
-  }
-  
   .resource-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
   }
   
   .action-btn {
-    flex: 1 1 auto;
     width: 100%;
+    max-width: 100%;
+  }
+  
+  .position-btn {
+    width: 80%;
+    max-width: none;
   }
 }
 
@@ -3386,6 +3539,7 @@ section:not(:last-child)::after {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .online-resource-card:hover {
@@ -4086,5 +4240,60 @@ section:not(:last-child)::after {
     padding-top: 1rem;
     padding-bottom: 2rem;
   }
+}
+
+/* Add at the end of the style section */
+.rainbow-border {
+  position: relative;
+  border: none !important;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.rainbow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 2px; /* Border width */
+  background: linear-gradient(90deg, 
+    hsl(142, 76%, 36%), /* Green */
+    hsl(270, 100%, 63%), /* Purple */
+    hsl(210, 100%, 63%), /* Blue */
+    hsl(195, 100%, 63%), /* Light blue */
+    hsl(90, 100%, 63%), /* Light green */
+    hsl(142, 76%, 36%) /* Back to green */
+  );
+  background-size: 200% auto;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rainbow-border 4s linear infinite;
+}
+
+@keyframes rainbow-border {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Improve the overall style of the online resource card */
+.online-resource-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 </style>
