@@ -172,7 +172,17 @@
               type="text" 
               class="youtube-input"
               placeholder="Enter YouTube video URL (https://www.youtube.com/watch?v=...)"
+              @input="analysisError = null"
             />
+            <button 
+              v-if="youtubeUrl" 
+              @click="youtubeUrl = ''" 
+              class="clear-button"
+              type="button"
+              aria-label="Clear input"
+            >
+              ×
+            </button>
             <button 
               @click="analyzeYoutubeComments" 
               class="analyze-button"
@@ -184,7 +194,6 @@
           </div>
           <p v-if="analysisError" class="error-message">
             <strong>Strewth!</strong> {{ analysisError }}
-            <button @click="retryAnalysis" class="retry-button">Give it another go</button>
           </p>
           <p v-if="isLoading" class="loading-message">
             <span class="loading-spinner"></span>
@@ -644,6 +653,41 @@
   const showResultsModal = ref(false)
   const analysisResult = ref({})
 
+  // Computed property to check if the URL is valid
+  const isValidYoutubeUrl = computed(() => {
+    if (!youtubeUrl.value) return false
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
+    return youtubeRegex.test(youtubeUrl.value)
+  })
+
+  // Helper function to normalize YouTube URLs
+  const normalizeYoutubeUrl = (url) => {
+    if (!url) return url
+    
+    // If URL starts with youtube.com or youtu.be without protocol, add https://
+    if (url.match(/^(youtube\.com|youtu\.be)/)) {
+      return `https://${url}`
+    }
+    
+    // If URL starts with www. without protocol, add https://
+    if (url.match(/^www\./)) {
+      return `https://${url}`
+    }
+    
+    // If URL doesn't have protocol, assume https://
+    if (!url.match(/^https?:\/\//)) {
+      return `https://${url}`
+    }
+    
+    return url
+  }
+
+  // Method to set an example URL
+  const setExampleUrl = () => {
+    youtubeUrl.value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    analysisError.value = null
+  }
+
   // Format toxicity type names to more readable format
   const formatToxicityType = (type) => {
     // Handle different formats returned by backend (capitalised or lowercase)
@@ -776,15 +820,18 @@
       return
     }
     
+    // Normalize the URL first
+    const normalizedUrl = normalizeYoutubeUrl(youtubeUrl.value)
+    
     // Validate URL format
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
-    if (!youtubeRegex.test(youtubeUrl.value)) {
-      console.warn('Invalid YouTube URL format:', youtubeUrl.value)
-      analysisError.value = 'Please enter a valid YouTube URL, that one\'s not right'
+    if (!youtubeRegex.test(normalizedUrl)) {
+      console.warn('Invalid YouTube URL format:', normalizedUrl)
+      analysisError.value = 'Please entre a valid YouTube URL, that one\'s not right.'
       return
     }
     
-    console.log('URL validation passed:', youtubeUrl.value)
+    console.log('URL validation passed:', normalizedUrl)
     
     // Set loading state
     isLoading.value = true
@@ -829,7 +876,8 @@
       try {
         // Send request to backend API with improved error handling
         console.log('Preparing POST request with data:', {
-          url: youtubeUrl.value,
+          url: normalizedUrl,
+          youtube_url: normalizedUrl,  // Include both formats for compatibility
           limit: 100
         })
         
@@ -849,8 +897,8 @@
                 'Accept': 'application/json'
               },
               body: JSON.stringify({
-                url: youtubeUrl.value,
-                youtube_url: youtubeUrl.value,  // Include both formats for compatibility
+                url: normalizedUrl,
+                youtube_url: normalizedUrl,  // Include both formats for compatibility
                 limit: 100
               }),
               signal: controller.signal
@@ -1248,6 +1296,51 @@
     text-align: center;
   }
 
+  /* Add only the essential new styles */
+  .clear-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+  }
+
+  .clear-button:hover {
+    color: #555;
+    background-color: #f5f5f5;
+  }
+
+  .url-examples {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .example-url-button {
+    background: none;
+    border: none;
+    color: #7e78d2;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .example-url-button:hover {
+    color: #65c9a4;
+  }
+
+  /* Existing styles */
   .hero-section {
     min-height: 40vh;
     background-color: rgb(255, 252, 244);
