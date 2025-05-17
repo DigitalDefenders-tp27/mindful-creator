@@ -1,5 +1,36 @@
 <template>
   <div class="creator-wellbeing">
+    <!-- Panic Button -->
+    <button @click="openPanicModal" class="panic-button">Panic Button</button>
+
+    <!-- Panic Modal -->
+    <div v-if="showPanicModal" class="modal-overlay">
+      <div class="modal-content">
+        <button @click="closePanicModal" class="modal-close-button">&times;</button>
+        <h2>Instant Relief</h2>
+        <p>Remember, you're not alone. Take a deep breath. We've got resources that can help you right now.</p>
+        <div class="modal-actions">
+          <button @click="navigateToResources" class="modal-button primary">Show me resources</button>
+          <button @click="startBreathingExercise" class="modal-button secondary">Just breathe</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breathing Exercise Guide -->
+    <div v-if="showBreathingExercise" class="breathing-exercise-overlay">
+      <div class="breathing-exercise-content">
+        <h3>1-Minute Mindful Breathing</h3>
+        <p>1. Find a comfortable position.</p>
+        <p>2. Close your eyes gently.</p>
+        <p>3. Inhale deeply through your nose for 4 seconds.</p>
+        <p>4. Hold your breath for 4 seconds.</p>
+        <p>5. Exhale slowly through your mouth for 6 seconds.</p>
+        <p>6. Repeat for 1 minute. A gentle sound will indicate when the minute is up.</p>
+        <div class="timer">Timer: {{ formattedTime }}</div>
+        <button @click="endBreathingExercise" class="modal-button primary">End Exercise</button>
+      </div>
+    </div>
+
     <!-- Scroll Island -->
     <ScrollIsland :title="currentSection" ref="scrollIslandRef">
       <div class="island-sections">
@@ -493,7 +524,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
+import { ref, onMounted, computed, nextTick, onUnmounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
 import Chart from 'chart.js/auto'
@@ -539,6 +570,99 @@ const router = useRouter()
 // Add global Google object reference
 let googleInstance = null;
 let placesService = null; // Added for Places API
+
+const showPanicModal = ref(false);
+const showBreathingExercise = ref(false);
+const timerValue = ref(60); // 60 seconds for 1 minute
+const timerInterval = ref(null);
+let audioContext = null;
+let oscillator = null;
+
+const formattedTime = computed(() => {
+  const minutes = Math.floor(timerValue.value / 60);
+  const seconds = timerValue.value % 60;
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+});
+
+const openPanicModal = () => {
+  showPanicModal.value = true;
+};
+
+const closePanicModal = () => {
+  showPanicModal.value = false;
+};
+
+const navigateToResources = () => {
+  router.push('/resources');
+  closePanicModal();
+};
+
+const startBreathingExercise = () => {
+  closePanicModal();
+  showBreathingExercise.value = true;
+  timerValue.value = 60; // Reset timer
+
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value);
+  }
+
+  timerInterval.value = setInterval(() => {
+    timerValue.value--;
+    if (timerValue.value <= 0) {
+      clearInterval(timerInterval.value);
+      timerInterval.value = null;
+      playCompletionSound();
+      // Optionally auto-close or show completion message
+      // For now, user clicks "End Exercise"
+    }
+  }, 1000);
+};
+
+const endBreathingExercise = () => {
+  showBreathingExercise.value = false;
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value);
+    timerInterval.value = null;
+  }
+  stopCompletionSound();
+};
+
+const playCompletionSound = () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (oscillator) {
+    oscillator.stop();
+  }
+  oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.type = 'sine'; // type of wave: sine, square, sawtooth, triangle
+  oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // value in hertz (A4 note)
+  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Volume
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start();
+  // Stop the sound after a short duration
+  setTimeout(() => {
+    if (oscillator) {
+      oscillator.stop();
+      oscillator = null; // Reset for next play
+    }
+  }, 500); // Play sound for 0.5 seconds
+};
+
+const stopCompletionSound = () => {
+  if (oscillator) {
+    oscillator.stop();
+    oscillator = null;
+  }
+  // It's good practice to close the audio context when it's no longer needed,
+  // but for a single beep, it might be reopened. If this becomes a more complex audio feature,
+  // manage context lifecycle more carefully (e.g., on component unmount).
+};
 
 // Initialize Google Maps
 const initMap = async () => {
@@ -4368,6 +4492,218 @@ section:not(:last-child)::after {
   
   .event-filters {
     max-height: 500px;
+  }
+}
+
+.creator-wellbeing {
+  position: relative; /* Ensure panic button is positioned relative to this container */
+}
+
+.panic-button {
+  position: fixed; /* Or absolute if .creator-wellbeing is the main scroll container */
+  top: 100px; /* Adjust as needed, considering header height */
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #E91E63; /* Vivid Red */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* Ensure it's above other content */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.panic-button:hover {
+  background-color: #C2185B; /* Darker Red */
+  transform: scale(1.05);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for more focus */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050; /* Higher than panic button */
+}
+
+.modal-content {
+  background-color: #ffffff; /* Light background for the modal */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  position: relative; /* For close button positioning */
+  animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #757575; /* Grey color for close button */
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close-button:hover {
+  color: #333;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.modal-content p {
+  margin-bottom: 25px;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-around; /* Or center if preferred */
+  gap: 15px; /* Adds space between buttons */
+}
+
+.modal-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.modal-button.primary {
+  background-color: #007AFF; /* Adjust to your primary theme color */
+  color: white;
+}
+
+.modal-button.primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.modal-button.secondary {
+  background-color: #6c757d; /* Adjust to your secondary theme color */
+  color: white;
+}
+
+.modal-button.secondary:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+
+.breathing-exercise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Darker overlay for focus */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1060; /* Higher than modal */
+  color: #fff; /* White text for readability */
+  animation: fadeInModal 0.3s ease-out; /* Re-use modal animation */
+}
+
+.breathing-exercise-content {
+  background-color: #2c3e50; /* Dark calming background */
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 550px;
+}
+
+.breathing-exercise-content h3 {
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 2rem;
+  color: #ecf0f1; /* Light grey/white */
+}
+
+.breathing-exercise-content p {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #bdc3c7; /* Lighter grey */
+}
+
+.timer {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  color: #3498db; /* A calming blue for the timer */
+}
+
+/* Responsive adjustments for modal and breathing exercise guide */
+@media (max-width: 768px) {
+  .modal-content, .breathing-exercise-content {
+    padding: 20px;
+    width: 95%;
+  }
+
+  .modal-content h2 {
+    font-size: 1.5rem;
+  }
+  .breathing-exercise-content h3 {
+    font-size: 1.7rem;
+  }
+
+  .modal-content p, .breathing-exercise-content p {
+    font-size: 0.9rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-button {
+    width: 100%;
+    margin-bottom: 10px; /* Add some space when stacked */
+  }
+  .modal-button:last-child {
+    margin-bottom: 0;
+  }
+
+  .timer {
+    font-size: 2rem;
+  }
+  
+  .panic-button {
+    top: 80px; /* Adjust for smaller screens if header changes */
+    right: 15px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
   }
 }
 </style>
