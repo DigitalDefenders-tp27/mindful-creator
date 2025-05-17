@@ -1490,10 +1490,19 @@
     }
     .title-group h2 {
       font-size: 3.75rem;
+      white-space: nowrap; /* Keep on one line for large screens */
     }
     .subtitle {
       font-size: 1.875rem;
       white-space: nowrap; /* Keep nowrap for very large screens only */
+    }
+  }
+
+  /* Add a new breakpoint to handle mid-size screens */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .title-group h2 {
+      font-size: 2.75rem;
+      white-space: nowrap; /* Ensure it stays on one line for medium-large screens too */
     }
   }
 
