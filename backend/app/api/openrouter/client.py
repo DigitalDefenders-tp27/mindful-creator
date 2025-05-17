@@ -113,7 +113,7 @@ class OpenRouterClient:
             
             1. SENTIMENT ANALYSIS: Count how many comments are positive, negative, or neutral.
             
-            2. RESPONSE STRATEGIES: Provide 4-6 bullet points on how to engage with these commenters effectively.
+            2. RESPONSE STRATEGIES: Provide 4-6 strategies on how to engage with commenters effectively. Present each strategy on a new line (using line breaks), but do NOT use bullet points, dots, or any symbols at the beginning of lines. Keep the total under 150 words.
             
             3. EXAMPLE RESPONSES: For 3-5 different comments, suggest a thoughtful response the creator could give.
             
@@ -128,7 +128,7 @@ class OpenRouterClient:
                     "Neutral": number,
                     "Negative": number
                 }},
-                "strategies": "• Strategy 1\\n• Strategy 2\\n• etc",
+                "strategies": "Strategy 1\\nStrategy 2\\nStrategy 3\\nStrategy 4\\nStrategy 5",
                 "example_comments": [
                     {{
                         "comment": "original comment text",

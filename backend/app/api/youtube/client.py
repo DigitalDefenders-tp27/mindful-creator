@@ -56,7 +56,7 @@ class YouTubeClient:
             
         return None
     
-    def get_video_comments(self, url: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_video_comments(self, url: str, limit: int = 100) -> List[Dict[str, Any]]:
         """
         Retrieve comments from a YouTube video.
         

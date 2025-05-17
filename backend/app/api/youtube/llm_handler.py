@@ -45,7 +45,7 @@ if API_KEY:
 else:
     logger.error("OpenRouter API key not found in environment variables")
 
-async def analyse_youtube_comments(comments: List[str], limit: int = 5) -> Dict[str, Any]:
+async def analyse_youtube_comments(comments: List[str], limit: int = 100) -> Dict[str, Any]:
     """
     Analyze YouTube comments and generate response strategies and examples.
     
