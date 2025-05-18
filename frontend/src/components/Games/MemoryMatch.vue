@@ -199,8 +199,8 @@ const emit = defineEmits(['game-completed', 'exit-game']);
 interface MemeData {
   id: any;
   image_name: string;
-  image_url: string;
-  text: string;
+  // image_url: string;
+  // text: string;
   humour?: string;
   sarcasm?: string;
   offensive?: string;
