@@ -46,9 +46,11 @@ export async function applyWatermark(imageFile, text, position = 'bottom-right',
  * @param {number} height - Height of the canvas
  * @param {string} position - Position of the watermark
  * @param {number} size - Font size of the watermark
+ * @param {string} color - Color of the watermark text
+ * @param {string} fontFamily - Font family of the watermark text
  * @returns {Promise<string>} - Promise resolving to the SVG content
  */
-export async function createSvgWatermark(text, width = 800, height = 600, position = 'bottom-right', size = 24) {
+export async function createSvgWatermark(text, width = 800, height = 600, position = 'bottom-right', size = 24, color = '#FFFFFF', fontFamily = 'Arial, sans-serif') {
   try {
     const formData = new FormData();
     formData.append('text', text);
@@ -56,21 +58,45 @@ export async function createSvgWatermark(text, width = 800, height = 600, positi
     formData.append('height', height);
     formData.append('position', position);
     formData.append('size', size);
-    
+    formData.append('color', color);
+    formData.append('font_family', fontFamily);
+
     const response = await fetch('/api/copyright/create-watermark-svg', {
       method: 'POST',
       body: formData
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to create SVG watermark');
+      let errorDetailMessage = `Failed to create SVG watermark. Status: ${response.status}`;
+      try {
+        // Try to parse as JSON first, as some APIs might return JSON error details
+        const errorData = await response.json();
+        errorDetailMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
+      } catch (jsonError) {
+        // If JSON parsing fails, read as text (e.g., for HTML error pages or plain text errors)
+        try {
+          const textError = await response.text();
+          // Use the textError if it's not empty, otherwise stick with the status message
+          if (textError && textError.trim() !== '') {
+            errorDetailMessage = textError;
+          }
+        } catch (textParseError) {
+          // If reading as text also fails, log this and stick with the status code message
+          console.error('Failed to parse error response as JSON or text:', textParseError);
+        }
+      }
+      throw new Error(errorDetailMessage);
     }
-    
+
     return await response.text();
   } catch (error) {
     console.error('Error creating SVG watermark:', error);
-    throw error;
+    // Ensure the error propagated is useful
+    if (error instanceof Error) {
+        throw error;
+    } else {
+        throw new Error(String(error));
+    }
   }
 }
 
