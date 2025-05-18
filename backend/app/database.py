@@ -19,17 +19,19 @@ if raw_database_url and "postgres" in raw_database_url:
     else:
         # If it's a full URL but potentially has the "postgres://" prefix (which SQLAlchemy doesn't support)
         DATABASE_URL = raw_database_url.replace("postgres://", "postgresql://")
+    
+    # Create database engine with PostgreSQL-specific pool settings
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800
+    )
 else:
+    # SQLite doesn't support pooling parameters
     DATABASE_URL = raw_database_url
-
-# Create database engine
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=5,
-    max_overflow=10,
-    pool_timeout=30,
-    pool_recycle=1800
-)
+    engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
