@@ -68,14 +68,17 @@ export async function createSvgWatermark(text, width = 800, height = 600, positi
 
     if (!response.ok) {
       let errorDetailMessage = `Failed to create SVG watermark. Status: ${response.status}`;
+      const responseForJson = response.clone(); // Clone for JSON parsing
+      const responseForText = response.clone(); // Clone for text parsing
+
       try {
         // Try to parse as JSON first, as some APIs might return JSON error details
-        const errorData = await response.json();
+        const errorData = await responseForJson.json();
         errorDetailMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
       } catch (jsonError) {
         // If JSON parsing fails, read as text (e.g., for HTML error pages or plain text errors)
         try {
-          const textError = await response.text();
+          const textError = await responseForText.text();
           // Use the textError if it's not empty, otherwise stick with the status message
           if (textError && textError.trim() !== '') {
             errorDetailMessage = textError;

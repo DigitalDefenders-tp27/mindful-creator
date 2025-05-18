@@ -94,6 +94,8 @@ async def create_watermark_svg(
     height: int = Form(600),
     position: str = Form("bottom-right"),
     size: int = Form(24),
+    color: Optional[str] = Form("#FFFFFF"),
+    font_family: Optional[str] = Form("Arial, sans-serif"),
     handler: WatermarkHandler = Depends(get_watermark_handler)
 ):
     """
@@ -105,6 +107,8 @@ async def create_watermark_svg(
         height: Height of the canvas
         position: Position of watermark
         size: Font size
+        color: Color of the watermark
+        font_family: Font family of the watermark
         
     Returns:
         SVG watermark
@@ -134,7 +138,9 @@ async def create_watermark_svg(
             width=width,
             height=height,
             position=position,
-            size=size
+            size=size,
+            color=color if color else "#FFFFFF",
+            font_family=font_family if font_family else "Arial, sans-serif"
         )
         
         # Return the SVG content
