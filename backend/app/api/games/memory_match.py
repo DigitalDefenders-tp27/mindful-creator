@@ -38,8 +38,6 @@ class GameInitRequest(BaseModel):
 class MemeDataWithLocalURL(BaseModel):
     id: Any 
     image_name: str 
-    image_url: str # This will now be a URL to our backend's serving endpoint
-    text: str
     humour: Optional[str] = None
     sarcasm: Optional[str] = None
     offensive: Optional[str] = None
@@ -131,12 +129,10 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
             
             # Construct the new image URL pointing to the /app/meme_images/ path
             local_image_url = f"{base_url}/app/meme_images/{image_name_from_db}"
-            
+           
             processed_memes_data.append(MemeDataWithLocalURL(
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
-                image_url=local_image_url, 
-                # text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
                 humour=record["humour"],
                 sarcasm=record["sarcasm"],
                 offensive=record["offensive"],
@@ -246,7 +242,6 @@ def get_meme_data() -> pd.DataFrame:
     # If both fail, return an empty DataFrame with the expected columns
     return pd.DataFrame({
         'image_name': [], 
-        # 'text_corrected': [], 
         'overall_sentiment': [],
         'humour': [],
         'sarcasm': [],
@@ -317,7 +312,6 @@ async def get_memes_for_memory_match(
         meme_item = { # Renamed to avoid conflict
             'id': int(idx_val), 
             'image_name': row['image_name'],
-            # 'text': row.get('text_corrected', ''),
             'sentiment': sentiment_data,
             'imagePath': f"/memes/{row['image_name']}" if 'image_name' in row and row['image_name'] else None
         }
