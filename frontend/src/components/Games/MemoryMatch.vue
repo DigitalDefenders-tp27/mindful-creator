@@ -39,10 +39,9 @@
           <div class="card-inner">
             <div class="card-front"></div>
             <div class="card-back">
-              <!-- Always use img, remove offline logic -->
               <img 
-                :src="card_iter.memeData.image_url || '/images/placeholder.png'" 
-                :alt="card_iter.memeData.text" 
+                :src="`${API_BASE_URL}/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                alt="Meme card" 
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
               >
             </div>
@@ -65,8 +64,7 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="currentModalMeme.image_url || '/images/placeholder.png'" 
-                :alt="currentModalMeme.text"
+                :src="`${API_BASE_URL}/api/games/memory_match/images/${currentModalMeme.image_name}`"
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
                 class="modal-meme-image-single new-modal-meme-image"
               >
@@ -200,7 +198,7 @@ interface MemeData {
   id: any;
   image_name: string;
   image_url: string;
-  text: string;
+  // text: string;
   humour?: string;
   sarcasm?: string;
   offensive?: string;

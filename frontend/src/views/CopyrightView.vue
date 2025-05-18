@@ -655,7 +655,9 @@ const createTransparentWatermark = async () => {
       originalImage.value.width,
       originalImage.value.height,
       watermarkPosition.value,
-      watermarkSize.value
+      watermarkSize.value,
+      watermarkColor.value,
+      selectedFont.value
     );
     
     statusMessage.value = 'SVG watermark created successfully!';
@@ -796,7 +798,8 @@ const downloadTransparentWatermark = async () => {
       originalImage.value ? originalImage.value.height : 600,
       watermarkPosition.value,
       watermarkSize.value,
-      watermarkColor.value // Pass the current color
+      watermarkColor.value,
+      selectedFont.value
     );
     
     // Create download link
