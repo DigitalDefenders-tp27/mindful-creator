@@ -2,14 +2,27 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# 使用环境变量中的 DATABASE_URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://username:password@host:port/dbname")
+# Get DATABASE_URL from environment variable
+raw_database_url = os.getenv("DATABASE_URL", "sqlite:///./relaxation.db")
 
-# 创建数据库引擎
+# Handle Railway PostgreSQL URLs if provided
+if raw_database_url and "postgres" in raw_database_url:
+    # If it's just a hostname, convert it to a proper URL format
+    if not raw_database_url.startswith("postgresql://"):
+        # Default to a standard format if only the hostname is provided
+        DATABASE_URL = f"postgresql://postgres:postgres@{raw_database_url}:5432/railway"
+    else:
+        # If it's a full URL but potentially has the "postgres://" prefix (which SQLAlchemy doesn't support)
+        DATABASE_URL = raw_database_url.replace("postgres://", "postgresql://")
+else:
+    DATABASE_URL = raw_database_url
+
+# Create database engine
 engine = create_engine(
     DATABASE_URL,
     pool_size=5,
@@ -18,13 +31,13 @@ engine = create_engine(
     pool_recycle=1800
 )
 
-# 创建会话工厂
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 创建基类
+# Create base class
 Base = declarative_base()
 
-# 依赖项
+# Dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -32,7 +45,7 @@ def get_db():
     finally:
         db.close()
 
-# 创建表
+# Create tables
 def create_tables():
     Base.metadata.create_all(bind=engine)
 
