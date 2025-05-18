@@ -9,7 +9,7 @@ import json
 # Configure logger
 logger = logging.getLogger(__name__)
 
-async def analyse_video_comments(video_id: str, limit: int = 5) -> Dict[str, Any]:
+async def analyse_video_comments(video_id: str, limit: int = 100) -> Dict[str, Any]:
     """
     Analyse comments from a YouTube video and return insights.
     

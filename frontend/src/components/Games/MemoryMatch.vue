@@ -1,5 +1,10 @@
 <template>
   <div class="memory-game-container" tabindex="0" @keydown.esc="exitGame" ref="gameContainer">
+    <!-- Exit Game Button -->
+    <button v-if="gameStarted && !gameOver" @click="exitGame" class="exit-game-cross-btn" aria-label="Exit Game">
+      &times;
+    </button>
+
     <!-- Game status bar -->
     <div v-if="gameStarted && !gameOver" class="game-status-bar new-status-bar">
       <div class="status-item timer-display">
@@ -34,10 +39,9 @@
           <div class="card-inner">
             <div class="card-front"></div>
             <div class="card-back">
-              <!-- Always use img, remove offline logic -->
               <img 
-                :src="card_iter.memeData.image_url || '/images/placeholder.png'" 
-                :alt="card_iter.memeData.text" 
+                :src="`${API_BASE_URL}/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                alt="Meme card" 
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
               >
             </div>
@@ -60,8 +64,7 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="currentModalMeme.image_url || '/images/placeholder.png'" 
-                :alt="currentModalMeme.text"
+                :src="`${API_BASE_URL}/api/games/memory_match/images/${currentModalMeme.image_name}`"
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
                 class="modal-meme-image-single new-modal-meme-image"
               >
@@ -104,6 +107,47 @@
         </div>
       </div>
     </div>
+
+    <!-- Dramatic Warning Popup 1 -->
+    <div v-if="showWarningPopup1" class="dramatic-warning-overlay">
+      <div class="dramatic-warning-modal warning-popup-1">
+        <div class="warning-header">
+          <span class="warning-icon">⚠️</span>
+          <h2>ARE YOU SURE?!</h2>
+          <span class="warning-icon">⚠️</span>
+        </div>
+        <div class="warning-content">
+          <p>The next level isn't just hard... it's a MEME-ORY GAUNTLET!</p>
+          <p>Only the bravest (or most foolish) proceed.</p>
+          <p>Your brain cells might stage a protest.</p>
+        </div>
+        <div class="warning-actions">
+          <button @click="handleWarningPopup1Continue" class="warning-btn proceed-anyway-btn">I Scoff at Danger!</button>
+          <button @click="showWarningPopup1 = false; showVictoryModal = true;" class="warning-btn retreat-btn">Maybe Later...</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dramatic Warning Popup 2 -->
+    <div v-if="showWarningPopup2" class="dramatic-warning-overlay">
+      <div class="dramatic-warning-modal warning-popup-2">
+        <div class="warning-header">
+          <span class="warning-icon">🔥</span>
+          <h2>LAST CHANCE!</h2>
+          <span class="warning-icon">🔥</span>
+        </div>
+        <div class="warning-content">
+          <p>Seriously, this is where memes go to test your very soul.</p>
+          <p>We're talking legendary difficulty. Forget your name, remember the memes!</p>
+          <p><span>No refunds for fried brain cells.</span></p>
+        </div>
+        <div class="warning-actions">
+          <button @click="proceedToNextLevel" class="warning-btn unleash-the-memes-btn">UNLEASH THE MEMES!</button>
+          <button @click="showWarningPopup2 = false; showVictoryModal = true;" class="warning-btn i-need-my-mommy-btn">I Need My Mommy!</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -140,6 +184,10 @@ const processingFlip = ref(false);
 const gameMemesForModal = ref<MemeData[]>([]);
 const currentModalMemeIndex = ref(0);
 
+// New state variables for dramatic warning popups
+const showWarningPopup1 = ref(false);
+const showWarningPopup2 = ref(false);
+
 // Hard-coded backend API address
 const API_BASE_URL = 'https://api.tiezhu.org';
 
@@ -150,7 +198,7 @@ interface MemeData {
   id: any;
   image_name: string;
   image_url: string;
-  text: string;
+  // text: string;
   humour?: string;
   sarcasm?: string;
   offensive?: string;
@@ -447,12 +495,25 @@ function prevModalMeme() {
 
 function challengeAdvance() {
   if (canAdvanceLevel.value) {
-    const levelKeys = Object.keys(levels).map(Number).sort((a,b) => a-b) as LevelKey[];
-    const currentLevelIndex = levelKeys.indexOf(currentLevel.value);
-    if (currentLevelIndex < levelKeys.length - 1) {
-      currentLevel.value = levelKeys[currentLevelIndex + 1];
-      restartGame();
-    }
+    showVictoryModal.value = false; // Close victory modal first
+    showWarningPopup1.value = true; // Show the first warning popup
+  }
+}
+
+// Function to handle the continuation from the first warning popup
+function handleWarningPopup1Continue() {
+  showWarningPopup1.value = false;
+  showWarningPopup2.value = true; // Show the second warning popup
+}
+
+// Function to actually advance the level after warnings
+function proceedToNextLevel() {
+  showWarningPopup2.value = false;
+  const levelKeys = Object.keys(levels).map(Number).sort((a,b) => a-b) as LevelKey[];
+  const currentLevelIndex = levelKeys.indexOf(currentLevel.value);
+  if (currentLevelIndex < levelKeys.length - 1) {
+    currentLevel.value = levelKeys[currentLevelIndex + 1];
+    restartGame(); // This will re-initialize and start the game at the new level
   }
 }
 
@@ -491,19 +552,19 @@ watch(currentLevel, (newLevel) => {
 <style scoped>
 .memory-game-container {
   width: 100%;
-  height: 100%; /* Changed from 100vh to prevent status bar overlap */
+  height: 100vh; /* Occupy full viewport height */
   max-width: none;
   margin: 0;
   padding: 10px;
-  padding-top: env(safe-area-inset-top, 10px); /* Add safe area inset for notch/status bar */
+  padding-top: env(safe-area-inset-top, 10px);
   padding-bottom: env(safe-area-inset-bottom, 10px);
   font-family: Arial, sans-serif;
   color: #333;
-  display: flex;
-  flex-direction: column;
-  background-color: #FDFDFF; /* Very light off-white, almost pure white */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack children vertically */
+  background-color: #FDFDFF;
   box-sizing: border-box;
-  overflow: auto; /* Changed from hidden to auto to allow scrolling */
+  overflow: hidden; /* Prevent scrolling on the main container */
   position: relative;
 }
 
@@ -568,16 +629,16 @@ watch(currentLevel, (newLevel) => {
 }
 
 .game-board-container {
-  flex: 1;
+  flex-grow: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 10px 0;
-  overflow-y: auto;
+  overflow: hidden;
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: min(95vw, 1200px); /* Added absolute max-width limit */
+  max-width: min(95vw, 1200px);
+  padding: 5px 8px;
 }
 
 .game-board {
@@ -635,7 +696,7 @@ watch(currentLevel, (newLevel) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  max-height: 80vh; /* Allow vertical space for the board */
+  /* max-height: 80vh; Removed to allow full growth */
 }
 
 .card {
@@ -918,42 +979,68 @@ watch(currentLevel, (newLevel) => {
   .game-board.level-2 {
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(10, 1fr);
-    gap: 8px;
-    aspect-ratio: 1/2; /* Adjust for portrait orientation */
-    height: auto;
-  }
-  
-  .game-board.level-1 {
-    width: 95vw;
-    max-width: 95vw;
-  }
-}
-
-@media (max-width: 480px) {
-  .game-board-container {
-    padding: 5px 0;
-  }
-  
-  .game-board {
     gap: 6px;
-    padding: 10px;
+    width: 100%;
+    height: 100%;
     max-width: 100%;
+    aspect-ratio: unset;
   }
   
   .game-board.level-1 {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: 10px;
-    width: 98vw;
-    max-width: 98vw;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    max-height: 90%;
+    margin: auto;
+    gap: 8px;
+  }
+
+  .game-board-container {
+    padding: 5px 8px;
+    max-width: 100%;
+  }
+
+  .game-board {
+    padding: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-board-container {
+    padding: 5px 8px;
+  }
+
+  .game-board {
+    gap: 4px;
+    padding: 5px;
+  }
+  
+  .game-board.level-1 {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    max-height: 95%;
+    margin: auto;
+    gap: 6px;
   }
   
   .game-board.level-2 {
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(10, 1fr);
-    gap: 6px;
-    width: 98vw;
-    max-width: 98vw;
+    gap: 4px;
+  }
+
+  .card-inner {
+    border-radius: 8px;
+  }
+  .card-front, .card-back {
+    border-radius: 8px;
   }
 }
 
@@ -997,7 +1084,6 @@ watch(currentLevel, (newLevel) => {
   width: min(95%, 700px);
   max-height: 95vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  min-height: 600px;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -1056,10 +1142,10 @@ watch(currentLevel, (newLevel) => {
 
 .modal-meme-image-single.new-modal-meme-image {
   max-width: 100%;
-  max-height: 280px; /* Increased from 220px */
+  max-height: 30vh; /* Changed from 280px to 30% of viewport height */
   object-fit: contain;
   border-radius: 8px;
-  margin-bottom: 15px; /* Increased from 10px */
+  margin-bottom: 15px;
 }
 
 .meme-identifier.new-meme-identifier {
@@ -1231,6 +1317,419 @@ watch(currentLevel, (newLevel) => {
   gap: 15px !important;
   width: 100% !important;
   max-width: 500px !important;
+}
+
+/* Styles for Dramatic Warning Popups */
+.dramatic-warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure it's above other modals */
+  backdrop-filter: blur(8px);
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.dramatic-warning-modal {
+  background-color: #1e1e1e; /* Dark background */
+  color: #f0f0f0; /* Light text */
+  border-radius: 16px;
+  padding: 25px 30px;
+  width: min(90%, 550px);
+  max-height: 90vh;
+  box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5); /* Glowing effect */
+  border: 2px solid #ff5252; /* Red border */
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  animation: pulseBorder 1.5s infinite alternate;
+}
+
+@keyframes pulseBorder {
+  0% {
+    border-color: #ff5252;
+    box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5);
+  }
+  100% {
+    border-color: #ffae00; /* Orange border */
+    box-shadow: 0 0 40px rgba(255, 174, 0, 0.7), 0 0 20px rgba(255, 82, 82, 0.5);
+  }
+}
+
+.warning-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.warning-header h2 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  color: #ffae00; /* Bright orange */
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 15px;
+  text-shadow: 0 0 10px #ffae00, 0 0 5px #ff5252;
+}
+
+.warning-icon {
+  font-size: 2.5rem;
+  animation: shakeIcon 0.5s infinite alternate;
+}
+
+@keyframes shakeIcon {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.warning-content p {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  line-height: 1.6;
+  margin-bottom: 15px;
+  color: #dcdcdc; /* Lighter grey for paragraph text */
+}
+
+.warning-content p span { /* For the "No refunds" line */
+  font-weight: bold;
+  color: #ff5252; /* Red color for emphasis */
+  text-transform: uppercase;
+}
+
+.warning-actions {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.warning-btn {
+  color: white;
+  border: none;
+  border-radius: 25px; /* Pill shape */
+  padding: 12px 20px;
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.warning-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: brightness(1.1);
+}
+
+/* Specific button styles */
+.proceed-anyway-btn, .unleash-the-memes-btn {
+  background: linear-gradient(135deg, #ff5252, #ff1744); /* Fiery red gradient */
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+}
+.proceed-anyway-btn:hover, .unleash-the-memes-btn:hover {
+   box-shadow: 0 6px 20px rgba(255, 82, 82, 0.6);
+}
+
+.retreat-btn, .i-need-my-mommy-btn {
+  background: linear-gradient(135deg, #424242, #212121); /* Dark grey gradient */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.retreat-btn:hover, .i-need-my-mommy-btn:hover {
+   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Exit Game Cross Button Styles */
+.exit-game-cross-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Circular shape */
+  font-size: 28px; /* Large cross character */
+  font-weight: bold;
+  line-height: 38px; /* Center the cross vertically */
+  text-align: center;
+  cursor: pointer;
+  z-index: 1500; /* Ensure it's above game board but potentially below modals if any appear over game */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.exit-game-cross-btn:hover {
+  background-color: rgba(255, 82, 82, 0.8); /* More opaque red on hover */
+  transform: scale(1.1);
+}
+
+/* Added media query for very small screens (e.g., phones in portrait) */
+@media (max-width: 480px) {
+  .modal-content.new-modal-content {
+    padding: 15px; /* Reduce padding for smaller modals */
+    width: min(98%, 700px); /* Allow it to be slightly wider percentage-wise */
+  }
+
+  .new-modal-h2 {
+    font-size: clamp(1.8rem, 6vw, 2.2rem); /* Adjust title size */
+    margin-bottom: 8px;
+  }
+
+  .new-modal-subtitle {
+    font-size: clamp(0.9rem, 2.8vw, 1.1rem); /* Adjust subtitle size */
+    margin-bottom: 15px;
+  }
+
+  .level-badge.new-level-badge {
+    padding: 4px 10px;
+    font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+  }
+
+  .modal-meme-image-single.new-modal-meme-image {
+    max-height: 25vh; /* Further reduce image max height */
+    margin-bottom: 10px;
+  }
+
+  .meme-identifier.new-meme-identifier {
+    font-size: clamp(1rem, 2.8vw, 1.2rem);
+    margin-bottom: 12px;
+  }
+
+  .modal-meme-sentiments.new-modal-sentiments {
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .sentiment-progress-section {
+    margin-bottom: 10px;
+  }
+
+  .sentiment-progress-container {
+    height: 28px;
+  }
+
+  .sentiment-value {
+    font-size: 1rem;
+  }
+
+  .sentiment-item.new-sentiment-item .sentiment-label,
+  .sentiment-tag.new-sentiment-tag {
+    font-size: 0.9rem; /* Adjust sentiment text size */
+  }
+
+  .modal-controls.new-modal-controls {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .control-btn.new-control-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}
+
+.modal-controls.new-modal-controls {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 30px !important;
+  margin-bottom: 20px !important;
+  padding: 15px !important;
+  gap: 15px !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  flex-direction: column !important;
+}
+
+.control-btn.new-control-btn {
+  display: inline-block !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 12px 25px !important;
+  font-size: 1.1rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+  min-width: 130px !important;
+  text-align: center !important;
+  margin: 5px !important;
+  text-decoration: none !important;
+  appearance: button !important;
+  -webkit-appearance: button !important;
+}
+
+.control-btn.new-control-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Create a container for the second row buttons */
+.second-row-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+  max-width: 500px !important;
+}
+
+/* Styles for Dramatic Warning Popups */
+.dramatic-warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure it's above other modals */
+  backdrop-filter: blur(8px);
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.dramatic-warning-modal {
+  background-color: #1e1e1e; /* Dark background */
+  color: #f0f0f0; /* Light text */
+  border-radius: 16px;
+  padding: 25px 30px;
+  width: min(90%, 550px);
+  max-height: 90vh;
+  box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5); /* Glowing effect */
+  border: 2px solid #ff5252; /* Red border */
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  animation: pulseBorder 1.5s infinite alternate;
+}
+
+@keyframes pulseBorder {
+  0% {
+    border-color: #ff5252;
+    box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5);
+  }
+  100% {
+    border-color: #ffae00; /* Orange border */
+    box-shadow: 0 0 40px rgba(255, 174, 0, 0.7), 0 0 20px rgba(255, 82, 82, 0.5);
+  }
+}
+
+.warning-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.warning-header h2 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  color: #ffae00; /* Bright orange */
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 15px;
+  text-shadow: 0 0 10px #ffae00, 0 0 5px #ff5252;
+}
+
+.warning-icon {
+  font-size: 2.5rem;
+  animation: shakeIcon 0.5s infinite alternate;
+}
+
+@keyframes shakeIcon {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.warning-content p {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  line-height: 1.6;
+  margin-bottom: 15px;
+  color: #dcdcdc; /* Lighter grey for paragraph text */
+}
+
+.warning-content p span { /* For the "No refunds" line */
+  font-weight: bold;
+  color: #ff5252; /* Red color for emphasis */
+  text-transform: uppercase;
+}
+
+.warning-actions {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.warning-btn {
+  color: white;
+  border: none;
+  border-radius: 25px; /* Pill shape */
+  padding: 12px 20px;
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.warning-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: brightness(1.1);
+}
+
+/* Specific button styles */
+.proceed-anyway-btn, .unleash-the-memes-btn {
+  background: linear-gradient(135deg, #ff5252, #ff1744); /* Fiery red gradient */
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+}
+.proceed-anyway-btn:hover, .unleash-the-memes-btn:hover {
+   box-shadow: 0 6px 20px rgba(255, 82, 82, 0.6);
+}
+
+.retreat-btn, .i-need-my-mommy-btn {
+  background: linear-gradient(135deg, #424242, #212121); /* Dark grey gradient */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.retreat-btn:hover, .i-need-my-mommy-btn:hover {
+   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Exit Game Cross Button Styles */
+.exit-game-cross-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Circular shape */
+  font-size: 28px; /* Large cross character */
+  font-weight: bold;
+  line-height: 38px; /* Center the cross vertically */
+  text-align: center;
+  cursor: pointer;
+  z-index: 1500; /* Ensure it's above game board but potentially below modals if any appear over game */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.exit-game-cross-btn:hover {
+  background-color: rgba(255, 82, 82, 0.8); /* More opaque red on hover */
+  transform: scale(1.1);
 }
 
 </style> 

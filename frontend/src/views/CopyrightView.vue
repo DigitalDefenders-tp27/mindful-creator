@@ -1496,119 +1496,88 @@ input[type="text"] {
 }
 
 @media (max-width: 1280px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 5rem 0 1rem;
+  }
+  .hero-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .slogan {
+    margin-left: 0;
+    max-width: 100%;
+  }
   .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
-    opacity: 0.7;
-    transform: translateX(0);
-    row-gap: 0.75rem;
-    justify-content: end;
+    width: 500px;
+    grid-template-columns: repeat(5, 100px);
+    opacity: 0.6;
+  }
+  .title-group h1 {
+    font-size: 4.5rem;
+  }
+  .title-group h2 {
+    font-size: 2.8rem;
+  }
+  .subtitle {
+    font-size: 1.5rem;
+  }
+  .generator-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .preview-section, .controls-section {
+    padding: 1.5rem;
+  }
+  .image-preview {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    min-height: 250px;
+  }
+  .preview-canvas {
+    max-height: 250px;
   }
 }
 
 @media (max-width: 1024px) {
   .hero-section {
-    min-height: 40vh;
-    padding: 6rem 0 1rem;
+    padding: 5rem 0 1rem;
   }
-  
-  .hero-content {
-    min-height: 40vh;
-  }
-  
-  .slogan {
-    margin-left: 1.5rem;
-  }
-  
-  .decorative-elements {
-    transform: translateX(0) scale(0.9);
-    opacity: 0.5;
-    row-gap: 0.5rem;
-    justify-content: end;
-  }
-  
   .title-group h1 {
-    font-size: 4.5rem;
+    font-size: 3.8rem;
   }
-  
   .title-group h2 {
-    font-size: 3rem;
+    font-size: 2.2rem;
   }
-  
   .subtitle {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .decorative-elements {
+    width: 400px;
+    grid-template-columns: repeat(4, 100px);
+    opacity: 0.4;
+  }
+  .license-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .section-title {
+    font-size: 2rem;
+  }
+  .section-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  .carousel-main-title {
+    font-size: 1.8rem;
+  }
+  .carousel-slide .content-section h2 {
     font-size: 1.5rem;
   }
-  
-  .license-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-  
-  .generator-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .license-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-  
-  .hero-section {
-    min-height: 30vh;
-    padding: 6rem 0 1rem;
-  }
-  
-  .hero-content {
-    min-height: 30vh;
-  }
-  
-  .slogan {
-    margin-left: 1rem;
-    max-width: 90%;
-  }
-  
-  .decorative-elements {
-    opacity: 0.3;
-    transform: translateX(0) scale(0.8);
-  }
-  
-  .title-group h1 {
-    font-size: 4.2rem;
-  }
-  
-  .title-group h2 {
-    font-size: 2.6rem;
-  }
-  
-  .subtitle {
-    font-size: 1.5rem;
-    margin-top: 1.8rem;
-  }
-  
-  .container {
-    padding: 1.5rem;
-  }
-  
-  .content-section {
-    padding: 1.5rem;
-  }
-  
-  .content-section h2 {
-    font-size: 1.6rem;
-  }
-  
-  .content-section p,
-  .rights-list li,
-  .exception-list li,
-  .protection-list li,
-  .usage-list li,
-  .resources-list li {
-    font-size: 1rem;
-  }
-
-  /* Carousel adjustments for tablets and smaller */
-  .interactive-content-carousel {
-    padding: 1.5rem; /* Slightly reduce overall padding */
+  .carousel-slide .content-section :deep(p),
+  .carousel-slide .content-section :deep(li) {
+    font-size: 1rem !important;
   }
   .carousel-nav-button {
     width: 40px;
@@ -1621,21 +1590,94 @@ input[type="text"] {
   .carousel-nav-button.next {
     right: 10px;
   }
+  .carousel-dots .dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 4rem 0 1rem;
+  }
+  .hero-content {
+    padding: 0 1rem;
+    align-items: flex-start;
+  }
+  .title-group h1 {
+    font-size: 3rem;
+  }
+  .title-group h2 {
+    font-size: 1.8rem;
+  }
+  .subtitle {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+  }
+  .decorative-elements {
+    display: none;
+  }
+  .license-grid {
+    grid-template-columns: 1fr;
+  }
+  .license-card {
+    height: auto;
+    min-height: 180px;
+  }
+  .card-front, .card-back {
+    padding: 1.5rem;
+  }
+  .generator-container {
+    padding: 1.5rem;
+  }
+  .preview-section {
+    min-height: auto;
+  }
+  .image-preview {
+    min-height: 200px;
+  }
+  .preview-canvas {
+    max-height: 200px;
+  }
+  .control-step {
+    padding: 1rem;
+    padding-top: 2rem;
+  }
+  .license-options {
+    grid-template-columns: 1fr;
+  }
+  .font-selector {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  .action-buttons-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .interactive-content-carousel {
+    padding: 1.5rem;
+  }
   .carousel-header-panel,
   .carousel-container,
   .carousel-dots {
-    margin-left: 30px; /* Reduced side margin for content */
-    margin-right: 30px;
+    margin-left: 0;
+    margin-right: 0;
   }
   .carousel-main-title {
-    font-size: 2rem;
+    font-size: 1.6rem;
+  }
+  .carousel-slide .content-section {
+    padding: 1.5rem;
   }
   .carousel-slide .content-section h2 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
   .carousel-slide .content-section :deep(p),
   .carousel-slide .content-section :deep(li) {
-    font-size: 1rem !important; /* Slightly smaller for better fit */
+    font-size: 0.95rem !important;
   }
 }
 
@@ -1644,162 +1686,163 @@ input[type="text"] {
     opacity: 0.1;
     transform: translateX(0) scale(0.7);
   }
-
   .hero-section {
-    min-height: 25vh;
-    padding: 7rem 0 0.5rem;
-    margin-bottom: 1rem;
+    padding: 3rem 0 0.5rem;
   }
-
-  /* Image preview size for smaller mobiles */
+  .title-group h1 {
+    font-size: 2.5rem;
+  }
+  .title-group h2 {
+    font-size: 1.6rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
   .image-preview {
-    width: 100%; /* Full width of its container */
-    max-width: 320px; /* Cap max width */
-    height: auto; /* Maintain aspect ratio */
-    /* If you want a fixed aspect ratio, e.g., 3:2 for 320px width: */
-    /* height: calc(320px * (2 / 3)); */ 
+    max-width: 100%;
+    min-height: 180px;
   }
   .preview-canvas {
-    max-height: 220px; /* Prevent overly tall canvas if image is portrait */
+    max-height: 180px;
   }
   .placeholder-upload {
-    /* Ensure placeholder also respects potential new height constraints */
-    min-height: 150px; 
+    min-height: 180px;
+  }
+  .section-title {
+    font-size: 1.8rem;
+  }
+  .section-description {
+    font-size: 1rem;
+  }
+  .carousel-nav-button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.3rem;
+  }
+  .carousel-main-title {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .license-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .hero-section {
-    min-height: 25vh;
+    padding: 2.5rem 0 0.5rem;
   }
-  
-  .hero-content {
-    min-height: 25vh;
-    padding-left: 1rem;
-  }
-  
-  .slogan {
-    margin-left: 0.5rem;
-  }
-  
   .title-group h1 {
-    font-size: 3.2rem;
+    font-size: 2rem;
   }
-  
   .title-group h2 {
-    font-size: 2.2rem;
+    font-size: 1.4rem;
   }
-  
   .subtitle {
-    font-size: 1.3rem;
-    margin-top: 1.5rem;
+    font-size: 0.9rem;
   }
-  
-  .decorative-elements {
-    opacity: 0.05;
-    transform: translateX(0) scale(0.6);
+  .license-card {
+    padding: 0.6rem;
+    min-height: 0;
+    height: auto;
   }
-  
-  .container {
+  .card-front, .card-back {
+    padding: 0.8rem;
+    justify-content: flex-start;
+  }
+  .license-icon {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+  }
+  .license-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+  }
+  .license-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+  .license-details {
+    padding: 0;
+    margin: 0;
+  }
+  .license-details li {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    padding-left: 1rem;
+    line-height: 1.4;
+  }
+  .generator-container {
     padding: 1rem;
   }
-  
-  .content-section {
-    padding: 1.25rem;
-    margin-bottom: 2rem;
+  .preview-section {
+    padding: 1rem;
   }
-  
-  .content-section h2 {
-    font-size: 1.4rem;
+  .image-preview {
+    min-height: 150px;
   }
-  
-  .section-title {
-    font-size: 1.8rem;
+  .preview-canvas {
+    max-height: 150px;
   }
-  
-  .section-description {
-    font-size: 1rem;
+  .placeholder-upload {
+    min-height: 150px;
   }
-
-  /* Carousel adjustments for very small screens */
-  .interactive-content-carousel {
-    padding: 1rem; /* Further reduce overall padding */
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-  }
-  .carousel-header-panel,
-  .carousel-container,
-  .carousel-dots {
-    margin-left: 0; /* Remove side margins, arrows will move */
-    margin-right: 0;
-  }
-  .carousel-navigation-mobile-wrapper { /* New wrapper for centered arrows */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-    gap: 1rem; /* Space between arrows if using this wrapper */
-  }
-  .carousel-nav-button {
-    position: static; /* Stack them below content */
-    transform: none;
-    margin: 0; /* Reset margins if using wrapper gap */
-    /* If not using a wrapper, might need margin: 0.5rem auto; */
-  }
-  .carousel-main-title {
-    font-size: 1.8rem;
-  }
-  .current-slide-display-title { /* If it were still used */
-    font-size: 1.3rem;
-  }
-  .carousel-slide .content-section h2 {
-    font-size: 1.4rem;
-  }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
-    font-size: 0.9rem !important; 
-    line-height: 1.6;
-  }
-  .carousel-slide .content-section :deep(ul),
-  .carousel-slide .content-section :deep(ol) {
-    padding-left: 1.5rem; /* Reduce list indentation */
-  }
-
-  /* Generator controls adjustments for very small screens */
   .control-step {
     padding: 1rem;
-    padding-top: 2rem; /* Maintain space for top number */
+    padding-top: 1.5rem;
+  }
+  .step-number {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
   }
   .step-title {
     font-size: 1.1rem;
   }
-  .input-group label {
-    font-size: 0.85rem;
-  }
-  input[type="text"], .font-select {
+  input[type="text"] {
     padding: 0.6rem;
     font-size: 0.9rem;
   }
-  .license-option, .font-option {
+  .font-selector {
+    grid-template-columns: 1fr;
+  }
+  .font-option {
     padding: 0.6rem;
     font-size: 0.85rem;
   }
-  .action-button {
-    padding: 0.6rem 1rem;
+  .color-option, .color-picker {
+    width: 30px;
+    height: 30px;
+  }
+  .slider-group label, .color-selector label {
     font-size: 0.85rem;
   }
-  .action-buttons-group {
-    flex-direction: column; /* Stack download buttons */
-    align-items: stretch; /* Make buttons full width of their small container */
+  .position-option {
+    width: 30px;
+    height: 30px;
   }
-  .action-buttons-group .action-button {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
+  .action-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  .interactive-content-carousel {
+    padding: 1rem;
+  }
+  .carousel-main-title {
+    font-size: 1.4rem;
+  }
+  .carousel-slide .content-section {
+    padding: 1rem;
+  }
+  .carousel-slide .content-section h2 {
+    font-size: 1.3rem;
+  }
+  .carousel-slide .content-section :deep(p),
+  .carousel-slide .content-section :deep(li) {
+    font-size: 0.9rem !important;
+  }
+  .carousel-dots .dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
   }
 }
 
