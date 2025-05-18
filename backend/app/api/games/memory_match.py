@@ -129,14 +129,14 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
                 logger.warning(f"Image file not found in backend storage for '{image_name_from_db}' at path '{expected_image_path}'. Skipping this meme.")
                 continue # Skip this meme if its image isn't found locally
             
-            # Construct the new image URL pointing to our backend serving endpoint
-            local_image_url = f"{base_url}/api/games/memory_match/images/{image_name_from_db}"
+            # Construct the new image URL pointing to the /app/meme_images/ path
+            local_image_url = f"{base_url}/app/meme_images/{image_name_from_db}"
             
             processed_memes_data.append(MemeDataWithLocalURL(
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
                 image_url=local_image_url, 
-                # text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
+                text=str(record.get("text_corrected") or f"Meme {meme_id_counter}: {image_name_from_db}"), # Assuming text_corrected might be used or a fallback
                 humour=record["humour"],
                 sarcasm=record["sarcasm"],
                 offensive=record["offensive"],
