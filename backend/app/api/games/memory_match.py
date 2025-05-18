@@ -127,6 +127,9 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
                 logger.warning(f"Image file not found in backend storage for '{image_name_from_db}' at path '{expected_image_path}'. Skipping this meme.")
                 continue # Skip this meme if its image isn't found locally
             
+            # Construct the new image URL pointing to the /app/meme_images/ path
+            local_image_url = f"{base_url}/app/meme_images/{image_name_from_db}"
+           
             processed_memes_data.append(MemeDataWithLocalURL(
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
@@ -169,7 +172,7 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
 async def serve_meme_image(image_filename: str):
     try:
         # Sanitize filename to prevent directory traversal - basic check
-        if ".." in image_filename or image_filename.startswith("/"):
+        if "..." in image_filename or image_filename.startswith("/"):
             raise HTTPException(status_code=400, detail="Invalid image filename.")
 
         image_path = MEME_IMAGE_DIR / image_filename

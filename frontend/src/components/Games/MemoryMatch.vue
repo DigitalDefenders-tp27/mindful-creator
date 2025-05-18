@@ -39,7 +39,6 @@
           <div class="card-inner">
             <div class="card-front"></div>
             <div class="card-back">
-              <!-- Always use img, remove offline logic -->
               <img 
                 :src="`${API_BASE_URL}/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
                 alt="Meme card" 
@@ -198,6 +197,8 @@ const emit = defineEmits(['game-completed', 'exit-game']);
 interface MemeData {
   id: any;
   image_name: string;
+  image_url: string;
+  // text: string;
   humour?: string;
   sarcasm?: string;
   offensive?: string;
