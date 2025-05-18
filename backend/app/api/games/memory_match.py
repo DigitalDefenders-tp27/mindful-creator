@@ -136,7 +136,7 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
                 image_url=local_image_url, 
-                text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
+                # text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
                 humour=record["humour"],
                 sarcasm=record["sarcasm"],
                 offensive=record["offensive"],
@@ -246,7 +246,7 @@ def get_meme_data() -> pd.DataFrame:
     # If both fail, return an empty DataFrame with the expected columns
     return pd.DataFrame({
         'image_name': [], 
-        'text_corrected': [], 
+        # 'text_corrected': [], 
         'overall_sentiment': [],
         'humour': [],
         'sarcasm': [],
@@ -284,9 +284,7 @@ async def get_memes_for_memory_match(
         raise HTTPException(status_code=404, detail="Meme dataset (CSV) not found or empty")
     
     # Ensure we have required columns
-    # required_columns = ['image_name', 'text_corrected', 'overall_sentiment']
-    required_columns = ['image_name']
-
+    required_columns = ['image_name', 'overall_sentiment']
     missing_columns = [col for col in required_columns if col not in df.columns]
     
     if missing_columns:
