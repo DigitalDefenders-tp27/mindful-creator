@@ -79,6 +79,11 @@
       <input v-model="password" type="password" placeholder="Password" @keyup.enter="checkPassword" />
       <button @click="checkPassword">Submit</button>
     </div>
+    
+    <!-- Data Citation Section -->
+    <div class="data-citation">
+      <p>Data Sources: We use the Memotion Dataset 7k (Sharma et al., 2020) <a href="https://www.kaggle.com/datasets/williamscott701/memotion-dataset-7k" target="_blank">@Kaggle</a></p>
+    </div>
   </div>
 </template>
 
@@ -804,5 +809,24 @@ function checkPassword() {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* Citation styles */
+.data-citation {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.data-citation a {
+  color: #FF3D8C;
+  text-decoration: none;
+}
+
+.data-citation a:hover {
+  text-decoration: underline;
 }
 </style> 
