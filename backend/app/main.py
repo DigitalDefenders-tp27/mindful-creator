@@ -17,6 +17,27 @@ from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import affirmations, breaths, journals, memes, ratings
+from app.routes import data_fetch_orm
+
+
+
+app = FastAPI()
+
+app.include_router(data_fetch_orm.router, prefix="/api")
+
+# Optional: CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can restrict this to your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+
+
 
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
@@ -62,11 +83,7 @@ def log_system_resources():
 log_system_resources()
 
 # Create FastAPI application
-app = FastAPI(
-    title="Mindful Creator API",
-    description="API for analyzing YouTube comments and providing response strategies",
-    version="1.0.0"
-)
+
 
 # Configure CORS middleware
 # Define allowed origins for specific domains
@@ -155,10 +172,7 @@ logger.info("Registering API router (contains health check endpoint)")
 app.include_router(youtube_router, prefix="/api")
 
 # Root endpoint for basic health check
-@app.get("/")
-def root() -> Dict[str, str]:
-    """Root path simplified health check"""
-    return {"status": "online"}
+
 
 # Additional health check endpoint at the root level for Railway
 @app.get("/health")
