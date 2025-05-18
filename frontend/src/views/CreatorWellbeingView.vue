@@ -1,36 +1,5 @@
 <template>
   <div class="creator-wellbeing">
-    <!-- Panic Button -->
-    <button @click="openPanicModal" class="panic-button">Panic Button</button>
-
-    <!-- Panic Modal -->
-    <div v-if="showPanicModal" class="modal-overlay">
-      <div class="modal-content">
-        <button @click="closePanicModal" class="modal-close-button">&times;</button>
-        <h2>Instant Relief</h2>
-        <p>Remember, you're not alone. Take a deep breath. We've got resources that can help you right now.</p>
-        <div class="modal-actions">
-          <button @click="navigateToResources" class="modal-button primary">Show me resources</button>
-          <button @click="startBreathingExercise" class="modal-button secondary">Just breathe</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Breathing Exercise Guide -->
-    <div v-if="showBreathingExercise" class="breathing-exercise-overlay">
-      <div class="breathing-exercise-content">
-        <h3>1-Minute Mindful Breathing</h3>
-        <p>1. Find a comfortable position.</p>
-        <p>2. Close your eyes gently.</p>
-        <p>3. Inhale deeply through your nose for 4 seconds.</p>
-        <p>4. Hold your breath for 4 seconds.</p>
-        <p>5. Exhale slowly through your mouth for 6 seconds.</p>
-        <p>6. Repeat for 1 minute. A gentle sound will indicate when the minute is up.</p>
-        <div class="timer">Timer: {{ formattedTime }}</div>
-        <button @click="endBreathingExercise" class="modal-button primary">End Exercise</button>
-      </div>
-    </div>
-
     <!-- Scroll Island -->
     <ScrollIsland :title="currentSection" ref="scrollIslandRef">
       <div class="island-sections">
@@ -571,6 +540,10 @@ const router = useRouter()
 let googleInstance = null;
 let placesService = null; // Added for Places API
 
+// REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
+// REMOVED formattedTime computed property
+
+// REMOVED Panic Button methods: openPanicModal, closePanicModal, navigateToResources, startBreathingExercise, endBreathingExercise, playCompletionSound, stopCompletionSound
 // REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
 // REMOVED formattedTime computed property
 
@@ -1645,6 +1618,7 @@ const visitWebsite = () => {
   margin-bottom: 1rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid #f0f0f0;
+  width: 100%;
 }
 
 
@@ -3046,22 +3020,28 @@ section:not(:last-child)::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000; /* Keep this lower than modal-overlay's z-index */
+  z-index: 1000;
   overflow-y: auto;
   padding: 2rem 0;
+  
+  /* Add scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(231, 90, 151, 0.5) rgba(0, 0, 0, 0.1);
 }
 
 .activities-modal {
   background-color: #fff;
   border-radius: 16px;
   width: 90%;
-  max-width: 1000px;
+  max-width: 1000px; /* Even wider for better layout on desktop */
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   position: relative;
-  display: flex;
-  flex-direction: column;
+  
+  /* Add scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(231, 90, 151, 0.5) rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
@@ -3075,12 +3055,26 @@ section:not(:last-child)::after {
   background-color: #fff;
   z-index: 10;
   border-radius: 16px 16px 0 0;
+  width: 100%;
 }
 
 .modal-content {
   padding: 2rem;
   overflow-y: auto;
   flex: 1;
+}
+
+/* Event card wrapper for activities modal */
+.activities-modal .event-card-wrapper {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin: 0 auto 2rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+  border: 1px solid #f0f0f0;
 }
 
 /* Event filters responsive improvements */
@@ -3097,20 +3091,22 @@ section:not(:last-child)::after {
   
   .clear-filters-btn {
     width: 100%;
-    margin-top: 0.5rem;
+    padding: 0.75rem;
   }
   
   .activities-modal {
     width: 95%;
     max-height: 90vh;
+    margin: 1rem 0;
   }
   
-  .modal-content {
-    padding: 1.5rem;
+  .activities-modal-overlay {
+    padding: 0;
+    align-items: center;
   }
   
   .modal-header {
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
   }
   
   .modal-header h2 {
@@ -3133,8 +3129,14 @@ section:not(:last-child)::after {
 
 @media (max-width: 480px) {
   .activities-modal {
-    width: 98%;
-    max-height: 92vh;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  
+  .activities-modal-overlay {
+    padding: 0;
   }
   
   .modal-content {
@@ -3142,7 +3144,8 @@ section:not(:last-child)::after {
   }
   
   .modal-header {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
   }
   
   .modal-header h2 {
@@ -3150,7 +3153,21 @@ section:not(:last-child)::after {
   }
   
   .close-modal-btn {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .filter-header {
+    padding: 0.5rem 0;
+  }
+
+  .filter-group label {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .filter-group select {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
   }
 
   .filter-group select {
@@ -3364,6 +3381,8 @@ section:not(:last-child)::after {
   display: flex;
   align-items: flex-end;
   margin-bottom: 0.5rem;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .clear-filters-btn {
@@ -3408,6 +3427,7 @@ section:not(:last-child)::after {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  width: 100%;
 }
 
 .event-card {
@@ -3509,12 +3529,16 @@ section:not(:last-child)::after {
   border-radius: 25px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .register-btn:hover {
   background-color: #d4407f;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive adjustments */
@@ -4405,6 +4429,10 @@ section:not(:last-child)::after {
   overflow: hidden;
   margin-bottom: 2rem;
   padding: 1rem 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .event-filters.filters-collapsed {

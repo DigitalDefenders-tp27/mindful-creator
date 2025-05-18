@@ -39,7 +39,6 @@
           <div class="card-inner">
             <div class="card-front"></div>
             <div class="card-back">
-              <!-- Always use img, remove offline logic -->
               <img 
                 :src="card_iter.memeData.image_url || '/images/placeholder.png'" 
                 :alt="card_iter.memeData.text" 

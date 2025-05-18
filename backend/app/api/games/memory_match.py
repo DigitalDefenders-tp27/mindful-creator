@@ -136,7 +136,7 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
                 image_url=local_image_url, 
-                text=str(record.get("text_corrected") or f"Meme {meme_id_counter}: {image_name_from_db}"), # Assuming text_corrected might be used or a fallback
+                # text=str(record["text_corrected"] or f"Meme {meme_id_counter}"),
                 humour=record["humour"],
                 sarcasm=record["sarcasm"],
                 offensive=record["offensive"],
@@ -176,7 +176,7 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
 async def serve_meme_image(image_filename: str):
     try:
         # Sanitize filename to prevent directory traversal - basic check
-        if ".." in image_filename or image_filename.startswith("/"):
+        if "..." in image_filename or image_filename.startswith("/"):
             raise HTTPException(status_code=400, detail="Invalid image filename.")
 
         image_path = MEME_IMAGE_DIR / image_filename
