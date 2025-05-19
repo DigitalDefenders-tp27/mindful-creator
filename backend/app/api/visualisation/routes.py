@@ -256,4 +256,94 @@ async def connection_test() -> Dict[str, Any]:
             "status": "error",
             "message": str(e),
             "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
-        } 
+        }
+
+@router.get("/debug-data-schema")
+async def debug_data_schema() -> Dict[str, Any]:
+    """
+    Debug endpoint to examine data schemas for all charts
+    """
+    logger.info("API request: debug-data-schema")
+    
+    try:
+        # Get sample data for diagnosis
+        train_data_sample = None
+        train_columns = []
+        
+        smmh_data_sample = None
+        smmh_columns = []
+        
+        # Try to get sample from train_cleaned
+        try:
+            train_data = data_processors.get_train_cleaned_data()
+            if train_data and len(train_data) > 0:
+                train_data_sample = train_data[0]
+                train_columns = list(train_data_sample.keys())
+        except Exception as e:
+            logger.error(f"Error getting train_cleaned sample: {e}")
+            
+        # Try to get sample from smmh_cleaned
+        try:
+            smmh_data = data_processors.get_smmh_cleaned_data()
+            if smmh_data and len(smmh_data) > 0:
+                smmh_data_sample = smmh_data[0]
+                smmh_columns = list(smmh_data_sample.keys())
+        except Exception as e:
+            logger.error(f"Error getting smmh_cleaned sample: {e}")
+            
+        # Try to generate sample chart data for each chart
+        chart_shapes = {}
+        
+        try:
+            screen_time_emotions_data = data_processors.process_screen_time_emotions()
+            chart_shapes["screen_time_emotions"] = {
+                "labels_count": len(screen_time_emotions_data.get("labels", [])),
+                "datasets_count": len(screen_time_emotions_data.get("datasets", [])),
+                "has_valid_structure": "labels" in screen_time_emotions_data and "datasets" in screen_time_emotions_data
+            }
+        except Exception as e:
+            chart_shapes["screen_time_emotions"] = {"error": str(e)}
+            
+        try:
+            sleep_data = data_processors.process_sleep_data()
+            chart_shapes["sleep_quality"] = {
+                "labels_count": len(sleep_data.get("labels", [])),
+                "datasets_count": len(sleep_data.get("datasets", [])),
+                "has_valid_structure": "labels" in sleep_data and "datasets" in sleep_data
+            }
+        except Exception as e:
+            chart_shapes["sleep_quality"] = {"error": str(e)}
+            
+        try:
+            engagement_data = data_processors.process_engagement_data()
+            chart_shapes["engagement"] = {
+                "labels_count": len(engagement_data.get("labels", [])),
+                "datasets_count": len(engagement_data.get("datasets", [])),
+                "has_valid_structure": "labels" in engagement_data and "datasets" in engagement_data
+            }
+        except Exception as e:
+            chart_shapes["engagement"] = {"error": str(e)}
+            
+        try:
+            anxiety_data = data_processors.process_anxiety_data()
+            chart_shapes["anxiety"] = {
+                "labels_count": len(anxiety_data.get("labels", [])),
+                "datasets_count": len(anxiety_data.get("datasets", [])),
+                "has_valid_structure": "labels" in anxiety_data and "datasets" in anxiety_data
+            }
+        except Exception as e:
+            chart_shapes["anxiety"] = {"error": str(e)}
+        
+        return {
+            "train_cleaned_columns": train_columns,
+            "smmh_cleaned_columns": smmh_columns,
+            "chart_data_shapes": chart_shapes,
+            "train_cleaned_sample": train_data_sample,
+            "smmh_cleaned_sample": smmh_data_sample
+        }
+    except Exception as e:
+        logger.error(f"Error in debug endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error diagnosing data schema: {str(e)}"
+        ) 

@@ -13,6 +13,7 @@
         <button @click="testApiConnection">Test API Connection</button>
         <button @click="testDbConnection">Test Database Connection</button>
         <button @click="testComprehensiveConnection">Comprehensive Test</button>
+        <button @click="debugDataSchema">Debug Data Schema</button>
       </div>
       <div class="debug-results" v-if="debugResults">
         <h4>Results:</h4>
@@ -219,6 +220,44 @@ const testComprehensiveConnection = async () => {
   }
 }
 
+const debugDataSchema = async () => {
+  try {
+    debugResults.value = { status: "Checking data schema..." }
+    console.log(`Attempting to fetch schema from ${BACKEND_URL}/api/visualisation/debug-data-schema`)
+    
+    const response = await axios.get(`${BACKEND_URL}/api/visualisation/debug-data-schema`, {
+      timeout: 30000 // 30 second timeout
+    })
+    
+    debugResults.value = response.data
+    console.log('Data schema response:', response.data)
+    
+    // Check if the charts have valid data
+    const chartShapes = response.data.chart_data_shapes || {}
+    const chartStatus = {}
+    
+    for (const [chartName, shape] of Object.entries(chartShapes)) {
+      if (shape.error) {
+        chartStatus[chartName] = `Error: ${shape.error}`
+      } else if (shape.has_valid_structure) {
+        chartStatus[chartName] = `Valid (${shape.labels_count} labels, ${shape.datasets_count} datasets)`
+      } else {
+        chartStatus[chartName] = 'Invalid structure'
+      }
+    }
+    
+    debugResults.value.chartStatus = chartStatus
+    
+  } catch (err) {
+    console.error('Data schema check failed:', err)
+    debugResults.value = { 
+      status: "error", 
+      message: `Failed to check data schema: ${err.message}`,
+      error: err.toString()
+    }
+  }
+}
+
 // Function to fetch data from backend API
 const fetchChartData = async (endpoint) => {
   try {
@@ -235,7 +274,7 @@ const fetchChartData = async (endpoint) => {
       timeout: 30000 // 30 second timeout (increased from 5 seconds)
     })
     
-    console.log(`Data received from ${endpoint}:`, response.data)
+    console.log(`Raw data received from ${endpoint}:`, response.data)
     
     // Check if the response contains an error message
     if (response.data && response.data.error) {
@@ -244,11 +283,36 @@ const fetchChartData = async (endpoint) => {
       throw new Error(response.data.error)
     }
     
+    // Validate data structure for Chart.js
+    const isValidChartData = response.data && 
+                           response.data.labels && 
+                           Array.isArray(response.data.labels) && 
+                           response.data.datasets && 
+                           Array.isArray(response.data.datasets);
+    
+    if (!isValidChartData) {
+      console.error(`Invalid chart data format for ${endpoint}:`, response.data);
+      error.value = "The API returned data in an unexpected format. Check console for details.";
+      throw new Error("Invalid chart data format");
+    }
+    
+    console.log(`Validated chart data for ${endpoint}:`, {
+      labels: response.data.labels,
+      datasetCount: response.data.datasets.length,
+      firstDataset: response.data.datasets[0]
+    });
+    
     return response.data
   } catch (err) {
     console.error(`Error fetching data from ${endpoint}:`, err)
+    
     // Show error to user when fetch fails
-    error.value = `Failed to load data: ${err.message}. Please try again later.`
+    if (err.response && err.response.data && err.response.data.detail) {
+      error.value = `Failed to load data: ${err.response.data.detail}`
+    } else {
+      error.value = `Failed to load data: ${err.message}. The database might be temporarily unavailable. Please try the connection test above or try again later.`
+    }
+    
     usingFallbackData.value = false
     throw err
   } finally {
@@ -267,25 +331,31 @@ const switchTab = async (index) => {
 // Render chart based on current tab
 const renderChart = async () => {
   const ctx = document.getElementById('mainChart')
-  if (!ctx) return
-  
-  if (chartInstance) {
-    chartInstance.destroy()
+  if (!ctx) {
+    console.error("Canvas element 'mainChart' not found in DOM");
+    error.value = "Chart container not found";
+    return;
   }
   
-  let chartData
-  let chartType
-  let chartOptions
+  if (chartInstance) {
+    chartInstance.destroy();
+    console.log("Previous chart instance destroyed");
+  }
+  
+  let chartData;
+  let chartType;
+  let chartOptions;
   
   try {
-    isLoading.value = true
-    error.value = null
+    isLoading.value = true;
+    error.value = null;
+    console.log(`Rendering chart for tab ${currentTab.value}`);
     
     // Choose which endpoint to call based on the current tab
     switch(currentTab.value) {
       case 0: // Screen Time and Emotions
-        chartData = await fetchChartData('screen-time-emotions')
-        chartType = 'bar'
+        chartData = await fetchChartData('screen-time-emotions');
+        chartType = 'bar';
         chartOptions = {
           responsive: true,
           plugins: { title: { display: false } },
@@ -299,12 +369,12 @@ const renderChart = async () => {
               title: { display: true, text: 'Percentage of Users (%)' }
             }
           }
-        }
-        break
+        };
+        break;
         
       case 1: // Digital Habits and Sleep
-        chartData = await fetchChartData('sleep-quality')
-        chartType = 'line'
+        chartData = await fetchChartData('sleep-quality');
+        chartType = 'line';
         chartOptions = {
           responsive: true,
           plugins: { title: { display: false } },
@@ -318,12 +388,12 @@ const renderChart = async () => {
               title: { display: true, text: 'Sleep Problem Frequency (1-5)' }
             }
           }
-        }
-        break
+        };
+        break;
         
       case 2: // Engagement Metrics
-        chartData = await fetchChartData('engagement')
-        chartType = 'bar'
+        chartData = await fetchChartData('engagement');
+        chartType = 'bar';
         chartOptions = {
           responsive: true,
           plugins: { title: { display: false } },
@@ -335,12 +405,12 @@ const renderChart = async () => {
               title: { display: true, text: 'Engagement Score' }
             }
           }
-        }
-        break
+        };
+        break;
         
       case 3: // Screen Time and Anxiety
-        chartData = await fetchChartData('anxiety')
-        chartType = 'line'
+        chartData = await fetchChartData('anxiety');
+        chartType = 'line';
         chartOptions = {
           responsive: true,
           plugins: { title: { display: false } },
@@ -354,21 +424,40 @@ const renderChart = async () => {
               title: { display: true, text: 'Average Anxiety Level (1-5)' }
             }
           }
-        }
-        break
+        };
+        break;
+        
+      default:
+        console.error(`Unknown tab index: ${currentTab.value}`);
+        error.value = "Unknown chart type selected";
+        isLoading.value = false;
+        return;
     }
     
     if (chartData) {
-      chartInstance = new Chart(ctx, {
-        type: chartType,
-        data: chartData,
-        options: chartOptions
-      })
+      console.log(`Creating chart of type '${chartType}' with data:`, chartData);
+      
+      try {
+        chartInstance = new Chart(ctx, {
+          type: chartType,
+          data: chartData,
+          options: chartOptions
+        });
+        console.log("Chart created successfully");
+      } catch (chartError) {
+        console.error("Error creating chart:", chartError);
+        error.value = `Error creating chart: ${chartError.message}`;
+        isLoading.value = false;
+      }
+    } else {
+      console.error("No chart data available after API call");
+      error.value = "No data available for this chart";
+      isLoading.value = false;
     }
   } catch (err) {
-    console.error('Error rendering chart:', err)
-    error.value = `Failed to load visualization data: ${err.message}. The database might be temporarily unavailable. Please try the connection test above or try again later.`
-    isLoading.value = false
+    console.error('Error in chart rendering process:', err);
+    error.value = `Failed to load visualization data: ${err.message}. The database might be temporarily unavailable. Please try the connection test above or try again later.`;
+    isLoading.value = false;
   }
 }
 
