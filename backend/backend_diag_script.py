@@ -7,7 +7,7 @@ def run_diagnostics():
     """
     Runs diagnostic tests on the backend's database connection and table structures.
     """
-    db_url = os.environ.get("DATABASE_URL")
+    db_url = os.environ.get("DATABASE_PUBLIC_URL")
     if not db_url:
         print("ERROR: DATABASE_URL environment variable not set.")
         return
