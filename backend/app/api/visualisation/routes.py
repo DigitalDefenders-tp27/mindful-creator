@@ -282,30 +282,38 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
     logger.info("API request: debug-data-schema")
     
     try:
-        # Get sample data for diagnosis
+        # Get sample data for diagnosis using ORM functions
         train_data_sample = None
         train_columns = []
         
         smmh_data_sample = None
         smmh_columns = []
         
-        # Try to get sample from train_cleaned
+        # Try to get sample from train_cleaned using ORM
         try:
-            train_data = data_processors.get_train_cleaned_data()
-            if train_data and len(train_data) > 0:
-                train_data_sample = train_data[0]
+            # Use the ORM function, ensure db session is passed
+            train_data_list = data_processors.get_train_cleaned_data_orm(db, limit=1) 
+            if train_data_list and len(train_data_list) > 0:
+                train_data_sample = train_data_list[0]
                 train_columns = list(train_data_sample.keys())
+                logger.info(f"Successfully fetched sample and columns for train_cleaned using ORM. Columns: {train_columns}")
+            else:
+                logger.warning("get_train_cleaned_data_orm returned no data for debug-data-schema.")
         except Exception as e:
-            logger.error(f"Error getting train_cleaned sample: {e}")
+            logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
-        # Try to get sample from smmh_cleaned
+        # Try to get sample from smmh_cleaned using ORM
         try:
-            smmh_data = data_processors.get_smmh_cleaned_data()
-            if smmh_data and len(smmh_data) > 0:
-                smmh_data_sample = smmh_data[0]
+            # Use the ORM function, ensure db session is passed
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(db, limit=1)
+            if smmh_data_list and len(smmh_data_list) > 0:
+                smmh_data_sample = smmh_data_list[0]
                 smmh_columns = list(smmh_data_sample.keys())
+                logger.info(f"Successfully fetched sample and columns for smmh_cleaned using ORM. Columns: {smmh_columns}")
+            else:
+                logger.warning("get_smmh_cleaned_data_orm returned no data for debug-data-schema.")
         except Exception as e:
-            logger.error(f"Error getting smmh_cleaned sample: {e}")
+            logger.error(f"Error getting smmh_cleaned sample using ORM: {e}", exc_info=True)
             
         # Try to generate sample chart data for each chart
         chart_shapes = {}

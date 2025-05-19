@@ -95,7 +95,7 @@ class TrainCleaned(Base):
     # Assuming 'User_ID' is the primary key as it's often an identifier.
     # If not, this should be changed to the actual primary key or a suitable candidate.
     user_id = Column("User_ID", Integer, primary_key=True, index=True)
-    age = Column("Age", Integer)
+    age = Column("Age", Text)
     gender = Column("Gender", String) # Using String, assuming it's not excessively long. Use Text for longer strings.
     platform = Column("Platform", String)
     daily_usage_time = Column("daily_usage_time", Float)
@@ -120,14 +120,14 @@ class SmmhCleaned(Base):
     social_media_platforms = Column("7. What social media platforms do you commonly use?", Text)
     avg_time_on_social_media = Column("8. What is the average time you spend on social media every day", Text)
     # For columns 9-15 and 17-20, type is Integer as per 'int8' in image
-    use_social_media_unintentionally = Column("9. How often do you find yourself using Social media without a", Integer)
+    use_social_media_unintentionally = Column("9. How often do you find yourself using Social media without a ", Integer)
     distracted_by_social_media = Column("10. How often do you get distracted by Social media when you are busy doing something?", Integer)
     restless_without_social_media = Column("11. Do you feel restless if you haven't used Social media in a while?", Integer)
     easily_distracted_scale = Column("12. On a scale of 1 to 5, how easily distracted are you?", Integer)
     bothered_by_worries_scale = Column("13. On a scale of 1 to 5, how much are you bothered by worries?", Integer)
     difficulty_concentrating_scale = Column("14. Do you find it difficult to concentrate on things?", Integer)
     compare_to_others_scale = Column("15. On a scale of 1-5, how often do you compare yourself to other people on social media?", Integer)
-    feel_about_comparisons = Column("16. Following the previous question, how do you feel about these comparisons, generally?", Text)
+    feel_about_comparisons = Column("16. Following the previous question, how do you feel about these comparisons, generally?", Integer)
     seek_validation_scale = Column("17. How often do you look to seek validation from features of social media?", Integer)
     feel_depressed_scale = Column("18. How often do you feel depressed or down?", Integer)
     interest_fluctuation_scale = Column("19. On a scale of 1 to 5, how frequently does your interest in daily activities fluctuate?", Integer)
