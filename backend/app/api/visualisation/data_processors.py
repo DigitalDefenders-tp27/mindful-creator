@@ -2,6 +2,9 @@ import logging
 from typing import Dict, List, Any, Optional
 from sqlalchemy import func, case, cast, Float
 from .database import execute_query, log_connection_details, get_train_cleaned_data, get_smmh_cleaned_data
+from sqlalchemy.sql import text
+from sqlalchemy.sql import time_limit
+from sqlalchemy.engine import Engine
 
 logger = logging.getLogger("visualisation.processors")
 
@@ -657,4 +660,98 @@ def test_database_connection() -> Dict[str, Any]:
         return {
             "connection": "failed",
             "error": str(e)
-        } 
+        }
+
+def get_train_cleaned_data(filters=None, group_by=None):
+    """
+    Use ORM to query the train_cleaned table with the given filters
+    
+    Args:
+        filters: Dictionary of column:value pairs to filter on
+        group_by: List of columns to group by
+    
+    Returns:
+        List of dictionaries with the query results
+    """
+    if TrainCleaned is None:
+        logger.error("TrainCleaned table not found in database schema")
+        raise Exception("Train cleaned table not available")
+    
+    operation = "get_train_cleaned_data"
+    log_connection_details(operation, "attempted")
+    
+    try:
+        with time_limit(30):
+            with engine.connect() as conn:
+                # Use a direct SQL query as a fallback
+                result = conn.execute(text("SELECT * FROM train_cleaned LIMIT 1000"))
+                rows = result.fetchall()
+                
+                # Get column names from result
+                columns = result.keys()
+                
+                # Convert to dictionaries
+                data = []
+                for row in rows:
+                    # Convert any Row objects to plain dictionaries
+                    if hasattr(row, '_asdict'):
+                        data.append(row._asdict())
+                    elif hasattr(row, 'items'):
+                        data.append(dict(row))
+                    else:
+                        # Handle tuple-like row
+                        data.append(dict(zip(columns, row)))
+                
+                log_connection_details(operation, "success", {"rows_returned": len(data)})
+                return data
+    except Exception as e:
+        log_connection_details(operation, "failed", {"error": str(e)})
+        logger.error(f"Error in get_train_cleaned_data: {e}")
+        raise
+
+def get_smmh_cleaned_data(filters=None, group_by=None):
+    """
+    Use ORM to query the smmh_cleaned table with the given filters
+    
+    Args:
+        filters: Dictionary of column:value pairs to filter on
+        group_by: List of columns to group by
+    
+    Returns:
+        List of dictionaries with the query results
+    """
+    if SmmhCleaned is None:
+        logger.error("SmmhCleaned table not found in database schema")
+        raise Exception("SMMH cleaned table not available")
+    
+    operation = "get_smmh_cleaned_data"
+    log_connection_details(operation, "attempted")
+    
+    try:
+        with time_limit(30):
+            with engine.connect() as conn:
+                # Use a direct SQL query as a fallback
+                result = conn.execute(text("SELECT * FROM smmh_cleaned LIMIT 1000"))
+                rows = result.fetchall()
+                
+                # Get column names from result
+                columns = result.keys()
+                
+                # Convert to dictionaries
+                data = []
+                for row in rows:
+                    # Convert any Row objects to plain dictionaries
+                    if hasattr(row, '_asdict'):
+                        data.append(row._asdict())
+                    elif hasattr(row, 'items'):
+                        data.append(dict(row))
+                    else:
+                        # Handle tuple-like row
+                        data.append(dict(zip(columns, row)))
+                
+                log_connection_details(operation, "success", {"rows_returned": len(data)})
+                return data
+    except Exception as e:
+        log_connection_details(operation, "failed", {"error": str(e)})
+        logger.error(f"Error in get_smmh_cleaned_data: {e}")
+        raise 

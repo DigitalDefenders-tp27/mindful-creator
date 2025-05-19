@@ -53,7 +53,7 @@
           <p>{{ error }}</p>
           <button @click="renderChart">Try Again</button>
         </div>
-        <canvas v-else id="mainChart"></canvas>
+        <canvas v-else ref="chartCanvas" id="mainChart"></canvas>
       </div>
       <div class="insight-area">
         <h3 class="insight-heading">Key Insights</h3>
@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import Chart from 'chart.js/auto'
 import axios from 'axios'
 
@@ -330,10 +330,14 @@ const switchTab = async (index) => {
 
 // Render chart based on current tab
 const renderChart = async () => {
-  const ctx = document.getElementById('mainChart')
-  if (!ctx) {
-    console.error("Canvas element 'mainChart' not found in DOM");
-    error.value = "Chart container not found";
+  // Make sure DOM is updated before accessing canvas element
+  await nextTick();
+  
+  const canvas = document.getElementById('mainChart');
+  if (!canvas) {
+    console.error("Canvas element 'mainChart' not found in DOM - will try again on next render cycle");
+    error.value = "Chart container not found, please try again";
+    isLoading.value = false;
     return;
   }
   
@@ -438,7 +442,7 @@ const renderChart = async () => {
       console.log(`Creating chart of type '${chartType}' with data:`, chartData);
       
       try {
-        chartInstance = new Chart(ctx, {
+        chartInstance = new Chart(canvas, {
           type: chartType,
           data: chartData,
           options: chartOptions
