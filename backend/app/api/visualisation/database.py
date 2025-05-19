@@ -10,6 +10,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, load_only
 from dotenv import load_dotenv
 from contextlib import contextmanager
+from sqlalchemy import inspect as sqlalchemy_inspect
+from sqlalchemy.orm.properties import ColumnProperty
 
 load_dotenv()
 
@@ -409,18 +411,30 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
         else: # Full model objects were queried (or columns_to_load was empty/all invalid)
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
             processed_data = []
+            column_attribute_keys = [] # Initialize
+            if results: # Ensure there are results to inspect
+                # Get mapper from the first object's class. Assuming all objects are of the same type.
+                mapper = sqlalchemy_inspect(results[0].__class__)
+                # Get a list of Python attribute names that correspond to columns
+                column_attribute_keys = [prop.key for prop in mapper.iterate_properties 
+                                         if isinstance(prop, ColumnProperty)]
+            
             for row_obj in results:
                 row_as_dict = {}
-                for column in row_obj.__table__.columns:
+                for attr_key in column_attribute_keys: # Iterate using Python attribute names
                     try:
-                        # Log exactly what column.key is and what column.name (DB name) is
-                        logger.info(f"TrainCleaned - Processing DB column: '{column.name}', ORM key: '{column.key}'")
-                        value = getattr(row_obj, column.key)
-                        row_as_dict[column.key] = value
+                        # For logging, find the DB column name this attribute maps to
+                        db_column_name = "unknown_db_column"
+                        if hasattr(mapper.attrs[attr_key], 'expression') and hasattr(mapper.attrs[attr_key].expression, 'name'):
+                            db_column_name = mapper.attrs[attr_key].expression.name
+                        
+                        logger.info(f"{row_obj.__class__.__name__} - Accessing ORM attribute: '{attr_key}' (DB column: '{db_column_name}')")
+                        value = getattr(row_obj, attr_key)
+                        row_as_dict[attr_key] = value
                     except AttributeError as e_attr:
-                        logger.error(f"TrainCleaned - AttributeError for DB column '{column.name}' with ORM key '{column.key}': {e_attr}", exc_info=True)
+                        logger.error(f"{row_obj.__class__.__name__} - AttributeError for ORM attribute '{attr_key}': {e_attr}", exc_info=True)
                         # Optionally, put a placeholder or skip if an attribute is problematic
-                        row_as_dict[column.key] = f"ERROR_ACCESSING_{column.key}" 
+                        row_as_dict[attr_key] = f"ERROR_ACCESSING_{attr_key}" 
                 processed_data.append(row_as_dict)
             data = processed_data
 
@@ -504,18 +518,30 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
         else: # Full model objects were queried
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
             processed_data = []
+            column_attribute_keys = [] # Initialize
+            if results: # Ensure there are results to inspect
+                # Get mapper from the first object's class. Assuming all objects are of the same type.
+                mapper = sqlalchemy_inspect(results[0].__class__)
+                # Get a list of Python attribute names that correspond to columns
+                column_attribute_keys = [prop.key for prop in mapper.iterate_properties
+                                         if isinstance(prop, ColumnProperty)]
+            
             for row_obj in results:
                 row_as_dict = {}
-                for column in row_obj.__table__.columns:
+                for attr_key in column_attribute_keys: # Iterate using Python attribute names
                     try:
-                        # Log exactly what column.key is and what column.name (DB name) is
-                        logger.info(f"SmmhCleaned - Processing DB column: '{column.name}', ORM key: '{column.key}'")
-                        value = getattr(row_obj, column.key)
-                        row_as_dict[column.key] = value
+                        # For logging, find the DB column name this attribute maps to
+                        db_column_name = "unknown_db_column"
+                        if hasattr(mapper.attrs[attr_key], 'expression') and hasattr(mapper.attrs[attr_key].expression, 'name'):
+                            db_column_name = mapper.attrs[attr_key].expression.name
+
+                        logger.info(f"{row_obj.__class__.__name__} - Accessing ORM attribute: '{attr_key}' (DB column: '{db_column_name}')")
+                        value = getattr(row_obj, attr_key)
+                        row_as_dict[attr_key] = value
                     except AttributeError as e_attr:
-                        logger.error(f"SmmhCleaned - AttributeError for DB column '{column.name}' with ORM key '{column.key}': {e_attr}", exc_info=True)
+                        logger.error(f"{row_obj.__class__.__name__} - AttributeError for ORM attribute '{attr_key}': {e_attr}", exc_info=True)
                         # Optionally, put a placeholder or skip if an attribute is problematic
-                        row_as_dict[column.key] = f"ERROR_ACCESSING_{column.key}" 
+                        row_as_dict[attr_key] = f"ERROR_ACCESSING_{attr_key}"
                 processed_data.append(row_as_dict)
             data = processed_data
             
