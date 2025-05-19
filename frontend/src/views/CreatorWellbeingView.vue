@@ -509,15 +509,6 @@ const router = useRouter()
 let googleInstance = null;
 let placesService = null; // Added for Places API
 
-// REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
-// REMOVED formattedTime computed property
-
-// REMOVED Panic Button methods: openPanicModal, closePanicModal, navigateToResources, startBreathingExercise, endBreathingExercise, playCompletionSound, stopCompletionSound
-// REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
-// REMOVED formattedTime computed property
-
-// REMOVED Panic Button methods: openPanicModal, closePanicModal, navigateToResources, startBreathingExercise, endBreathingExercise, playCompletionSound, stopCompletionSound
-
 // Initialize Google Maps
 const initMap = async () => {
   try {
