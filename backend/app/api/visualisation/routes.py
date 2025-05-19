@@ -20,6 +20,14 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+# Helper to create a safe error string
+def _safe_error_str(e: Exception) -> str:
+    try:
+        return str(e)
+    except Exception as ie:
+        logger.error(f"Failed to convert exception to string: {type(e)} caused {type(ie)}", exc_info=True)
+        return "An undescribable error occurred in the data processing module."
+
 # Lightweight health check endpoint for the visualization module
 @router.get("/health")
 async def visualisation_health() -> Dict[str, Any]:
@@ -45,19 +53,19 @@ async def get_screen_time_emotions(db: Session = Depends(get_db)) -> Dict[str, A
         logger.info("Successfully processed screen time emotions data")
         return JSONResponse(content=data)
     except Exception as e:
-        logger.error(f"Error processing screen time emotions: {e}")
+        error_message = _safe_error_str(e)
+        logger.error(f"Error processing screen time emotions: {error_message}", exc_info=True)
         if ALLOW_DB_FAILURE:
-            # Return an informative error response but still return 200 status
             return JSONResponse(
                 content={
-                    "error": f"Database error: {str(e)}",
+                    "error": f"Database error: {error_message}",
                     "message": "Unable to load visualization data due to database connection issues."
                 }
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to retrieve screen time emotions data: {str(e)}"
+                detail=f"Failed to retrieve screen time emotions data: {error_message}"
             )
 
 @router.get("/sleep-quality")
@@ -71,19 +79,19 @@ async def get_sleep_quality(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.info("Successfully processed sleep data")
         return JSONResponse(content=data)
     except Exception as e:
-        logger.error(f"Error processing sleep data: {e}")
+        error_message = _safe_error_str(e)
+        logger.error(f"Error processing sleep data: {error_message}", exc_info=True)
         if ALLOW_DB_FAILURE:
-            # Return an informative error response but still return 200 status
             return JSONResponse(
                 content={
-                    "error": f"Database error: {str(e)}",
+                    "error": f"Database error: {error_message}",
                     "message": "Unable to load sleep quality data due to database connection issues."
                 }
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to retrieve sleep quality data: {str(e)}"
+                detail=f"Failed to retrieve sleep quality data: {error_message}"
             )
 
 @router.get("/engagement")
@@ -97,19 +105,19 @@ async def get_engagement(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.info("Successfully processed engagement data")
         return JSONResponse(content=data)
     except Exception as e:
-        logger.error(f"Error processing engagement data: {e}")
+        error_message = _safe_error_str(e)
+        logger.error(f"Error processing engagement data: {error_message}", exc_info=True)
         if ALLOW_DB_FAILURE:
-            # Return an informative error response but still return 200 status
             return JSONResponse(
                 content={
-                    "error": f"Database error: {str(e)}",
+                    "error": f"Database error: {error_message}",
                     "message": "Unable to load engagement data due to database connection issues."
                 }
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to retrieve engagement data: {str(e)}"
+                detail=f"Failed to retrieve engagement data: {error_message}"
             )
 
 @router.get("/anxiety")
@@ -123,19 +131,19 @@ async def get_anxiety(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.info("Successfully processed anxiety data")
         return JSONResponse(content=data)
     except Exception as e:
-        logger.error(f"Error processing anxiety data: {e}")
+        error_message = _safe_error_str(e)
+        logger.error(f"Error processing anxiety data: {error_message}", exc_info=True)
         if ALLOW_DB_FAILURE:
-            # Return an informative error response but still return 200 status
             return JSONResponse(
                 content={
-                    "error": f"Database error: {str(e)}",
+                    "error": f"Database error: {error_message}",
                     "message": "Unable to load anxiety data due to database connection issues."
                 }
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to retrieve anxiety data: {str(e)}"
+                detail=f"Failed to retrieve anxiety data: {error_message}"
             )
 
 @router.get("/all-chart-data")

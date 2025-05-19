@@ -224,42 +224,50 @@ const debugDataSchema = async () => {
     debugResults.value = response.data;
     console.log('Data schema response:', response.data);
 
-    // Check if any chart status indicates an error (missing columns)
     let schemaError = false;
-    if (response.data && response.data.chartStatus) {
-      for (const chartKey in response.data.chartStatus) {
-        if (response.data.chartStatus[chartKey].startsWith('Error:')) {
+    let schemaErrorReason = "Debug schema response structure was unexpected."; // Default reason
+
+    if (response.data && response.data.chart_data_shapes) {
+      schemaError = false; // Assume okay unless an error is found
+      for (const chartKey in response.data.chart_data_shapes) {
+        if (response.data.chart_data_shapes[chartKey] && response.data.chart_data_shapes[chartKey].error) {
+          schemaErrorReason = `Backend reported error for chart '${chartKey}' in debug schema: ${response.data.chart_data_shapes[chartKey].error}`;
+          console.warn(`debugDataSchema: ${schemaErrorReason}`);
           schemaError = true;
           break;
         }
       }
     } else if (!response.data || Object.keys(response.data).length === 0) {
-      // If response.data is empty or undefined, also consider it a schema error
+      schemaErrorReason = "Debug schema response was empty or malformed.";
+      schemaError = true;
+    } else if (!response.data.chart_data_shapes) {
+      schemaErrorReason = "Debug schema response missing 'chart_data_shapes' key.";
       schemaError = true;
     }
 
+
     if (schemaError) {
-      console.warn('Schema error detected. Chart data might be incomplete.');
-      error.value = "There was an issue with the data schema from the backend. Some visualizations may not load correctly.";
-      // No fallback data, just an error
+      console.warn(`debugDataSchema: Schema error detected. Reason: ${schemaErrorReason}`);
+      // We can set error.value here if we want debugDataSchema to impact the main error display
+      // For now, just logging for the debug panel's own operation.
+      // error.value = `Schema issue found by debugDataSchema: ${schemaErrorReason}`;
     }
 
   } catch (err) {
-    console.error('Data schema fetch failed:', err);
+    console.error('Data schema fetch failed (debugDataSchema):', err);
     debugResults.value = {
       status: "error",
       message: `Failed to fetch data schema: ${err.message}`,
       error: err.toString()
     };
-    error.value = "Could not load data schema from the backend.";
+    error.value = "Could not load data schema from the backend (debug check).";
   } finally {
     isLoading.value = false;
-    // Ensure renderChart is called after DOM updates if there's no pre-existing error
-    // and we are not in an error state from this function.
-    if (!error.value) {
-        await nextTick();
-        renderChart(); // Attempt to render, will use an empty state if no data.
-    }
+    // REMOVED renderChart() call from here as it's not appropriate for debugDataSchema
+    // if (!error.value) {
+    //     await nextTick();
+    //     renderChart(); 
+    // }
   }
 };
 
@@ -269,57 +277,64 @@ const fetchDataAndRender = async () => {
   error.value = null;
 
   try {
-    console.log(`Fetching initial schema from ${BACKEND_URL}/api/visualisation/debug-data-schema`);
+    console.log(`fetchDataAndRender: Performing pre-flight schema check from ${BACKEND_URL}/api/visualisation/debug-data-schema`);
     const schemaResponse = await axios.get(`${BACKEND_URL}/api/visualisation/debug-data-schema`, { timeout: 20000 });
-    console.log('Initial schema check response:', schemaResponse.data);
+    console.log('fetchDataAndRender: Pre-flight schema check response:', schemaResponse.data);
 
     let schemaHasIssues = false;
-    if (schemaResponse.data && schemaResponse.data.chartStatus) {
-      for (const chartKey in schemaResponse.data.chartStatus) {
-        if (schemaResponse.data.chartStatus[chartKey].startsWith('Error:')) {
+    let schemaIssueReason = "Pre-flight schema check: Response missing 'chart_data_shapes' or was empty."; // Default reason
+
+    if (schemaResponse.data && schemaResponse.data.chart_data_shapes && Object.keys(schemaResponse.data.chart_data_shapes).length > 0) {
+      schemaHasIssues = false; // Assume okay unless an error is found
+      for (const chartKey in schemaResponse.data.chart_data_shapes) {
+        if (schemaResponse.data.chart_data_shapes[chartKey] && schemaResponse.data.chart_data_shapes[chartKey].error) {
+          schemaIssueReason = `Pre-flight schema check: Backend reported error for chart '${chartKey}': ${schemaResponse.data.chart_data_shapes[chartKey].error}`;
+          console.warn(`fetchDataAndRender: ${schemaIssueReason}`);
           schemaHasIssues = true;
           break;
         }
       }
+      if (!schemaHasIssues) {
+          console.log("fetchDataAndRender: Pre-flight schema check passed. No errors found in chart_data_shapes.");
+      }
     } else {
-      schemaHasIssues = true;
+      // This block means schemaResponse.data is null, or chart_data_shapes is missing/empty
+      console.warn(`fetchDataAndRender: Pre-flight schema check failed. Reason: ${schemaIssueReason}`);
+      schemaHasIssues = true; // Set to true if chart_data_shapes is not as expected
     }
     
     if (schemaHasIssues) {
-      console.warn('Initial schema check indicates missing columns or empty tables.');
-      error.value = "Some data required for visualization is currently unavailable or has an incorrect format.";
+      console.warn(`fetchDataAndRender: Aborting main chart data fetch due to pre-flight schema issue. Reason: ${schemaIssueReason}`);
+      error.value = `Schema validation failed before fetching chart data: ${schemaIssueReason}. Visualizations may not load.`;
       isLoading.value = false;
-      // No direct call to renderChart() here; watcher will handle it if error is cleared later.
-      return;
+      return; // Exit if pre-flight check indicates issues
     }
 
+    // If pre-flight schema check is okay, proceed to fetch actual data for the current tab
     const tabEndpoints = [
       '/api/visualisation/screen-time-emotions',
       '/api/visualisation/sleep-quality',
-      '/api/visualisation/engagement-metrics',
-      '/api/visualisation/anxiety-levels'
+      '/api/visualisation/engagement',
+      '/api/visualisation/anxiety'
     ];
     const endpoint = tabEndpoints[currentTab.value];
-    console.log(`Fetching chart data from ${BACKEND_URL}${endpoint}`);
+    console.log(`fetchDataAndRender: Fetching chart data from ${BACKEND_URL}${endpoint}`);
     const response = await axios.get(`${BACKEND_URL}${endpoint}`, { timeout: 30000 });
     
     if (!response.data || Object.keys(response.data).length === 0 || !response.data.labels || !response.data.datasets) {
+        console.error('fetchDataAndRender: Empty or invalid data returned from backend for chart endpoint:', endpoint, 'Data:', response.data);
         throw new Error('Empty or invalid data returned from backend for chart.');
     }
     
-    console.log('Chart data received:', response.data);
-    // Successfully fetched data, error is null, isLoading will be set to false by watcher or finally block
-    // The watcher for [isLoading, error] will trigger renderChart if conditions are met.
-    isLoading.value = false; // This will trigger the watcher if error is null
-    // Call renderChart directly ONLY if data is successfully fetched and validated
+    console.log('fetchDataAndRender: Chart data received:', response.data);
+    isLoading.value = false; 
     await nextTick();
     renderChart(response.data);
 
   } catch (err) {
-    console.error('Failed to fetch chart data or schema:', err);
+    console.error('fetchDataAndRender: Failed to fetch chart data or schema:', err);
     error.value = `Failed to load visualisation: ${err.message}. Please ensure the backend is running and data is available.`;
     isLoading.value = false;
-    // No direct call to renderChart() here; watcher will handle it if error is cleared later.
   }
 };
 
@@ -461,10 +476,11 @@ onMounted(() => {
       error.value = debugResults.value.recommendation; 
       isLoading.value = false;
       // Watcher will handle this state change.
-    } else if (debugResults.value && debugResults.value.chartStatus) { 
+    } else if (debugResults.value && debugResults.value.chart_data_shapes) { 
         let schemaError = false;
-        for (const chartKey in debugResults.value.chartStatus) {
-            if (debugResults.value.chartStatus[chartKey].startsWith('Error:')) {
+        for (const chartKey in debugResults.value.chart_data_shapes) {
+            if (debugResults.value.chart_data_shapes[chartKey] && debugResults.value.chart_data_shapes[chartKey].error) {
+                console.warn(`Schema error for ${chartKey} from onMounted: ${debugResults.value.chart_data_shapes[chartKey].error}`);
                 schemaError = true;
                 break;
             }
