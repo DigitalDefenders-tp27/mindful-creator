@@ -1,9 +1,8 @@
 import logging
 from typing import Dict, List, Any, Optional
 from sqlalchemy import func, case, cast, Float
-from .database import execute_query, log_connection_details, get_train_cleaned_data, get_smmh_cleaned_data
+from .database import execute_query, log_connection_details, get_train_cleaned_data, get_smmh_cleaned_data, time_limit
 from sqlalchemy.sql import text
-from sqlalchemy.sql import time_limit
 from sqlalchemy.engine import Engine
 
 logger = logging.getLogger("visualisation.processors")
