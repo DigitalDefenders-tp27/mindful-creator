@@ -155,12 +155,18 @@ def try_initialize_database():
                     logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
 
                 # Automap for ORM models
+                logger.info("Visualisation DB - About to call AutomapBase.prepare()...")
+                sys.stdout.flush() # Ensure this log gets out
                 AutomapBase.prepare(engine, reflect=True)
+                logger.info("Visualisation DB - AutomapBase.prepare() call completed.")
+                sys.stdout.flush() # Ensure this log gets out
+
                 TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
                 SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
                 logger.info(f"Visualisation DB - ORM Models loaded via Automap: TrainCleanedModel={'Exists' if TrainCleanedModel else 'Not Found'}, SmmhCleanedModel={'Exists' if SmmhCleanedModel else 'Not Found'}")
             except Exception as reflect_error:
-                logger.error(f"Visualisation DB - Error reflecting database structure: {reflect_error}", exc_info=True)
+                logger.error(f"Visualisation DB - Error during ORM Automap or Table creation: {reflect_error}", exc_info=True)
+                sys.stdout.flush() # Ensure error log gets out
                 if not ALLOW_DB_FAILURE:
                     logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
                     raise
