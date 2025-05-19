@@ -30,14 +30,14 @@ def process_screen_time_emotions(db_session) -> Dict[str, Any]:
         # Get all data from the train_cleaned table using the ORM function
         data = get_train_cleaned_data_orm(db_session)
         
-        # Log the first few rows to debug column names
-        if data and len(data) > 0:
-            logger.info(f"Sample row from train_cleaned: {data[0]}")
-            logger.info(f"Column names: {list(data[0].keys())}")
-        else:
-            logger.warning("No data returned from train_cleaned table")
+        if not data or len(data) == 0:
+            logger.warning("process_screen_time_emotions: No data returned from train_cleaned table.")
+            raise ValueError("No data found for screen time emotions visualization (train_cleaned empty or query failed)")
         
-        # Determine correct column names (could be daily_usage_time or daily_usage_time_minutes)
+        # *** ADDED DETAILED LOGGING OF RECEIVED KEYS ***
+        logger.info(f"process_screen_time_emotions: Sample row received from get_train_cleaned_data_orm: {data[0]}")
+        logger.info(f"process_screen_time_emotions: Keys in sample row: {list(data[0].keys())}")
+
         usage_time_column = None
         emotion_column = None
         
@@ -286,12 +286,13 @@ def process_engagement_data(db_session) -> Dict[str, Any]:
         # Get all data from the train_cleaned table using the ORM function
         data = get_train_cleaned_data_orm(db_session)
         
-        # Log the first few rows to debug column names
-        if data and len(data) > 0:
-            logger.info(f"Sample row from train_cleaned for engagement: {data[0]}")
-            logger.info(f"Column names for engagement: {list(data[0].keys())}")
-        else:
-            logger.warning("No data returned from train_cleaned table for engagement")
+        if not data or len(data) == 0:
+            logger.warning("process_engagement_data: No data returned from train_cleaned table.")
+            raise ValueError("No data found for engagement visualization (train_cleaned empty or query failed)")
+
+        # *** ADDED DETAILED LOGGING OF RECEIVED KEYS ***
+        logger.info(f"process_engagement_data: Sample row received from get_train_cleaned_data_orm: {data[0]}")
+        logger.info(f"process_engagement_data: Keys in sample row: {list(data[0].keys())}")
             
         # Determine correct column names
         usage_time_column = None
