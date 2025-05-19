@@ -68,37 +68,39 @@ else
   echo "[startup] WARNING: No database URL environment variables (DATABASE_PUBLIC_URL or DATABASE_URL) provided"
 fi
 
-# Create a lightweight health check endpoint
+# Create a lightweight health check endpoint using a direct Python script
 echo "[startup] Creating lightweight pre-startup health endpoint"
-mkdir -p /tmp/health_app
-cat > /tmp/health_app/app.py << EOF
+python -c '
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import uvicorn
 import os
 
 app = FastAPI()
 
-@app.get("/health")
-def health():
+@app.get("/")
+async def root():
     return JSONResponse(content={"status": "ok"})
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app:app", host="0.0.0.0", port=port)
-EOF
+@app.get("/health")
+async def health():
+    return JSONResponse(content={"status": "ok"})
 
-# Start the lightweight health app in the background and save its PID
-python -m uvicorn /tmp/health_app.app:app --host 0.0.0.0 --port "${APP_PORT}" &
+# Run this in a way that will catch errors, but not block the startup script
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+' &
+
 HEALTH_APP_PID=$!
 echo "[startup] Lightweight health app started with PID: ${HEALTH_APP_PID}"
 
 # Give the lightweight app a moment to start
-sleep 2
+sleep 3
 
 echo "[startup] Launching Uvicorn with increased timeouts"
 # Kill the lightweight health app before starting the main app
-kill $HEALTH_APP_PID || true
+kill $HEALTH_APP_PID 2>/dev/null || true
 
 exec uvicorn app.main:app \
      --host 0.0.0.0 \

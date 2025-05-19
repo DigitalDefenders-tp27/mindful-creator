@@ -12,9 +12,10 @@ import time
 
 def test_health_endpoints(base_url, timeout=5):
     """
-    Test both health check endpoints
+    Test all health check endpoints
     """
-    endpoints = ["/health", "/api/health"]
+    # Test all essential health endpoints
+    endpoints = ["/", "/health", "/api/health", "/api/visualisation/health"]
     results = {}
     
     for endpoint in endpoints:
@@ -71,40 +72,15 @@ if __name__ == "__main__":
     print("\nSummary:")
     print(f"{'✅ All tests passed!' if all_succeeded else '❌ Some tests failed!'}")
     
+    # Check root endpoint specifically
+    if results.get("/", {}).get("success", False):
+        print("✅ Root endpoint (/) is working - Railway health checks should pass")
+    else:
+        print("❌ Root endpoint (/) is NOT working - Railway health checks will FAIL")
+    
     # Detailed results
     print("\nDetailed results:")
     print(json.dumps(results, indent=2))
     
     # Exit with appropriate code
-    sys.exit(0 if all_succeeded else 1)
-
-"""
-Simple FastAPI application to test the health check endpoint
-Run this with: python3 -m uvicorn test_health_check:app --port 8000
-"""
-
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse, Response
-import uvicorn
-import json
-import time
-import os
-
-app = FastAPI()
-
-@app.get("/health")
-async def root_health_check():
-    """
-    Minimal health check endpoint
-    """
-    print("Health check endpoint accessed")
-    return Response(content=json.dumps({"status": "ok"}), media_type="application/json")
-
-@app.get("/")
-async def root():
-    """Root endpoint for testing"""
-    return {"message": "Test server is running"}
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port) 
+    sys.exit(0 if all_succeeded else 1) 

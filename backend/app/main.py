@@ -188,13 +188,15 @@ app.include_router(youtube_router, prefix="/api")
 app.include_router(visualisation_router, prefix="")
 logger.info("Explicitly included visualisation_router")
 
-# Root endpoint for basic health check
+# Root endpoint for basic health check - used by Railway as health check
 @app.get("/")
 async def root() -> Dict[str, str]:
     """
-    Root endpoint provides simple welcome message
+    Root endpoint provides simple welcome message and is used as the primary health check
     """
-    return {"message": "Welcome to Mindful Creator API"}
+    # Return a minimal response to ensure this endpoint always works
+    # even if other parts of the application are still initializing
+    return {"status": "ok"}
 
 # Additional health check endpoint at the root level for Railway
 @app.get("/health")
@@ -365,9 +367,9 @@ meme_dir = os.path.abspath("backend/datasets/meme")
 if os.path.exists(meme_dir):
     app.mount("/memes", StaticFiles(directory=meme_dir), name="memes")
 
-# Simple root endpoint
-@app.get("/", response_class=HTMLResponse)
-async def root():
+# Root HTML view endpoint
+@app.get("/welcome", response_class=HTMLResponse)
+async def welcome_page():
     return """
     <html>
         <head>

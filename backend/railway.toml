@@ -4,9 +4,10 @@
 builder = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 300
+healthcheckPath = "/"  # Using root path because "/" is always available
+healthcheckTimeout = 60  # Shorter timeout, in seconds
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-healthcheckInterval = 30
-startCommand = "sh railway_startup.sh" 
+healthcheckInterval = 10  # Checking every 10 seconds
+startCommand = "bash railway_startup.sh"  # Explicitly using bash to run the script
+healthcheckMaxConsecutiveFailures = 10  # Allow up to 10 failures before giving up 
