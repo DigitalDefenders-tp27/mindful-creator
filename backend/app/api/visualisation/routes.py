@@ -343,14 +343,14 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             
         try:
             # Modify the list of columns to load for smmh_cleaned for this debug endpoint
-            # Updated debug attributes to use new ORM attribute names - now testing with ONLY smmh_id
+            # Requesting an actual existing column "timestamp_val" instead of non-existent "smmh_id"
             smmh_cleaned_debug_attrs = [
-                "smmh_id" 
+                "timestamp_val" 
             ]
-            logger.info(f"debug-data-schema: Requesting MINIMAL columns for SMMH: {smmh_cleaned_debug_attrs}")
+            logger.info(f"debug-data-schema: Requesting column for SMMH: {smmh_cleaned_debug_attrs}")
 
             smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_cleaned_debug_attrs)
-            logger.info(f"debug-data-schema: smmh_data_list from ORM (with minimal columns): {smmh_data_list}")
+            logger.info(f"debug-data-schema: smmh_data_list from ORM (with timestamp_val): {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
                 logger.info(f"debug-data-schema: smmh_data_sample type: {type(smmh_data_sample)}, value: {smmh_data_sample}") # DETAILED LOGGING

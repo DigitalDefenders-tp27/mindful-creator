@@ -107,11 +107,12 @@ class TrainCleaned(Base):
 
 class SmmhCleaned(Base):
     __tablename__ = 'smmh_cleaned'
-    # Adding a surrogate primary key as one isn't obvious from the schema image.
-    # This is generally good practice for ORM models if a natural key isn't present or suitable.
-    smmh_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    timestamp_val = Column("Timestamp", Text) # Kept as per image, maps to DB "Timestamp"
+    # smmh_id removed as it does not exist in the actual database table.
+    # SQLAlchemy might have limitations with tables without an explicit PK in the model,
+    # but for SELECTs it might work. If issues arise, we might need to designate
+    # an existing column (e.g., timestamp_val) as primary_key=True in the ORM model.
     
+    timestamp_val = Column("Timestamp", Text) # DB: Timestamp (text)
     q1_age = Column(Float)      # DB: q1_age (float8)
     q2_gender = Column(Text)    # DB: q2_gender (text)
     q3_relationship_status = Column(Text) # DB: q3_relationship_status (text)
