@@ -419,10 +419,12 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
     logger.info(f"Visualisation DB - get_smmh_cleaned_data_orm received db_session of type: {type(db_session)}")
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_smmh_cleaned_data_orm.")
-        return []
+        # Raise an error immediately if no session, as ALLOW_DB_FAILURE is false by default
+        raise ValueError("DB session not provided to get_smmh_cleaned_data_orm")
+        
     if not SmmhCleaned:
         logger.error("Visualisation DB - SmmhCleaned ORM model is not defined.")
-        return []
+        raise ValueError("SmmhCleaned ORM model is not defined")
 
     logger.info(f"Visualisation DB - Querying SmmhCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns to load: {columns_to_load}")
     try:
@@ -457,7 +459,17 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
 
         if limit:
             query = query.limit(limit)
-
+        
+        # Log the string representation of the query
+        try:
+            # Ensure the dialect is appropriate (e.g., postgresql for PostgreSQL)
+            from sqlalchemy.dialects import postgresql
+            compiled_query_str = str(query.statement.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
+            logger.info(f"Visualisation DB - Compiled SQL for SmmhCleaned: {compiled_query_str}")
+        except Exception as e_compile:
+            logger.error(f"Visualisation DB - Error compiling SmmhCleaned query: {e_compile}", exc_info=True)
+            # Log a simpler version if advanced compilation fails
+            logger.info(f"Visualisation DB - Basic query structure for SmmhCleaned: {query}")
         results = query.all()
 
         data = []
@@ -470,7 +482,8 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
         logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
         return data
     except Exception as e:
-        logger.error(f"Visualisation DB - Error querying SmmhCleaned with ORM: {e}", exc_info=True)
-        if ALLOW_DB_FAILURE:
-            return []
-        raise 
+        logger.error(f"Visualisation DB - Error querying SmmhCleaned with ORM (THIS IS THE LIKELY CULPRIT): {e}", exc_info=True)
+        # Since ALLOW_DB_FAILURE defaults to False, we should re-raise to ensure it's not caught by a misconfigured ALLOW_DB_FAILURE=True scenario.
+        # If ALLOW_DB_FAILURE was True, the original code would return [].
+        # Forcing a raise here ensures the error is propagated if it's the cause of transaction abortion.
+        raise # Re-raise the caught exception 
