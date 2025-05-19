@@ -112,6 +112,8 @@ try:
     logger.info("YouTube API router imported.")
     from app.api.visualisation.routes import router as visualisation_router
     logger.info("Visualisation API router imported.")
+    sys.stdout.flush() # Ensure previous log is flushed
+    print("[DEBUG PRINT IN MAIN.PY] Reached point immediately after Visualisation API router import.", file=sys.stderr, flush=True)
 except Exception as e:
     logger.critical(f"Failed to import one or more API routers: {e}", exc_info=True)
     raise
