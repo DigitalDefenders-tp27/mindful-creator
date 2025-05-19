@@ -346,6 +346,7 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
         limit: Integer limit for the number of results.
         columns_to_load: Optional list of model attribute names to load (for efficiency).
     """
+    logger.info(f"Visualisation DB - get_train_cleaned_data_orm received db_session of type: {type(db_session)}") # LOG TYPE
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_train_cleaned_data_orm.")
         return []
@@ -406,6 +407,7 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
         limit: Integer limit for the number of results.
         columns_to_load: Optional list of model attribute names to load.
     """
+    logger.info(f"Visualisation DB - get_smmh_cleaned_data_orm received db_session of type: {type(db_session)}") # LOG TYPE
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_smmh_cleaned_data_orm.")
         return []
