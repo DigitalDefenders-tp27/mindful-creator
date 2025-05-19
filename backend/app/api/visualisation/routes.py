@@ -293,12 +293,17 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
         try:
             # Use the ORM function, ensure db session is passed
             train_data_list = data_processors.get_train_cleaned_data_orm(db, limit=1) 
+            logger.info(f"debug-data-schema: train_data_list from ORM: {train_data_list}") # DETAILED LOGGING
             if train_data_list and len(train_data_list) > 0:
                 train_data_sample = train_data_list[0]
-                train_columns = list(train_data_sample.keys())
-                logger.info(f"Successfully fetched sample and columns for train_cleaned using ORM. Columns: {train_columns}")
+                logger.info(f"debug-data-schema: train_data_sample type: {type(train_data_sample)}, value: {train_data_sample}") # DETAILED LOGGING
+                if isinstance(train_data_sample, dict): # Ensure it's a dict before getting keys
+                    train_columns = list(train_data_sample.keys())
+                    logger.info(f"Successfully fetched sample and columns for train_cleaned using ORM. Columns: {train_columns}")
+                else:
+                    logger.warning(f"debug-data-schema: train_data_sample is not a dict. Type: {type(train_data_sample)}")
             else:
-                logger.warning("get_train_cleaned_data_orm returned no data for debug-data-schema.")
+                logger.warning("get_train_cleaned_data_orm returned no data or empty list for debug-data-schema.")
         except Exception as e:
             logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
@@ -306,12 +311,17 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
         try:
             # Use the ORM function, ensure db session is passed
             smmh_data_list = data_processors.get_smmh_cleaned_data_orm(db, limit=1)
+            logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}") # DETAILED LOGGING
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
-                smmh_columns = list(smmh_data_sample.keys())
-                logger.info(f"Successfully fetched sample and columns for smmh_cleaned using ORM. Columns: {smmh_columns}")
+                logger.info(f"debug-data-schema: smmh_data_sample type: {type(smmh_data_sample)}, value: {smmh_data_sample}") # DETAILED LOGGING
+                if isinstance(smmh_data_sample, dict): # Ensure it's a dict
+                    smmh_columns = list(smmh_data_sample.keys())
+                    logger.info(f"Successfully fetched sample and columns for smmh_cleaned using ORM. Columns: {smmh_columns}")
+                else:
+                    logger.warning(f"debug-data-schema: smmh_data_sample is not a dict. Type: {type(smmh_data_sample)}")
             else:
-                logger.warning("get_smmh_cleaned_data_orm returned no data for debug-data-schema.")
+                logger.warning("get_smmh_cleaned_data_orm returned no data or empty list for debug-data-schema.")
         except Exception as e:
             logger.error(f"Error getting smmh_cleaned sample using ORM: {e}", exc_info=True)
             
