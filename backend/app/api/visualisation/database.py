@@ -389,6 +389,15 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
         
         if limit:
             query = query.limit(limit)
+
+        # Log the string representation of the query for TrainCleaned
+        try:
+            from sqlalchemy.dialects import postgresql
+            compiled_query_str = str(query.statement.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
+            logger.info(f"Visualisation DB - Compiled SQL for TrainCleaned: {compiled_query_str}")
+        except Exception as e_compile:
+            logger.error(f"Visualisation DB - Error compiling TrainCleaned query: {e_compile}", exc_info=True)
+            logger.info(f"Visualisation DB - Basic query structure for TrainCleaned: {query}")
             
         results = query.all()
         
