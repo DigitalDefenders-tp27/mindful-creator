@@ -398,7 +398,8 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
             for row_tuple in results:
                 data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
         else: # Full model objects were queried (or columns_to_load was empty/all invalid)
-            data = [{column.name: getattr(row_obj, column.name) for column in row_obj.__table__.columns} for row_obj in results]
+            # Use column.key for both the dictionary key and getattr to use ORM attribute names
+            data = [{column.key: getattr(row_obj, column.key) for column in row_obj.__table__.columns} for row_obj in results]
 
         logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows.")
         return data
@@ -478,7 +479,8 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
             for row_tuple in results:
                 data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
         else: # Full model objects were queried
-            data = [{column.name: getattr(row_obj, column.name) for column in row_obj.__table__.columns} for row_obj in results]
+            # Use column.key for both the dictionary key and getattr to use ORM attribute names
+            data = [{column.key: getattr(row_obj, column.key) for column in row_obj.__table__.columns} for row_obj in results]
             
         logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
         return data
