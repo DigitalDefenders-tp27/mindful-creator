@@ -3,6 +3,10 @@
     <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
     <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
     
+    <div v-if="usingFallbackData" class="fallback-notice">
+      Note: Showing sample data visualization. Database connection unavailable.
+    </div>
+    
     <div class="debug-panel" v-if="showDebug">
       <h3>Debug Panel</h3>
       <div class="debug-actions">
@@ -117,6 +121,9 @@ console.log('Using backend URL:', BACKEND_URL)
 const isLoading = ref(true)
 const error = ref(null)
 
+// Add a reactive variable to track if we're using fallback data
+const usingFallbackData = ref(false)
+
 // Testing functions
 const testApiConnection = async () => {
   try {
@@ -190,18 +197,80 @@ const fetchChartData = async (endpoint) => {
     console.log(`Attempting to fetch data from ${BACKEND_URL}/api/visualisation/${endpoint}`)
     isLoading.value = true
     error.value = null
+    
+    // Use a shorter timeout to prevent blocking the UI
     const response = await axios.get(`${BACKEND_URL}/api/visualisation/${endpoint}`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 5000 // 5 second timeout
     })
+    
     console.log(`Data received from ${endpoint}:`, response.data)
     return response.data
   } catch (err) {
     console.error(`Error fetching data from ${endpoint}:`, err)
-    error.value = `Failed to load data: ${err.message}`
-    return null
+    // Don't show error to user, just log it and return default data
+    console.log(`Using default data for ${endpoint} due to fetch error`)
+    
+    // Set a flag to show we're using fallback data
+    usingFallbackData.value = true
+    
+    // Return default data based on the endpoint
+    if (endpoint === 'screen-time-emotions') {
+      return {
+        "labels": ['Below 1h', '1-3h', '3-5h'],
+        "datasets": [
+          {"label": "Positive", "backgroundColor": "#4bc0c0", "data": [20, 30, 10]},
+          {"label": "Negative", "backgroundColor": "#ff6384", "data": [10, 40, 60]},
+          {"label": "Neutral", "backgroundColor": "#ffcd56", "data": [70, 30, 30]},
+        ]
+      }
+    } else if (endpoint === 'sleep-quality') {
+      return {
+        "labels": ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
+        "datasets": [{
+          "label": "Sleep Problems (1-5)",
+          "data": [1.5, 2, 2.5, 3.2, 4, 4.5],
+          "borderColor": "#7e57c2",
+          "backgroundColor": "#7e57c2",
+          "fill": false,
+          "tension": 0.3
+        }]
+      }
+    } else if (endpoint === 'engagement') {
+      return {
+        "labels": ['Below 1h', '1-3h', '3-5h'],
+        "datasets": [{
+          "label": "Engagement",
+          "data": [20, 50, 30],
+          "backgroundColor": "#42a5f5"
+        }]
+      }
+    } else if (endpoint === 'anxiety') {
+      return {
+        "labels": ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
+        "datasets": [{
+          "label": "Average Anxiety",
+          "data": [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
+          "borderColor": "#66bb6a",
+          "backgroundColor": "#66bb6a",
+          "fill": false,
+          "tension": 0.3
+        }]
+      }
+    }
+    
+    // Generic default data if no endpoint match
+    return {
+      "labels": ['Category 1', 'Category 2', 'Category 3'],
+      "datasets": [{
+        "label": "Default Data",
+        "data": [30, 50, 20],
+        "backgroundColor": "#9e9e9e"
+      }]
+    }
   } finally {
     isLoading.value = false
   }
@@ -210,6 +279,8 @@ const fetchChartData = async (endpoint) => {
 // Switch tab and render the appropriate chart
 const switchTab = async (index) => {
   currentTab.value = index
+  // Reset the fallback flag when switching tabs
+  usingFallbackData.value = false
   await renderChart()
 }
 
@@ -557,5 +628,16 @@ onMounted(async () => {
 .debug-results pre {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.fallback-notice {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 500;
+  border-left: 4px solid #ffeeba;
 }
 </style>
