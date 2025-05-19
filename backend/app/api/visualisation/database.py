@@ -87,14 +87,11 @@ def time_limit(seconds):
 engine = None
 SessionLocal = None
 Base = declarative_base()
-AutomapBase = automap_base()
 TrainCleaned = None
 SmmhCleaned = None
-TrainCleanedModel = None
-SmmhCleanedModel = None
 
 def try_initialize_database():
-    global engine, SessionLocal, Base, AutomapBase, TrainCleaned, SmmhCleaned, TrainCleanedModel, SmmhCleanedModel
+    global engine, SessionLocal, Base, TrainCleaned, SmmhCleaned
     
     db_url_to_use = DATABASE_URL
 
@@ -156,21 +153,10 @@ def try_initialize_database():
                     logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
                     sys.stdout.flush()
 
-                logger.info("Visualisation DB - Checkpoint Gamma before AutomapBase logging.") # New checkpoint
-                sys.stdout.flush() # Ensure checkpoint log gets out
+                logger.info("Visualisation DB - Skipping Automap ORM model generation for now.")
 
-                # Automap for ORM models
-                logger.info("Visualisation DB - About to call AutomapBase.prepare()...")
-                sys.stdout.flush() # Ensure this log gets out
-                AutomapBase.prepare(engine, reflect=True, only=['train_cleaned', 'smmh_cleaned'])
-                logger.info("Visualisation DB - AutomapBase.prepare() call completed.")
-                sys.stdout.flush() # Ensure this log gets out
-
-                TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
-                SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
-                logger.info(f"Visualisation DB - ORM Models loaded via Automap: TrainCleanedModel={'Exists' if TrainCleanedModel else 'Not Found'}, SmmhCleanedModel={'Exists' if SmmhCleanedModel else 'Not Found'}")
             except Exception as reflect_error:
-                logger.error(f"Visualisation DB - Error during ORM Automap or Table creation: {reflect_error}", exc_info=True)
+                logger.error(f"Visualisation DB - Error during Table object creation or reflection: {reflect_error}", exc_info=True)
                 sys.stdout.flush() # Ensure error log gets out
                 if not ALLOW_DB_FAILURE:
                     logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
