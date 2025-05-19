@@ -11,100 +11,42 @@ pip install httpx>=0.24.0 psycopg2-binary>=2.9.6 tenacity>=8.2.0 --no-cache-dir
 export ALLOW_DB_FAILURE=true
 export DATABASE_CONNECT_TIMEOUT=30
 export APP_STARTUP_TIMEOUT=30
-export MAX_DB_RETRIES=5
 
 # Set port from Railway environment or default
 APP_PORT="${PORT:-8000}"
 echo "[startup] Will launch Uvicorn on port ${APP_PORT}"
-
-# Function to test database connectivity in background
-test_db_connection() {
-  echo "[startup] Testing database connectivity using $1 (background)..."
-  python -c "
-import sys, os, time, traceback
-from sqlalchemy import create_engine, text
-from tenacity import retry, wait_exponential, stop_after_attempt
-
-@retry(wait=wait_exponential(multiplier=1, min=2, max=10), stop=stop_after_attempt(${MAX_DB_RETRIES}))
-def test_db_connection():
-    print('[DB Test] Attempting to connect to database...')
-    db_url = os.environ.get('$1', '')
-    if 'postgres://' in db_url:
-        db_url = db_url.replace('postgres://', 'postgresql://')
-    engine = create_engine(
-        db_url, 
-        pool_pre_ping=True,
-        connect_args={'connect_timeout': 15}
-    )
-    with engine.connect() as conn:
-        result = conn.execute(text('SELECT 1'))
-        print('[DB Test] Database connection successful!')
-    return True
-
-try:
-    result = test_db_connection()
-    print(f'[DB Test] Final result: {result}')
-except Exception as e:
-    print('[DB Test] Database connection failed after retries:', e)
-    traceback.print_exc()
-    print('[DB Test] App will continue to start regardless of database status (ALLOW_DB_FAILURE=true)')
-" &
-}
 
 # Check if the database URL is provided
 if [ -n "${DATABASE_PUBLIC_URL}" ]; then
   echo "[startup] DATABASE_PUBLIC_URL is configured"
   # Export as DATABASE_URL for backward compatibility
   export DATABASE_URL="${DATABASE_PUBLIC_URL}"
-  
-  # Test database connectivity but don't block startup
-  test_db_connection "DATABASE_PUBLIC_URL"
 elif [ -n "${DATABASE_URL}" ]; then
   echo "[startup] DATABASE_URL is configured"
-  
-  # Test database connectivity but don't block startup
-  test_db_connection "DATABASE_URL"
 else
   echo "[startup] WARNING: No database URL environment variables (DATABASE_PUBLIC_URL or DATABASE_URL) provided"
 fi
 
-# Create a lightweight health check endpoint using a direct Python script
-echo "[startup] Creating lightweight pre-startup health endpoint"
-python -c '
-import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-import os
+# Ensure we're in the correct directory structure
+# Get the absolute path to the script's directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[startup] Script directory: ${SCRIPT_DIR}"
 
-app = FastAPI()
+# Move to the script directory
+cd "$SCRIPT_DIR"
+echo "[startup] Changed working directory to: $(pwd)"
 
-@app.get("/")
-async def root():
-    return JSONResponse(content={"status": "ok"})
+# Create a proper Python module structure
+# Railway deployment may place files in unexpected locations, so we need to ensure 
+# the app module is in the Python path
+export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
+echo "[startup] Set PYTHONPATH: $PYTHONPATH"
 
-@app.get("/health")
-async def health():
-    return JSONResponse(content={"status": "ok"})
+# Dump environment variables for debugging
+echo "[startup] Environment variables:"
+env | grep -E "DATABASE|PYTHON|PATH|PORT|ALLOW" || true
 
-# Run this in a way that will catch errors, but not block the startup script
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-' &
-
-HEALTH_APP_PID=$!
-echo "[startup] Lightweight health app started with PID: ${HEALTH_APP_PID}"
-
-# Give the lightweight app a moment to start
-sleep 3
-
-echo "[startup] Launching Uvicorn with increased timeouts"
-# Kill the lightweight health app before starting the main app
-kill $HEALTH_APP_PID 2>/dev/null || true
-
-exec uvicorn app.main:app \
-     --host 0.0.0.0 \
-     --port "${APP_PORT}" \
-     --workers 1 \
-     --log-level info \
-     --timeout-keep-alive 120
+# Launch the application with proper module access
+echo "[startup] Starting application with direct module access"
+export PYTHONUNBUFFERED=1  # Make sure Python output is not buffered
+exec python -m uvicorn app.main:app --host 0.0.0.0 --port "${APP_PORT}" --log-level debug

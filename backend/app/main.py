@@ -40,7 +40,8 @@ app.add_middleware(
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 
-# First import only the base router to ensure health check endpoint is available
+# Import routers, with health check router first to ensure it's available early
+from app.api.health import router as health_router  # Import health check router first
 from app.api.router import router as api_router
 from app.api.youtube.routes import router as youtube_router
 from app.api.visualisation.routes import router as visualisation_router
@@ -182,67 +183,18 @@ async def load_nlp_model():
         app.state.model_load_error = str(exc)
         logger.exception(f"❌ Failed to load NLP model: {exc}")
 
-# First register the API router which contains the health check endpoint
-logger.info("Registering API router (contains health check endpoint)")
+# Register the health router first to ensure health checks work
+logger.info("Registering health check router")
+app.include_router(health_router)  # No prefix, to allow root-level health checks
+
+# Include other API routers
+logger.info("Registering API routers")
 app.include_router(youtube_router, prefix="/api")
 app.include_router(visualisation_router, prefix="")
-logger.info("Explicitly included visualisation_router")
+logger.info("All core routers registered")
 
-# Root endpoint for basic health check - used by Railway as health check
-@app.get("/")
-async def root() -> Dict[str, str]:
-    """
-    Root endpoint provides simple welcome message and is used as the primary health check
-    """
-    # Return a minimal response to ensure this endpoint always works
-    # even if other parts of the application are still initializing
-    return {"status": "ok"}
-
-# Additional health check endpoint at the root level for Railway
-@app.get("/health")
-async def root_health_check() -> Dict[str, Any]:
-    """
-    Health check endpoint used by Railway and other services
-    Deliberately avoids any database or resource-intensive checks
-    This is a bare minimum endpoint that always returns OK
-    """
-    logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED")
-    # Return a simple response with minimal processing - ensures Railway health check passes
-    # even if other parts of the app are still initializing
-    return Response(content=json.dumps({"status": "ok"}), media_type="application/json")
-
-# Explicit API health check endpoint to match railway.toml configuration
-@app.get("/api/health")
-async def api_health_check() -> Dict[str, Any]:
-    """
-    API health check endpoint for Railway deployment
-    This endpoint deliberately avoids database checks to ensure it always passes
-    even if the database connection is slow or failing
-    """
-    logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
-    
-    # Current uptime
-    uptime_seconds = time.time() - start_time
-    uptime = {
-        "seconds": int(uptime_seconds),
-        "minutes": int(uptime_seconds / 60),
-        "hours": int(uptime_seconds / 3600)
-    }
-    
-    # Basic system info that doesn't require database
-    system_info = {
-        "python_version": platform.python_version(),
-        "platform": platform.platform(),
-        "process_id": os.getpid()
-    }
-    
-    # Don't check database - that could slow down the health check
-    return {
-        "status": "healthy",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "uptime": uptime,
-        "system_info": system_info
-    }
+# Health check endpoints have been moved to app/api/health.py
+# No additional health check endpoints needed here since we include the health_router
 
 # Add diagnostics endpoint
 @app.get("/api/diagnostics/nlp")
