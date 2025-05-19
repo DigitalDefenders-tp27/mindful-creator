@@ -151,8 +151,13 @@ def try_initialize_database():
                 if 'smmh_cleaned' in metadata.tables:
                     SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
                     logger.info("Visualisation DB - SmmhCleaned Table object created.")
+                    sys.stdout.flush() # Ensure this critical log gets out
                 else:
                     logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
+                    sys.stdout.flush()
+
+                logger.info("Visualisation DB - Checkpoint Gamma before AutomapBase logging.") # New checkpoint
+                sys.stdout.flush() # Ensure checkpoint log gets out
 
                 # Automap for ORM models
                 logger.info("Visualisation DB - About to call AutomapBase.prepare()...")
