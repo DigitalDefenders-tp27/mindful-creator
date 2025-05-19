@@ -157,7 +157,7 @@ def try_initialize_database():
                 # Automap for ORM models
                 logger.info("Visualisation DB - About to call AutomapBase.prepare()...")
                 sys.stdout.flush() # Ensure this log gets out
-                AutomapBase.prepare(engine, reflect=True)
+                AutomapBase.prepare(engine, reflect=True, only=['train_cleaned', 'smmh_cleaned'])
                 logger.info("Visualisation DB - AutomapBase.prepare() call completed.")
                 sys.stdout.flush() # Ensure this log gets out
 
