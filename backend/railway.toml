@@ -9,5 +9,5 @@ healthcheckTimeout = 90
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 healthcheckInterval = 15
-startCommand = "cd /app && bash railway_startup.sh"
+startCommand = "bash railway_startup.sh"
 healthcheckMaxConsecutiveFailures = 5  # Allow up to 5 failures before giving up 
