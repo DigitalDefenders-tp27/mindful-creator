@@ -408,7 +408,21 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
                 data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
         else: # Full model objects were queried (or columns_to_load was empty/all invalid)
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
-            data = [{column.key: getattr(row_obj, column.key) for column in row_obj.__table__.columns} for row_obj in results]
+            processed_data = []
+            for row_obj in results:
+                row_as_dict = {}
+                for column in row_obj.__table__.columns:
+                    try:
+                        # Log exactly what column.key is and what column.name (DB name) is
+                        logger.info(f"TrainCleaned - Processing DB column: '{column.name}', ORM key: '{column.key}'")
+                        value = getattr(row_obj, column.key)
+                        row_as_dict[column.key] = value
+                    except AttributeError as e_attr:
+                        logger.error(f"TrainCleaned - AttributeError for DB column '{column.name}' with ORM key '{column.key}': {e_attr}", exc_info=True)
+                        # Optionally, put a placeholder or skip if an attribute is problematic
+                        row_as_dict[column.key] = f"ERROR_ACCESSING_{column.key}" 
+                processed_data.append(row_as_dict)
+            data = processed_data
 
         logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows.")
         return data
@@ -489,7 +503,21 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
                 data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
         else: # Full model objects were queried
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
-            data = [{column.key: getattr(row_obj, column.key) for column in row_obj.__table__.columns} for row_obj in results]
+            processed_data = []
+            for row_obj in results:
+                row_as_dict = {}
+                for column in row_obj.__table__.columns:
+                    try:
+                        # Log exactly what column.key is and what column.name (DB name) is
+                        logger.info(f"SmmhCleaned - Processing DB column: '{column.name}', ORM key: '{column.key}'")
+                        value = getattr(row_obj, column.key)
+                        row_as_dict[column.key] = value
+                    except AttributeError as e_attr:
+                        logger.error(f"SmmhCleaned - AttributeError for DB column '{column.name}' with ORM key '{column.key}': {e_attr}", exc_info=True)
+                        # Optionally, put a placeholder or skip if an attribute is problematic
+                        row_as_dict[column.key] = f"ERROR_ACCESSING_{column.key}" 
+                processed_data.append(row_as_dict)
+            data = processed_data
             
         logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
         return data
