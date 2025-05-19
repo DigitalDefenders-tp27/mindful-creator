@@ -112,7 +112,7 @@ class SmmhCleaned(Base):
     # but for SELECTs it might work. If issues arise, we might need to designate
     # an existing column (e.g., timestamp_val) as primary_key=True in the ORM model.
     
-    timestamp_val = Column("Timestamp", Text) # DB: Timestamp (text)
+    timestamp_val = Column("Timestamp", Text, primary_key=True) # DB: Timestamp (text) - Marked as PK for ORM
     q1_age = Column(Float)      # DB: q1_age (float8)
     q2_gender = Column(Text)    # DB: q2_gender (text)
     q3_relationship_status = Column(Text) # DB: q3_relationship_status (text)
