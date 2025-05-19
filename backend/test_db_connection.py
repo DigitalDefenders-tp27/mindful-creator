@@ -124,10 +124,17 @@ def main():
     load_dotenv()
     
     # Get DATABASE_URL from args or environment
-    db_url = args.db_url or os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-production-7575.up.railway.app:5432/railway")
+    # Prioritize DATABASE_PUBLIC_URL, then DATABASE_URL, then CLI arg, then hardcoded default
+    db_url = (
+        os.getenv("DATABASE_PUBLIC_URL")
+        or os.getenv("DATABASE_URL")
+        or args.db_url
+        or "postgresql://postgres:postgres@postgres-production-7575.up.railway.app:5432/railway"
+    )
+    logger.info(f"Effective DB URL (credentials masked): {mask_db_url(db_url)}")
     
-    # Handle Railway PostgreSQL URLs
-    if "postgres://" in db_url:
+    # Handle Railway PostgreSQL URLs (SQLAlchemy expects postgresql://)
+    if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://")
     
     success = test_connection(db_url, args.timeout, args.verbose)

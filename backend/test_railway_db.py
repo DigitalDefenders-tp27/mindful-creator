@@ -24,16 +24,19 @@ def main():
     # Load environment variables
     load_dotenv()
     
-    # Check for DATABASE_PUBLIC_URL
-    db_url = os.getenv("DATABASE_PUBLIC_URL")
-    if not db_url:
-        logger.error("DATABASE_PUBLIC_URL environment variable not set")
-        logger.info("Checking DATABASE_URL instead...")
-        db_url = os.getenv("DATABASE_URL")
-        if not db_url:
-            logger.error("DATABASE_URL environment variable not set either")
-            sys.exit(1)
+    # Prioritize DATABASE_PUBLIC_URL, then DATABASE_URL
+    db_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
     
+    if not db_url:
+        logger.error("Neither DATABASE_PUBLIC_URL nor DATABASE_URL environment variables are set.")
+        sys.exit(1)
+    
+    # Log which variable is being used
+    if os.getenv("DATABASE_PUBLIC_URL"):
+        logger.info("Using DATABASE_PUBLIC_URL.")
+    elif os.getenv("DATABASE_URL"):
+        logger.info("Using DATABASE_URL as fallback.")
+
     # Handle Railway PostgreSQL URLs
     if "postgres://" in db_url:
         db_url = db_url.replace("postgres://", "postgresql://")
