@@ -19,7 +19,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("visualisation.database")
 
 # Get DATABASE_URL from environment variables
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-production-7575.up.railway.app:5432/railway")
+DATABASE_URL = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-production-7575.up.railway.app:5432/railway")
+
+# Log which environment variable was used
+if os.getenv("DATABASE_PUBLIC_URL"):
+    logger.info("Using DATABASE_PUBLIC_URL environment variable")
+elif os.getenv("DATABASE_URL"):
+    logger.info("Using DATABASE_URL environment variable")
+else:
+    logger.warning("No database URL environment variable found, using default")
+
+# Check for environment variables that affect database handling
+ALLOW_DB_FAILURE = os.getenv("ALLOW_DB_FAILURE", "false").lower() == "true"
+DATABASE_CONNECT_TIMEOUT = int(os.getenv("DATABASE_CONNECT_TIMEOUT", "30"))
+
+logger.info(f"ALLOW_DB_FAILURE: {ALLOW_DB_FAILURE}")
+logger.info(f"DATABASE_CONNECT_TIMEOUT: {DATABASE_CONNECT_TIMEOUT}")
 
 # Handle Railway PostgreSQL URLs
 if "postgres://" in DATABASE_URL:
@@ -66,21 +81,22 @@ def time_limit(seconds):
 
 # Database connection engine and session factory
 try:
+    logger.info(f"Attempting to create database engine with timeout {DATABASE_CONNECT_TIMEOUT}s")
     # Create database engine with PostgreSQL-specific settings and increased timeouts
     engine = create_engine(
         DATABASE_URL,
         pool_size=5,               # Increased from 3 to 5
         max_overflow=10,           # Increased from 5 to 10
-        pool_timeout=30,           # Increased from 10 to 30 seconds
+        pool_timeout=DATABASE_CONNECT_TIMEOUT,  # Use env var
         pool_recycle=300,          # Recycle connections after 5 minutes
         pool_pre_ping=True,        # Send a ping before using a connection
         connect_args={
-            "connect_timeout": 20,  # Increased from 5 to 20 seconds
+            "connect_timeout": DATABASE_CONNECT_TIMEOUT,  # Use env var
             "keepalives": 1,       # Enable TCP keepalive
             "keepalives_idle": 30, # Idle time before sending keepalives
             "keepalives_interval": 10, # Interval between keepalives
             "keepalives_count": 5, # Number of keepalives before giving up
-            "options": "-c statement_timeout=30000"  # Increased from 10 to 30 seconds
+            "options": f"-c statement_timeout={DATABASE_CONNECT_TIMEOUT * 1000}"  # Use env var
         }
     )
     
@@ -92,34 +108,63 @@ try:
     AutomapBase = automap_base()
     
     # Reflect the database structure
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
+    logger.info("Attempting to reflect database structure")
     
-    # Define ORM models for required tables
-    if 'train_cleaned' in metadata.tables:
-        TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
+    # Create empty objects first in case reflection fails
+    TrainCleaned = None
+    SmmhCleaned = None
+    TrainCleanedModel = None
+    SmmhCleanedModel = None
     
-    if 'smmh_cleaned' in metadata.tables:
-        SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
-    
-    # Auto-map existing tables to ORM models
-    AutomapBase.prepare(engine, reflect=True)
-    
-    # Try to get the models from the automap if they exist
     try:
-        TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
-        SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
-        logger.info(f"ORM Models loaded: TrainCleaned={TrainCleanedModel is not None}, SmmhCleaned={SmmhCleanedModel is not None}")
-    except Exception as e:
-        logger.error(f"Error loading ORM models: {e}")
-        TrainCleanedModel = None
-        SmmhCleanedModel = None
+        metadata = MetaData()
+        metadata.reflect(bind=engine)
+        
+        # Define ORM models for required tables
+        if 'train_cleaned' in metadata.tables:
+            TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
+        
+        if 'smmh_cleaned' in metadata.tables:
+            SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
+        
+        # Auto-map existing tables to ORM models
+        AutomapBase.prepare(engine, reflect=True)
+        
+        # Try to get the models from the automap if they exist
+        try:
+            TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
+            SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
+            logger.info(f"ORM Models loaded: TrainCleaned={TrainCleanedModel is not None}, SmmhCleaned={SmmhCleanedModel is not None}")
+        except Exception as e:
+            logger.error(f"Error loading ORM models: {e}")
+            TrainCleanedModel = None
+            SmmhCleanedModel = None
     
-    logger.info("Database engine and ORM models created successfully")
+        logger.info("Database engine and ORM models created successfully")
+    except Exception as e:
+        logger.error(f"Error reflecting database structure: {e}")
+        if not ALLOW_DB_FAILURE:
+            raise
+        logger.warning("Continuing despite database reflection failure (ALLOW_DB_FAILURE=true)")
+        
 except Exception as e:
     logger.error(f"Error setting up database: {e}")
     logger.error(traceback.format_exc())
-    raise
+    if not ALLOW_DB_FAILURE:
+        raise
+    logger.warning("Continuing despite database setup failure (ALLOW_DB_FAILURE=true)")
+    
+    # Create dummy engine and session for the app to start
+    # These won't work but will allow the app to initialize
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    
+    engine = create_engine("sqlite:///:memory:")
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    TrainCleaned = None
+    SmmhCleaned = None
+    TrainCleanedModel = None
+    SmmhCleanedModel = None
 
 def log_connection_details(operation="general", status="attempted", details=None):
     """

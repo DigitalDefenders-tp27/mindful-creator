@@ -236,6 +236,14 @@ const fetchChartData = async (endpoint) => {
     })
     
     console.log(`Data received from ${endpoint}:`, response.data)
+    
+    // Check if the response contains an error message
+    if (response.data && response.data.error) {
+      error.value = response.data.message || `Error loading data: ${response.data.error}`
+      console.error(`API error from ${endpoint}:`, response.data.error)
+      throw new Error(response.data.error)
+    }
+    
     return response.data
   } catch (err) {
     console.error(`Error fetching data from ${endpoint}:`, err)

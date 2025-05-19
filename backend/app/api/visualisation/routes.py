@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
 import time
 import sys
 import os
 
 from . import data_processors
+from .database import ALLOW_DB_FAILURE
 
 # Setup logging
 logger = logging.getLogger("visualisation.routes")
@@ -29,10 +30,19 @@ async def get_screen_time_emotions() -> Dict[str, Any]:
         return JSONResponse(content=data)
     except Exception as e:
         logger.error(f"Error processing screen time emotions: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve screen time emotions data: {str(e)}"
-        )
+        if ALLOW_DB_FAILURE:
+            # Return an informative error response but still return 200 status
+            return JSONResponse(
+                content={
+                    "error": f"Database error: {str(e)}",
+                    "message": "Unable to load visualization data due to database connection issues."
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve screen time emotions data: {str(e)}"
+            )
 
 @router.get("/sleep-quality")
 async def get_sleep_quality() -> Dict[str, Any]:
@@ -46,10 +56,19 @@ async def get_sleep_quality() -> Dict[str, Any]:
         return JSONResponse(content=data)
     except Exception as e:
         logger.error(f"Error processing sleep data: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve sleep quality data: {str(e)}"
-        )
+        if ALLOW_DB_FAILURE:
+            # Return an informative error response but still return 200 status
+            return JSONResponse(
+                content={
+                    "error": f"Database error: {str(e)}",
+                    "message": "Unable to load sleep quality data due to database connection issues."
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve sleep quality data: {str(e)}"
+            )
 
 @router.get("/engagement")
 async def get_engagement() -> Dict[str, Any]:
@@ -63,10 +82,19 @@ async def get_engagement() -> Dict[str, Any]:
         return JSONResponse(content=data)
     except Exception as e:
         logger.error(f"Error processing engagement data: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve engagement data: {str(e)}"
-        )
+        if ALLOW_DB_FAILURE:
+            # Return an informative error response but still return 200 status
+            return JSONResponse(
+                content={
+                    "error": f"Database error: {str(e)}",
+                    "message": "Unable to load engagement data due to database connection issues."
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve engagement data: {str(e)}"
+            )
 
 @router.get("/anxiety")
 async def get_anxiety() -> Dict[str, Any]:
@@ -80,10 +108,19 @@ async def get_anxiety() -> Dict[str, Any]:
         return JSONResponse(content=data)
     except Exception as e:
         logger.error(f"Error processing anxiety data: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve anxiety data: {str(e)}"
-        )
+        if ALLOW_DB_FAILURE:
+            # Return an informative error response but still return 200 status
+            return JSONResponse(
+                content={
+                    "error": f"Database error: {str(e)}",
+                    "message": "Unable to load anxiety data due to database connection issues."
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve anxiety data: {str(e)}"
+            )
 
 @router.get("/all-chart-data")
 async def get_all_chart_data() -> Dict[str, Any]:
@@ -91,21 +128,51 @@ async def get_all_chart_data() -> Dict[str, Any]:
     Get data for all charts in a single request
     """
     logger.info("API request: all-chart-data")
+    
+    results = {}
+    errors = []
+    
+    # Try to get each dataset separately, so one failure doesn't break all
     try:
-        result = {
-            "screenTimeEmotions": data_processors.process_screen_time_emotions(),
-            "sleepQuality": data_processors.process_sleep_data(),
-            "engagement": data_processors.process_engagement_data(),
-            "anxiety": data_processors.process_anxiety_data()
-        }
-        logger.info("Successfully processed all chart data")
-        return result
+        results["screenTimeEmotions"] = data_processors.process_screen_time_emotions()
     except Exception as e:
-        logger.error(f"Error processing all chart data: {e}")
+        logger.error(f"Error getting screen time emotions data: {e}")
+        errors.append(f"Screen time emotions: {str(e)}")
+        results["screenTimeEmotions"] = {"error": str(e)}
+    
+    try:
+        results["sleepQuality"] = data_processors.process_sleep_data()
+    except Exception as e:
+        logger.error(f"Error getting sleep data: {e}")
+        errors.append(f"Sleep quality: {str(e)}")
+        results["sleepQuality"] = {"error": str(e)}
+    
+    try:
+        results["engagement"] = data_processors.process_engagement_data()
+    except Exception as e:
+        logger.error(f"Error getting engagement data: {e}")
+        errors.append(f"Engagement: {str(e)}")
+        results["engagement"] = {"error": str(e)}
+    
+    try:
+        results["anxiety"] = data_processors.process_anxiety_data()
+    except Exception as e:
+        logger.error(f"Error getting anxiety data: {e}")
+        errors.append(f"Anxiety: {str(e)}")
+        results["anxiety"] = {"error": str(e)}
+    
+    # If we have any data, return it along with errors
+    if errors:
+        results["_errors"] = errors
+        
+    # If all failed and we don't allow DB failures, raise exception
+    if len(errors) == 4 and not ALLOW_DB_FAILURE:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve all chart data: {str(e)}"
+            detail=f"Failed to retrieve any chart data: {'; '.join(errors)}"
         )
+    
+    return results
 
 @router.get("/test")
 async def test_endpoint() -> Dict[str, Any]:

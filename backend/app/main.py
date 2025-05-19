@@ -45,12 +45,30 @@ from app.api.router import router as api_router
 from app.api.youtube.routes import router as youtube_router
 from app.api.visualisation.routes import router as visualisation_router
 
+# Load environment variables
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger("mindful-creator")
+
+# Check environment variables
+ALLOW_DB_FAILURE = os.getenv("ALLOW_DB_FAILURE", "false").lower() == "true"
+DATABASE_CONNECT_TIMEOUT = int(os.getenv("DATABASE_CONNECT_TIMEOUT", "30"))
+APP_STARTUP_TIMEOUT = int(os.getenv("APP_STARTUP_TIMEOUT", "20"))
+
+# Get and log database URLs
+DATABASE_PUBLIC_URL = os.getenv("DATABASE_PUBLIC_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+logger.info(f"DATABASE_PUBLIC_URL: {'[SET]' if DATABASE_PUBLIC_URL else '[NOT SET]'}")
+logger.info(f"DATABASE_URL: {'[SET]' if DATABASE_URL else '[NOT SET]'}")
+logger.info(f"ALLOW_DB_FAILURE: {ALLOW_DB_FAILURE}")
+logger.info(f"DATABASE_CONNECT_TIMEOUT: {DATABASE_CONNECT_TIMEOUT}")
+logger.info(f"APP_STARTUP_TIMEOUT: {APP_STARTUP_TIMEOUT}")
 
 # Record startup time
 start_time = time.time()
@@ -183,19 +201,47 @@ async def root() -> Dict[str, str]:
 async def root_health_check() -> Dict[str, Any]:
     """
     Health check endpoint used by Railway and other services
+    Deliberately avoids any database or resource-intensive checks
     """
-    # In a more complex app, we would check database connectivity, etc.
+    logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED")
     return {
         "status": "healthy",
-        "version": "0.1.0"
+        "version": "0.1.0",
+        "timestamp": datetime.datetime.now().isoformat()
     }
 
 # Explicit API health check endpoint to match railway.toml configuration
 @app.get("/api/health")
 async def api_health_check() -> Dict[str, Any]:
-    """API health check endpoint for Railway deployment"""
+    """
+    API health check endpoint for Railway deployment
+    This endpoint deliberately avoids database checks to ensure it always passes
+    even if the database connection is slow or failing
+    """
     logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+    
+    # Current uptime
+    uptime_seconds = time.time() - start_time
+    uptime = {
+        "seconds": int(uptime_seconds),
+        "minutes": int(uptime_seconds / 60),
+        "hours": int(uptime_seconds / 3600)
+    }
+    
+    # Basic system info that doesn't require database
+    system_info = {
+        "python_version": platform.python_version(),
+        "platform": platform.platform(),
+        "process_id": os.getpid()
+    }
+    
+    # Don't check database - that could slow down the health check
+    return {
+        "status": "healthy",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "uptime": uptime,
+        "system_info": system_info
+    }
 
 # Add diagnostics endpoint
 @app.get("/api/diagnostics/nlp")
