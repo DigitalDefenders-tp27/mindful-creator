@@ -76,4 +76,35 @@ if __name__ == "__main__":
     print(json.dumps(results, indent=2))
     
     # Exit with appropriate code
-    sys.exit(0 if all_succeeded else 1) 
+    sys.exit(0 if all_succeeded else 1)
+
+"""
+Simple FastAPI application to test the health check endpoint
+Run this with: python3 -m uvicorn test_health_check:app --port 8000
+"""
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse, Response
+import uvicorn
+import json
+import time
+import os
+
+app = FastAPI()
+
+@app.get("/health")
+async def root_health_check():
+    """
+    Minimal health check endpoint
+    """
+    print("Health check endpoint accessed")
+    return Response(content=json.dumps({"status": "ok"}), media_type="application/json")
+
+@app.get("/")
+async def root():
+    """Root endpoint for testing"""
+    return {"message": "Test server is running"}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port) 

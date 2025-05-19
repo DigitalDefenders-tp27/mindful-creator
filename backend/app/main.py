@@ -202,13 +202,12 @@ async def root_health_check() -> Dict[str, Any]:
     """
     Health check endpoint used by Railway and other services
     Deliberately avoids any database or resource-intensive checks
+    This is a bare minimum endpoint that always returns OK
     """
     logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED")
-    return {
-        "status": "healthy",
-        "version": "0.1.0",
-        "timestamp": datetime.datetime.now().isoformat()
-    }
+    # Return a simple response with minimal processing - ensures Railway health check passes
+    # even if other parts of the app are still initializing
+    return Response(content=json.dumps({"status": "ok"}), media_type="application/json")
 
 # Explicit API health check endpoint to match railway.toml configuration
 @app.get("/api/health")

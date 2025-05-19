@@ -10,6 +10,7 @@ from . import data_processors
 from .database import ALLOW_DB_FAILURE
 
 # Setup logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("visualisation.routes")
 
 router = APIRouter(
@@ -17,6 +18,20 @@ router = APIRouter(
     tags=["visualisation"],
     responses={404: {"description": "Not found"}},
 )
+
+# Lightweight health check endpoint for the visualization module
+@router.get("/health")
+async def visualisation_health() -> Dict[str, Any]:
+    """
+    A lightweight health check endpoint for the visualization module
+    This endpoint deliberately avoids any database operations
+    """
+    logger.info("VISUALISATION HEALTH CHECK ENDPOINT ACCESSED")
+    return {
+        "status": "ok",
+        "module": "visualisation",
+        "timestamp": time.time()
+    }
 
 @router.get("/screen-time-emotions")
 async def get_screen_time_emotions() -> Dict[str, Any]:
