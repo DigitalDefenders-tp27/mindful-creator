@@ -7,11 +7,12 @@ import sys
 import os
 
 from . import data_processors
-from .database import ALLOW_DB_FAILURE
+from .database import ALLOW_DB_FAILURE, get_db
+from sqlalchemy.orm import Session
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("visualisation.routes")
+# logging.basicConfig(level=logging.INFO) # Basic config might be handled in main.py
+logger = logging.getLogger("mindful-creator.visualisation.routes") # Changed logger name
 
 router = APIRouter(
     prefix="/api/visualisation",
@@ -34,13 +35,13 @@ async def visualisation_health() -> Dict[str, Any]:
     }
 
 @router.get("/screen-time-emotions")
-async def get_screen_time_emotions() -> Dict[str, Any]:
+async def get_screen_time_emotions(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Get data for screen time vs emotions chart
     """
     logger.info("API request: screen-time-emotions")
     try:
-        data = data_processors.process_screen_time_emotions()
+        data = data_processors.process_screen_time_emotions(db)
         logger.info("Successfully processed screen time emotions data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -60,13 +61,13 @@ async def get_screen_time_emotions() -> Dict[str, Any]:
             )
 
 @router.get("/sleep-quality")
-async def get_sleep_quality() -> Dict[str, Any]:
+async def get_sleep_quality(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Get data for digital habits vs sleep quality chart
     """
     logger.info("API request: sleep-quality")
     try:
-        data = data_processors.process_sleep_data()
+        data = data_processors.process_sleep_data(db)
         logger.info("Successfully processed sleep data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -86,13 +87,13 @@ async def get_sleep_quality() -> Dict[str, Any]:
             )
 
 @router.get("/engagement")
-async def get_engagement() -> Dict[str, Any]:
+async def get_engagement(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Get data for engagement metrics chart
     """
     logger.info("API request: engagement")
     try:
-        data = data_processors.process_engagement_data()
+        data = data_processors.process_engagement_data(db)
         logger.info("Successfully processed engagement data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -112,13 +113,13 @@ async def get_engagement() -> Dict[str, Any]:
             )
 
 @router.get("/anxiety")
-async def get_anxiety() -> Dict[str, Any]:
+async def get_anxiety(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Get data for screen time vs anxiety chart
     """
     logger.info("API request: anxiety")
     try:
-        data = data_processors.process_anxiety_data()
+        data = data_processors.process_anxiety_data(db)
         logger.info("Successfully processed anxiety data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -138,7 +139,7 @@ async def get_anxiety() -> Dict[str, Any]:
             )
 
 @router.get("/all-chart-data")
-async def get_all_chart_data() -> Dict[str, Any]:
+async def get_all_chart_data(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Get data for all charts in a single request
     """
@@ -149,28 +150,28 @@ async def get_all_chart_data() -> Dict[str, Any]:
     
     # Try to get each dataset separately, so one failure doesn't break all
     try:
-        results["screenTimeEmotions"] = data_processors.process_screen_time_emotions()
+        results["screenTimeEmotions"] = data_processors.process_screen_time_emotions(db)
     except Exception as e:
         logger.error(f"Error getting screen time emotions data: {e}")
         errors.append(f"Screen time emotions: {str(e)}")
         results["screenTimeEmotions"] = {"error": str(e)}
     
     try:
-        results["sleepQuality"] = data_processors.process_sleep_data()
+        results["sleepQuality"] = data_processors.process_sleep_data(db)
     except Exception as e:
         logger.error(f"Error getting sleep data: {e}")
         errors.append(f"Sleep quality: {str(e)}")
         results["sleepQuality"] = {"error": str(e)}
     
     try:
-        results["engagement"] = data_processors.process_engagement_data()
+        results["engagement"] = data_processors.process_engagement_data(db)
     except Exception as e:
         logger.error(f"Error getting engagement data: {e}")
         errors.append(f"Engagement: {str(e)}")
         results["engagement"] = {"error": str(e)}
     
     try:
-        results["anxiety"] = data_processors.process_anxiety_data()
+        results["anxiety"] = data_processors.process_anxiety_data(db)
     except Exception as e:
         logger.error(f"Error getting anxiety data: {e}")
         errors.append(f"Anxiety: {str(e)}")
@@ -198,7 +199,7 @@ async def test_endpoint() -> Dict[str, Any]:
     return {"status": "ok", "message": "Visualisation API is working correctly"}
 
 @router.get("/db-test")
-async def test_database() -> Dict[str, Any]:
+async def test_database(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Test endpoint to verify database connectivity
     """
@@ -206,7 +207,7 @@ async def test_database() -> Dict[str, Any]:
     return data_processors.test_database_connection()
 
 @router.get("/connection-test")
-async def connection_test() -> Dict[str, Any]:
+async def connection_test(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Comprehensive connection test endpoint that logs detailed information
     """
@@ -274,7 +275,7 @@ async def connection_test() -> Dict[str, Any]:
         }
 
 @router.get("/debug-data-schema")
-async def debug_data_schema() -> Dict[str, Any]:
+async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Debug endpoint to examine data schemas for all charts
     """
@@ -310,7 +311,7 @@ async def debug_data_schema() -> Dict[str, Any]:
         chart_shapes = {}
         
         try:
-            screen_time_emotions_data = data_processors.process_screen_time_emotions()
+            screen_time_emotions_data = data_processors.process_screen_time_emotions(db)
             chart_shapes["screen_time_emotions"] = {
                 "labels_count": len(screen_time_emotions_data.get("labels", [])),
                 "datasets_count": len(screen_time_emotions_data.get("datasets", [])),
@@ -320,7 +321,7 @@ async def debug_data_schema() -> Dict[str, Any]:
             chart_shapes["screen_time_emotions"] = {"error": str(e)}
             
         try:
-            sleep_data = data_processors.process_sleep_data()
+            sleep_data = data_processors.process_sleep_data(db)
             chart_shapes["sleep_quality"] = {
                 "labels_count": len(sleep_data.get("labels", [])),
                 "datasets_count": len(sleep_data.get("datasets", [])),
@@ -330,7 +331,7 @@ async def debug_data_schema() -> Dict[str, Any]:
             chart_shapes["sleep_quality"] = {"error": str(e)}
             
         try:
-            engagement_data = data_processors.process_engagement_data()
+            engagement_data = data_processors.process_engagement_data(db)
             chart_shapes["engagement"] = {
                 "labels_count": len(engagement_data.get("labels", [])),
                 "datasets_count": len(engagement_data.get("datasets", [])),
@@ -340,7 +341,7 @@ async def debug_data_schema() -> Dict[str, Any]:
             chart_shapes["engagement"] = {"error": str(e)}
             
         try:
-            anxiety_data = data_processors.process_anxiety_data()
+            anxiety_data = data_processors.process_anxiety_data(db)
             chart_shapes["anxiety"] = {
                 "labels_count": len(anxiety_data.get("labels", [])),
                 "datasets_count": len(anxiety_data.get("datasets", [])),

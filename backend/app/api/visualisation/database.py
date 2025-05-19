@@ -5,10 +5,9 @@ import sys
 import json
 import time
 import threading
-from sqlalchemy import create_engine, text, Column, Integer, String, Float, MetaData, Table
+from sqlalchemy import create_engine, text, Column, Integer, String, Float, MetaData, Table, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, load_only
-from sqlalchemy.ext.automap import automap_base
 from dotenv import load_dotenv
 from contextlib import contextmanager
 
@@ -46,7 +45,9 @@ if DATABASE_URL and "postgres://" in DATABASE_URL:
     logger.info("Visualisation DB - Converted postgres:// to postgresql://")
 
 # Check if this is a Railway PostgreSQL URL
-is_railway_db = "railway.app" in DATABASE_URL
+is_railway_db = False
+if DATABASE_URL: # Add check to prevent error if DATABASE_URL is None
+    is_railway_db = "railway.app" in DATABASE_URL
 
 # Log connection environment
 if is_railway_db:
@@ -86,12 +87,56 @@ def time_limit(seconds):
 # Initialize globals that will be set in try_initialize_database
 engine = None
 SessionLocal = None
-Base = declarative_base()
-TrainCleaned = None
-SmmhCleaned = None
+Base = declarative_base() # Standard declarative base
+
+# Define ORM Models Explicitly
+class TrainCleaned(Base):
+    __tablename__ = 'train_cleaned'
+    # Assuming 'User_ID' is the primary key as it's often an identifier.
+    # If not, this should be changed to the actual primary key or a suitable candidate.
+    user_id = Column("User_ID", Integer, primary_key=True, index=True)
+    age = Column("Age", Integer)
+    gender = Column("Gender", String) # Using String, assuming it's not excessively long. Use Text for longer strings.
+    platform = Column("Platform", String)
+    daily_usage_time = Column("daily_usage_time", Float)
+    posts_per_day = Column("posts_per_day", Float)
+    likes_received_per_day = Column("likes_received_per_day", Float)
+    comments_received_per_day = Column("comments_received_per_day", Float)
+    messages_sent_per_day = Column("messages_sent_per_day", Float)
+    dominant_emotion = Column("dominant_emotion", String)
+
+class SmmhCleaned(Base):
+    __tablename__ = 'smmh_cleaned'
+    # Adding a surrogate primary key as one isn't obvious from the schema image.
+    # This is generally good practice for ORM models if a natural key isn't present or suitable.
+    smmh_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    timestamp_val = Column("Timestamp", Text)
+    age = Column("1. What is your age?", Float) # Column name from image uses "1. What is your age?"
+    gender = Column("2. Gender", Text)
+    relationship_status = Column("3. Relationship Status", Text)
+    occupation_status = Column("4. Occupation Status", Text)
+    affiliated_organizations = Column("5. What type of organizations are you affiliated with?", Text)
+    use_social_media = Column("6. Do you use social media?", Text)
+    social_media_platforms = Column("7. What social media platforms do you commonly use?", Text)
+    avg_time_on_social_media = Column("8. What is the average time you spend on social media every day", Text)
+    # For columns 9-15 and 17-20, type is Integer as per 'int8' in image
+    use_social_media_unintentionally = Column("9. How often do you find yourself using Social media without a", Integer)
+    distracted_by_social_media = Column("10. How often do you get distracted by Social media when you are busy doing something?", Integer)
+    restless_without_social_media = Column("11. Do you feel restless if you haven't used Social media in a while?", Integer)
+    easily_distracted_scale = Column("12. On a scale of 1 to 5, how easily distracted are you?", Integer)
+    bothered_by_worries_scale = Column("13. On a scale of 1 to 5, how much are you bothered by worries?", Integer)
+    difficulty_concentrating_scale = Column("14. Do you find it difficult to concentrate on things?", Integer)
+    compare_to_others_scale = Column("15. On a scale of 1-5, how often do you compare yourself to other people on social media?", Integer)
+    feel_about_comparisons = Column("16. Following the previous question, how do you feel about these comparisons, generally?", Text)
+    seek_validation_scale = Column("17. How often do you look to seek validation from features of social media?", Integer)
+    feel_depressed_scale = Column("18. How often do you feel depressed or down?", Integer)
+    interest_fluctuation_scale = Column("19. On a scale of 1 to 5, how frequently does your interest in daily activities fluctuate?", Integer)
+    sleep_issues_scale = Column("20. On a scale of 1 to 5, how often do you face issues regarding sleep?", Integer)
+    usage_time_group = Column("Usage_Time_Group", Text)
+
 
 def try_initialize_database():
-    global engine, SessionLocal, Base, TrainCleaned, SmmhCleaned
+    global engine, SessionLocal # Base, TrainCleaned, SmmhCleaned are defined at module level
     
     db_url_to_use = DATABASE_URL
 
@@ -118,7 +163,7 @@ def try_initialize_database():
                 "keepalives_idle": 30,
                 "keepalives_interval": 10,
                 "keepalives_count": 5,
-                "options": f"-c statement_timeout={DATABASE_CONNECT_TIMEOUT * 1000}"
+                "options": f"-c statement_timeout={DATABASE_CONNECT_TIMEOUT * 1000}" # Statement timeout in ms
             }
         }
         # SQLite does not support many of these args
@@ -127,59 +172,25 @@ def try_initialize_database():
 
         engine = create_engine(db_url_to_use, **current_engine_args)
         logger.info("Visualisation DB - Engine created.")
+        sys.stdout.flush() # Ensure log is flushed
 
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         logger.info("Visualisation DB - SessionLocal created.")
-        sys.stdout.flush() # Ensure this log gets out
+        sys.stdout.flush() # Ensure log is flushed
         
-        # Temporarily disable all reflection and Table object creation to isolate crash
-        logger.info("Visualisation DB - SKIPPING all metadata reflection and Table object creation for diagnostic purposes.")
-        sys.stdout.flush()
-
-        # if "sqlite" not in db_url_to_use or db_url_to_use != FALLBACK_DB_URL:
-        #     logger.info("Visualisation DB - Attempting to reflect database structure...")
-        #     sys.stdout.flush()
-        #     metadata = MetaData()
-        #     try:
-        #         metadata.reflect(bind=engine, views=True) # Include views if any
-        #         logger.info(f"Visualisation DB - Reflection complete. Tables found: {list(metadata.tables.keys())}")
-        #         sys.stdout.flush()
-        #
-        #         if 'train_cleaned' in metadata.tables:
-        #             TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
-        #             logger.info("Visualisation DB - TrainCleaned Table object created.")
-        #             sys.stdout.flush() 
-        #         else:
-        #             logger.warning("Visualisation DB - 'train_cleaned' table not found in reflected metadata.")
-        #             sys.stdout.flush()
-        #         
-        #         if 'smmh_cleaned' in metadata.tables:
-        #             SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
-        #             logger.info("Visualisation DB - SmmhCleaned Table object created.")
-        #             sys.stdout.flush() 
-        #         else:
-        #             logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
-        #             sys.stdout.flush()
-        #
-        #         logger.info("Visualisation DB - Skipping Automap ORM model generation for now.")
-        #         sys.stdout.flush()
-        #
-        #     except Exception as reflect_error:
-        #         logger.error(f"Visualisation DB - Error during Table object creation or reflection: {reflect_error}", exc_info=True) # Modified error message
-        #         sys.stdout.flush() 
-        #         if not ALLOW_DB_FAILURE:
-        #             logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
-        #             raise
-        # else:
-        #     logger.info("Visualisation DB - Using SQLite fallback, skipping detailed reflection for now.")
-        #     sys.stdout.flush()
-
-        logger.info("Visualisation DB - Database initialization attempt complete (minimal setup).")
-        sys.stdout.flush()
+        # With declarative models defined above, we don't need to reflect or create Table objects here.
+        # The ORM models (TrainCleaned, SmmhCleaned) are now defined classes.
+        # If you needed to create these tables in the DB (e.g., for a new setup),
+        # you would call Base.metadata.create_all(engine) typically in a migration script or main app setup.
+        # For an existing DB, these definitions just map to them.
+        logger.info("Visualisation DB - Declarative models TrainCleaned and SmmhCleaned are defined.")
+        logger.info("Visualisation DB - Database initialization attempt complete (using declarative models).")
+        sys.stdout.flush() # Ensure log is flushed
         return True # Indicate success
 
     except Exception as e:
         logger.critical(f"Visualisation DB - Error setting up database engine/session: {e}", exc_info=True)
+        sys.stdout.flush() # Ensure error log is flushed
         if not ALLOW_DB_FAILURE:
             logger.critical("Visualisation DB - Raising setup error as ALLOW_DB_FAILURE is false.")
             raise
@@ -203,48 +214,31 @@ if not INITIALIZATION_SUCCESSFUL:
 def log_connection_details(operation="general", status="attempted", details=None):
     """
     Log detailed connection information to help debug deployment issues
-    
-    Args:
-        operation: String describing the operation being performed
-        status: Status of the operation (attempted, success, failed)
-        details: Any additional details or error information
     """
     try:
-        # Get system environment details
         sys_info = {
             "python_version": sys.version,
             "platform": sys.platform,
             "environment": os.environ.get("ENVIRONMENT", "unknown"),
             "server_time": time.strftime('%Y-%m-%d %H:%M:%S'),
         }
-        
-        # Database connection details (with sensitive info masked)
         db_info = {
             "database_url": get_masked_url(DATABASE_URL),
             "operation": operation,
             "status": status,
         }
-        
-        # Add any additional details
         if details:
             db_info["details"] = details
-            
-        # Create log message
         log_message = f"DATABASE CONNECTION LOG | Operation: {operation} | Status: {status}"
-        
-        # Add full context as JSON
         context = {"system": sys_info, "database": db_info}
-        
-        # Log appropriately based on status
         if status == "failed":
             logger.error(f"{log_message}\nContext: {json.dumps(context, indent=2)}")
         else:
             logger.info(f"{log_message}\nContext: {json.dumps(context, indent=2)}")
-    
     except Exception as e:
-        # Ensure logging itself doesn't cause issues
         logger.error(f"Error in logging function: {e}")
 
+@contextmanager
 def get_db():
     """Database session dependency"""
     if not SessionLocal:
@@ -252,22 +246,28 @@ def get_db():
         if ALLOW_DB_FAILURE and try_initialize_database(): # Attempt re-init
              logger.info("Visualisation DB - Re-initialization attempt made for get_db.")
         else:
-            raise Exception("Database not initialized for visualisation module.")
-    log_connection_details("session_start", "attempted")
+            # If SessionLocal is None even after re-init attempt (or if not allowed), raise critical error.
+            # This prevents the app from trying to operate without a DB session.
+            raise Exception("Database not initialized for visualisation module. SessionLocal is None.")
+            
     db = SessionLocal()
     try:
+        log_connection_details("session_start", "attempted", {"session_id": id(db)})
         yield db
-        log_connection_details("session_end", "success")
+        log_connection_details("session_end", "success", {"session_id": id(db)})
     except Exception as e:
-        log_connection_details("session_error", "failed", str(e))
+        log_connection_details("session_error", "failed", {"session_id": id(db), "error": str(e)})
+        db.rollback() # Rollback on error
         raise
     finally:
         db.close()
+        log_connection_details("session_close", "completed", {"session_id": id(db)})
+
 
 def execute_query(query_str, params=None, timeout=30, max_retries=2):
     """
-    Execute a raw SQL query and return the results as a list of dictionaries
-    With a configurable timeout (default 30 seconds) and retry mechanism
+    Execute a raw SQL query and return the results as a list of dictionaries.
+    This function remains useful for queries not easily expressed via ORM or for specific needs.
     """
     if not engine:
         logger.error("Visualisation DB - Engine not initialized. Cannot execute query.")
@@ -278,178 +278,177 @@ def execute_query(query_str, params=None, timeout=30, max_retries=2):
     operation = "execute_query"
     start_time = time.time()
     
-    # Log the query being attempted (truncate if too long)
     truncated_query = query_str[:500] + "..." if len(query_str) > 500 else query_str
     log_connection_details(operation, "attempted", {"query": truncated_query, "timeout": timeout})
     
     last_error = None
-    for retry in range(max_retries + 1):  # +1 because first attempt is not a retry
+    for retry in range(max_retries + 1):
         if retry > 0:
             logger.info(f"Retry {retry}/{max_retries} for database query after {retry * 2} seconds delay")
-            time.sleep(retry * 2)  # Progressive backoff
+            time.sleep(retry * 2)
         
         try:
-            # Use timeout context manager to ensure query doesn't hang
-            with time_limit(timeout):
+            with time_limit(timeout): # Custom timeout context manager
                 with engine.connect() as connection:
-                    # Set statement timeout at connection level as well
-                    connection.execute(text(f"SET statement_timeout = {timeout * 1000}"))
+                    # For PostgreSQL, statement_timeout can be set per transaction or session.
+                    # Setting it here ensures it applies to this specific query execution.
+                    connection.execute(text(f"SET statement_timeout = {timeout * 1000}")) # ms
                     
-                    # Execute the query
-                    result = connection.execute(text(query_str), params or {})
-                    columns = result.keys()
-                    rows = result.fetchall()
+                    result_proxy = connection.execute(text(query_str), params or {})
+                    
+                    # Check if the result_proxy has processable rows (e.g., for SELECT)
+                    if result_proxy.returns_rows:
+                        columns = result_proxy.keys()
+                        rows = result_proxy.fetchall()
+                        data = [dict(zip(columns, row)) for row in rows]
+                        row_count = len(rows)
+                    else: # For INSERT, UPDATE, DELETE that don't return rows by default
+                        data = [] 
+                        row_count = result_proxy.rowcount # Number of affected rows
+                    
                     duration = time.time() - start_time
-                    
-                    # Log successful query execution
-                    row_count = len(rows)
+                    connection.commit() # Commit transaction if successful
+
                     log_connection_details(operation, "success", {
-                        "rows_returned": row_count,
+                        "rows_returned_or_affected": row_count,
                         "duration_ms": round(duration * 1000, 2),
                         "query_truncated": truncated_query,
                         "retries": retry
                     })
-                    
-                    return [dict(zip(columns, row)) for row in rows]
-        except TimeoutError as e:
+                    return data # Return list of dicts for SELECT, or empty list for others
+        except TimeoutError as e: # Custom TimeoutError from time_limit context manager
             last_error = e
             duration = time.time() - start_time
-            error_details = {
-                "error_type": "TimeoutError",
-                "error_msg": f"Query execution timed out after {timeout} seconds",
-                "duration_ms": round(duration * 1000, 2),
-                "query_truncated": truncated_query,
-                "retry": retry,
-                "max_retries": max_retries
-            }
+            error_details = {"error_type": "TimeoutError", "error_msg": f"Query execution timed out after {timeout} seconds", "duration_ms": round(duration * 1000, 2), "query_truncated": truncated_query, "retry": retry}
             log_connection_details(operation, "timeout", error_details)
             logger.error(f"Query timed out after {timeout} seconds (retry {retry}/{max_retries}): {truncated_query}")
-            
-            # If this is the last retry, raise the error
             if retry == max_retries:
                 raise TimeoutError(f"Database query timed out after {timeout} seconds and {max_retries} retries")
-        except Exception as e:
-            # Log the failure with detailed error info
+        except Exception as e: # Catch other SQLAlchemy or DB errors
             last_error = e
             duration = time.time() - start_time
-            error_details = {
-                "error_type": type(e).__name__,
-                "error_msg": str(e),
-                "duration_ms": round(duration * 1000, 2),
-                "query_truncated": truncated_query,
-                "retry": retry,
-                "max_retries": max_retries,
-                "traceback": traceback.format_exc()
-            }
+            error_details = {"error_type": type(e).__name__, "error_msg": str(e), "duration_ms": round(duration * 1000, 2), "query_truncated": truncated_query, "retry": retry, "traceback": traceback.format_exc()}
             log_connection_details(operation, "failed", error_details)
-            logger.error(f"Error executing query (retry {retry}/{max_retries}): {e}")
-            
-            # If this is the last retry, raise the error
+            logger.error(f"Error executing query (retry {retry}/{max_retries}): {e}", exc_info=True)
             if retry == max_retries:
                 raise
     
-    # This should not be reached, but just in case
-    raise last_error or Exception("Unknown database error")
+    raise last_error or Exception("Unknown database error after retries in execute_query")
 
-# Get data using the SQLAlchemy ORM
-def get_train_cleaned_data(filters=None, group_by=None):
+
+# New ORM-based data fetching functions
+def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_load=None):
     """
-    Use ORM to query the train_cleaned table with the given filters
-    
+    Use ORM to query the train_cleaned table.
     Args:
-        filters: Dictionary of column:value pairs to filter on
-        group_by: List of columns to group by
-    
-    Returns:
-        List of dictionaries with the query results
+        db_session: The SQLAlchemy session.
+        filters: Dictionary of {attribute_name: value} for filtering.
+        limit: Integer limit for the number of results.
+        columns_to_load: Optional list of model attribute names to load (for efficiency).
     """
-    if TrainCleaned is None:
-        logger.error("Visualisation DB - TrainCleaned ORM Table not available.")
-        if ALLOW_DB_FAILURE:
-            logger.warning("Visualisation DB - TrainCleaned not available, returning empty list due to ALLOW_DB_FAILURE.")
-            return [] # Or raise a custom, non-blocking error
-        raise Exception("TrainCleaned ORM Table not available in visualisation database.")
-    
-    operation = "get_train_cleaned_data"
-    log_connection_details(operation, "attempted")
-    
+    if not db_session:
+        logger.error("Visualisation DB - DB session not provided to get_train_cleaned_data_orm.")
+        return []
+    if not TrainCleaned: # Check if the model class itself is defined
+        logger.error("Visualisation DB - TrainCleaned ORM model is not defined.")
+        return []
+
+    logger.info(f"Visualisation DB - Querying TrainCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns: {columns_to_load}")
     try:
-        with time_limit(30):
-            with engine.connect() as conn:
-                # Build a select query using the ORM Table
-                query = TrainCleaned.select()
-                
-                # Apply filters if provided
-                if filters:
-                    for column, value in filters.items():
-                        if isinstance(value, list):
-                            query = query.where(getattr(TrainCleaned.c, column).in_(value))
-                        else:
-                            query = query.where(getattr(TrainCleaned.c, column) == value)
-                
-                # Execute the query
-                result = conn.execute(query)
-                rows = result.fetchall()
-                
-                # Convert to dictionaries
-                data = [dict(row) for row in rows]
-                
-                log_connection_details(operation, "success", {"rows_returned": len(data)})
-                return data
+        query = db_session.query(TrainCleaned)
+
+        if columns_to_load:
+            # Ensure columns_to_load are valid attributes of the TrainCleaned model
+            valid_cols_to_load = [getattr(TrainCleaned, col_name) for col_name in columns_to_load if hasattr(TrainCleaned, col_name)]
+            if valid_cols_to_load:
+                query = db_session.query(*valid_cols_to_load)
+            else:
+                logger.warning("Visualisation DB - No valid columns specified in columns_to_load for TrainCleaned.")
+                # Fallback to querying all columns or handle as error
+                # query = db_session.query(TrainCleaned) # Already default
+
+        if filters:
+            for attribute_name, value in filters.items():
+                if hasattr(TrainCleaned, attribute_name):
+                    column_attr = getattr(TrainCleaned, attribute_name)
+                    if isinstance(value, list):
+                        query = query.filter(column_attr.in_(value))
+                    else:
+                        query = query.filter(column_attr == value)
+                else:
+                    logger.warning(f"Visualisation DB - Filter attribute {attribute_name} not found in TrainCleaned model.")
+        
+        if limit:
+            query = query.limit(limit)
+            
+        results = query.all()
+        
+        # Convert to list of dicts. If specific columns were queried, results might be tuples.
+        if columns_to_load and valid_cols_to_load:
+            data = [dict(zip(columns_to_load, row)) for row in results]
+        else: # Full model objects were queried
+            data = [{column.name: getattr(row, column.name) for column in row.__table__.columns} for row in results]
+
+        logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows.")
+        return data
     except Exception as e:
-        log_connection_details(operation, "failed", {"error": str(e)})
-        logger.error(f"Error in get_train_cleaned_data: {e}", exc_info=True)
+        logger.error(f"Visualisation DB - Error querying TrainCleaned with ORM: {e}", exc_info=True)
         if ALLOW_DB_FAILURE:
             return []
         raise
 
-def get_smmh_cleaned_data(filters=None, group_by=None):
+def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_load=None):
     """
-    Use ORM to query the smmh_cleaned table with the given filters
-    
+    Use ORM to query the smmh_cleaned table.
     Args:
-        filters: Dictionary of column:value pairs to filter on
-        group_by: List of columns to group by
-    
-    Returns:
-        List of dictionaries with the query results
+        db_session: The SQLAlchemy session.
+        filters: Dictionary of {attribute_name: value} for filtering.
+        limit: Integer limit for the number of results.
+        columns_to_load: Optional list of model attribute names to load.
     """
-    if SmmhCleaned is None:
-        logger.error("Visualisation DB - SmmhCleaned ORM Table not available.")
-        if ALLOW_DB_FAILURE:
-            logger.warning("Visualisation DB - SmmhCleaned not available, returning empty list due to ALLOW_DB_FAILURE.")
-            return [] # Or raise a custom, non-blocking error
-        raise Exception("SmmhCleaned ORM Table not available in visualisation database.")
-    
-    operation = "get_smmh_cleaned_data"
-    log_connection_details(operation, "attempted")
-    
+    if not db_session:
+        logger.error("Visualisation DB - DB session not provided to get_smmh_cleaned_data_orm.")
+        return []
+    if not SmmhCleaned: # Check if the model class itself is defined
+        logger.error("Visualisation DB - SmmhCleaned ORM model is not defined.")
+        return []
+
+    logger.info(f"Visualisation DB - Querying SmmhCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns: {columns_to_load}")
     try:
-        with time_limit(30):
-            with engine.connect() as conn:
-                # Build a select query using the ORM Table
-                query = SmmhCleaned.select()
-                
-                # Apply filters if provided
-                if filters:
-                    for column, value in filters.items():
-                        if isinstance(value, list):
-                            query = query.where(getattr(SmmhCleaned.c, column).in_(value))
-                        else:
-                            query = query.where(getattr(SmmhCleaned.c, column) == value)
-                
-                # Execute the query
-                result = conn.execute(query)
-                rows = result.fetchall()
-                
-                # Convert to dictionaries
-                data = [dict(row) for row in rows]
-                
-                log_connection_details(operation, "success", {"rows_returned": len(data)})
-                return data
+        query = db_session.query(SmmhCleaned)
+
+        if columns_to_load:
+            valid_cols_to_load = [getattr(SmmhCleaned, col_name) for col_name in columns_to_load if hasattr(SmmhCleaned, col_name)]
+            if valid_cols_to_load:
+                query = db_session.query(*valid_cols_to_load)
+            else:
+                logger.warning("Visualisation DB - No valid columns specified in columns_to_load for SmmhCleaned.")
+
+        if filters:
+            for attribute_name, value in filters.items():
+                if hasattr(SmmhCleaned, attribute_name): # Ensure filter is on a model attribute
+                    column_attr = getattr(SmmhCleaned, attribute_name)
+                    if isinstance(value, list):
+                        query = query.filter(column_attr.in_(value))
+                    else:
+                        query = query.filter(column_attr == value)
+                else:
+                    logger.warning(f"Visualisation DB - Filter attribute {attribute_name} not found in SmmhCleaned model.")
+
+        if limit:
+            query = query.limit(limit)
+
+        results = query.all()
+
+        if columns_to_load and valid_cols_to_load:
+            data = [dict(zip(columns_to_load, row)) for row in results]
+        else:
+            data = [{column.name: getattr(row, column.name) for column in row.__table__.columns} for row in results]
+            
+        logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
+        return data
     except Exception as e:
-        log_connection_details(operation, "failed", {"error": str(e)})
-        logger.error(f"Error in get_smmh_cleaned_data: {e}", exc_info=True)
+        logger.error(f"Visualisation DB - Error querying SmmhCleaned with ORM: {e}", exc_info=True)
         if ALLOW_DB_FAILURE:
             return []
         raise 

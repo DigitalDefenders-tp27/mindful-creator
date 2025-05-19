@@ -1,24 +1,34 @@
 import logging
 from typing import Dict, List, Any, Optional
 from sqlalchemy import func, case, cast, Float
-from .database import execute_query, log_connection_details, get_train_cleaned_data, get_smmh_cleaned_data, time_limit
+from .database import (
+    execute_query,
+    log_connection_details,
+    get_train_cleaned_data_orm,
+    get_smmh_cleaned_data_orm,
+    get_db,
+    time_limit,
+    TrainCleaned,
+    SmmhCleaned
+)
 from sqlalchemy.sql import text
 from sqlalchemy.engine import Engine
+from fastapi import Depends
 
-logger = logging.getLogger("visualisation.processors")
+logger = logging.getLogger("mindful-creator.visualisation.processors")
 
-def process_screen_time_emotions() -> Dict[str, Any]:
+def process_screen_time_emotions(db_session) -> Dict[str, Any]:
     """
     Process screen time and emotions data for the first chart using ORM
     
     Returns:
         Dict with labels and datasets for screen time vs emotions chart
     """
-    log_connection_details("process_screen_time_emotions", "started")
+    log_connection_details("process_screen_time_emotions", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the train_cleaned table
-        data = get_train_cleaned_data()
+        # Get all data from the train_cleaned table using the ORM function
+        data = get_train_cleaned_data_orm(db_session)
         
         # Log the first few rows to debug column names
         if data and len(data) > 0:
@@ -144,18 +154,18 @@ def process_screen_time_emotions() -> Dict[str, Any]:
         log_connection_details("process_screen_time_emotions", "failed", {"error": str(e)})
         raise
 
-def process_sleep_data() -> Dict[str, Any]:
+def process_sleep_data(db_session) -> Dict[str, Any]:
     """
     Process screen time and sleep quality data for the second chart
     
     Returns:
         Dict with labels and datasets for digital habits vs sleep chart
     """
-    log_connection_details("process_sleep_data", "started")
+    log_connection_details("process_sleep_data", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the smmh_cleaned table
-        data = get_smmh_cleaned_data()
+        # Get all data from the smmh_cleaned table using the ORM function
+        data = get_smmh_cleaned_data_orm(db_session)
         
         # Log the first few rows to debug column names
         if data and len(data) > 0:
@@ -287,18 +297,18 @@ def process_sleep_data() -> Dict[str, Any]:
         log_connection_details("process_sleep_data", "failed", {"error": str(e)})
         raise
 
-def process_engagement_data() -> Dict[str, Any]:
+def process_engagement_data(db_session) -> Dict[str, Any]:
     """
     Process screen time and engagement metrics for the third chart
     
     Returns:
         Dict with labels and datasets for engagement chart
     """
-    log_connection_details("process_engagement_data", "started")
+    log_connection_details("process_engagement_data", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the train_cleaned table
-        data = get_train_cleaned_data()
+        # Get all data from the train_cleaned table using the ORM function
+        data = get_train_cleaned_data_orm(db_session)
         
         # Log the first few rows to debug column names
         if data and len(data) > 0:
@@ -434,18 +444,18 @@ def process_engagement_data() -> Dict[str, Any]:
         log_connection_details("process_engagement_data", "failed", {"error": str(e)})
         raise
 
-def process_anxiety_data() -> Dict[str, Any]:
+def process_anxiety_data(db_session) -> Dict[str, Any]:
     """
     Process screen time and anxiety levels for the fourth chart
     
     Returns:
         Dict with labels and datasets for anxiety chart
     """
-    log_connection_details("process_anxiety_data", "started")
+    log_connection_details("process_anxiety_data", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the smmh_cleaned table
-        data = get_smmh_cleaned_data()
+        # Get all data from the smmh_cleaned table using the ORM function
+        data = get_smmh_cleaned_data_orm(db_session)
         
         # Log the first few rows to debug column names
         if data and len(data) > 0:
@@ -606,7 +616,7 @@ def process_anxiety_data() -> Dict[str, Any]:
         log_connection_details("process_anxiety_data", "failed", {"error": str(e)})
         raise
 
-def test_database_connection() -> Dict[str, Any]:
+def test_database_connection():
     """
     Test function to verify database connectivity
     
