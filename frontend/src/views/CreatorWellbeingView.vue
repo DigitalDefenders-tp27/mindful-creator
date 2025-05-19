@@ -45,38 +45,10 @@
         <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
         <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         
-        <div class="tabs">
-          <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
-            @click="switchTab(index)">
-            <span v-if="index === 0">
-              <span>Screen Time</span>
-              <span>& Emotions</span>
-            </span>
-            <span v-else-if="index === 1">
-              <span>Digital Habits</span>
-              <span>& Sleep</span>
-            </span>
-            <span v-else-if="index === 2">
-              <span>Engagement</span>
-              <span>& Rewards</span>
-            </span>
-            <span v-else-if="index === 3">
-              <span>Distractions</span>
-              <span>& Anxiety</span>
-            </span>
-          </div>
-        </div>
-
-        <div class="visualisation-container">
-          <div class="chart-area">
-            <canvas id="mainChart" style="max-height: 400px; width: 100%;"></canvas>
-          </div>
-          <div class="insight-area">
-            <h3 class="insight-heading">Key Insights</h3>
-            <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
-              {{ insight }}
-            </div>
-          </div>
+        <div class="dashboard-placeholder">
+          <router-link to="/visualisation" class="view-dashboard-btn">
+            View Dashboard
+          </router-link>
         </div>
       </div>
     </section>
@@ -496,14 +468,11 @@
 import { ref, onMounted, computed, nextTick, onUnmounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
-import Chart from 'chart.js/auto'
 import Modal from '../components/Modal.vue'
 import axios from 'axios'
 import ScrollIsland from '@/components/ScrollIsland.vue'
 
 // State variables
-const currentTab = ref(0)
-let chartInstance = null
 const selectedClinic = ref(null) // Initialize as null
 const showGuide = ref(false)
 const mapCenter = ref({ lat: -37.8136, lng: 144.9631 }) // Default Melbourne centre coordinates
@@ -873,8 +842,6 @@ const fetchClinicDetails = (placeId) => {
 
 
 onMounted(() => {
-  renderChart()
-  
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
       filtersVisible.value = true
@@ -955,125 +922,7 @@ const getMyPosition = () => {
   }
 }
 
-const switchTab = (index) => {
-  currentTab.value = index
-  renderChart()
-}
-
-const renderChart = () => {
-  const ctx = document.getElementById('mainChart')
-  if (chartInstance) chartInstance.destroy()
-
-  if (currentTab.value === 0) {
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Below 1h', '1-3h', '3-5h'],
-        datasets: [
-          { label: 'Positive', backgroundColor: '#4bc0c0', data: [20, 30, 10] },
-          { label: 'Negative', backgroundColor: '#ff6384', data: [10, 40, 60] },
-          { label: 'Neutral', backgroundColor: '#ffcd56', data: [70, 30, 30] },
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            stacked: true,
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            stacked: true,
-            max: 100,
-            title: { display: true, text: 'Percentage of Emotional States (%)' }
-          }
-        }
-      }
-    })
-  }
-  else if (currentTab.value === 1) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
-        datasets: [{
-          label: 'Sleep Problems (1-5)',
-          data: [1.5, 2, 2.5, 3.2, 4, 4.5],
-          borderColor: '#7e57c2',
-          backgroundColor: '#7e57c2',
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Sleep Problem Score (1 = Best, 5 = Worst)' },
-            suggestedMin: 1,
-            suggestedMax: 5
-          }
-        }
-      }
-    });
-  } else if (currentTab.value === 2) {
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Below 1h', '1-3h', '3-5h'],
-        datasets: [{
-          label: 'Engagement',
-          data: [20, 50, 30],
-          backgroundColor: '#42a5f5'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Engagement Score' }
-          }
-        }
-      }
-    });
-  } else if (currentTab.value === 3) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
-        datasets: [{
-          label: 'Average Anxiety',
-          data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
-          borderColor: '#66bb6a',
-          backgroundColor: '#66bb6a',
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Average Anxiety Level (1-5)' }
-          }
-        }
-      }
-    });
-  }
-}
+// Dashboard functions moved to Visualisation.vue
 
 // Event modal functions
 const openModal = () => {
@@ -1349,40 +1198,7 @@ const featuredActivities = computed(() => {
   return [april, may, june].filter(Boolean).slice(0, 3)
 })
 
-const tabs = [
-  { 
-    name: 'Screen Time and Emotional Wellbeing', 
-    insights: [
-      'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
-      'Maintaining lower daily screen time correlates with better emotional wellbeing.',
-      'Balanced digital habits foster more positive and neutral emotional states.'
-    ]
-  },
-  {
-    name: 'Digital Habits and Sleep Health', 
-    insights: [
-      'More than 3 hours of daily social media use is linked with sleep disturbances.',
-      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
-      'Reducing evening screen time can improve sleep quality and mental health.'
-    ]
-  },
-  {
-    name: 'Engagement Metrics and Emotional Rewards', 
-    insights: [
-      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
-      'Creators focusing on meaningful community engagement over numbers show better mental health.',
-      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
-    ]
-  },
-  {
-    name: 'Managing Digital Distractions and Anxiety', 
-    insights: [
-      'Higher daily screen time is associated with elevated anxiety levels.',
-      'Spending less time on digital activities correlates with lower anxiety scores.',
-      'Practising regular tech-free breaks can significantly lower digital stress levels.'
-    ]
-  }
-]
+// Dashboard tabs data moved to Visualisation.vue
 
 // Update the search button to show loading state
 const searchBtnContent = computed(() => {
@@ -1663,76 +1479,10 @@ const visitWebsite = () => {
   z-index: 10000; /* Ensure this is the highest z-index in the application */
 }
 
-.visualisation-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align top instead of center */
-  flex-wrap: wrap;
-  margin-top: 30px;
-}
-
-.chart-area {
-  flex: 1;
-  min-width: 500px;
-  max-width: 700px;
-  height: 400px;
-  padding: 10px;
-}
-
-.chart-area canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.insight-area {
-  flex: 0.7;
-  min-width: 320px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center title and boxes horizontally */
-  margin-top: 20px; /* Push a little lower */
-}
-
-.insight-heading {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.insight-box {
-  background: #fff8e1;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  font-size: 1rem;
-  width: 100%; /* Full width */
-  max-width: 500px; /* Limit width nicely */
-  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
-  text-align: center;
-}
+/* Dashboard visualization styles moved to Visualisation.vue */
 
 
-.tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-  white-space: normal; /* Allow text to wrap */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60px;
-  text-align: center;
-}
+/* Dashboard tab styles moved to Visualisation.vue */
 
 
 
@@ -4494,4 +4244,54 @@ section:not(:last-child)::after {
 
 /* Responsive adjustments for modal and breathing exercise guide - REMOVED if specific to panic/breathing */
 
+/* Add new dashboard placeholder styles */
+.dashboard-placeholder {
+  background-color: #f8f8f8;
+  border-radius: 16px;
+  padding: 4rem 2rem;
+  text-align: center;
+  margin: 2rem 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-dashboard-btn {
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.75rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  box-shadow: 0 4px 10px rgba(231, 90, 151, 0.25);
+}
+
+.view-dashboard-btn:hover {
+  background-color: #d4407f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(231, 90, 151, 0.35);
+}
+
+/* Remove the following dashboard related styles:
+visualisation-container
+chart-area
+chart-area canvas
+insight-area
+insight-heading
+insight-box
+tab
+tabs
+*/
+
+/* Keep the existing code */
+/* Modal z-index overrides to fix layering issues */
+/* ... existing code ... */
 </style>

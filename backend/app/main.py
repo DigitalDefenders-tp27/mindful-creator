@@ -18,10 +18,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import affirmations, breaths, journals, memes, ratings
 from app.routes import data_fetch_orm
+from starlette.middleware.base import BaseHTTPMiddleware
 
-
-
-app = FastAPI()
+app = FastAPI(
+    title="Mindful Creator API",
+    description="API for Mindful Creator platform",
+    version="0.1.0",
+)
 
 app.include_router(data_fetch_orm.router, prefix="/api")
 
@@ -34,25 +37,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-
-
-
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 
 # First import only the base router to ensure health check endpoint is available
-# from app.api.router import router as api_router
+from app.api.router import router as api_router
 from app.api.youtube.routes import router as youtube_router
+from app.api.visualisation.routes import router as visualisation_router
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mindful-creator")
 
 # Record startup time
 start_time = time.time()
@@ -83,7 +81,6 @@ def log_system_resources():
 log_system_resources()
 
 # Create FastAPI application
-
 
 # Configure CORS middleware
 # Define allowed origins for specific domains
@@ -172,14 +169,24 @@ logger.info("Registering API router (contains health check endpoint)")
 app.include_router(youtube_router, prefix="/api")
 
 # Root endpoint for basic health check
-
+@app.get("/")
+async def root() -> Dict[str, str]:
+    """
+    Root endpoint provides simple welcome message
+    """
+    return {"message": "Welcome to Mindful Creator API"}
 
 # Additional health check endpoint at the root level for Railway
 @app.get("/health")
 async def root_health_check() -> Dict[str, Any]:
-    """Root health check specifically for Railway"""
-    logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED - Railway health check")
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+    """
+    Health check endpoint used by Railway and other services
+    """
+    # In a more complex app, we would check database connectivity, etc.
+    return {
+        "status": "healthy",
+        "version": "0.1.0"
+    }
 
 # Explicit API health check endpoint to match railway.toml configuration
 @app.get("/api/health")
@@ -326,6 +333,26 @@ async def root():
         </body>
     </html>
     """
+
+# Logging middleware
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"Request: {request.method} {request.url.path} - Completed in {process_time:.4f}s")
+        return response
+
+app.add_middleware(LoggingMiddleware)
+
+# Error handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal server error", "detail": str(exc)},
+    )
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")
