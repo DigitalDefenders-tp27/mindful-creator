@@ -275,25 +275,40 @@ async def connection_test(db: Session = Depends(get_db)) -> Dict[str, Any]:
         }
 
 @router.get("/debug-data-schema")
-async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[str, Any]:
     """
     Debug endpoint to examine data schemas for all charts
     """
     logger.info("API request: debug-data-schema")
+    logger.info(f"debug-data-schema: Received db_context_manager of type: {type(db_context_manager)}")
+
+    actual_db_session = None
+    if hasattr(db_context_manager, '__enter__') and hasattr(db_context_manager, '__exit__'):
+        logger.info("debug-data-schema: db_context_manager appears to be a context manager, attempting to enter.")
+        try:
+            actual_db_session = db_context_manager.__enter__() # Manually enter if it's a CM
+        except Exception as e_cm_enter:
+            logger.error(f"debug-data-schema: Error entering context manager: {e_cm_enter}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Failed to obtain DB session from context manager.")
+    else:
+        logger.info("debug-data-schema: db_context_manager does not appear to be a context manager, using directly.")
+        actual_db_session = db_context_manager # Assume it's already a session
+
+    if not actual_db_session:
+        logger.error("debug-data-schema: Failed to obtain a valid database session.")
+        raise HTTPException(status_code=500, detail="Failed to obtain database session.")
     
+    logger.info(f"debug-data-schema: actual_db_session type after handling: {type(actual_db_session)}")
+
     try:
-        # Get sample data for diagnosis using ORM functions
         train_data_sample = None
         train_columns = []
-        
         smmh_data_sample = None
         smmh_columns = []
         
-        # Try to get sample from train_cleaned using ORM
         try:
-            # Use the ORM function, ensure db session is passed
-            train_data_list = data_processors.get_train_cleaned_data_orm(db, limit=1) 
-            logger.info(f"debug-data-schema: train_data_list from ORM: {train_data_list}") # DETAILED LOGGING
+            train_data_list = data_processors.get_train_cleaned_data_orm(actual_db_session, limit=1)
+            logger.info(f"debug-data-schema: train_data_list from ORM: {train_data_list}")
             if train_data_list and len(train_data_list) > 0:
                 train_data_sample = train_data_list[0]
                 logger.info(f"debug-data-schema: train_data_sample type: {type(train_data_sample)}, value: {train_data_sample}") # DETAILED LOGGING
@@ -307,11 +322,9 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
         except Exception as e:
             logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
-        # Try to get sample from smmh_cleaned using ORM
         try:
-            # Use the ORM function, ensure db session is passed
-            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(db, limit=1)
-            logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}") # DETAILED LOGGING
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1)
+            logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
                 logger.info(f"debug-data-schema: smmh_data_sample type: {type(smmh_data_sample)}, value: {smmh_data_sample}") # DETAILED LOGGING
@@ -329,7 +342,7 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
         chart_shapes = {}
         
         try:
-            screen_time_emotions_data = data_processors.process_screen_time_emotions(db)
+            screen_time_emotions_data = data_processors.process_screen_time_emotions(actual_db_session)
             chart_shapes["screen_time_emotions"] = {
                 "labels_count": len(screen_time_emotions_data.get("labels", [])),
                 "datasets_count": len(screen_time_emotions_data.get("datasets", [])),
@@ -339,7 +352,7 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
             chart_shapes["screen_time_emotions"] = {"error": str(e)}
             
         try:
-            sleep_data = data_processors.process_sleep_data(db)
+            sleep_data = data_processors.process_sleep_data(actual_db_session)
             chart_shapes["sleep_quality"] = {
                 "labels_count": len(sleep_data.get("labels", [])),
                 "datasets_count": len(sleep_data.get("datasets", [])),
@@ -349,7 +362,7 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
             chart_shapes["sleep_quality"] = {"error": str(e)}
             
         try:
-            engagement_data = data_processors.process_engagement_data(db)
+            engagement_data = data_processors.process_engagement_data(actual_db_session)
             chart_shapes["engagement"] = {
                 "labels_count": len(engagement_data.get("labels", [])),
                 "datasets_count": len(engagement_data.get("datasets", [])),
@@ -359,7 +372,7 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
             chart_shapes["engagement"] = {"error": str(e)}
             
         try:
-            anxiety_data = data_processors.process_anxiety_data(db)
+            anxiety_data = data_processors.process_anxiety_data(actual_db_session)
             chart_shapes["anxiety"] = {
                 "labels_count": len(anxiety_data.get("labels", [])),
                 "datasets_count": len(anxiety_data.get("datasets", [])),
@@ -375,9 +388,10 @@ async def debug_data_schema(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "train_cleaned_sample": train_data_sample,
             "smmh_cleaned_sample": smmh_data_sample
         }
-    except Exception as e:
-        logger.error(f"Error in debug endpoint: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error diagnosing data schema: {str(e)}"
-        ) 
+    finally:
+        if hasattr(db_context_manager, '__exit__') and actual_db_session is not None: # Check if we entered it
+            logger.info("debug-data-schema: Exiting context manager manually.")
+            try:
+                db_context_manager.__exit__(None, None, None) # Manually exit
+            except Exception as e_cm_exit:
+                logger.error(f"debug-data-schema: Error exiting context manager: {e_cm_exit}", exc_info=True) 
