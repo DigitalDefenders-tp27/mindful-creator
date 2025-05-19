@@ -312,13 +312,17 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             "user_id", "age", "gender", "platform", "daily_usage_time", "posts_per_day",
             "likes_received_per_day", "comments_received_per_day", "messages_sent_per_day", "dominant_emotion"
         ]
+        # Updated list of all SmmhCleaned ORM attribute names based on the new schema
         smmh_cleaned_all_orm_attrs = [
-            "smmh_id", "timestamp_val", "age", "gender", "relationship_status", "occupation_status",
-            "affiliated_organizations", "use_social_media", "social_media_platforms", "avg_time_on_social_media",
-            "use_social_media_unintentionally", "distracted_by_social_media", "restless_without_social_media",
-            "easily_distracted_scale", "bothered_by_worries_scale", "difficulty_concentrating_scale",
-            "compare_to_others_scale", "feel_about_comparisons", "seek_validation_scale",
-            "feel_depressed_scale", "interest_fluctuation_scale", "sleep_issues_scale", "usage_time_group"
+            "smmh_id", "timestamp_val", 
+            "q1_age", "q2_gender", "q3_relationship_status", "q4_occupation_status",
+            "q5_org_affiliation", "q6_use_social_media", "q7_platforms", "q8_avg_sm_time",
+            "q9_unintentional_use", "q10_distracted_by_sm", "q11_restless_no_sm",
+            "q12_easily_distracted_scale", "q13_bothered_by_worries_scale", 
+            "q14_difficulty_concentrating_scale", "q15_compare_to_others_scale", 
+            "q16_feel_about_comparisons", "q17_seek_validation_scale",
+            "q18_feel_depressed_scale", "q19_interest_fluctuation_scale", 
+            "q20_sleep_issues_scale", "usage_time_group"
         ]
         
         try:
@@ -338,8 +342,17 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
         try:
-            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_cleaned_all_orm_attrs)
-            logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}")
+            # Modify the list of columns to load for smmh_cleaned for this debug endpoint
+            # Updated debug attributes to use new ORM attribute names
+            smmh_cleaned_debug_attrs = [
+                "smmh_id", 
+                "q1_age", 
+                "q2_gender"
+            ]
+            logger.info(f"debug-data-schema: Requesting limited columns for SMMH: {smmh_cleaned_debug_attrs}")
+
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_cleaned_debug_attrs)
+            logger.info(f"debug-data-schema: smmh_data_list from ORM (with limited columns): {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
                 logger.info(f"debug-data-schema: smmh_data_sample type: {type(smmh_data_sample)}, value: {smmh_data_sample}") # DETAILED LOGGING

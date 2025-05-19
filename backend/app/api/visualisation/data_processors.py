@@ -164,56 +164,32 @@ def process_sleep_data(db_session) -> Dict[str, Any]:
     log_connection_details("process_sleep_data", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the smmh_cleaned table using the ORM function
-        data = get_smmh_cleaned_data_orm(db_session)
-        
-        # Log the first few rows to debug column names
-        if data and len(data) > 0:
-            logger.info(f"Sample row from smmh_cleaned: {data[0]}")
-            logger.info(f"Column names: {list(data[0].keys())}")
-        else:
-            logger.warning("No data returned from smmh_cleaned table")
-            
-        # Determine the correct column names
-        usage_group_column = None
-        sleep_score_column = None
-        
-        # Common variations of the usage time group column
-        usage_group_candidates = [
-            'Usage_Time_Group', 
-            'average_time_spent', 
-            'usage_time_group'
+        # Specify only the columns needed from SmmhCleaned model by their attribute names
+        columns_needed = [
+            "usage_time_group", # ORM attribute name (maps to DB "Usage_Time_Group")
+            "q20_sleep_issues_scale"  # New ORM attribute name for sleep issues
         ]
+        data = get_smmh_cleaned_data_orm(db_session, columns_to_load=columns_needed)
         
-        # Common variations of the sleep issue score column
-        sleep_score_candidates = [
-            '20. On a scale of 1 to 5, how often do you face issues regardin',
-            'sleep_issue_score',
-            'sleep_issues',
-            'sleep_problems_score'
-        ]
-        
-        # Find correct column names
-        if data and len(data) > 0:
-            sample_row = data[0]
+        if not data or len(data) == 0:
+            logger.warning("No data returned from SmmhCleaned for sleep data processing after requesting specific columns.")
+            raise ValueError("No data found for sleep quality visualization (columns might be missing or table empty).")
+
+        # Log the first few rows to debug column names actually received
+        logger.info(f"Sample row from smmh_cleaned (sleep_data): {data[0] if data else 'N/A'}")
+        logger.info(f"Column names received (sleep_data): {list(data[0].keys()) if data else 'N/A'}")
             
-            # Check for usage group column
-            for col in usage_group_candidates:
-                if col in sample_row:
-                    usage_group_column = col
-                    break
-                    
-            # Check for sleep score column
-            for col in sleep_score_candidates:
-                if col in sample_row:
-                    sleep_score_column = col
-                    break
-                    
-            logger.info(f"Using columns: usage_group={usage_group_column}, sleep_score={sleep_score_column}")
+        usage_group_column_orm_attr = "usage_time_group" 
+        sleep_score_column_orm_attr = "q20_sleep_issues_scale"
         
-        if not usage_group_column or not sleep_score_column:
-            logger.error("Required columns not found in smmh_cleaned data")
-            raise ValueError("Required columns missing in database")
+        sample_row_keys = list(data[0].keys()) if data else []
+        if usage_group_column_orm_attr not in sample_row_keys:
+            logger.warning(f"ORM attribute '{usage_group_column_orm_attr}' not found in fetched smmh_cleaned data for sleep. Available: {sample_row_keys}")
+        if sleep_score_column_orm_attr not in sample_row_keys:
+            logger.warning(f"ORM attribute '{sleep_score_column_orm_attr}' not found in fetched smmh_cleaned data for sleep. Available: {sample_row_keys}")
+
+        usage_group_column = usage_group_column_orm_attr
+        sleep_score_column = sleep_score_column_orm_attr
         
         # Process the data in Python to create the time groups and sleep scores
         time_groups = {}
@@ -454,80 +430,38 @@ def process_anxiety_data(db_session) -> Dict[str, Any]:
     log_connection_details("process_anxiety_data", "started", {"session_id": id(db_session)})
     
     try:
-        # Get all data from the smmh_cleaned table using the ORM function
-        data = get_smmh_cleaned_data_orm(db_session)
-        
-        # Log the first few rows to debug column names
-        if data and len(data) > 0:
-            logger.info(f"Sample row from smmh_cleaned for anxiety: {data[0]}")
-            logger.info(f"Column names for anxiety: {list(data[0].keys())}")
-        else:
-            logger.warning("No data returned from smmh_cleaned table for anxiety")
-        
-        # Determine the correct column names
-        usage_group_column = None
-        distraction_column = None
-        worry_column = None
-        concentration_column = None
-        
-        # Common variations of column names
-        usage_group_candidates = [
-            'Usage_Time_Group', 
-            'average_time_spent', 
-            'usage_time_group'
+        # Specify only the columns needed from SmmhCleaned model by their attribute names
+        columns_needed = [
+            "usage_time_group",        # ORM attribute name
+            "q12_easily_distracted_scale", 
+            "q13_bothered_by_worries_scale",
+            "q14_difficulty_concentrating_scale" 
         ]
+        data = get_smmh_cleaned_data_orm(db_session, columns_to_load=columns_needed)
+
+        if not data or len(data) == 0:
+            logger.warning("No data returned from SmmhCleaned for anxiety data processing after requesting specific columns.")
+            raise ValueError("No data found for anxiety visualization (columns might be missing or table empty).")
+
+        logger.info(f"Sample row from smmh_cleaned (anxiety_data): {data[0] if data else 'N/A'}")
+        logger.info(f"Column names received (anxiety_data): {list(data[0].keys()) if data else 'N/A'}")
+
+        usage_group_column_orm_attr = "usage_time_group"
+        distraction_column_orm_attr = "q12_easily_distracted_scale"
+        worry_column_orm_attr = "q13_bothered_by_worries_scale"
+        concentration_column_orm_attr = "q14_difficulty_concentrating_scale"
+
+        sample_row_keys = list(data[0].keys()) if data else []
+        if usage_group_column_orm_attr not in sample_row_keys or \
+           distraction_column_orm_attr not in sample_row_keys or \
+           worry_column_orm_attr not in sample_row_keys or \
+           concentration_column_orm_attr not in sample_row_keys:
+            logger.warning(f"One or more ORM attributes not found in fetched smmh_cleaned data for anxiety. Available: {sample_row_keys}")
         
-        distraction_candidates = [
-            '12. On a scale of 1 to 5, how easily distracted are you?',
-            'distraction_score',
-            'distractibility_score'
-        ]
-        
-        worry_candidates = [
-            '13. On a scale of 1 to 5, how much are you bothered by worries?',
-            'worry_score',
-            'worries_score'
-        ]
-        
-        concentration_candidates = [
-            '14. Do you find it difficult to concentrate on things?',
-            'concentration_difficulty_score',
-            'concentration_score'
-        ]
-        
-        # Find correct column names
-        if data and len(data) > 0:
-            sample_row = data[0]
-            
-            # Check for usage group column
-            for col in usage_group_candidates:
-                if col in sample_row:
-                    usage_group_column = col
-                    break
-            
-            # Check for distraction column
-            for col in distraction_candidates:
-                if col in sample_row:
-                    distraction_column = col
-                    break
-                    
-            # Check for worry column
-            for col in worry_candidates:
-                if col in sample_row:
-                    worry_column = col
-                    break
-                    
-            # Check for concentration column
-            for col in concentration_candidates:
-                if col in sample_row:
-                    concentration_column = col
-                    break
-            
-            logger.info(f"Using columns: usage={usage_group_column}, distraction={distraction_column}, worry={worry_column}, concentration={concentration_column}")
-            
-        if not usage_group_column or not distraction_column or not worry_column or not concentration_column:
-            logger.error("Required columns not found in smmh_cleaned data for anxiety")
-            raise ValueError("Required columns missing in database for anxiety metrics")
+        usage_group_column = usage_group_column_orm_attr
+        distraction_column = distraction_column_orm_attr
+        worry_column = worry_column_orm_attr
+        concentration_column = concentration_column_orm_attr
         
         # Process the data in Python to calculate anxiety levels
         time_groups = {}

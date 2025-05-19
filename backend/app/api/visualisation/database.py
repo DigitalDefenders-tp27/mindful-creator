@@ -110,29 +110,30 @@ class SmmhCleaned(Base):
     # Adding a surrogate primary key as one isn't obvious from the schema image.
     # This is generally good practice for ORM models if a natural key isn't present or suitable.
     smmh_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    timestamp_val = Column("Timestamp", Text)
-    age = Column("1. What is your age?", Float) # Column name from image uses "1. What is your age?"
-    gender = Column("2. Gender", Text)
-    relationship_status = Column("3. Relationship Status", Text)
-    occupation_status = Column("4. Occupation Status", Text)
-    affiliated_organizations = Column("5. What type of organizations are you affiliated with?", Text)
-    use_social_media = Column("6. Do you use social media?", Text)
-    social_media_platforms = Column("7. What social media platforms do you commonly use?", Text)
-    avg_time_on_social_media = Column("8. What is the average time you spend on social media every day", Text)
-    # For columns 9-15 and 17-20, type is Integer as per 'int8' in image
-    use_social_media_unintentionally = Column("9. How often do you find yourself using Social media without a ", Integer)
-    distracted_by_social_media = Column("10. How often do you get distracted by Social media when you are busy doing something?", Integer)
-    restless_without_social_media = Column("11. Do you feel restless if you haven't used Social media in a while?", Integer)
-    easily_distracted_scale = Column("12. On a scale of 1 to 5, how easily distracted are you?", Integer)
-    bothered_by_worries_scale = Column("13. On a scale of 1 to 5, how much are you bothered by worries?", Integer)
-    difficulty_concentrating_scale = Column("14. Do you find it difficult to concentrate on things?", Integer)
-    compare_to_others_scale = Column("15. On a scale of 1-5, how often do you compare yourself to other people on social media?", Integer)
-    feel_about_comparisons = Column("16. Following the previous question, how do you feel about these comparisons, generally?", Integer)
-    seek_validation_scale = Column("17. How often do you look to seek validation from features of social media?", Integer)
-    feel_depressed_scale = Column("18. How often do you feel depressed or down?", Integer)
-    interest_fluctuation_scale = Column("19. On a scale of 1 to 5, how frequently does your interest in daily activities fluctuate?", Integer)
-    sleep_issues_scale = Column("20. On a scale of 1 to 5, how often do you face issues regarding sleep?", Integer)
-    usage_time_group = Column("Usage_Time_Group", Text)
+    timestamp_val = Column("Timestamp", Text) # Kept as per image, maps to DB "Timestamp"
+    
+    q1_age = Column(Float)      # DB: q1_age (float8)
+    q2_gender = Column(Text)    # DB: q2_gender (text)
+    q3_relationship_status = Column(Text) # DB: q3_relationship_status (text)
+    q4_occupation_status = Column(Text) # DB: q4_occupation_status (text)
+    q5_org_affiliation = Column(Text)   # DB: q5_org_affiliation (text)
+    q6_use_social_media = Column(Text)  # DB: q6_use_social_media (text)
+    q7_platforms = Column(Text)         # DB: q7_platforms (text)
+    q8_avg_sm_time = Column(Text)       # DB: q8_avg_sm_time (text)
+    q9_unintentional_use = Column(Integer) # DB: q9_unintentional_use (int8)
+    q10_distracted_by_sm = Column(Integer) # DB: q10_distracted_by_sm (int8)
+    q11_restless_no_sm = Column(Integer)   # DB: q11_restless_no_sm (int8)
+    q12_easily_distracted_scale = Column(Integer) # DB: q12_easily_distracted_scale (int8)
+    q13_bothered_by_worries_scale = Column(Integer) # DB: q13_bothered_by_worries_scale (int8)
+    q14_difficulty_concentrating_scale = Column(Integer) # DB: q14_difficulty_concentrating_scale (int8)
+    q15_compare_to_others_scale = Column(Integer) # DB: q15_compare_to_others_scale (int8)
+    q16_feel_about_comparisons = Column(Integer) # DB: q16_feel_about_comparisons (int8)
+    q17_seek_validation_scale = Column(Integer) # DB: q17_seek_validation_scale (int8)
+    q18_feel_depressed_scale = Column(Integer) # DB: q18_feel_depressed_scale (int8)
+    q19_interest_fluctuation_scale = Column(Integer) # DB: q19_interest_fluctuation_scale (int8)
+    q20_sleep_issues_scale = Column(Integer) # DB: q20_sleep_issues_scale (int8)
+    
+    usage_time_group = Column("Usage_Time_Group", Text) # Kept as per image, maps to DB "Usage_Time_Group"
 
 
 def try_initialize_database():
