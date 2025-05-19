@@ -167,6 +167,8 @@ async def load_nlp_model():
 # First register the API router which contains the health check endpoint
 logger.info("Registering API router (contains health check endpoint)")
 app.include_router(youtube_router, prefix="/api")
+app.include_router(visualisation_router, prefix="")
+logger.info("Explicitly included visualisation_router")
 
 # Root endpoint for basic health check
 @app.get("/")

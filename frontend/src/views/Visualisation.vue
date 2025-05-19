@@ -3,6 +3,19 @@
     <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
     <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
     
+    <div class="debug-panel" v-if="showDebug">
+      <h3>Debug Panel</h3>
+      <div class="debug-actions">
+        <button @click="testApiConnection">Test API Connection</button>
+        <button @click="testDbConnection">Test Database Connection</button>
+        <button @click="testComprehensiveConnection">Comprehensive Test</button>
+      </div>
+      <div class="debug-results" v-if="debugResults">
+        <h4>Results:</h4>
+        <pre>{{ JSON.stringify(debugResults, null, 2) }}</pre>
+      </div>
+    </div>
+    
     <div class="tabs">
       <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
         @click="switchTab(index)">
@@ -92,19 +105,98 @@ const tabs = [
 // Chart instance reference
 let chartInstance = null
 
+// Debug variables
+const showDebug = ref(true) // Set to false in production
+const debugResults = ref(null)
+
 // API configuration - update with your backend URL
-const BACKEND_URL = 'https://gleaming-celebration-production-66cb.up.railway.app'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+console.log('Using backend URL:', BACKEND_URL)
 
 // Loading state
 const isLoading = ref(true)
 const error = ref(null)
 
+// Testing functions
+const testApiConnection = async () => {
+  try {
+    debugResults.value = { status: "Testing API connection..." }
+    const response = await axios.get(`${BACKEND_URL}/api/visualisation/test`)
+    debugResults.value = response.data
+    console.log('API test result:', response.data)
+  } catch (err) {
+    console.error('API test failed:', err)
+    debugResults.value = { 
+      status: "error", 
+      message: `Failed to connect to API: ${err.message}`,
+      error: err.toString(),
+      config: err.config ? {
+        url: err.config.url,
+        method: err.config.method,
+        headers: err.config.headers
+      } : 'No config available'
+    }
+  }
+}
+
+const testDbConnection = async () => {
+  try {
+    debugResults.value = { status: "Testing database connection..." }
+    const response = await axios.get(`${BACKEND_URL}/api/visualisation/db-test`)
+    debugResults.value = response.data
+    console.log('Database test result:', response.data)
+  } catch (err) {
+    console.error('Database test failed:', err)
+    debugResults.value = { 
+      status: "error", 
+      message: `Failed to test database: ${err.message}`,
+      error: err.toString() 
+    }
+  }
+}
+
+const testComprehensiveConnection = async () => {
+  try {
+    debugResults.value = { status: "Running comprehensive connection test..." }
+    console.log(`Attempting to connect to ${BACKEND_URL}/api/visualisation/connection-test`)
+    const response = await axios.get(`${BACKEND_URL}/api/visualisation/connection-test`, {
+      timeout: 15000, // Longer timeout for this comprehensive test
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    debugResults.value = response.data
+    console.log('Comprehensive test result:', response.data)
+  } catch (err) {
+    console.error('Comprehensive test failed:', err)
+    debugResults.value = { 
+      status: "error", 
+      message: `Failed to run comprehensive test: ${err.message}`,
+      error: err.toString(),
+      config: err.config ? {
+        url: err.config.url,
+        method: err.config.method,
+        headers: err.config.headers,
+        timeout: err.config.timeout
+      } : 'No config available'
+    }
+  }
+}
+
 // Function to fetch data from backend API
 const fetchChartData = async (endpoint) => {
   try {
+    console.log(`Attempting to fetch data from ${BACKEND_URL}/api/visualisation/${endpoint}`)
     isLoading.value = true
     error.value = null
-    const response = await axios.get(`${BACKEND_URL}/api/visualisation/${endpoint}`)
+    const response = await axios.get(`${BACKEND_URL}/api/visualisation/${endpoint}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    console.log(`Data received from ${endpoint}:`, response.data)
     return response.data
   } catch (err) {
     console.error(`Error fetching data from ${endpoint}:`, err)
@@ -424,5 +516,46 @@ onMounted(async () => {
 
 .error-message button:hover {
   background-color: #c64482;
+}
+
+.debug-panel {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.debug-actions button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.debug-actions button:hover {
+  background-color: #0b7dda;
+}
+
+.debug-results {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  overflow: auto;
+  max-height: 300px;
+}
+
+.debug-results pre {
+  margin: 0;
+  white-space: pre-wrap;
 }
 </style>

@@ -336,4 +336,48 @@ def process_anxiety_data() -> Dict[str, Any]:
                 "fill": False,
                 "tension": 0.3
             }]
+        }
+
+def test_database_connection() -> Dict[str, Any]:
+    """
+    Test function to verify database connectivity
+    
+    Returns:
+        Dict with connection status and available tables
+    """
+    try:
+        # Test query to list all tables
+        query = """
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        """
+        
+        tables = execute_query(query)
+        
+        # Test query to check if our specific tables exist
+        required_tables = ['train_cleaned', 'smmh_cleaned']
+        table_status = {}
+        
+        for table in required_tables:
+            check_query = f"""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = '{table}'
+            );
+            """
+            result = execute_query(check_query)
+            table_status[table] = result[0]['exists'] if result else False
+        
+        return {
+            "connection": "successful",
+            "available_tables": [t['table_name'] for t in tables],
+            "required_tables_status": table_status
+        }
+    except Exception as e:
+        logger.error(f"Database connection test failed: {e}")
+        return {
+            "connection": "failed",
+            "error": str(e)
         } 
