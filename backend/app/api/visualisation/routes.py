@@ -306,8 +306,23 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
         smmh_data_sample = None
         smmh_columns = []
         
+        # Define all ORM attribute names for fetching full sample for debug
+        # These should match the attribute names in your ORM models (TrainCleaned, SmmhCleaned)
+        train_cleaned_all_orm_attrs = [
+            "user_id", "age", "gender", "platform", "daily_usage_time", "posts_per_day",
+            "likes_received_per_day", "comments_received_per_day", "messages_sent_per_day", "dominant_emotion"
+        ]
+        smmh_cleaned_all_orm_attrs = [
+            "smmh_id", "timestamp_val", "age", "gender", "relationship_status", "occupation_status",
+            "affiliated_organizations", "use_social_media", "social_media_platforms", "avg_time_on_social_media",
+            "use_social_media_unintentionally", "distracted_by_social_media", "restless_without_social_media",
+            "easily_distracted_scale", "bothered_by_worries_scale", "difficulty_concentrating_scale",
+            "compare_to_others_scale", "feel_about_comparisons", "seek_validation_scale",
+            "feel_depressed_scale", "interest_fluctuation_scale", "sleep_issues_scale", "usage_time_group"
+        ]
+        
         try:
-            train_data_list = data_processors.get_train_cleaned_data_orm(actual_db_session, limit=1)
+            train_data_list = data_processors.get_train_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=train_cleaned_all_orm_attrs)
             logger.info(f"debug-data-schema: train_data_list from ORM: {train_data_list}")
             if train_data_list and len(train_data_list) > 0:
                 train_data_sample = train_data_list[0]
@@ -323,7 +338,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
         try:
-            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1)
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_cleaned_all_orm_attrs)
             logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]

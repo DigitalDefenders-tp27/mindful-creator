@@ -346,27 +346,33 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
         limit: Integer limit for the number of results.
         columns_to_load: Optional list of model attribute names to load (for efficiency).
     """
-    logger.info(f"Visualisation DB - get_train_cleaned_data_orm received db_session of type: {type(db_session)}") # LOG TYPE
+    logger.info(f"Visualisation DB - get_train_cleaned_data_orm received db_session of type: {type(db_session)}")
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_train_cleaned_data_orm.")
         return []
-    if not TrainCleaned: # Check if the model class itself is defined
+    if not TrainCleaned:
         logger.error("Visualisation DB - TrainCleaned ORM model is not defined.")
         return []
 
-    logger.info(f"Visualisation DB - Querying TrainCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns: {columns_to_load}")
+    logger.info(f"Visualisation DB - Querying TrainCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns to load: {columns_to_load}")
     try:
-        query = db_session.query(TrainCleaned)
+        query_select_entities = []
+        actual_column_names_for_zip = []
 
         if columns_to_load:
-            # Ensure columns_to_load are valid attributes of the TrainCleaned model
-            valid_cols_to_load = [getattr(TrainCleaned, col_name) for col_name in columns_to_load if hasattr(TrainCleaned, col_name)]
-            if valid_cols_to_load:
-                query = db_session.query(*valid_cols_to_load)
+            for col_name_str in columns_to_load:
+                if hasattr(TrainCleaned, col_name_str):
+                    query_select_entities.append(getattr(TrainCleaned, col_name_str))
+                    actual_column_names_for_zip.append(col_name_str) # Use the attribute name for the dict key
+                else:
+                    logger.warning(f"Visualisation DB - Attribute {col_name_str} not found in TrainCleaned model, skipping for load_only.")
+            if not query_select_entities: # If all requested columns were invalid
+                logger.warning("Visualisation DB - No valid columns in columns_to_load for TrainCleaned, loading all attributes.")
+                query = db_session.query(TrainCleaned) # Fallback to full object query
             else:
-                logger.warning("Visualisation DB - No valid columns specified in columns_to_load for TrainCleaned.")
-                # Fallback to querying all columns or handle as error
-                # query = db_session.query(TrainCleaned) # Already default
+                query = db_session.query(*query_select_entities)
+        else:
+            query = db_session.query(TrainCleaned) # Default: query full object
 
         if filters:
             for attribute_name, value in filters.items():
@@ -384,11 +390,13 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
             
         results = query.all()
         
-        # Convert to list of dicts. If specific columns were queried, results might be tuples.
-        if columns_to_load and valid_cols_to_load:
-            data = [dict(zip(columns_to_load, row)) for row in results]
-        else: # Full model objects were queried
-            data = [{column.name: getattr(row, column.name) for column in row.__table__.columns} for row in results]
+        data = []
+        if query_select_entities: # If specific columns were queried (and at least one was valid)
+            # `results` will be a list of Row objects (tuple-like)
+            for row_tuple in results:
+                data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
+        else: # Full model objects were queried (or columns_to_load was empty/all invalid)
+            data = [{column.name: getattr(row_obj, column.name) for column in row_obj.__table__.columns} for row_obj in results]
 
         logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows.")
         return data
@@ -407,28 +415,37 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
         limit: Integer limit for the number of results.
         columns_to_load: Optional list of model attribute names to load.
     """
-    logger.info(f"Visualisation DB - get_smmh_cleaned_data_orm received db_session of type: {type(db_session)}") # LOG TYPE
+    logger.info(f"Visualisation DB - get_smmh_cleaned_data_orm received db_session of type: {type(db_session)}")
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_smmh_cleaned_data_orm.")
         return []
-    if not SmmhCleaned: # Check if the model class itself is defined
+    if not SmmhCleaned:
         logger.error("Visualisation DB - SmmhCleaned ORM model is not defined.")
         return []
 
-    logger.info(f"Visualisation DB - Querying SmmhCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns: {columns_to_load}")
+    logger.info(f"Visualisation DB - Querying SmmhCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns to load: {columns_to_load}")
     try:
-        query = db_session.query(SmmhCleaned)
+        query_select_entities = []
+        actual_column_names_for_zip = []
 
         if columns_to_load:
-            valid_cols_to_load = [getattr(SmmhCleaned, col_name) for col_name in columns_to_load if hasattr(SmmhCleaned, col_name)]
-            if valid_cols_to_load:
-                query = db_session.query(*valid_cols_to_load)
+            for col_name_str in columns_to_load:
+                if hasattr(SmmhCleaned, col_name_str):
+                    query_select_entities.append(getattr(SmmhCleaned, col_name_str))
+                    actual_column_names_for_zip.append(col_name_str) # Use the attribute name
+                else:
+                    logger.warning(f"Visualisation DB - Attribute {col_name_str} not found in SmmhCleaned model, skipping for load_only.")
+            if not query_select_entities: # If all requested columns were invalid
+                logger.warning("Visualisation DB - No valid columns in columns_to_load for SmmhCleaned, loading all attributes.")
+                query = db_session.query(SmmhCleaned) # Fallback
             else:
-                logger.warning("Visualisation DB - No valid columns specified in columns_to_load for SmmhCleaned.")
+                query = db_session.query(*query_select_entities)
+        else:
+            query = db_session.query(SmmhCleaned) # Default: query full object
 
         if filters:
             for attribute_name, value in filters.items():
-                if hasattr(SmmhCleaned, attribute_name): # Ensure filter is on a model attribute
+                if hasattr(SmmhCleaned, attribute_name):
                     column_attr = getattr(SmmhCleaned, attribute_name)
                     if isinstance(value, list):
                         query = query.filter(column_attr.in_(value))
@@ -442,10 +459,12 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
 
         results = query.all()
 
-        if columns_to_load and valid_cols_to_load:
-            data = [dict(zip(columns_to_load, row)) for row in results]
-        else:
-            data = [{column.name: getattr(row, column.name) for column in row.__table__.columns} for row in results]
+        data = []
+        if query_select_entities: # If specific columns were queried
+            for row_tuple in results:
+                data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
+        else: # Full model objects were queried
+            data = [{column.name: getattr(row_obj, column.name) for column in row_obj.__table__.columns} for row_obj in results]
             
         logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
         return data
