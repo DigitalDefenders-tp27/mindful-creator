@@ -130,42 +130,52 @@ def try_initialize_database():
 
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         logger.info("Visualisation DB - SessionLocal created.")
+        sys.stdout.flush() # Ensure this log gets out
         
-        # Reflect the database structure only if not using fallback SQLite (unless explicitly needed)
-        if "sqlite" not in db_url_to_use or db_url_to_use != FALLBACK_DB_URL:
-            logger.info("Visualisation DB - Attempting to reflect database structure...")
-            metadata = MetaData()
-            try:
-                metadata.reflect(bind=engine, views=True) # Include views if any
-                logger.info(f"Visualisation DB - Reflection complete. Tables found: {list(metadata.tables.keys())}")
+        # Temporarily disable all reflection and Table object creation to isolate crash
+        logger.info("Visualisation DB - SKIPPING all metadata reflection and Table object creation for diagnostic purposes.")
+        sys.stdout.flush()
 
-                if 'train_cleaned' in metadata.tables:
-                    TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
-                    logger.info("Visualisation DB - TrainCleaned Table object created.")
-                else:
-                    logger.warning("Visualisation DB - 'train_cleaned' table not found in reflected metadata.")
-                
-                if 'smmh_cleaned' in metadata.tables:
-                    SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
-                    logger.info("Visualisation DB - SmmhCleaned Table object created.")
-                    sys.stdout.flush() # Ensure this critical log gets out
-                else:
-                    logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
-                    sys.stdout.flush()
+        # if "sqlite" not in db_url_to_use or db_url_to_use != FALLBACK_DB_URL:
+        #     logger.info("Visualisation DB - Attempting to reflect database structure...")
+        #     sys.stdout.flush()
+        #     metadata = MetaData()
+        #     try:
+        #         metadata.reflect(bind=engine, views=True) # Include views if any
+        #         logger.info(f"Visualisation DB - Reflection complete. Tables found: {list(metadata.tables.keys())}")
+        #         sys.stdout.flush()
+        #
+        #         if 'train_cleaned' in metadata.tables:
+        #             TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
+        #             logger.info("Visualisation DB - TrainCleaned Table object created.")
+        #             sys.stdout.flush() 
+        #         else:
+        #             logger.warning("Visualisation DB - 'train_cleaned' table not found in reflected metadata.")
+        #             sys.stdout.flush()
+        #         
+        #         if 'smmh_cleaned' in metadata.tables:
+        #             SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
+        #             logger.info("Visualisation DB - SmmhCleaned Table object created.")
+        #             sys.stdout.flush() 
+        #         else:
+        #             logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
+        #             sys.stdout.flush()
+        #
+        #         logger.info("Visualisation DB - Skipping Automap ORM model generation for now.")
+        #         sys.stdout.flush()
+        #
+        #     except Exception as reflect_error:
+        #         logger.error(f"Visualisation DB - Error during Table object creation or reflection: {reflect_error}", exc_info=True) # Modified error message
+        #         sys.stdout.flush() 
+        #         if not ALLOW_DB_FAILURE:
+        #             logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
+        #             raise
+        # else:
+        #     logger.info("Visualisation DB - Using SQLite fallback, skipping detailed reflection for now.")
+        #     sys.stdout.flush()
 
-                logger.info("Visualisation DB - Skipping Automap ORM model generation for now.")
-
-            except Exception as reflect_error:
-                logger.error(f"Visualisation DB - Error during Table object creation or reflection: {reflect_error}", exc_info=True)
-                sys.stdout.flush() # Ensure error log gets out
-                if not ALLOW_DB_FAILURE:
-                    logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
-                    raise
-                logger.warning("Visualisation DB - Continuing despite database reflection failure (ALLOW_DB_FAILURE=true). ORM features may be unavailable.")
-        else:
-            logger.info("Visualisation DB - Using SQLite fallback, skipping detailed reflection for now.")
-
-        logger.info("Visualisation DB - Database initialization attempt complete.")
+        logger.info("Visualisation DB - Database initialization attempt complete (minimal setup).")
+        sys.stdout.flush()
         return True # Indicate success
 
     except Exception as e:
