@@ -14,31 +14,36 @@ from contextlib import contextmanager
 
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("visualisation.database")
+# Configure logging - Use a unique name for this logger
+logger = logging.getLogger("mindful-creator.visualisation.database")
+# Ensure handlers are set up if not configured globally (e.g. by main.py)
+if not logger.handlers:
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    logger.info("Configured basicConfig for visualisation.database logger.")
 
 # Get DATABASE_URL from environment variables
-DATABASE_URL = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres-production-7575.up.railway.app:5432/railway")
+DATABASE_URL = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
+FALLBACK_DB_URL = "sqlite:///:memory:" # In-memory SQLite as a last resort
 
 # Log which environment variable was used
 if os.getenv("DATABASE_PUBLIC_URL"):
-    logger.info("Using DATABASE_PUBLIC_URL environment variable")
+    logger.info("Using DATABASE_PUBLIC_URL environment variable for visualisation database.")
 elif os.getenv("DATABASE_URL"):
-    logger.info("Using DATABASE_URL environment variable")
+    logger.info("Using DATABASE_URL environment variable for visualisation database.")
 else:
-    logger.warning("No database URL environment variable found, using default")
+    logger.warning("No primary database URL (DATABASE_PUBLIC_URL or DATABASE_URL) found for visualisation. Will attempt fallback if ALLOW_DB_FAILURE is true.")
 
 # Check for environment variables that affect database handling
 ALLOW_DB_FAILURE = os.getenv("ALLOW_DB_FAILURE", "false").lower() == "true"
 DATABASE_CONNECT_TIMEOUT = int(os.getenv("DATABASE_CONNECT_TIMEOUT", "30"))
 
-logger.info(f"ALLOW_DB_FAILURE: {ALLOW_DB_FAILURE}")
-logger.info(f"DATABASE_CONNECT_TIMEOUT: {DATABASE_CONNECT_TIMEOUT}")
+logger.info(f"Visualisation DB - ALLOW_DB_FAILURE: {ALLOW_DB_FAILURE}")
+logger.info(f"Visualisation DB - DATABASE_CONNECT_TIMEOUT: {DATABASE_CONNECT_TIMEOUT}")
 
 # Handle Railway PostgreSQL URLs
-if "postgres://" in DATABASE_URL:
+if DATABASE_URL and "postgres://" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
+    logger.info("Visualisation DB - Converted postgres:// to postgresql://")
 
 # Check if this is a Railway PostgreSQL URL
 is_railway_db = "railway.app" in DATABASE_URL
@@ -49,8 +54,8 @@ if is_railway_db:
 
 # Mask the password for logging
 def get_masked_url(url):
-    if '@' not in url:
-        return "unknown"
+    if not url or '@' not in url:
+        return str(url) # Return as is if None or no auth part
     parts = url.split('@')
     auth_parts = parts[0].split('://')
     if len(auth_parts) < 2:
@@ -60,18 +65,17 @@ def get_masked_url(url):
     user = auth[0] if len(auth) > 0 else "unknown"
     return f"{protocol}://{user}:****@{parts[1]}"
 
-logger.info(f"Connecting to database at: {get_masked_url(DATABASE_URL)}")
+logger.info(f"Visualisation DB - Effective DATABASE_URL: {get_masked_url(DATABASE_URL)}")
 
 # Timeout wrapper for database operations
 class TimeoutError(Exception):
     pass
 
 def timeout_handler():
-    raise TimeoutError("Database operation timed out")
+    raise TimeoutError("Database operation timed out in visualisation.database")
 
 @contextmanager
 def time_limit(seconds):
-    """Context manager to add timeout to a database operation"""
     timer = threading.Timer(seconds, timeout_handler)
     timer.start()
     try:
@@ -79,92 +83,115 @@ def time_limit(seconds):
     finally:
         timer.cancel()
 
-# Database connection engine and session factory
-try:
-    logger.info(f"Attempting to create database engine with timeout {DATABASE_CONNECT_TIMEOUT}s")
-    # Create database engine with PostgreSQL-specific settings and increased timeouts
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=5,               # Increased from 3 to 5
-        max_overflow=10,           # Increased from 5 to 10
-        pool_timeout=DATABASE_CONNECT_TIMEOUT,  # Use env var
-        pool_recycle=300,          # Recycle connections after 5 minutes
-        pool_pre_ping=True,        # Send a ping before using a connection
-        connect_args={
-            "connect_timeout": DATABASE_CONNECT_TIMEOUT,  # Use env var
-            "keepalives": 1,       # Enable TCP keepalive
-            "keepalives_idle": 30, # Idle time before sending keepalives
-            "keepalives_interval": 10, # Interval between keepalives
-            "keepalives_count": 5, # Number of keepalives before giving up
-            "options": f"-c statement_timeout={DATABASE_CONNECT_TIMEOUT * 1000}"  # Use env var
-        }
-    )
+# Initialize globals that will be set in try_initialize_database
+engine = None
+SessionLocal = None
+Base = declarative_base()
+AutomapBase = automap_base()
+TrainCleaned = None
+SmmhCleaned = None
+TrainCleanedModel = None
+SmmhCleanedModel = None
+
+def try_initialize_database():
+    global engine, SessionLocal, Base, AutomapBase, TrainCleaned, SmmhCleaned, TrainCleanedModel, SmmhCleanedModel
     
-    # Create session factory
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
-    # Create base classes for ORM
-    Base = declarative_base()
-    AutomapBase = automap_base()
-    
-    # Reflect the database structure
-    logger.info("Attempting to reflect database structure")
-    
-    # Create empty objects first in case reflection fails
-    TrainCleaned = None
-    SmmhCleaned = None
-    TrainCleanedModel = None
-    SmmhCleanedModel = None
-    
+    db_url_to_use = DATABASE_URL
+
+    if not db_url_to_use:
+        if ALLOW_DB_FAILURE:
+            logger.warning("Visualisation DB - No DATABASE_URL set, and ALLOW_DB_FAILURE is true. Using fallback SQLite DB.")
+            db_url_to_use = FALLBACK_DB_URL
+        else:
+            logger.critical("Visualisation DB - No DATABASE_URL set, and ALLOW_DB_FAILURE is false. Cannot initialize database.")
+            # Potentially raise an error here or let parts of the app fail if they try to use it
+            return False # Indicate failure
+
     try:
-        metadata = MetaData()
-        metadata.reflect(bind=engine)
+        logger.info(f"Visualisation DB - Attempting to create engine with URL: {get_masked_url(db_url_to_use)} and timeout {DATABASE_CONNECT_TIMEOUT}s")
+        current_engine_args = {
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_timeout": DATABASE_CONNECT_TIMEOUT,
+            "pool_recycle": 300,
+            "pool_pre_ping": True,
+            "connect_args": {
+                "connect_timeout": DATABASE_CONNECT_TIMEOUT,
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5,
+                "options": f"-c statement_timeout={DATABASE_CONNECT_TIMEOUT * 1000}"
+            }
+        }
+        # SQLite does not support many of these args
+        if "sqlite" in db_url_to_use:
+            current_engine_args = {}
+
+        engine = create_engine(db_url_to_use, **current_engine_args)
+        logger.info("Visualisation DB - Engine created.")
+
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        logger.info("Visualisation DB - SessionLocal created.")
         
-        # Define ORM models for required tables
-        if 'train_cleaned' in metadata.tables:
-            TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
-        
-        if 'smmh_cleaned' in metadata.tables:
-            SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
-        
-        # Auto-map existing tables to ORM models
-        AutomapBase.prepare(engine, reflect=True)
-        
-        # Try to get the models from the automap if they exist
-        try:
-            TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
-            SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
-            logger.info(f"ORM Models loaded: TrainCleaned={TrainCleanedModel is not None}, SmmhCleaned={SmmhCleanedModel is not None}")
-        except Exception as e:
-            logger.error(f"Error loading ORM models: {e}")
-            TrainCleanedModel = None
-            SmmhCleanedModel = None
-    
-        logger.info("Database engine and ORM models created successfully")
+        # Reflect the database structure only if not using fallback SQLite (unless explicitly needed)
+        if "sqlite" not in db_url_to_use or db_url_to_use != FALLBACK_DB_URL:
+            logger.info("Visualisation DB - Attempting to reflect database structure...")
+            metadata = MetaData()
+            try:
+                metadata.reflect(bind=engine, views=True) # Include views if any
+                logger.info(f"Visualisation DB - Reflection complete. Tables found: {list(metadata.tables.keys())}")
+
+                if 'train_cleaned' in metadata.tables:
+                    TrainCleaned = Table('train_cleaned', metadata, autoload_with=engine)
+                    logger.info("Visualisation DB - TrainCleaned Table object created.")
+                else:
+                    logger.warning("Visualisation DB - 'train_cleaned' table not found in reflected metadata.")
+                
+                if 'smmh_cleaned' in metadata.tables:
+                    SmmhCleaned = Table('smmh_cleaned', metadata, autoload_with=engine)
+                    logger.info("Visualisation DB - SmmhCleaned Table object created.")
+                else:
+                    logger.warning("Visualisation DB - 'smmh_cleaned' table not found in reflected metadata.")
+
+                # Automap for ORM models
+                AutomapBase.prepare(engine, reflect=True)
+                TrainCleanedModel = AutomapBase.classes.train_cleaned if hasattr(AutomapBase.classes, 'train_cleaned') else None
+                SmmhCleanedModel = AutomapBase.classes.smmh_cleaned if hasattr(AutomapBase.classes, 'smmh_cleaned') else None
+                logger.info(f"Visualisation DB - ORM Models loaded via Automap: TrainCleanedModel={'Exists' if TrainCleanedModel else 'Not Found'}, SmmhCleanedModel={'Exists' if SmmhCleanedModel else 'Not Found'}")
+            except Exception as reflect_error:
+                logger.error(f"Visualisation DB - Error reflecting database structure: {reflect_error}", exc_info=True)
+                if not ALLOW_DB_FAILURE:
+                    logger.critical("Visualisation DB - Raising reflection error as ALLOW_DB_FAILURE is false.")
+                    raise
+                logger.warning("Visualisation DB - Continuing despite database reflection failure (ALLOW_DB_FAILURE=true). ORM features may be unavailable.")
+        else:
+            logger.info("Visualisation DB - Using SQLite fallback, skipping detailed reflection for now.")
+
+        logger.info("Visualisation DB - Database initialization attempt complete.")
+        return True # Indicate success
+
     except Exception as e:
-        logger.error(f"Error reflecting database structure: {e}")
+        logger.critical(f"Visualisation DB - Error setting up database engine/session: {e}", exc_info=True)
         if not ALLOW_DB_FAILURE:
+            logger.critical("Visualisation DB - Raising setup error as ALLOW_DB_FAILURE is false.")
             raise
-        logger.warning("Continuing despite database reflection failure (ALLOW_DB_FAILURE=true)")
-        
-except Exception as e:
-    logger.error(f"Error setting up database: {e}")
-    logger.error(traceback.format_exc())
-    if not ALLOW_DB_FAILURE:
-        raise
-    logger.warning("Continuing despite database setup failure (ALLOW_DB_FAILURE=true)")
-    
-    # Create dummy engine and session for the app to start
-    # These won't work but will allow the app to initialize
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    
-    engine = create_engine("sqlite:///:memory:")
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    TrainCleaned = None
-    SmmhCleaned = None
-    TrainCleanedModel = None
-    SmmhCleanedModel = None
+        # If ALLOW_DB_FAILURE is true, try to set up a minimal fallback SQLite engine
+        logger.warning("Visualisation DB - Attempting to set up fallback SQLite due to main DB setup failure (ALLOW_DB_FAILURE=true).")
+        try:
+            engine = create_engine(FALLBACK_DB_URL)
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            logger.info("Visualisation DB - Fallback SQLite engine and SessionLocal created.")
+            return True # Indicate partial success (fallback)
+        except Exception as fallback_e:
+            logger.critical(f"Visualisation DB - CRITICAL: Failed to set up even fallback SQLite engine: {fallback_e}", exc_info=True)
+            # At this point, the app might be in a very broken state for this module.
+            return False # Indicate total failure
+
+# Attempt to initialize the database when the module is imported
+INITIALIZATION_SUCCESSFUL = try_initialize_database()
+if not INITIALIZATION_SUCCESSFUL:
+    logger.error("VISUALISATION DATABASE FAILED TO INITIALIZE PROPERLY. Functionality may be degraded or unavailable.")
 
 def log_connection_details(operation="general", status="attempted", details=None):
     """
@@ -213,6 +240,12 @@ def log_connection_details(operation="general", status="attempted", details=None
 
 def get_db():
     """Database session dependency"""
+    if not SessionLocal:
+        logger.error("Visualisation DB - SessionLocal not initialized. Cannot get DB session.")
+        if ALLOW_DB_FAILURE and try_initialize_database(): # Attempt re-init
+             logger.info("Visualisation DB - Re-initialization attempt made for get_db.")
+        else:
+            raise Exception("Database not initialized for visualisation module.")
     log_connection_details("session_start", "attempted")
     db = SessionLocal()
     try:
@@ -229,6 +262,12 @@ def execute_query(query_str, params=None, timeout=30, max_retries=2):
     Execute a raw SQL query and return the results as a list of dictionaries
     With a configurable timeout (default 30 seconds) and retry mechanism
     """
+    if not engine:
+        logger.error("Visualisation DB - Engine not initialized. Cannot execute query.")
+        if ALLOW_DB_FAILURE and try_initialize_database():
+            logger.info("Visualisation DB - Re-initialization attempt made for execute_query.")
+        else:
+            raise Exception("Database engine not initialized for visualisation module.")
     operation = "execute_query"
     start_time = time.time()
     
@@ -318,8 +357,11 @@ def get_train_cleaned_data(filters=None, group_by=None):
         List of dictionaries with the query results
     """
     if TrainCleaned is None:
-        logger.error("TrainCleaned table not found in database schema")
-        raise Exception("Train cleaned table not available")
+        logger.error("Visualisation DB - TrainCleaned ORM Table not available.")
+        if ALLOW_DB_FAILURE:
+            logger.warning("Visualisation DB - TrainCleaned not available, returning empty list due to ALLOW_DB_FAILURE.")
+            return [] # Or raise a custom, non-blocking error
+        raise Exception("TrainCleaned ORM Table not available in visualisation database.")
     
     operation = "get_train_cleaned_data"
     log_connection_details(operation, "attempted")
@@ -349,7 +391,9 @@ def get_train_cleaned_data(filters=None, group_by=None):
                 return data
     except Exception as e:
         log_connection_details(operation, "failed", {"error": str(e)})
-        logger.error(f"Error in get_train_cleaned_data: {e}")
+        logger.error(f"Error in get_train_cleaned_data: {e}", exc_info=True)
+        if ALLOW_DB_FAILURE:
+            return []
         raise
 
 def get_smmh_cleaned_data(filters=None, group_by=None):
@@ -364,8 +408,11 @@ def get_smmh_cleaned_data(filters=None, group_by=None):
         List of dictionaries with the query results
     """
     if SmmhCleaned is None:
-        logger.error("SmmhCleaned table not found in database schema")
-        raise Exception("SMMH cleaned table not available")
+        logger.error("Visualisation DB - SmmhCleaned ORM Table not available.")
+        if ALLOW_DB_FAILURE:
+            logger.warning("Visualisation DB - SmmhCleaned not available, returning empty list due to ALLOW_DB_FAILURE.")
+            return [] # Or raise a custom, non-blocking error
+        raise Exception("SmmhCleaned ORM Table not available in visualisation database.")
     
     operation = "get_smmh_cleaned_data"
     log_connection_details(operation, "attempted")
@@ -395,5 +442,7 @@ def get_smmh_cleaned_data(filters=None, group_by=None):
                 return data
     except Exception as e:
         log_connection_details(operation, "failed", {"error": str(e)})
-        logger.error(f"Error in get_smmh_cleaned_data: {e}")
+        logger.error(f"Error in get_smmh_cleaned_data: {e}", exc_info=True)
+        if ALLOW_DB_FAILURE:
+            return []
         raise 
