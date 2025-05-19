@@ -167,7 +167,7 @@ const testComprehensiveConnection = async () => {
     debugResults.value = { status: "Running comprehensive connection test..." }
     console.log(`Attempting to connect to ${BACKEND_URL}/api/visualisation/connection-test`)
     const response = await axios.get(`${BACKEND_URL}/api/visualisation/connection-test`, {
-      timeout: 15000, // Longer timeout for this comprehensive test
+      timeout: 60000, // 60 second timeout for this comprehensive test
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -175,18 +175,46 @@ const testComprehensiveConnection = async () => {
     })
     debugResults.value = response.data
     console.log('Comprehensive test result:', response.data)
+    
+    // Add timestamp to show when test was run
+    debugResults.value.testRunAt = new Date().toISOString();
+    
+    // Add recommendations based on results
+    if (response.data.db_connection && response.data.db_connection.connection === "successful") {
+      // Check if required tables have data
+      const trainTableOk = response.data.table_tests && 
+                         response.data.table_tests.train_cleaned && 
+                         response.data.table_tests.train_cleaned.status === "success";
+      const smmhTableOk = response.data.table_tests && 
+                        response.data.table_tests.smmh_cleaned && 
+                        response.data.table_tests.smmh_cleaned.status === "success";
+      
+      if (trainTableOk && smmhTableOk) {
+        debugResults.value.recommendation = "Database connection and tables look good. If visualizations aren't loading, the issue might be with data processing or rendering.";
+      } else {
+        debugResults.value.recommendation = "Database connection succeeded but one or more required tables may have issues. Check the table_tests section for details.";
+      }
+    } else {
+      debugResults.value.recommendation = "Database connection failed. The Railway PostgreSQL database may be experiencing issues or timeouts. Try again later or contact your administrator.";
+    }
   } catch (err) {
     console.error('Comprehensive test failed:', err)
     debugResults.value = { 
       status: "error", 
       message: `Failed to run comprehensive test: ${err.message}`,
       error: err.toString(),
+      errorDetails: err.response ? 
+        {
+          status: err.response.status,
+          statusText: err.response.statusText,
+          data: err.response.data
+        } : "No response details available",
       config: err.config ? {
         url: err.config.url,
         method: err.config.method,
-        headers: err.config.headers,
         timeout: err.config.timeout
-      } : 'No config available'
+      } : 'No config available',
+      recommendation: "API connection failed. Check if the backend server is running and accessible."
     }
   }
 }
@@ -198,79 +226,23 @@ const fetchChartData = async (endpoint) => {
     isLoading.value = true
     error.value = null
     
-    // Use a shorter timeout to prevent blocking the UI
+    // Use a longer timeout to match backend settings
     const response = await axios.get(`${BACKEND_URL}/api/visualisation/${endpoint}`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      timeout: 5000 // 5 second timeout
+      timeout: 30000 // 30 second timeout (increased from 5 seconds)
     })
     
     console.log(`Data received from ${endpoint}:`, response.data)
     return response.data
   } catch (err) {
     console.error(`Error fetching data from ${endpoint}:`, err)
-    // Don't show error to user, just log it and return default data
-    console.log(`Using default data for ${endpoint} due to fetch error`)
-    
-    // Set a flag to show we're using fallback data
-    usingFallbackData.value = true
-    
-    // Return default data based on the endpoint
-    if (endpoint === 'screen-time-emotions') {
-      return {
-        "labels": ['Below 1h', '1-3h', '3-5h'],
-        "datasets": [
-          {"label": "Positive", "backgroundColor": "#4bc0c0", "data": [20, 30, 10]},
-          {"label": "Negative", "backgroundColor": "#ff6384", "data": [10, 40, 60]},
-          {"label": "Neutral", "backgroundColor": "#ffcd56", "data": [70, 30, 30]},
-        ]
-      }
-    } else if (endpoint === 'sleep-quality') {
-      return {
-        "labels": ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
-        "datasets": [{
-          "label": "Sleep Problems (1-5)",
-          "data": [1.5, 2, 2.5, 3.2, 4, 4.5],
-          "borderColor": "#7e57c2",
-          "backgroundColor": "#7e57c2",
-          "fill": false,
-          "tension": 0.3
-        }]
-      }
-    } else if (endpoint === 'engagement') {
-      return {
-        "labels": ['Below 1h', '1-3h', '3-5h'],
-        "datasets": [{
-          "label": "Engagement",
-          "data": [20, 50, 30],
-          "backgroundColor": "#42a5f5"
-        }]
-      }
-    } else if (endpoint === 'anxiety') {
-      return {
-        "labels": ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
-        "datasets": [{
-          "label": "Average Anxiety",
-          "data": [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
-          "borderColor": "#66bb6a",
-          "backgroundColor": "#66bb6a",
-          "fill": false,
-          "tension": 0.3
-        }]
-      }
-    }
-    
-    // Generic default data if no endpoint match
-    return {
-      "labels": ['Category 1', 'Category 2', 'Category 3'],
-      "datasets": [{
-        "label": "Default Data",
-        "data": [30, 50, 20],
-        "backgroundColor": "#9e9e9e"
-      }]
-    }
+    // Show error to user when fetch fails
+    error.value = `Failed to load data: ${err.message}. Please try again later.`
+    usingFallbackData.value = false
+    throw err
   } finally {
     isLoading.value = false
   }
@@ -299,6 +271,7 @@ const renderChart = async () => {
   
   try {
     isLoading.value = true
+    error.value = null
     
     // Choose which endpoint to call based on the current tab
     switch(currentTab.value) {
@@ -386,8 +359,7 @@ const renderChart = async () => {
     }
   } catch (err) {
     console.error('Error rendering chart:', err)
-    error.value = `Failed to render chart: ${err.message}`
-  } finally {
+    error.value = `Failed to load visualization data: ${err.message}. The database might be temporarily unavailable. Please try the connection test above or try again later.`
     isLoading.value = false
   }
 }

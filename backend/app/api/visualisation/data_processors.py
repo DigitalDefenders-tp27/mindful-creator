@@ -364,7 +364,7 @@ def test_database_connection() -> Dict[str, Any]:
         WHERE table_schema = 'public'
         """
         
-        tables = execute_query(query, timeout=10)
+        tables = execute_query(query, timeout=30)
         
         # Test query to check if our specific tables exist
         required_tables = ['train_cleaned', 'smmh_cleaned']
@@ -378,13 +378,13 @@ def test_database_connection() -> Dict[str, Any]:
                 AND table_name = '{table}'
             );
             """
-            result = execute_query(check_query, timeout=5)
+            result = execute_query(check_query, timeout=20)
             table_status[table] = result[0]['exists'] if result else False
             
             # If table exists, check record count
             if table_status[table]:
                 count_query = f"SELECT COUNT(*) as count FROM {table}"
-                count_result = execute_query(count_query, timeout=5)
+                count_result = execute_query(count_query, timeout=20)
                 table_status[f"{table}_count"] = count_result[0]['count'] if count_result else 0
         
         response = {

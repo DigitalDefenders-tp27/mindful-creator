@@ -25,6 +25,13 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgre
 if "postgres://" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
 
+# Check if this is a Railway PostgreSQL URL
+is_railway_db = "railway.app" in DATABASE_URL
+
+# Log connection environment
+if is_railway_db:
+    logger.info("Detected Railway PostgreSQL database")
+
 # Mask the password for logging
 def get_masked_url(url):
     if '@' not in url:
@@ -59,18 +66,21 @@ def time_limit(seconds):
 
 # Database connection engine and session factory
 try:
-    # Create database engine with PostgreSQL-specific settings
+    # Create database engine with PostgreSQL-specific settings and increased timeouts
     engine = create_engine(
         DATABASE_URL,
-        pool_size=3,
-        max_overflow=5,
-        pool_timeout=10,  # 10 seconds connection timeout
-        pool_recycle=300,  # Recycle connections after 5 minutes
-        pool_pre_ping=True,
-        # Additional timeout settings
+        pool_size=5,               # Increased from 3 to 5
+        max_overflow=10,           # Increased from 5 to 10
+        pool_timeout=30,           # Increased from 10 to 30 seconds
+        pool_recycle=300,          # Recycle connections after 5 minutes
+        pool_pre_ping=True,        # Send a ping before using a connection
         connect_args={
-            "connect_timeout": 5,  # 5 seconds to establish connection
-            "options": "-c statement_timeout=10000"  # 10 seconds for statements
+            "connect_timeout": 20,  # Increased from 5 to 20 seconds
+            "keepalives": 1,       # Enable TCP keepalive
+            "keepalives_idle": 30, # Idle time before sending keepalives
+            "keepalives_interval": 10, # Interval between keepalives
+            "keepalives_count": 5, # Number of keepalives before giving up
+            "options": "-c statement_timeout=30000"  # Increased from 10 to 30 seconds
         }
     )
     
@@ -169,10 +179,10 @@ def get_db():
     finally:
         db.close()
 
-def execute_query(query_str, params=None, timeout=10):
+def execute_query(query_str, params=None, timeout=30, max_retries=2):
     """
     Execute a raw SQL query and return the results as a list of dictionaries
-    With a configurable timeout (default 10 seconds)
+    With a configurable timeout (default 30 seconds) and retry mechanism
     """
     operation = "execute_query"
     start_time = time.time()
@@ -181,53 +191,74 @@ def execute_query(query_str, params=None, timeout=10):
     truncated_query = query_str[:500] + "..." if len(query_str) > 500 else query_str
     log_connection_details(operation, "attempted", {"query": truncated_query, "timeout": timeout})
     
-    try:
-        # Use timeout context manager to ensure query doesn't hang
-        with time_limit(timeout):
-            with engine.connect() as connection:
-                # Set statement timeout at connection level as well
-                connection.execute(text(f"SET statement_timeout = {timeout * 1000}"))
-                
-                # Execute the query
-                result = connection.execute(text(query_str), params or {})
-                columns = result.keys()
-                rows = result.fetchall()
-                duration = time.time() - start_time
-                
-                # Log successful query execution
-                row_count = len(rows)
-                log_connection_details(operation, "success", {
-                    "rows_returned": row_count,
-                    "duration_ms": round(duration * 1000, 2),
-                    "query_truncated": truncated_query
-                })
-                
-                return [dict(zip(columns, row)) for row in rows]
-    except TimeoutError:
-        duration = time.time() - start_time
-        error_details = {
-            "error_type": "TimeoutError",
-            "error_msg": f"Query execution timed out after {timeout} seconds",
-            "duration_ms": round(duration * 1000, 2),
-            "query_truncated": truncated_query
-        }
-        log_connection_details(operation, "timeout", error_details)
-        logger.error(f"Query timed out after {timeout} seconds: {truncated_query}")
-        raise TimeoutError(f"Database query timed out after {timeout} seconds")
-    except Exception as e:
-        # Log the failure with detailed error info
-        duration = time.time() - start_time
-        error_details = {
-            "error_type": type(e).__name__,
-            "error_msg": str(e),
-            "duration_ms": round(duration * 1000, 2),
-            "query_truncated": truncated_query,
-            "traceback": traceback.format_exc()
-        }
-        log_connection_details(operation, "failed", error_details)
-        logger.error(f"Error executing query: {e}")
-        logger.error(f"Query was: {query_str}")
-        raise
+    last_error = None
+    for retry in range(max_retries + 1):  # +1 because first attempt is not a retry
+        if retry > 0:
+            logger.info(f"Retry {retry}/{max_retries} for database query after {retry * 2} seconds delay")
+            time.sleep(retry * 2)  # Progressive backoff
+        
+        try:
+            # Use timeout context manager to ensure query doesn't hang
+            with time_limit(timeout):
+                with engine.connect() as connection:
+                    # Set statement timeout at connection level as well
+                    connection.execute(text(f"SET statement_timeout = {timeout * 1000}"))
+                    
+                    # Execute the query
+                    result = connection.execute(text(query_str), params or {})
+                    columns = result.keys()
+                    rows = result.fetchall()
+                    duration = time.time() - start_time
+                    
+                    # Log successful query execution
+                    row_count = len(rows)
+                    log_connection_details(operation, "success", {
+                        "rows_returned": row_count,
+                        "duration_ms": round(duration * 1000, 2),
+                        "query_truncated": truncated_query,
+                        "retries": retry
+                    })
+                    
+                    return [dict(zip(columns, row)) for row in rows]
+        except TimeoutError as e:
+            last_error = e
+            duration = time.time() - start_time
+            error_details = {
+                "error_type": "TimeoutError",
+                "error_msg": f"Query execution timed out after {timeout} seconds",
+                "duration_ms": round(duration * 1000, 2),
+                "query_truncated": truncated_query,
+                "retry": retry,
+                "max_retries": max_retries
+            }
+            log_connection_details(operation, "timeout", error_details)
+            logger.error(f"Query timed out after {timeout} seconds (retry {retry}/{max_retries}): {truncated_query}")
+            
+            # If this is the last retry, raise the error
+            if retry == max_retries:
+                raise TimeoutError(f"Database query timed out after {timeout} seconds and {max_retries} retries")
+        except Exception as e:
+            # Log the failure with detailed error info
+            last_error = e
+            duration = time.time() - start_time
+            error_details = {
+                "error_type": type(e).__name__,
+                "error_msg": str(e),
+                "duration_ms": round(duration * 1000, 2),
+                "query_truncated": truncated_query,
+                "retry": retry,
+                "max_retries": max_retries,
+                "traceback": traceback.format_exc()
+            }
+            log_connection_details(operation, "failed", error_details)
+            logger.error(f"Error executing query (retry {retry}/{max_retries}): {e}")
+            
+            # If this is the last retry, raise the error
+            if retry == max_retries:
+                raise
+    
+    # This should not be reached, but just in case
+    raise last_error or Exception("Unknown database error")
 
 # Get data using the SQLAlchemy ORM
 def get_train_cleaned_data(filters=None, group_by=None):
@@ -249,7 +280,7 @@ def get_train_cleaned_data(filters=None, group_by=None):
     log_connection_details(operation, "attempted")
     
     try:
-        with time_limit(10):
+        with time_limit(30):
             with engine.connect() as conn:
                 # Build a select query using the ORM Table
                 query = TrainCleaned.select()
@@ -295,7 +326,7 @@ def get_smmh_cleaned_data(filters=None, group_by=None):
     log_connection_details(operation, "attempted")
     
     try:
-        with time_limit(10):
+        with time_limit(30):
             with engine.connect() as conn:
                 # Build a select query using the ORM Table
                 query = SmmhCleaned.select()
