@@ -13,13 +13,17 @@
         <div class="decorative-elements">
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable rotating">
             </div>
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
             </div>
+          </div>
+          
+          <!-- Second Row -->
+          <div class="second-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable rotating">
             </div>
           </div>
         </div>
@@ -3064,51 +3068,62 @@ onUnmounted(() => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: auto;
+  grid-template-rows: auto auto;
   row-gap: 1rem;
   padding: 2rem 0;
-  z-index: 1; /* Ensure it's behind hero content if needed, but above background */
+  z-index: 1;
   pointer-events: none;
-  transform: translateX(-2rem);
+  transform: translateX(0);
+  justify-content: end;
 }
 
 .top-row {
   display: grid;
-  grid-template-columns: repeat(3, 160px);
+  grid-template-columns: repeat(2, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 4 / 7; /* Position to the right */
+  grid-column: 5 / 7;
   grid-row: 1;
   justify-self: end;
 }
 
-.element-wrapper {
-  width: 160px;
-  height: 120px;
-  position: relative;
+.second-row {
+  display: grid;
+  grid-template-columns: 160px;
+  gap: 0.5rem;
+  align-items: start;
   margin: 0;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto; /* Allow hover on individual elements */
-  transition: transform 0.5s ease;
+  grid-column: 6 / 7;
+  grid-row: 2;
+  justify-self: end;
 }
 
-.element {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  margin: 0;
-  padding: 0;
-  transition: all 0.5s ease;
+/* Add rotation animation */
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+.rotating {
+  animation: slowRotate 30s linear infinite;
+}
+
+/* Adjust hover effect to combine with rotation */
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
+  animation: slowRotate 5s linear infinite;
+}
+
+.second-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+  animation: slowRotate 5s linear infinite;
 }
 
 /* Responsive adjustments for Decorative Elements */
