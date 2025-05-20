@@ -349,12 +349,27 @@ async def proxy_image(image_name: str, request: Request):
 
 @app.post("/api/games/memory_match/initialize_game")
 async def proxy_initialize_game(request: Request):
-    logger.info("Memory match game initialization request received")
+    logger.info("Memory match game initialization POST request received")
     try:
         body = await request.json()
         # Instead of proxying, use the local implementation
         return await memory_match_router.initialize_game_data_with_local_urls(
             game_request=GameInitRequest(**body),
+            http_request=request
+        )
+    except Exception as e:
+        logger.error(f"Error in memory match initialization: {str(e)}")
+        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+
+@app.get("/api/games/memory_match/initialize_game")
+async def proxy_initialize_game_get(request: Request):
+    logger.info("Memory match game initialization GET request received")
+    try:
+        # Extract level from query parameters
+        params = dict(request.query_params)
+        level = int(params.get("level", 1))
+        return await memory_match_router.initialize_game_data_with_local_urls(
+            game_request=GameInitRequest(level=level),
             http_request=request
         )
     except Exception as e:
@@ -369,7 +384,7 @@ async def memory_match_initialize_options():
         status_code=200,
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
             "Access-Control-Max-Age": "3600"
         }
@@ -378,7 +393,7 @@ async def memory_match_initialize_options():
 # Add a fallback endpoint for the initialize_game path without /api prefix
 @app.post("/games/memory_match/initialize_game")
 async def fallback_initialize_game(request: Request):
-    logger.info("Fallback initialize_game endpoint called - redirecting to /api/games/memory_match/initialize_game")
+    logger.info("Fallback initialize_game POST endpoint called - redirecting to /api/games/memory_match/initialize_game")
     try:
         # Get request body
         body = await request.json()
@@ -417,6 +432,47 @@ async def fallback_initialize_game(request: Request):
         logger.error(f"Error in fallback_initialize_game: {str(e)}")
         return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
 
+@app.get("/games/memory_match/initialize_game")
+async def fallback_initialize_game_get(request: Request):
+    logger.info("Fallback initialize_game GET endpoint called - redirecting to /api/games/memory_match/initialize_game")
+    try:
+        # Extract level from query parameters
+        params = dict(request.query_params)
+        level = params.get("level", "1")
+        logger.info(f"Received initialize_game GET request with level: {level}")
+        
+        # Forward to the real endpoint using httpx
+        async with httpx.AsyncClient() as client:
+            # Construct the target URL to the main initialize_game endpoint
+            # Use internal URL to avoid network issues
+            target_url = f"http://localhost:{port}/api/games/memory_match/initialize_game?level={level}"
+            logger.info(f"Forwarding GET request to: {target_url}")
+            
+            response = await client.get(
+                target_url,
+                headers={
+                    "Accept": "application/json",
+                    "Origin": request.headers.get("Origin", "http://localhost"),
+                    "Referer": request.headers.get("Referer", "http://localhost")
+                }
+            )
+            
+            # Check response
+            if response.status_code != 200:
+                logger.error(f"API returned error: {response.status_code}, {response.text}")
+                return Response(
+                    content=response.text,
+                    status_code=response.status_code,
+                    media_type="application/json"
+                )
+            
+            # Return response
+            data = response.json()
+            return JSONResponse(content=data)
+    except Exception as e:
+        logger.error(f"Error in fallback_initialize_game_get: {str(e)}")
+        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+
 # Add an OPTIONS handler for the fallback endpoint
 @app.options("/games/memory_match/initialize_game")
 async def fallback_memory_match_initialize_options():
@@ -425,7 +481,7 @@ async def fallback_memory_match_initialize_options():
         status_code=200,
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
             "Access-Control-Max-Age": "3600"
         }

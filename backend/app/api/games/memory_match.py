@@ -85,9 +85,15 @@ async def get_db_connection():
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
 # New Endpoints using PostgreSQL
-@router.post("/initialize_game", response_model=List[MemeDataWithLocalURL])
-async def initialize_game_data_with_local_urls(game_request: GameInitRequest, http_request: Request):
-    logger.info(f"POST /initialize_game called with level {game_request.level}")
+@router.route("/initialize_game", methods=["POST", "GET"])
+async def initialize_game_data_with_local_urls(game_request: GameInitRequest = None, http_request: Request = None):
+    if game_request is None:
+        # For GET requests, try to extract level from query parameters
+        params = dict(http_request.query_params)
+        level = int(params.get("level", 1))
+        game_request = GameInitRequest(level=level)
+    
+    logger.info(f"initialize_game called with level {game_request.level}")
     level = game_request.level
     num_memes_to_fetch = 0
     if level == 1:
