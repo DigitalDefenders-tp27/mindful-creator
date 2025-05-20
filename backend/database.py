@@ -11,10 +11,10 @@ load_dotenv()
 
 
 # Get database URL from environment variable or use default SQLite database
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./relaxation.db')
+DATEBASE_PUBLIC_URL = os.getenv('DATEBASE_PUBLIC_URL', 'sqlite:///./relaxation.db')
 
 # Create database engine
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATEBASE_PUBLIC_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -53,8 +53,8 @@ def create_activity_rating(db, activity: str, rating: int):
     return db_rating
 
 def get_connection():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL environment variable is not set")
-    return psycopg2.connect(dsn=DATABASE_URL, sslmode="require")
+    DATEBASE_PUBLIC_URL = os.getenv("DATEBASE_PUBLIC_URL")
+    if not DATEBASE_PUBLIC_URL:
+        raise RuntimeError("DATEBASE_PUBLIC_URL environment variable is not set")
+    return psycopg2.connect(dsn=DATEBASE_PUBLIC_URL, sslmode="require")
 

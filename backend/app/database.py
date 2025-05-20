@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 使用环境变量中的 DATABASE_URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://username:password@host:port/dbname")
+# 使用环境变量中的 DATEBASE_PUBLIC_URL
+DATEBASE_PUBLIC_URL = os.getenv("DATEBASE_PUBLIC_URL", "postgresql://username:password@host:port/dbname")
 
 # 创建数据库引擎
 engine = create_engine(
-    DATABASE_URL,
+    DATEBASE_PUBLIC_URL,
     pool_size=5,
     max_overflow=10,
     pool_timeout=30,
