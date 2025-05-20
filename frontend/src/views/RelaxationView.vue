@@ -130,10 +130,10 @@
 
 <script setup>
 import { ref, computed, onMounted, markRaw, shallowRef } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import BentoGrid from '@/components/Activities/Bento/BentoGrid.vue'
 import BentoGridCard from '@/components/Activities/Bento/BentoGridCard.vue'
+import { apiFetch } from '@/api/config'
 
 // Star Icons
 import starFilledIcon from '../assets/star-filled.svg'
@@ -284,49 +284,27 @@ const activityComponents = {
 const api = {
   async submitRating(activityType, ratingValue) {
     try {
-      // 构造payload
-      const payload = {
+      console.log(`正在提交评分：活动=${activityType}, 评分=${ratingValue}`);
+      
+      // 创建评分数据
+      const ratingData = {
         activity_key: activityType,
-        rating: ratingValue,
-        timestamp: new Date().toISOString()
+        rating: ratingValue
       };
       
-      console.log('提交评分数据:', payload);
+      // 发送POST请求
+      const response = await apiFetch('/api/ratings', {
+        method: 'POST',
+        body: JSON.stringify(ratingData)
+      });
       
-      // 直接使用fetch API
-      let response;
-      try {
-        // 尝试直接POST
-        response = await fetch('/api/ratings', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        console.error('POST请求失败，尝试POST到/api/ratings/1:', err);
-        // 尝试POST到/api/ratings/1
-        response = await fetch('/api/ratings/1', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-      }
+      console.log('提交评分成功，返回数据:', response);
       
-      // 检查响应
-      if (!response.ok) {
-        throw new Error(`HTTP错误，状态码: ${response.status}`);
-      }
-      
-      // 解析响应
-      const result = await response.json();
-      console.log('评分提交成功:', result);
-      return result;
+      // 返回服务器响应
+      return response;
     } catch (error) {
-      console.error('评分提交失败:', error);
+      console.error('提交评分失败:', error);
+      
       // 返回一个默认响应，确保UI流程继续
       return {
         rating: {
@@ -346,11 +324,7 @@ const api = {
 
   async getActivityStats(activityType) {
     try {
-      const response = await fetch(`/api/ratings/${activityType}`);
-      if (!response.ok) {
-        throw new Error(`HTTP错误，状态码: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await apiFetch(`/api/ratings/${activityType}`);
       return {
         count: data.count,
         average_rating: data.average_rating,
@@ -368,11 +342,7 @@ const api = {
 
   async getAllStats() {
     try {
-      const response = await fetch('/api/ratings');
-      if (!response.ok) {
-        throw new Error(`HTTP错误，状态码: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await apiFetch('/api/ratings');
       return {
         stats_by_activity: data
       };
@@ -405,13 +375,8 @@ const startActivity = async (type) => {
     // 获取活动的评分统计信息
     console.log(`正在获取活动 ${type} 的评分数据`)
     
-    // 确保使用正确的路径获取评分
-    const response = await fetch(`/api/ratings/${type}`)
-    if (!response.ok) {
-      throw new Error(`获取评分失败: ${response.status}`)
-    }
-    
-    const stats = await response.json()
+    // 使用apiFetch获取评分数据
+    const stats = await apiFetch(`/api/ratings/${type}`)
     console.log(`获取到活动 ${type} 的评分数据:`, stats)
     
     // 更新统计信息
@@ -464,21 +429,12 @@ const submitFeedback = async () => {
     
     console.log('准备提交的数据:', payload)
     
-    // 发送评分请求
-    const response = await fetch('/api/ratings', {
+    // 使用apiFetch发送评分请求
+    const result = await apiFetch('/api/ratings', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(payload)
     })
     
-    if (!response.ok) {
-      throw new Error(`提交评分失败: ${response.status}`)
-    }
-    
-    // 解析响应
-    const result = await response.json()
     console.log('评分提交成功，服务器返回:', result)
     
     // 更新统计信息

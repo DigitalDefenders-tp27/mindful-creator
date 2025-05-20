@@ -13,6 +13,7 @@
   "dependencies": {
     "@fawmi/vue-google-maps": "^0.9.79",
     "@googlemaps/js-api-loader": "^1.16.8",
+    "@headlessui/vue": "^1.7.23",
     "apexcharts": "^4.7.0",
     "axios": "^1.6.7",
     "chart.js": "^4.4.9",

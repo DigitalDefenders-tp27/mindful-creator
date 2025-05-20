@@ -10,10 +10,21 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# Helper function to add CORS headers to responses
+def add_cors_headers(response: Response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
 # OPTIONS method to support preflight requests
 @router.options("/{path:path}")
 async def options_ratings_all_paths():
-    return Response(status_code=200)
+    response = Response(status_code=200)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 
 @router.post("/")
 def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
@@ -22,8 +33,8 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         
         # Create new rating record
         db_rating = Rating(
-            activity_key=rating.activity_key,
-            rating=rating.rating
+            activity_type=rating.activity_key,
+            rating_value=rating.rating
         )
         db.add(db_rating)
         db.commit()
@@ -32,14 +43,14 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         
         # Get updated statistics for this activity
         stats = db.query(
-            Rating.activity_key,
+            Rating.activity_type,
             func.count(Rating.id).label("count"),
-            func.avg(Rating.rating).label("average_rating"),
+            func.avg(Rating.rating_value).label("average_rating"),
             func.count(Rating.id).label("total_ratings")
         ).filter(
-            Rating.activity_key == rating.activity_key
+            Rating.activity_type == rating.activity_key
         ).group_by(
-            Rating.activity_key
+            Rating.activity_type
         ).first()
         
         if not stats:
@@ -47,8 +58,8 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
             return {
                 "rating": {
                     "id": db_rating.id,
-                    "activity_key": db_rating.activity_key,
-                    "rating": db_rating.rating
+                    "activity_key": db_rating.activity_type,
+                    "rating": db_rating.rating_value
                 },
                 "stats": {
                     "activity_key": rating.activity_key,
@@ -62,8 +73,8 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         return {
             "rating": {
                 "id": db_rating.id,
-                "activity_key": db_rating.activity_key,
-                "rating": db_rating.rating
+                "activity_key": db_rating.activity_type,
+                "rating": db_rating.rating_value
             },
             "stats": {
                 "activity_key": stats[0],
@@ -88,17 +99,17 @@ def create_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(g
 def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
     return create_rating(rating, db)
 
-@router.get("/")
+@router.get("/", response_model=List[ActivityStats])
 def get_all_stats(db: Session = Depends(get_db)):
     try:
         logger.info("Getting statistics for all activities")
         stats = db.query(
-            Rating.activity_key,
+            Rating.activity_type,
             func.count(Rating.id).label("count"),
-            func.avg(Rating.rating).label("average_rating"),
+            func.avg(Rating.rating_value).label("average_rating"),
             func.count(Rating.id).label("total_ratings")
         ).group_by(
-            Rating.activity_key
+            Rating.activity_type
         ).all()
         
         logger.info(f"Found statistics for {len(stats)} activities")
@@ -132,14 +143,14 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
             
         # Query database
         stats = db.query(
-            Rating.activity_key,
+            Rating.activity_type,
             func.count(Rating.id).label("count"),
-            func.avg(Rating.rating).label("average_rating"),
+            func.avg(Rating.rating_value).label("average_rating"),
             func.count(Rating.id).label("total_ratings")
         ).filter(
-            Rating.activity_key == activity_key
+            Rating.activity_type == activity_key
         ).group_by(
-            Rating.activity_key
+            Rating.activity_type
         ).first()
         
         if not stats:
