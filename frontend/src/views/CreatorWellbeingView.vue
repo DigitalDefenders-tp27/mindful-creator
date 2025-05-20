@@ -72,20 +72,26 @@
 
           <div class="visualisation-container">
             <div class="chart-area">
-              <div v-if="isLoading" class="loading-indicator">
-                <span class="loading-spinner"></span>
-                <p>Loading data...</p>
+              <div class="chart-wrapper">
+                <div v-if="isLoading" class="loading-indicator">
+                  <span class="loading-spinner"></span>
+                  <p>Loading data...</p>
+                </div>
+                <div v-else-if="error" class="error-message">
+                  <p>{{ error }}</p>
+                  <button @click="fetchDataAndRender">Try Again</button>
+                </div>
+                <canvas v-else ref="chartCanvas" id="mainChart"></canvas>
               </div>
-              <div v-else-if="error" class="error-message">
-                <p>{{ error }}</p>
-                <button @click="fetchDataAndRender">Try Again</button>
-              </div>
-              <canvas v-else ref="chartCanvas" id="mainChart"></canvas>
             </div>
             <div class="insight-area">
-              <h3 class="insight-heading">Key Insights</h3>
-              <div v-for="(insight, i) in tabs[currentTab].insights" :key="i" class="insight-box">
-                {{ insight }}
+              <div class="insights-wrapper">
+                <h3 class="insight-heading">Key Insights</h3>
+                <div class="insights-content">
+                  <div v-for="(insight, i) in tabs[currentTab].insights" :key="i" class="insight-box">
+                    {{ insight }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1852,7 +1858,7 @@ const updateSliderPosition = () => {
 .visualisation-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
   margin-top: 30px;
 }
@@ -1861,8 +1867,19 @@ const updateSliderPosition = () => {
   flex: 1;
   min-width: 500px;
   max-width: 700px;
-  height: 400px;
   padding: 10px;
+}
+
+.chart-wrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  height: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .chart-area canvas {
@@ -1877,7 +1894,19 @@ const updateSliderPosition = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+}
+
+.insights-wrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  height: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .insight-heading {
@@ -1889,16 +1918,15 @@ const updateSliderPosition = () => {
 }
 
 .insight-box {
-  background: #ffe6f2;
+  background: #fff8e1;
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 12px;
   font-size: 1rem;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0px 1px 5px rgba(231, 90, 151, 0.15);
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.08);
   text-align: center;
-  border-left: 4px solid #e75a97;
 }
 
 /* Loading spinner and error message styles */
@@ -4767,4 +4795,12 @@ section:not(:last-child)::after {
 /* Keep the existing code */
 /* Modal z-index overrides to fix layering issues */
 /* ... existing code ... */
+
+.insights-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-evenly;
+  padding: 10px 0;
+}
 </style>
