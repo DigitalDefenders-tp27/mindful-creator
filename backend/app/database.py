@@ -111,13 +111,16 @@ def get_db():
     """
     db = SessionLocal()
     try:
-        # Test the connection with a simple query
+        # Test the connection with a simple query to validate it
         db.execute("SELECT 1")
+        logger.debug("Database connection validated")
         yield db
     except Exception as e:
         logger.error(f"Database connection error: {e}")
+        db.close()
         raise
     finally:
+        logger.debug("Closing database session")
         db.close()
 
 # Create tables safely
