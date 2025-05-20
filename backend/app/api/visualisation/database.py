@@ -290,6 +290,34 @@ def get_db():
         log_connection_details("session_close", "completed", {"session_id": id(db)})
 
 
+# Define a proper FastAPI dependency function (not a context manager)
+def get_db_session():
+    """
+    FastAPI dependency for getting a database session.
+    This function should be used with FastAPI's Depends() mechanism.
+    """
+    if not SessionLocal:
+        logger.error("Visualisation DB - SessionLocal not initialized. Cannot get DB session.")
+        if ALLOW_DB_FAILURE and try_initialize_database(): # Attempt re-init
+             logger.info("Visualisation DB - Re-initialization attempt made for get_db_session.")
+        else:
+            # If SessionLocal is None even after re-init attempt (or if not allowed), raise critical error.
+            raise Exception("Database not initialized for visualisation module. SessionLocal is None.")
+    
+    db = SessionLocal()
+    try:
+        log_connection_details("session_start", "attempted", {"session_id": id(db), "type": "dependency"})
+        yield db
+        log_connection_details("session_end", "success", {"session_id": id(db), "type": "dependency"})
+    except Exception as e:
+        log_connection_details("session_error", "failed", {"session_id": id(db), "error": str(e), "type": "dependency"})
+        db.rollback() # Rollback on error
+        raise
+    finally:
+        db.close()
+        log_connection_details("session_close", "completed", {"session_id": id(db), "type": "dependency"})
+
+
 def execute_query(query_str, params=None, timeout=30, max_retries=2):
     """
     Execute a raw SQL query and return the results as a list of dictionaries.

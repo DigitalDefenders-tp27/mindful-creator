@@ -7,7 +7,7 @@ import sys
 import os
 
 from . import data_processors
-from .database import ALLOW_DB_FAILURE, get_db
+from .database import ALLOW_DB_FAILURE, get_db, get_db_session
 from sqlalchemy.orm import Session
 
 # Setup logging
@@ -43,13 +43,15 @@ async def visualisation_health() -> Dict[str, Any]:
     }
 
 @router.get("/screen-time-emotions")
-async def get_screen_time_emotions(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_screen_time_emotions(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Get data for screen time vs emotions chart
     """
     logger.info("API request: screen-time-emotions")
     try:
+        # Using get_db_session - this now yields a proper session directly
         data = data_processors.process_screen_time_emotions(db)
+            
         logger.info("Successfully processed screen time emotions data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -69,13 +71,15 @@ async def get_screen_time_emotions(db: Session = Depends(get_db)) -> Dict[str, A
             )
 
 @router.get("/sleep-quality")
-async def get_sleep_quality(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_sleep_quality(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Get data for digital habits vs sleep quality chart
     """
     logger.info("API request: sleep-quality")
     try:
+        # Using get_db_session
         data = data_processors.process_sleep_data(db)
+            
         logger.info("Successfully processed sleep data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -95,13 +99,15 @@ async def get_sleep_quality(db: Session = Depends(get_db)) -> Dict[str, Any]:
             )
 
 @router.get("/engagement")
-async def get_engagement(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_engagement(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Get data for engagement metrics chart
     """
     logger.info("API request: engagement")
     try:
+        # Using get_db_session
         data = data_processors.process_engagement_data(db)
+            
         logger.info("Successfully processed engagement data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -121,13 +127,15 @@ async def get_engagement(db: Session = Depends(get_db)) -> Dict[str, Any]:
             )
 
 @router.get("/anxiety")
-async def get_anxiety(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_anxiety(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Get data for screen time vs anxiety chart
     """
     logger.info("API request: anxiety")
     try:
+        # Using get_db_session
         data = data_processors.process_anxiety_data(db)
+            
         logger.info("Successfully processed anxiety data")
         return JSONResponse(content=data)
     except Exception as e:
@@ -147,7 +155,7 @@ async def get_anxiety(db: Session = Depends(get_db)) -> Dict[str, Any]:
             )
 
 @router.get("/all-chart-data")
-async def get_all_chart_data(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_all_chart_data(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Get data for all charts in a single request
     """
@@ -156,6 +164,7 @@ async def get_all_chart_data(db: Session = Depends(get_db)) -> Dict[str, Any]:
     results = {}
     errors = []
     
+    # Using get_db_session directly provides a session, no need for context manager handling
     # Try to get each dataset separately, so one failure doesn't break all
     try:
         results["screenTimeEmotions"] = data_processors.process_screen_time_emotions(db)
@@ -207,7 +216,7 @@ async def test_endpoint() -> Dict[str, Any]:
     return {"status": "ok", "message": "Visualisation API is working correctly"}
 
 @router.get("/db-test")
-async def test_database(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def test_database(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Test endpoint to verify database connectivity
     """
@@ -215,7 +224,7 @@ async def test_database(db: Session = Depends(get_db)) -> Dict[str, Any]:
     return data_processors.test_database_connection()
 
 @router.get("/connection-test")
-async def connection_test(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def connection_test(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Comprehensive connection test endpoint that logs detailed information
     """
@@ -283,30 +292,12 @@ async def connection_test(db: Session = Depends(get_db)) -> Dict[str, Any]:
         }
 
 @router.get("/debug-data-schema")
-async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[str, Any]:
+async def debug_data_schema(db: Session = Depends(get_db_session)) -> Dict[str, Any]:
     """
     Debug endpoint to examine data schemas for all charts
     """
     logger.info("API request: debug-data-schema")
-    logger.info(f"debug-data-schema: Received db_context_manager of type: {type(db_context_manager)}")
-
-    actual_db_session = None
-    if hasattr(db_context_manager, '__enter__') and hasattr(db_context_manager, '__exit__'):
-        logger.info("debug-data-schema: db_context_manager appears to be a context manager, attempting to enter.")
-        try:
-            actual_db_session = db_context_manager.__enter__() # Manually enter if it's a CM
-        except Exception as e_cm_enter:
-            logger.error(f"debug-data-schema: Error entering context manager: {e_cm_enter}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Failed to obtain DB session from context manager.")
-    else:
-        logger.info("debug-data-schema: db_context_manager does not appear to be a context manager, using directly.")
-        actual_db_session = db_context_manager # Assume it's already a session
-
-    if not actual_db_session:
-        logger.error("debug-data-schema: Failed to obtain a valid database session.")
-        raise HTTPException(status_code=500, detail="Failed to obtain database session.")
-    
-    logger.info(f"debug-data-schema: actual_db_session type after handling: {type(actual_db_session)}")
+    logger.info(f"debug-data-schema: Received db_session of type: {type(db)}")
 
     try:
         train_data_sample = None
@@ -322,6 +313,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
         ]
         
         # Updated list of all SmmhCleaned ORM attribute names based on the new schema
+        # ISSUE: We only requested one column (timestamp_val) which isn't enough for the charts
         smmh_cleaned_all_orm_attrs = [
             "timestamp_val", 
             "q1_age", "q2_gender", "q3_relationship_status", "q4_occupation_status",
@@ -335,7 +327,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
         ]
         
         try:
-            train_data_list = data_processors.get_train_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=train_cleaned_all_orm_attrs)
+            train_data_list = data_processors.get_train_cleaned_data_orm(db, limit=1, columns_to_load=train_cleaned_all_orm_attrs)
             logger.info(f"debug-data-schema: train_data_list from ORM: {train_data_list}")
             if train_data_list and len(train_data_list) > 0:
                 train_data_sample = train_data_list[0]
@@ -364,7 +356,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             
             logger.info(f"debug-data-schema: Requesting columns for SMMH: {smmh_required_columns}")
 
-            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_required_columns)
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(db, limit=1, columns_to_load=smmh_required_columns)
             logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
@@ -383,7 +375,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
         chart_shapes = {}
         
         try:
-            screen_time_emotions_data = data_processors.process_screen_time_emotions(actual_db_session)
+            screen_time_emotions_data = data_processors.process_screen_time_emotions(db)
             chart_shapes["screen_time_emotions"] = {
                 "labels_count": len(screen_time_emotions_data.get("labels", [])),
                 "datasets_count": len(screen_time_emotions_data.get("datasets", [])),
@@ -393,7 +385,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             chart_shapes["screen_time_emotions"] = {"error": str(e)}
             
         try:
-            sleep_data = data_processors.process_sleep_data(actual_db_session)
+            sleep_data = data_processors.process_sleep_data(db)
             chart_shapes["sleep_quality"] = {
                 "labels_count": len(sleep_data.get("labels", [])),
                 "datasets_count": len(sleep_data.get("datasets", [])),
@@ -403,7 +395,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             chart_shapes["sleep_quality"] = {"error": str(e)}
             
         try:
-            engagement_data = data_processors.process_engagement_data(actual_db_session)
+            engagement_data = data_processors.process_engagement_data(db)
             chart_shapes["engagement"] = {
                 "labels_count": len(engagement_data.get("labels", [])),
                 "datasets_count": len(engagement_data.get("datasets", [])),
@@ -413,7 +405,7 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             chart_shapes["engagement"] = {"error": str(e)}
             
         try:
-            anxiety_data = data_processors.process_anxiety_data(actual_db_session)
+            anxiety_data = data_processors.process_anxiety_data(db)
             chart_shapes["anxiety"] = {
                 "labels_count": len(anxiety_data.get("labels", [])),
                 "datasets_count": len(anxiety_data.get("datasets", [])),
@@ -429,10 +421,9 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             "train_cleaned_sample": train_data_sample,
             "smmh_cleaned_sample": smmh_data_sample
         }
-    finally:
-        if hasattr(db_context_manager, '__exit__') and actual_db_session is not None: # Check if we entered it
-            logger.info("debug-data-schema: Exiting context manager manually.")
-            try:
-                db_context_manager.__exit__(None, None, None) # Manually exit
-            except Exception as e_cm_exit:
-                logger.error(f"debug-data-schema: Error exiting context manager: {e_cm_exit}", exc_info=True) 
+    except Exception as e:
+        logger.error(f"Error in debug_data_schema: {e}", exc_info=True)
+        return {
+            "error": str(e),
+            "message": "An error occurred while examining data schema"
+        } 
