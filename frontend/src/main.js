@@ -23,7 +23,7 @@ app.use(VueGoogleMaps, {
 })
 
 app.config.globalProperties.$api = {
-  baseURL: 'https://api.tiezhu.org',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org',
   async getInfluencerGuide() {
     const response = await fetch(`${this.baseURL}/api/influencer-guide`)
     return response.json()

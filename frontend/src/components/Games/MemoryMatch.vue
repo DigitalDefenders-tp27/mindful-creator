@@ -40,9 +40,9 @@
             <div class="card-front"></div>
             <div class="card-back">
               <img 
-                :src="`${API_BASE_URL}/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                :src="getCardImagePath(card_iter)" 
                 alt="Meme card" 
-                @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
+                @error="handleImageError($event)"
               >
             </div>
           </div>
@@ -64,8 +64,8 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="`${API_BASE_URL}/api/games/memory_match/images/${currentModalMeme.image_name}`"
-                @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
+                :src="getModalImagePath(currentModalMeme)" 
+                @error="handleImageError($event)"
                 class="modal-meme-image-single new-modal-meme-image"
               >
               <p class="meme-identifier new-meme-identifier">Meme {{ currentModalMemeIndex + 1 }}</p>
@@ -158,6 +158,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Removed: import router from '@/router';
 // Removed: import { showConfetti } from '@/utils/confetti';
 
+// TypeScript declaration for Vite environment variables
+declare interface ImportMeta {
+  readonly env: {
+    readonly VITE_BACKEND_URL?: string;
+    [key: string]: any;
+  }
+}
+
 // const gameStore = useGameStore(); // Removed
 
 // Game levels and their configurations
@@ -187,17 +195,21 @@ const currentModalMemeIndex = ref(0);
 // New state variables for dramatic warning popups
 const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
+// Get backend API address from environment variables
+const API_BASE_URL = (import.meta as any).env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
 
-// Hard-coded backend API address
-const API_BASE_URL = 'https://api.tiezhu.org';
 
-// Define emits
-const emit = defineEmits(['game-completed', 'exit-game']);
+// Define component events
+const emit = defineEmits<{
+  'game-completed': [] // Event emitted when game is completed
+  'exit-game': [] // Event emitted when player exits the game
+}>();
 
 interface MemeData {
   id: any;
   image_name: string;
-  image_url: string;
+  image_url?: string;
+  image_path?: string;
   // text: string;
   humour?: string;
   sarcasm?: string;
@@ -207,7 +219,8 @@ interface MemeData {
 }
 
 interface Card {
-  id: number;
+  id: string | number;
+  pairId?: number | string | any;
   memeData: MemeData;
   isFlipped: boolean;
   isMatched: boolean;
@@ -276,43 +289,102 @@ async function initializeGameFromBackend() {
   currentModalMemeIndex.value = 0;
 
   try {
-    console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
-    const response = await fetch(`${API_BASE_URL}/api/games/memory_match/initialize_game`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ level: currentLevel.value }),
+    console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value}`);
+    
+    const level = currentLevel.value;
+    console.log('Accessing /api/games/memory_match/initialize_game');
+    
+    // Use a direct URL to the backend instead of BASE_API_URL
+    const url = `https://mindful-creator-production.up.railway.app/api/games/memory_match/initialize_game?level=${level}`;
+    console.log(`Sending GET request: ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      mode: 'cors'
     });
-
+    console.log(`API response status code: ${response.status}`);
+    
+    // Check HTTP status code
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: "Failed to parse error response." }));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      // Try to read response text for more error information
+      let errorDetail = '';
+      try {
+        // Check content type first
+        const contentType = response.headers.get('content-type');
+        console.log(`Response content type: ${contentType}`);
+        
+        if (contentType && contentType.includes('application/json')) {
+          const errorJson = await response.json();
+          errorDetail = errorJson.detail || 'No detailed error information provided';
+        } else {
+          // If not JSON, read as text for debugging
+          const textResponse = await response.text();
+          console.error(`Non-JSON response: ${textResponse.substring(0, 100)}...`);
+          errorDetail = `Server returned non-JSON response (${response.status})`;
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        errorDetail = await response.text() || `HTTP error ${response.status}`;
+      }
+      
+      throw new Error(`API request failed, status code: ${response.status}. ${errorDetail}`);
     }
-
-    const memesFromApi: MemeData[] = await response.json();
-    console.log('Memes received from API:', memesFromApi);
-
-    if (memesFromApi.length < levels[currentLevel.value].pairs) {
-      throw new Error(`Not enough memes. Expected ${levels[currentLevel.value].pairs}, got ${memesFromApi.length}.`);
+    
+    // Check content type before parsing JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error(`Response content type is not JSON: ${contentType}`);
+      const textResponse = await response.text();
+      console.error(`Non-JSON response: ${textResponse.substring(0, 100)}...`);
+      throw new Error(`Server returned a non-JSON format response: ${contentType}`);
     }
-
-    const gameCards: Card[] = [];
-    const memesForLevel = memesFromApi.slice(0, levels[currentLevel.value].pairs);
-
-    gameMemesForModal.value = [...memesForLevel];
-
-    memesForLevel.forEach((meme, index) => {
-      gameCards.push({ id: index * 2, memeData: meme, isFlipped: false, isMatched: false });
-      gameCards.push({ id: index * 2 + 1, memeData: meme, isFlipped: false, isMatched: false });
-    });
-
-    cards.value = shuffleArray(gameCards);
-    console.log('Shuffled cards ready:', cards.value);
-
-  } catch (error: any) {
-    console.error('Error initializing game:', error);
-    errorMessage.value = error.message || "An unknown error occurred.";
-    stopGame();
-  } finally {
+    
+    // Parse response data
+    const memeData = await response.json();
+    if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
+      throw new Error("API did not return valid card data");
+    }
+    
+    console.log(`Successfully received ${memeData.length} card images`);
+    
+    // Store card data for victory modal
+    gameMemesForModal.value = [...memeData];
+    currentModalMemeIndex.value = 0;
+    
+    // Create card pairs
+    const pairs: Card[] = [];
+    for (const meme of memeData) {
+      // Ensure image path is set correctly
+      if (meme.image_name) {
+        // Set the image path to the API endpoint
+        meme.image_path = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+      }
+      
+      // Create a pair for each card
+      for (let i = 0; i < 2; i++) {
+        pairs.push({
+          id: `${meme.id}-${i}`,
+          pairId: meme.id,
+          memeData: meme,
+          isFlipped: false,
+          isMatched: false
+        });
+      }
+    }
+    
+    // Shuffle
+    const shuffled = shuffleArray(pairs);
+    cards.value = shuffled;
+    
+    isLoading.value = false;
+    
+  } catch (error) {
+    console.error("Game initialization failed:", error);
+    errorMessage.value = `Game loading failed: ${error.message}. Please try again later.`;
     isLoading.value = false;
   }
 }
@@ -546,6 +618,51 @@ watch(currentLevel, (newLevel) => {
     matchedPairs.value = 0;
   }
 });
+
+// Update image path helper functions
+function getCardImagePath(card: Card) {
+  // Use API path if available
+  if (card.memeData.image_path) {
+    return card.memeData.image_path;
+  }
+  
+  // Try with image_name if available
+  if (card.memeData.image_name) {
+    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${card.memeData.image_name}`;
+  }
+  
+  // Default to error placeholder if API fails
+  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+}
+
+function getModalImagePath(meme: MemeData | null) {
+  if (!meme) return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  
+  // Use API path if available
+  if (meme.image_path) {
+    return meme.image_path;
+  }
+  
+  // Try with image_name if available
+  if (meme.image_name) {
+    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+  }
+  
+  // Default to error placeholder if API fails
+  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+}
+
+// Update error handler
+function handleImageError(event: Event) {
+  const target = event.target as HTMLImageElement;
+  console.error(`Failed to load image: ${target.src}`);
+  
+  // Set a consistent error image
+  target.src = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  
+  // If the error persists and affects gameplay, we could show an error message
+  // errorMessage.value = "Failed to load game images. Please try again later.";
+}
 
 </script>
 

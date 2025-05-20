@@ -36,7 +36,7 @@ const comments = ref([])
 
 const fetchComments = async (videoId) => {
   try {
-    const response = await fetch(`https://gleaming-celebration.railway.internal/api/comments/${videoId}`)
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/comments/${videoId}`)
     const data = await response.json()
     comments.value = data
   } catch (error) {

@@ -32,105 +32,35 @@
       <h2 class="section-title">License Information Cards</h2>
       <p class="section-description">Hover to see copyright permissions instantly</p>
       
+      <!-- Mobile Modal Overlay -->
+      <div v-if="showLicenseModal" class="license-modal-overlay" @click="closeLicenseModal">
+        <div class="license-modal-card">
+          <div class="modal-icon">{{ activeLicenseCard.icon }}</div>
+          <div class="modal-title">{{ activeLicenseCard.title }}</div>
+          <div class="modal-subtitle">{{ activeLicenseCard.subtitle }}</div>
+          <ul class="modal-details">
+            <li v-for="(item, idx) in activeLicenseCard.details" :key="idx" :class="item.type">{{ item.text }}</li>
+          </ul>
+          <div class="modal-tap-to-close">Tap anywhere to close</div>
+        </div>
+      </div>
+
       <div class="license-grid">
-        <!-- CC BY Card -->
-        <div class="license-card">
+        <!-- Use v-for for mobile, static for desktop/tablet -->
+        <div v-for="(card, idx) in licenseCards" :key="idx"
+          class="license-card"
+          @click="openLicenseModal(card)"
+          @touchstart="openLicenseModal(card)"
+        >
           <div class="card-front">
-            <div class="license-icon">©️</div>
-            <div class="license-title">CC BY</div>
-            <div class="license-subtitle">Attribution</div>
+            <div class="license-icon">{{ card.icon }}</div>
+            <div class="license-title">{{ card.title }}</div>
+            <div class="license-subtitle">{{ card.subtitle }}</div>
           </div>
+          <!-- Hide card-back on mobile, show on desktop/tablet -->
           <div class="card-back">
             <ul class="license-details">
-              <li class="allowed">Commercial use allowed</li>
-              <li class="allowed">Modification allowed</li>
-              <li class="allowed">Free distribution</li>
-              <li class="required">Must credit author</li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- CC BY-NC Card -->
-        <div class="license-card">
-          <div class="card-front">
-            <div class="license-icon">🚫</div>
-            <div class="license-title">CC BY-NC</div>
-            <div class="license-subtitle">Non-Commercial</div>
-          </div>
-          <div class="card-back">
-            <ul class="license-details">
-              <li class="prohibited">No commercial use</li>
-              <li class="allowed">Modification allowed</li>
-              <li class="allowed">Educational sharing OK</li>
-              <li class="required">Must credit author</li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- CC BY-SA Card -->
-        <div class="license-card">
-          <div class="card-front">
-            <div class="license-icon">🔄</div>
-            <div class="license-title">CC BY-SA</div>
-            <div class="license-subtitle">ShareAlike</div>
-          </div>
-          <div class="card-back">
-            <ul class="license-details">
-              <li class="allowed">Commercial use allowed</li>
-              <li class="allowed">Modification allowed</li>
-              <li class="required">Derivatives use same license</li>
-              <li class="required">Must credit author</li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- Public Domain Card -->
-        <div class="license-card">
-          <div class="card-front">
-            <div class="license-icon">🌐</div>
-            <div class="license-title">Public Domain</div>
-            <div class="license-subtitle">No Copyright</div>
-          </div>
-          <div class="card-back">
-            <ul class="license-details">
-              <li class="allowed">Completely free to use</li>
-              <li class="allowed">No attribution needed</li>
-              <li class="allowed">Unlimited commercial use</li>
-              <li class="info">Copyright expired works</li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- All Rights Reserved Card -->
-        <div class="license-card">
-          <div class="card-front">
-            <div class="license-icon">🔒</div>
-            <div class="license-title">All Rights Reserved</div>
-            <div class="license-subtitle">Full Copyright</div>
-          </div>
-          <div class="card-back">
-            <ul class="license-details">
-              <li class="prohibited">No unauthorized use</li>
-              <li class="prohibited">No modification or distribution</li>
-              <li class="required">Explicit permission required</li>
-              <li class="info">Contact copyright holder</li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- Fair Use Card -->
-        <div class="license-card">
-          <div class="card-front">
-            <div class="license-icon">⚖️</div>
-            <div class="license-title">Fair Use</div>
-            <div class="license-subtitle">Limited Use</div>
-          </div>
-          <div class="card-back">
-            <ul class="license-details">
-              <li class="info">Educational purposes</li>
-              <li class="info">News reporting</li>
-              <li class="info">Court evidence</li>
-              <li class="required">Case-by-case determination</li>
+              <li v-for="(item, i) in card.details" :key="i" :class="item.type">{{ item.text }}</li>
             </ul>
           </div>
         </div>
@@ -146,6 +76,7 @@
         <div class="preview-section">
           <div class="image-watermark-disclaimer">
             <p><strong>Reminder:</strong> Only apply watermarks to your own original content. Using watermarks on images you don't own is not permissible.</p>
+            <p><strong>Legal Notice:</strong> The watermark generator and license cards are designed strictly for legal use. Please ensure you comply with all applicable copyright laws and only use these tools for lawful purposes.</p>
           </div>
           <div class="image-preview">
             <div v-if="!uploadedImage" class="placeholder-upload" @click="triggerFileUpload">
@@ -378,6 +309,88 @@ const licenseOptions = [
   { label: 'CC BY-SA', value: 'cc-by-sa' }
 ];
 
+// License card modal data for mobile
+const licenseCards = [
+  {
+    icon: '©️',
+    title: 'CC BY',
+    subtitle: 'Attribution',
+    details: [
+      { text: 'Commercial use allowed', type: 'allowed' },
+      { text: 'Modification allowed', type: 'allowed' },
+      { text: 'Free distribution', type: 'allowed' },
+      { text: 'Must credit author', type: 'required' }
+    ]
+  },
+  {
+    icon: '🚫',
+    title: 'CC BY-NC',
+    subtitle: 'Non-Commercial',
+    details: [
+      { text: 'No commercial use', type: 'prohibited' },
+      { text: 'Modification allowed', type: 'allowed' },
+      { text: 'Educational sharing OK', type: 'allowed' },
+      { text: 'Must credit author', type: 'required' }
+    ]
+  },
+  {
+    icon: '🔄',
+    title: 'CC BY-SA',
+    subtitle: 'ShareAlike',
+    details: [
+      { text: 'Commercial use allowed', type: 'allowed' },
+      { text: 'Modification allowed', type: 'allowed' },
+      { text: 'Derivatives use same license', type: 'required' },
+      { text: 'Must credit author', type: 'required' }
+    ]
+  },
+  {
+    icon: '🌐',
+    title: 'Public Domain',
+    subtitle: 'No Copyright',
+    details: [
+      { text: 'Completely free to use', type: 'allowed' },
+      { text: 'No attribution needed', type: 'allowed' },
+      { text: 'Unlimited commercial use', type: 'allowed' },
+      { text: 'Copyright expired works', type: 'info' }
+    ]
+  },
+  {
+    icon: '🔒',
+    title: 'All Rights Reserved',
+    subtitle: 'Full Copyright',
+    details: [
+      { text: 'No unauthorized use', type: 'prohibited' },
+      { text: 'No modification or distribution', type: 'prohibited' },
+      { text: 'Explicit permission required', type: 'required' },
+      { text: 'Contact copyright holder', type: 'info' }
+    ]
+  },
+  {
+    icon: '⚖️',
+    title: 'Fair Use',
+    subtitle: 'Limited Use',
+    details: [
+      { text: 'Educational purposes', type: 'info' },
+      { text: 'News reporting', type: 'info' },
+      { text: 'Court evidence', type: 'info' },
+      { text: 'Case-by-case determination', type: 'required' }
+    ]
+  }
+];
+
+const showLicenseModal = ref(false);
+const activeLicenseCard = ref(null);
+
+function openLicenseModal(card) {
+  activeLicenseCard.value = card;
+  showLicenseModal.value = true;
+}
+function closeLicenseModal() {
+  showLicenseModal.value = false;
+  activeLicenseCard.value = null;
+}
+
 // Font options
 const fontOptions = [
   { label: 'Arial', value: 'Arial, sans-serif' },
@@ -416,6 +429,68 @@ const isSuccess = ref(false);
 // Canvas for creating transparent watermark
 const transparentCanvas = ref(null);
 const transparentCtx = ref(null);
+
+// Add these constants at the top of the script setup section
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_IMAGE_DIMENSIONS = {
+  width: 4096,
+  height: 4096
+};
+const MIN_IMAGE_DIMENSIONS = {
+  width: 100,
+  height: 100
+};
+
+// Add these validation functions before handleFileUpload
+const validateFileSize = (file) => {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+  }
+};
+
+const validateFileType = (file) => {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error(`Only ${ALLOWED_IMAGE_TYPES.map(type => type.split('/')[1].toUpperCase()).join(', ')} files are allowed`);
+  }
+};
+
+const validateImageDimensions = (width, height) => {
+  if (width > MAX_IMAGE_DIMENSIONS.width || height > MAX_IMAGE_DIMENSIONS.height) {
+    throw new Error(`Image dimensions must not exceed ${MAX_IMAGE_DIMENSIONS.width}x${MAX_IMAGE_DIMENSIONS.height} pixels`);
+  }
+  if (width < MIN_IMAGE_DIMENSIONS.width || height < MIN_IMAGE_DIMENSIONS.height) {
+    throw new Error(`Image dimensions must be at least ${MIN_IMAGE_DIMENSIONS.width}x${MIN_IMAGE_DIMENSIONS.height} pixels`);
+  }
+};
+
+const validateImageContent = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const arr = new Uint8Array(e.target.result).subarray(0, 4);
+      const header = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      // Check file signatures (magic numbers)
+      const signatures = {
+        '89504e47': 'image/png',
+        'ffd8ffe0': 'image/jpeg',
+        'ffd8ffe1': 'image/jpeg',
+        '47494638': 'image/gif',
+        '52494646': 'image/webp'
+      };
+      
+      const mimeType = signatures[header];
+      if (!mimeType || mimeType !== file.type) {
+        reject(new Error('Invalid image file or file type mismatch'));
+      } else {
+        resolve();
+      }
+    };
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsArrayBuffer(file);
+  });
+};
 
 // Copyright text based on inputs
 const copyrightText = computed(() => {
@@ -543,39 +618,63 @@ const triggerFileUpload = () => {
   fileInput.value.click();
 };
 
-// Handle file upload
-const handleFileUpload = (event) => {
+// Replace the existing handleFileUpload function with this updated version
+const handleFileUpload = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
   
-  // Only process image files
-  if (!file.type.match('image.*')) {
-    errorMessage.value = 'Please select an image file.';
+  try {
+    // Clear previous messages
+    errorMessage.value = '';
+    statusMessage.value = '';
     isSuccess.value = false;
-    return;
-  }
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      // Store original image for processing
-      originalImage.value = img;
-      uploadedImage.value = true;
-      
-      // Draw image on canvas with watermark
-      nextTick(() => {
-        updateWatermark();
-      });
+
+    // Validate file size
+    validateFileSize(file);
+    
+    // Validate file type
+    validateFileType(file);
+    
+    // Validate image content
+    await validateImageContent(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Validate image dimensions
+        validateImageDimensions(img.width, img.height);
+        
+        // Store original image for processing
+        originalImage.value = img;
+        uploadedImage.value = true;
+        
+        // Draw image on canvas with watermark
+        nextTick(() => {
+          updateWatermark();
+        });
+        
+        statusMessage.value = 'Image uploaded successfully';
+        isSuccess.value = true;
+      };
+      img.onerror = () => {
+        throw new Error('Failed to load image');
+      };
+      img.src = e.target.result;
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-  
-  // Clear any previous error messages
-  errorMessage.value = '';
-  statusMessage.value = 'Image uploaded successfully';
-  isSuccess.value = true;
+    reader.onerror = () => {
+      throw new Error('Error reading file');
+    };
+    reader.readAsDataURL(file);
+    
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    errorMessage.value = error.message;
+    isSuccess.value = false;
+    uploadedImage.value = null;
+    originalImage.value = null;
+    fileInput.value.value = '';
+  }
 };
 
 // Update watermark on canvas
@@ -655,7 +754,9 @@ const createTransparentWatermark = async () => {
       originalImage.value.width,
       originalImage.value.height,
       watermarkPosition.value,
-      watermarkSize.value
+      watermarkSize.value,
+      watermarkColor.value,
+      selectedFont.value
     );
     
     statusMessage.value = 'SVG watermark created successfully!';
@@ -796,7 +897,8 @@ const downloadTransparentWatermark = async () => {
       originalImage.value ? originalImage.value.height : 600,
       watermarkPosition.value,
       watermarkSize.value,
-      watermarkColor.value // Pass the current color
+      watermarkColor.value,
+      selectedFont.value
     );
     
     // Create download link
@@ -853,6 +955,12 @@ const selectColor = (color) => {
 const handleColorChange = (event) => {
   watermarkColor.value = event.target.value;
   updateWatermark();
+};
+
+// Add this to your script setup section
+const handleCardTouch = (event) => {
+  const card = event.currentTarget;
+  card.classList.toggle('flipped');
 };
 </script>
 
@@ -1042,7 +1150,7 @@ const handleColorChange = (event) => {
 
 .license-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   margin-top: 2rem;
 }
@@ -1158,6 +1266,142 @@ const handleColorChange = (event) => {
   font-weight: bold;
   position: absolute;
   left: 0;
+}
+
+/* Mobile-friendly styles for license cards */
+@media (max-width: 768px) {
+  .license-cards-section {
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .section-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  .license-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .license-card {
+    height: 250px;
+    min-height: 250px;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1.5rem;
+  }
+
+  .card-front {
+    background-color: #fff;
+    z-index: 2;
+  }
+
+  .card-back {
+    background-color: #dbff00;
+    transform: rotateY(180deg);
+    z-index: 1;
+  }
+
+  /* Touch-based flip */
+  .license-card.flipped .card-front {
+    transform: rotateY(180deg);
+  }
+
+  .license-card.flipped .card-back {
+    transform: rotateY(0);
+  }
+
+  .license-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .license-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .license-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .license-details li {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    padding-left: 1.25rem;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .license-cards-section {
+    padding: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+  }
+
+  .section-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .license-card {
+    height: 220px;
+    min-height: 220px;
+  }
+
+  .card-front, .card-back {
+    padding: 1.25rem;
+  }
+
+  .license-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .license-title {
+    font-size: 1.3rem;
+  }
+
+  .license-subtitle {
+    font-size: 1rem;
+  }
+
+  .license-details li {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    padding-left: 1.1rem;
+  }
+}
+
+/* Remove the touch-friendly styles that disabled flip */
+@media (hover: none) {
+  .license-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .card-front, .card-back {
+    backface-visibility: hidden;
+  }
 }
 
 /* Copyright Generator Section */
@@ -2265,5 +2509,126 @@ button:disabled {
   margin-top: 0.25rem;
   margin-bottom: 1rem;
   /* Other styles are inherited from .action-button.secondary-button */
+}
+
+/* Add modal styles and adjust mobile card grid */
+@media (max-width: 480px) {
+  .license-cards-section {
+    padding: 0.75rem;
+  }
+  .section-title {
+    font-size: 1.8rem;
+  }
+  .section-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .license-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .license-card {
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0 1.2rem;
+    transition: box-shadow 0.2s;
+  }
+  .license-card:active {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .card-front {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: none;
+    padding: 0;
+    position: static;
+    z-index: 1;
+  }
+  .license-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+  }
+  .license-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 0;
+  }
+  .license-subtitle {
+    display: none;
+  }
+  .card-back, .license-details {
+    display: none !important;
+  }
+  .license-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  .license-modal-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 2rem 1.5rem 1.2rem 1.5rem;
+    max-width: 90vw;
+    width: 340px;
+    text-align: center;
+    position: relative;
+    animation: popIn 0.2s;
+  }
+  .modal-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+  }
+  .modal-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+  }
+  .modal-subtitle {
+    font-size: 1.05rem;
+    color: #666;
+    margin-bottom: 1.1rem;
+  }
+  .modal-details {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.2rem;
+    text-align: left;
+  }
+  .modal-details li {
+    margin-bottom: 0.7rem;
+    font-size: 1rem;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .modal-tap-to-close {
+    font-size: 0.95rem;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
+  }
 }
 </style> 

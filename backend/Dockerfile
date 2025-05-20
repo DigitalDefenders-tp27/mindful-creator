@@ -3,7 +3,9 @@ FROM python:3.11-slim
 # Set environment variables to prevent interactive prompts during apt-get install
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONFAULTHANDLER=1
 
+# Set working directory
 WORKDIR /app
 
 # ---------- Install git & git-lfs ----------
@@ -19,9 +21,10 @@ RUN apt-get update && \
 
 # ---------- Python deps ----------
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir tenacity>=8.2.0 psycopg2-binary>=2.9.6 httpx>=0.24.0
 
-# 下载一次并持久化
+# ---------- Download BERT model ----------
 RUN python - <<PY
 from transformers import AutoModel, AutoTokenizer
 m = AutoModel.from_pretrained("bert-base-uncased")
@@ -35,20 +38,7 @@ RUN mkdir -p /app/nlp && \
     git clone --depth 1 https://huggingface.co/spaces/Jet-12138/CommentResponse /app/nlp && \
     cd /app/nlp && git lfs pull && rm -rf .git && \
     echo "NLP model cloned to $(pwd)" && \
-    ls -la /app/nlp && \
-    # Ensure bert-base-uncased is available, if CommentResponse doesn't bundle it directly
-    # This step might be redundant if CommentResponse includes BERT, or if TOKENIZER_DIR points correctly
-    if [ ! -d "/app/bert-base-uncased" ]; then \
-        echo "bert-base-uncased not found, attempting to download..."; \
-        python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('bert-base-uncased').save_pretrained('/app/bert-base-uncased')"; \
-        ls -la /app/bert-base-uncased; \
-    else \
-        echo "bert-base-uncased already present."; \
-    fi
-
-# ---------- App source ----------
-COPY railway_startup.sh .
-RUN chmod +x railway_startup.sh
+    ls -la /app/nlp
 
 # --- Kaggle API Setup & Download ---
 # This step expects kaggle.json to be in the build context (backend directory)
@@ -59,33 +49,48 @@ RUN chmod 600 /root/.kaggle/kaggle.json
 # Create a directory for the memes and download them
 RUN mkdir -p /app/meme_images
 WORKDIR /app/meme_images
-# Download the dataset. Ensure 'williamscott701/memotion-dataset-7k' is correct.
+# Download the dataset
 RUN echo "Current directory before Kaggle download: $(pwd)" && \
     kaggle datasets download -d williamscott701/memotion-dataset-7k --unzip -p . && \
-    echo "Contents of /app/meme_images after Kaggle download and unzip (initial listing):" && \
+    echo "Contents of /app/meme_images after Kaggle download and unzip:" && \
     ls -laR . && \
     # Check for the new expected path: memotion_dataset_7k/images
     if [ -d "memotion_dataset_7k/images" ]; then \
         echo "Found images in memotion_dataset_7k/images/. Moving contents..."; \
         mv memotion_dataset_7k/images/* .; \
-        echo "Cleaning up memotion_dataset_7k directory structure..."; \
         rm -rf memotion_dataset_7k; \
-        echo "Contents of /app/meme_images after moving from memotion_dataset_7k/images:" && \
-        ls -laR .; \
-    # Fallback for a direct 'images' subdirectory (older structure?)
+    # Fallback for a direct 'images' subdirectory
     elif [ -d "images" ]; then \
         echo "Found images in a direct 'images' subdirectory. Moving contents..."; \
         mv images/* .; \
         rm -rf images; \
-        echo "Contents of /app/meme_images after moving from direct 'images' subdir:" && \
-        ls -laR .; \
     else \
-        echo "Images are expected to be directly in /app/meme_images or no known subdirectory structure was found. No move operation performed."; \
-        # This assumes images are already in the root of /app/meme_images if the above conditions are not met.
+        echo "Images are expected to be directly in /app/meme_images."; \
     fi
-WORKDIR /app # Switch back to the main app directory
-# --- End Kaggle Download ---
 
+# Return to the main app directory
+WORKDIR /app
+
+# Copy startup script first and make it executable
+COPY railway_startup.sh .
+RUN chmod +x railway_startup.sh
+
+# Copy the application code
 COPY . .
-# EXPOSE 8080
-ENTRYPOINT ["bash", "railway_startup.sh"]
+
+# Create necessary directories
+RUN mkdir -p /app/datasets/meme && \
+    cp -r /app/meme_images/* /app/datasets/meme/ || true
+
+# Verify Python module structure
+RUN ls -la /app && \
+    ls -la /app/app || echo "No /app/app directory found" && \
+    echo "Final directory structure:" && \
+    find /app -type d -maxdepth 2 | sort && \
+    echo "Python path: $PYTHONPATH"
+
+# Make sure Python can find our modules
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+# Run the application
+ENTRYPOINT ["bash", "./railway_startup.sh"]

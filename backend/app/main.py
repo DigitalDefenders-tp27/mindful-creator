@@ -6,9 +6,9 @@ import traceback
 import importlib
 import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.routing import APIRouter
 import datetime
 import uvicorn
@@ -17,25 +17,155 @@ from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import affirmations, breaths, journals, memes, ratings
+from app.routes import data_fetch_orm
+from starlette.middleware.base import BaseHTTPMiddleware
+
 
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
+from app.api.games.routes import router as game_router
+from app.api.games.memory_match import router as memory_match_router
+from app.api.games.memory_match import GameInitRequest # Ensure this import is present
+import httpx
+from starlette.responses import RedirectResponse
 
 # First import only the base router to ensure health check endpoint is available
 # from app.api.router import router as api_router
 from app.api.youtube.routes import router as youtube_router
 
-# Configure logging
+
+
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    level=logging.DEBUG,  # Use DEBUG for more verbose output during startup
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout) # Ensure logs go to stdout
+    ]
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mindful-creator.startup")
+logger.info("Logger configured at DEBUG level for startup.")
+
+logger.info("Starting imports for FastAPI and related modules...")
+try:
+    from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse, HTMLResponse
+    from fastapi.routing import APIRouter
+    import datetime
+    import uvicorn
+    import platform
+    from dotenv import load_dotenv
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.templating import Jinja2Templates
+    logger.info("FastAPI core imports successful.")
+except Exception as e:
+    logger.critical(f"Failed to import FastAPI core components: {e}", exc_info=True)
+    raise
+
+logger.info("Importing application routers...")
+try:
+    from app.routers import affirmations, breaths, journals, memes, ratings
+    from app.routes import data_fetch_orm
+    logger.info("Application-specific routers (affirmations, etc.) imported.")
+except Exception as e:
+    logger.critical(f"Failed to import application-specific routers: {e}", exc_info=True)
+    raise
+
+logger.info("Importing Starlette middleware...")
+try:
+    from starlette.middleware.base import BaseHTTPMiddleware
+    logger.info("Starlette middleware imported.")
+except Exception as e:
+    logger.critical(f"Failed to import Starlette middleware: {e}", exc_info=True)
+    raise
+
+logger.info("Initializing FastAPI app object...")
+app = FastAPI(
+    title="Mindful Creator API",
+    description="API for Mindful Creator platform",
+    version="0.1.0",
+)
+logger.info("FastAPI app object initialized.")
+
+logger.info("Including data_fetch_orm router...")
+try:
+    app.include_router(data_fetch_orm.router, prefix="/api")
+    logger.info("data_fetch_orm router included.")
+except Exception as e:
+    logger.critical(f"Failed to include data_fetch_orm router: {e}", exc_info=True)
+    raise
+
+
+# Optional: CORS middleware
+logger.info("Adding CORS middleware...")
+try:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # You can restrict this to your frontend origin
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    logger.info("CORS middleware added.")
+except Exception as e:
+    logger.critical(f"Failed to add CORS middleware: {e}", exc_info=True)
+    raise
+
+logger.info("Importing API routers (games, health, api, youtube, visualisation)...")
+try:
+    # Explicitly import the games router
+    from app.api.games import router as games_api_router 
+    logger.info("Games API router imported.")
+    # Import routers, with health check router first to ensure it's available early
+    from app.api.health import router as health_router  # Import health check router first
+    logger.info("Health API router imported.")
+    from app.api.router import router as api_router
+    logger.info("Base API router imported.")
+    from app.api.youtube.routes import router as youtube_router
+    logger.info("YouTube API router imported.")
+    from app.api.visualisation.routes import router as visualisation_router
+    logger.info("Visualisation API router imported.")
+    sys.stdout.flush() # Ensure previous log is flushed
+    print("[DEBUG PRINT IN MAIN.PY] Reached point immediately after Visualisation API router import.", file=sys.stderr, flush=True)
+except Exception as e:
+    logger.critical(f"Failed to import one or more API routers: {e}", exc_info=True)
+    raise
+
+logger.info("Loading .env variables...")
+try:
+    load_dotenv()
+    logger.info(".env variables loaded.")
+except Exception as e:
+    logger.warning(f"Failed to load .env file (this might be normal in production): {e}")
+
+
+# Reconfigure logger for the main application if needed, or use the startup logger
+# For consistency, let's ensure the mindful-creator logger also logs to stdout
+app_logger = logging.getLogger("mindful-creator")
+app_logger.setLevel(logging.DEBUG) # Or logging.INFO for less verbosity
+if not any(isinstance(h, logging.StreamHandler) for h in app_logger.handlers):
+    app_logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+logger.info("Checking environment variables...")
+# Check environment variables
+ALLOW_DB_FAILURE = os.getenv("ALLOW_DB_FAILURE", "false").lower() == "true"
+DATABASE_CONNECT_TIMEOUT = int(os.getenv("DATABASE_CONNECT_TIMEOUT", "30"))
+APP_STARTUP_TIMEOUT = int(os.getenv("APP_STARTUP_TIMEOUT", "20")) # This was 20 in user log
+
+# Get and log database URLs
+DATABASE_PUBLIC_URL = os.getenv("DATABASE_PUBLIC_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+logger.info(f"DATABASE_PUBLIC_URL: {'[SET]' if DATABASE_PUBLIC_URL else '[NOT SET]'}")
+logger.info(f"DATABASE_URL: {'[SET]' if DATABASE_URL else '[NOT SET]'}")
+logger.info(f"ALLOW_DB_FAILURE: {ALLOW_DB_FAILURE}")
+logger.info(f"DATABASE_CONNECT_TIMEOUT: {DATABASE_CONNECT_TIMEOUT}")
+logger.info(f"APP_STARTUP_TIMEOUT: {APP_STARTUP_TIMEOUT}") # Log the actual value being used
 
 # Record startup time
 start_time = time.time()
-logger.info(f"====== MINDFUL CREATOR BACKEND STARTING ======")
+logger.info(f"====== MINDFUL CREATOR BACKEND STARTING (detailed log) ======")
 logger.info(f"Python version: {platform.python_version()}")
 logger.info(f"Platform: {platform.platform()}")
 
@@ -58,88 +188,103 @@ def log_system_resources():
     except Exception as e:
         logger.warning(f"Failed to log system resources: {e}")
 
-# Record startup resource status
+logger.info("Logging initial system resources...")
 log_system_resources()
 
-# Create FastAPI application
-app = FastAPI(
-    title="Mindful Creator API",
-    description="API for analyzing YouTube comments and providing response strategies",
-    version="1.0.0"
-)
 
-# Configure CORS middleware
-# Define allowed origins for specific domains
+# Configure CORS middleware (already added, this is a note)
+logger.info("Setting up allowed origins for CORS...")
 allowed_origins = [
     "http://localhost:3000",  # Local development (frontend)
     "http://localhost:5173",  # Vite dev server (frontend)
     "https://mindful-creator.vercel.app",  # Main Vercel production domain
     "https://tiezhu.org", # Custom domain
-    "https://www.tiezhu.org" # Custom domain with www
+    "https://www.tiezhu.org", # Custom domain with www
+    "https://www.inflowence.org", # Inflowence domain
+    "https://inflowence.org", # Inflowence domain without www
     # Add any other specific production/staging domains here
+    "*", # Allow all origins temporarily for debugging
 ]
+vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\\-]+-tp27\\.vercel\\.app$"
+# Middleware already added, this logging confirms the values used.
+logger.info(f"CORS Allowed Origins: {allowed_origins}")
+logger.info(f"CORS Vercel Preview Regex: {vercel_preview_regex}")
 
-# Define a regex for Vercel preview deployments under your specific project/scope
-# This matches URLs like: https://mindful-creator-<hash>-tp27.vercel.app
-vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\-]+-tp27\.vercel\.app$"
+
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins, # List of specific origins
     allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly specify allowed methods
     allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # Add this to expose all response headers
+    max_age=3600,  # Add cache time to improve performance
 )
 
-from transformers import AutoTokenizer
-import sys, os, time, json, torch
+logger.info("Importing HuggingFace Transformers and PyTorch...")
+try:
+    from transformers import AutoTokenizer
+    import torch # Keep this import with transformers
+    logger.info("HuggingFace Transformers and PyTorch imported.")
+except Exception as e:
+    logger.critical(f"Failed to import Transformers or PyTorch: {e}", exc_info=True)
+    raise
+
+
 
 # === Model / tokenizer paths ===================================================
 TOKENIZER_DIR = "/app/bert-base-uncased"   # Base BERT already downloaded in Dockerfile
 MODEL_DIR     = "/app/nlp"                 # Cloned CommentResponse space
 WEIGHTS_FILE  = os.path.join(MODEL_DIR, "pytorch_model.bin")
 CFG_FILE      = os.path.join(MODEL_DIR, "config.json")
+logger.info(f"NLP Model Paths: TOKENIZER_DIR={TOKENIZER_DIR}, MODEL_DIR={MODEL_DIR}")
 
 @app.on_event("startup")
 async def load_nlp_model():
-    """Load custom CommentMTLModel + tokenizer and save to app.state"""
+    logger.info("Executing NLP model startup event...")
     t0 = time.time()
     try:
-        # 1) Verify all key paths
+        logger.info("Verifying NLP model key paths...")
         for p in (TOKENIZER_DIR, MODEL_DIR, WEIGHTS_FILE, CFG_FILE):
             if not os.path.exists(p):
+                logger.error(f"NLP Startup: Missing file/dir: {p}")
                 raise FileNotFoundError(f"Missing file/dir: {p}")
+        logger.info("NLP model key paths verified.")
 
-        # 2) Load tokenizer (offline)
-        logger.info(f"Tokenizer ← {TOKENIZER_DIR}")
+        logger.info(f"NLP Startup: Loading tokenizer from {TOKENIZER_DIR}")
         tokenizer = AutoTokenizer.from_pretrained(
             TOKENIZER_DIR,
             local_files_only=True
         )
+        logger.info("NLP Startup: Tokenizer loaded.")
 
-        # 3) Dynamically import custom model class
+        logger.info("NLP Startup: Dynamically importing CommentMTLModel...")
         if MODEL_DIR not in sys.path:
             sys.path.insert(0, MODEL_DIR)
         from model import CommentMTLModel  # noqa: E402
+        logger.info("NLP Startup: CommentMTLModel imported.")
 
-        # 4) Read config.json and initialize model, note use of local BERT directory as base
+        logger.info(f"NLP Startup: Reading config from {CFG_FILE}")
         with open(CFG_FILE, "r") as f:
             cfg = json.load(f)
+        logger.info("NLP Startup: Config loaded.")
 
         model = CommentMTLModel(
-            model_name=TOKENIZER_DIR,                 # ← Points to local BERT
+            model_name=TOKENIZER_DIR,
             num_sentiment_labels=cfg["num_sentiment_labels"],
             num_toxicity_labels=cfg["num_toxicity_labels"],
             dropout_prob=cfg.get("dropout_prob", 0.1)
         )
+        logger.info("NLP Startup: CommentMTLModel initialized.")
 
-        # 5) Load MTL head weights
+        logger.info(f"NLP Startup: Loading model weights from {WEIGHTS_FILE}")
         state_dict = torch.load(WEIGHTS_FILE, map_location="cpu")
         model.load_state_dict(state_dict, strict=False)
         model.eval()
+        logger.info("NLP Startup: Model weights loaded and model set to eval mode.")
 
-        # 6) Mount to app.state
         app.state.tokenizer    = tokenizer
         app.state.model        = model
         app.state.model_loaded = True
@@ -148,40 +293,49 @@ async def load_nlp_model():
     except Exception as exc:
         app.state.model_loaded     = False
         app.state.model_load_error = str(exc)
-        logger.exception(f"❌ Failed to load NLP model: {exc}")
+        logger.critical(f"❌ Failed to load NLP model: {exc}", exc_info=True)
+        # Depending on ALLOW_DB_FAILURE or a new specific flag, you might raise here or allow continuation
 
-# First register the API router which contains the health check endpoint
-logger.info("Registering API router (contains health check endpoint)")
-app.include_router(youtube_router, prefix="/api")
+logger.info("Including health_router...")
+try:
+    app.include_router(health_router)  # No prefix, to allow root-level health checks
+    logger.info("health_router included.")
+except Exception as e:
+    logger.critical(f"Failed to include health_router: {e}", exc_info=True)
+    raise
 
-# Root endpoint for basic health check
-@app.get("/")
-def root() -> Dict[str, str]:
-    """Root path simplified health check"""
-    return {"status": "online"}
+logger.info("Including youtube_router...")
+try:
+    app.include_router(youtube_router, prefix="/api")
+    logger.info("youtube_router included.")
+except Exception as e:
+    logger.critical(f"Failed to include youtube_router: {e}", exc_info=True)
+    raise
 
-# Additional health check endpoint at the root level for Railway
-@app.get("/health")
-async def root_health_check() -> Dict[str, Any]:
-    """Root health check specifically for Railway"""
-    logger.info("ROOT HEALTH CHECK ENDPOINT ACCESSED - Railway health check")
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+logger.info("Including visualisation_router...")
+try:
+    app.include_router(visualisation_router, prefix="") # Ensure this prefix is intended
+    logger.info("visualisation_router included.")
+except Exception as e:
+    logger.critical(f"Failed to include visualisation_router: {e}", exc_info=True)
+    raise
 
-# Explicit API health check endpoint to match railway.toml configuration
-@app.get("/api/health")
-async def api_health_check() -> Dict[str, Any]:
-    """API health check endpoint for Railway deployment"""
-    logger.info("API HEALTH CHECK ENDPOINT ACCESSED")
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat(), "message": "Health check OK"}
+logger.info("All core routers (health, youtube, visualisation) registered.")
 
-# Add diagnostics endpoint
+# Health check endpoints have been moved to app/api/health.py
+# No additional health check endpoints needed here since we include the health_router
+logger.info("Health check endpoints are now managed by health_router.")
+
+
+logger.info("Defining NLP diagnostics endpoint...")
 @app.get("/api/diagnostics/nlp")
 async def nlp_diagnostics() -> Dict[str, Any]:
-    """Diagnostics endpoint for checking NLP model status"""
     logger.info("NLP DIAGNOSTICS ENDPOINT ACCESSED")
-    
+    # ... (rest of the function remains the same)
+# ... (rest of main.py remains the same, ensure logging is consistent)
+
     # Check model path
-    model_path_exists = os.path.exists(MODEL_PATH)
+    model_path_exists = os.path.exists(MODEL_DIR) # Corrected from MODEL_PATH
     
     # List directory contents
     app_contents = []
@@ -189,15 +343,19 @@ async def nlp_diagnostics() -> Dict[str, Any]:
     try:
         app_contents = os.listdir("/app")
         if model_path_exists:
-            nlp_contents = os.listdir(MODEL_PATH)
+            nlp_contents = os.listdir(MODEL_DIR)
     except Exception as e:
         logger.error(f"Failed to list directories: {e}")
     
     # Collect diagnostic information
     diagnostics = {
         "timestamp": datetime.datetime.now().isoformat(),
-        "model_path": MODEL_PATH,
-        "model_path_exists": model_path_exists,
+        "model_path_tokenizer": TOKENIZER_DIR, # More specific
+        "model_path_custom_model": MODEL_DIR,    # More specific
+        "model_path_exists": model_path_exists, # This refers to MODEL_DIR
+        "tokenizer_dir_exists": os.path.exists(TOKENIZER_DIR),
+        "weights_file_exists": os.path.exists(WEIGHTS_FILE),
+        "cfg_file_exists": os.path.exists(CFG_FILE),
         "model_loaded": getattr(app.state, "model_loaded", False),
         "model_load_error": getattr(app.state, "model_load_error", None),
         "app_directory_contents": app_contents,
@@ -210,96 +368,128 @@ async def nlp_diagnostics() -> Dict[str, Any]:
     }
     
     return diagnostics
+logger.info("NLP diagnostics endpoint defined.")
 
-# Record model status
-model_loaded = os.environ.get("MODEL_LOADED", "false").lower() == "true"
+logger.info("Checking MODEL_LOADED environment variable...")
+model_loaded_env = os.environ.get("MODEL_LOADED", "false").lower() == "true" # Renamed to avoid conflict
 logger.info(f"MODEL_LOADED environment variable: {os.environ.get('MODEL_LOADED', 'not set')}")
-logger.info(f"Model loaded status: {model_loaded}")
+logger.info(f"Model loaded status from env var: {model_loaded_env}")
 
-# Try to load other routes, even if it fails, health check endpoint won't be affected
+
+logger.info("Defining ADDITIONAL_ROUTES list...")
 ADDITIONAL_ROUTES = [
     ("app.api.relaxation.routes", "/api/relaxation"),
     ("app.api.notes.routes", "/api/notes"),
-    ("app.api.youtube.routes", "/api/youtube"),
+    # ("app.api.youtube.routes", "/api/youtube"), # Already included
     ("app.api.copyright.routes", "/api/copyright"),
     ("app.routers.affirmations", "/api/affirmations"),
     ("app.routers.breaths", "/api/breaths"),
     ("app.routers.journals", "/api/journals"),
     ("app.routers.memes", "/api/memes"),
-    ("app.routers.ratings", "/api/ratings")
-    # ("app.api.games", "/api/games") # Removed from dynamic list
+    # ("app.routers.ratings", "/api/ratings") # Already included below
 ]
+logger.info("ADDITIONAL_ROUTES list defined.")
 
-# Explicitly include the games router
-app.include_router(games_api_router, prefix="/api/games")
-logger.info("Explicitly included games_api_router at prefix /api/games")
+logger.info("Including games_api_router...")
+try:
+    app.include_router(games_api_router, prefix="/api/games")
+    logger.info("games_api_router included.")
+except Exception as e:
+    logger.critical(f"Failed to include games_api_router: {e}", exc_info=True)
+    # Decide if this is critical enough to raise
 
-# Explicitly include the ratings router
-app.include_router(ratings.router, prefix="/api/ratings")
-logger.info("Explicitly included ratings router at prefix /api/ratings")
+logger.info("Including ratings.router...")
+try:
+    app.include_router(ratings.router, prefix="/api/ratings")
+    logger.info("ratings.router included.")
+except Exception as e:
+    logger.critical(f"Failed to include ratings.router: {e}", exc_info=True)
+    # Decide if this is critical enough to raise
+
+# Explicitly include the game router
+app.include_router(game_router, prefix="/api/games")
+logger.info("Explicitly included game router at prefix /api/games")
+
+# Explicitly include the memory match router
+app.include_router(memory_match_router, prefix="/api/games/memory_match")
+logger.info("Explicitly included memory match router at prefix /api/games/memory_match")
 
 logger.info("Loading additional routes...")
+
+logger.info("Loading additional routes from ADDITIONAL_ROUTES list...")
+
 for route_module, prefix in ADDITIONAL_ROUTES:
     try:
         module_start_time = time.time()
-        logger.info(f"Loading route module: {route_module}")
+        logger.info(f"Attempting to load route module: {route_module} with prefix {prefix}")
         module = importlib.import_module(route_module)
         
-        # If the module has a router attribute, include it
         if hasattr(module, "router"):
             logger.info(f"Including router from {route_module} at prefix {prefix}")
             app.include_router(module.router, prefix=prefix)
-            logger.info(f"Successfully loaded {route_module} in {time.time() - module_start_time:.2f} seconds")
+            logger.info(f"Successfully loaded and included router from {route_module} in {time.time() - module_start_time:.2f} seconds")
         else:
-            logger.warning(f"Module {route_module} does not have a router attribute")
+            logger.warning(f"Module {route_module} does not have a 'router' attribute.")
+    except ImportError as ie:
+        logger.error(f"ImportError for {route_module}: {str(ie)}", exc_info=True)
+        # Potentially raise or handle if ALLOW_DB_FAILURE is false and module is critical
     except Exception as e:
-        logger.error(f"Failed to load {route_module}: {str(e)}")
-        logger.error(traceback.format_exc())
-        logger.info(f"Continuing startup despite failure to load {route_module}")
+        logger.error(f"Failed to load {route_module}: {str(e)}", exc_info=True)
+        # Potentially raise or handle
+logger.info("Finished loading additional routes.")
 
-# Request processing middleware
+logger.info("Adding HTTP middleware for process time header...")
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
+# ... (rest of middleware)
+    _start_time = time.time() # Use a different variable name
     method = request.method
     url = request.url.path
     
-    logger.info(f"Request started: {method} {url}")
+    logger.debug(f"Request started: {method} {url}") # Changed to debug
     
     try:
         response = await call_next(request)
-        process_time = time.time() - start_time
+        process_time = time.time() - _start_time
         response.headers["X-Process-Time"] = str(process_time)
         
         status_code = response.status_code
         logger.info(f"Request completed: {method} {url} - Status: {status_code} - Time: {process_time:.4f}s")
         return response
     except Exception as e:
-        process_time = time.time() - start_time
-        logger.error(f"Request failed: {method} {url} - Error: {str(e)} - Time: {process_time:.4f}s")
-        logger.error(traceback.format_exc())
+        process_time = time.time() - _start_time
+        logger.error(f"Request failed: {method} {url} - Error: {str(e)} - Time: {process_time:.4f}s", exc_info=True)
+        # Return a generic error response but ensure it's valid JSONResponse
         return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "error": str(e)}
+            status_code=500, # Or appropriate error code
+            content={"detail": "Internal Server Error processing request", "error_context": str(e)}
         )
+logger.info("HTTP middleware for process time header added.")
+
 
 # Record application startup completion
-startup_time = time.time() - start_time
-logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_time:.2f} seconds ======")
-# Use PORT environment variable for consistency with railway_startup.sh
-port = int(os.environ.get("PORT", 8000))
+startup_duration = time.time() - start_time # Renamed from startup_time
+logger.info(f"====== MINDFUL CREATOR BACKEND STARTED in {startup_duration:.2f} seconds ======")
+port = int(os.environ.get("PORT", 8000)) # Define port here before it's used in if __name__
 logger.info(f"API available at http://0.0.0.0:{port}")
+logger.info("Logging system resources after startup...")
 log_system_resources()
 
-# Mount static files if directories exist
-# Mount meme images directory if it exists
-meme_dir = os.path.abspath("backend/datasets/meme")
-if os.path.exists(meme_dir):
-    app.mount("/memes", StaticFiles(directory=meme_dir), name="memes")
+logger.info("Mounting static files for memes...")
+meme_dir = os.path.abspath("backend/datasets/meme") # This path might be an issue in Docker
+# Correct path within Docker should be relative to /app
+docker_meme_dir = "/app/datasets/meme" 
+if os.path.exists(docker_meme_dir): # Check corrected path
+    app.mount("/memes", StaticFiles(directory=docker_meme_dir), name="memes")
+    logger.info(f"Mounted static files for memes from {docker_meme_dir}")
+else:
+    logger.warning(f"Meme directory {docker_meme_dir} not found. Memes will not be served.")
 
-# Simple root endpoint
-@app.get("/", response_class=HTMLResponse)
-async def root():
+
+logger.info("Defining /welcome HTML endpoint...")
+@app.get("/welcome", response_class=HTMLResponse)
+async def welcome_page():
+# ... (rest of welcome_page)
     return """
     <html>
         <head>
@@ -312,18 +502,46 @@ async def root():
         </body>
     </html>
     """
+logger.info("/welcome HTML endpoint defined.")
 
+logger.info("Adding LoggingMiddleware...")
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+# ... (rest of LoggingMiddleware)
+        __start_time = time.time() # Different var name
+        response = await call_next(request)
+        process_time = time.time() - __start_time
+        logger.info(f"Request (via LoggingMiddleware): {request.method} {request.url.path} - Completed in {process_time:.4f}s")
+        return response
+
+app.add_middleware(LoggingMiddleware)
+logger.info("LoggingMiddleware added.")
+
+logger.info("Defining global exception handler...")
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+# ... (rest of global_exception_handler)
+    logger.critical(f"Global unhandled exception: {exc}", exc_info=True) # Changed to critical
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal server error - Unhandled", "detail": str(exc)},
+    )
+logger.info("Global exception handler defined.")
+
+logger.info("Checking if script is run as main...")
 if __name__ == "__main__":
-    logger.info(f"Starting server on port {port}")
-    
-    # Use optimized Uvicorn configuration
+    logger.info(f"Starting Uvicorn server directly (main.py is __main__) on port {port}")
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=port,
-        log_level="info",
-        workers=1,
+        log_level="debug", # Use debug for more Uvicorn output
+        workers=1, # Keep workers to 1 for easier debugging of startup
         timeout_keep_alive=65
-    ) 
+    )
+else:
+    logger.info("main.py is imported, not run as main. Uvicorn will be started by railway_startup.sh or similar.")
+
+logger.info("End of main.py reached.")
 
 
