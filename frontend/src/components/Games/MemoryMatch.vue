@@ -199,10 +199,14 @@ const showWarningPopup2 = ref(false);
 
 // Get backend API address from environment variables
 // Priority: environment variables, then fall back to api.tiezhu.org
-const API_BASE_URL = (import.meta as any).env.BACKEND_URL || 
-                    (import.meta as any).env.VITE_BACKEND_URL || 
-                    'https://api.tiezhu.org';
+const baseUrlFromEnv = ((import.meta as any).env.BACKEND_URL || 
+                      (import.meta as any).env.VITE_BACKEND_URL || 
+                      'https://api.tiezhu.org');
 
+// Ensure URL has https:// protocol
+const API_BASE_URL = baseUrlFromEnv.startsWith('http') 
+                    ? baseUrlFromEnv 
+                    : `https://${baseUrlFromEnv}`;
 
 // Define component events
 const emit = defineEmits<{
