@@ -22,7 +22,7 @@ from app.routers import affirmations, breaths, journals, memes, ratings
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 from app.api.games.routes import router as game_router
 from app.api.games.memory_match import router as memory_match_router
-from app.api.games.memory_match import GameInitRequest # Add this import
+from app.api.games.memory_match import GameInitRequest # Ensure this import is present
 import httpx
 from starlette.responses import RedirectResponse
 
@@ -353,7 +353,6 @@ async def proxy_initialize_game(request: Request):
     try:
         body = await request.json()
         # Instead of proxying, use the local implementation
-        # Ensure that GameInitRequest is imported from memory_match.py
         return await memory_match_router.initialize_game_data_with_local_urls(
             game_request=GameInitRequest(**body),
             http_request=request
