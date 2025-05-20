@@ -3,6 +3,16 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
 
 // Function to create API URLs with the correct base
 export function getApiUrl(endpoint) {
+  // If endpoint already starts with http, ensure it uses https
+  if (endpoint.startsWith('http://')) {
+    endpoint = endpoint.replace('http://', 'https://');
+  }
+  
+  // If endpoint already starts with https, return as is (already absolute)
+  if (endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  
   // Development environment with Vite proxy
   if (import.meta.env.DEV) {
     // If endpoint already starts with /api/, return as is
@@ -16,11 +26,6 @@ export function getApiUrl(endpoint) {
   }
   
   // Production environment
-  // If endpoint already starts with http, return as is (already absolute)
-  if (endpoint.startsWith('http')) {
-    return endpoint;
-  }
-  
   // If endpoint already has /api prefix
   if (endpoint.startsWith('/api/')) {
     // Remove the leading slash to avoid double slashes
