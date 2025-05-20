@@ -43,14 +43,43 @@ export async function apiFetch(endpoint, options = {}) {
   const url = getApiUrl(endpoint);
   console.log(`API Request to: ${url}`);
   
+  // Set proper headers and handle redirects
+  const fetchOptions = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...options.headers,
+    },
+    // Allow automatic redirects
+    redirect: 'follow',
+  };
+  
   try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+    const response = await fetch(url, fetchOptions);
+    
+    // Check if we received a redirect
+    if (response.status === 307 || response.status === 308) {
+      const redirectUrl = response.headers.get('Location');
+      console.log(`Received redirect to: ${redirectUrl}`);
+      
+      // Ensure redirect URL uses HTTPS
+      const secureRedirectUrl = redirectUrl?.startsWith('http://')
+        ? redirectUrl.replace('http://', 'https://')
+        : redirectUrl;
+        
+      if (secureRedirectUrl) {
+        // Follow the redirect manually with the same options
+        console.log(`Following redirect to: ${secureRedirectUrl}`);
+        const redirectResponse = await fetch(secureRedirectUrl, fetchOptions);
+        
+        if (!redirectResponse.ok) {
+          throw new Error(`Redirect request failed with status ${redirectResponse.status}`);
+        }
+        
+        return await redirectResponse.json();
+      }
+    }
     
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);

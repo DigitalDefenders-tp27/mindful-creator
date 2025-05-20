@@ -88,7 +88,7 @@ async def debug_database(db: Session = Depends(get_db)):
             "stack_trace": stack_trace
         }
 
-@router.post("/")
+@router.post("/", status_code=200)
 def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
     """Create a new rating for an activity"""
     try:
@@ -212,6 +212,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
         logger.info(f"Getting statistics for activity {activity_key}")
         
         try:
+            # Make sure to use db directly, not as a generator
             stat = db.query(
                 Rating.activity_type,
                 func.count(Rating.id).label("count"),
