@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from typing import List, Dict, Any
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.models.rating import Rating
 from app.schemas.rating import RatingCreate, Rating as RatingSchema, ActivityStats
 import logging
@@ -17,6 +17,20 @@ def add_cors_headers(response: Response):
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
+
+# Helper function to get a DB session directly (not as a generator)
+def get_db_session():
+    """
+    Get a direct database session without using the generator.
+    This is a workaround for the 'generator' object has no attribute 'query' error.
+    """
+    db = SessionLocal()
+    try:
+        return db
+    except Exception as e:
+        db.close()
+        logger.error(f"Error getting direct DB session: {str(e)}")
+        raise
 
 # OPTIONS method to support preflight requests
 @router.options("/{path:path}")
@@ -170,32 +184,37 @@ def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(g
     return create_rating(rating, db)
 
 @router.get("/")
-def get_all_stats(db: Session = Depends(get_db)):
+def get_all_stats():
     """Get statistics for all activities"""
     try:
         logger.info("Getting statistics for all activities")
         
         try:
-            stats = db.query(
-                Rating.activity_type,
-                func.count(Rating.id).label("count"),
-                func.avg(Rating.rating_value).label("avg_rating")
-            ).group_by(Rating.activity_type).all()
-            
-            if stats:
-                logger.info(f"Retrieved stats for {len(stats)} activities")
-                results = []
-                for stat in stats:
-                    results.append(ActivityStats(
-                        activity_key=stat.activity_type,
-                        count=stat.count,
-                        average_rating=float(stat.avg_rating),
-                        total_ratings=stat.count
-                    ))
-                return results
-            else:
-                logger.info("No ratings found in database")
-                return []
+            # Use direct session instead of generator
+            db = get_db_session()
+            try:
+                stats = db.query(
+                    Rating.activity_type,
+                    func.count(Rating.id).label("count"),
+                    func.avg(Rating.rating_value).label("avg_rating")
+                ).group_by(Rating.activity_type).all()
+                
+                if stats:
+                    logger.info(f"Retrieved stats for {len(stats)} activities")
+                    results = []
+                    for stat in stats:
+                        results.append(ActivityStats(
+                            activity_key=stat.activity_type,
+                            count=stat.count,
+                            average_rating=float(stat.avg_rating),
+                            total_ratings=stat.count
+                        ))
+                    return results
+                else:
+                    logger.info("No ratings found in database")
+                    return []
+            finally:
+                db.close()
         except Exception as e:
             stack_trace = traceback.format_exc()
             logger.error(f"Error querying statistics: {str(e)}\n{stack_trace}")
@@ -206,35 +225,40 @@ def get_all_stats(db: Session = Depends(get_db)):
         return []
 
 @router.get("/{activity_key}", response_model=ActivityStats)
-def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
+def get_activity_stats(activity_key: str):
     """Get statistics for a specific activity"""
     try:
         logger.info(f"Getting statistics for activity {activity_key}")
         
         try:
-            # Make sure to use db directly, not as a generator
-            stat = db.query(
-                Rating.activity_type,
-                func.count(Rating.id).label("count"),
-                func.avg(Rating.rating_value).label("avg_rating")
-            ).filter(Rating.activity_type == activity_key).group_by(Rating.activity_type).first()
-            
-            if stat:
-                logger.info(f"Retrieved stats: count={stat.count}, avg={stat.avg_rating}")
-                return ActivityStats(
-                    activity_key=activity_key,
-                    count=stat.count,
-                    average_rating=float(stat.avg_rating),
-                    total_ratings=stat.count
-                )
-            else:
-                logger.info(f"No ratings found for activity {activity_key}")
-                return ActivityStats(
-                    activity_key=activity_key,
-                    count=0,
-                    average_rating=0.0,
-                    total_ratings=0
-                )
+            # Use direct session instead of generator
+            db = get_db_session()
+            try:
+                # Make sure to use db directly, not as a generator
+                stat = db.query(
+                    Rating.activity_type,
+                    func.count(Rating.id).label("count"),
+                    func.avg(Rating.rating_value).label("avg_rating")
+                ).filter(Rating.activity_type == activity_key).group_by(Rating.activity_type).first()
+                
+                if stat:
+                    logger.info(f"Retrieved stats: count={stat.count}, avg={stat.avg_rating}")
+                    return ActivityStats(
+                        activity_key=activity_key,
+                        count=stat.count,
+                        average_rating=float(stat.avg_rating),
+                        total_ratings=stat.count
+                    )
+                else:
+                    logger.info(f"No ratings found for activity {activity_key}")
+                    return ActivityStats(
+                        activity_key=activity_key,
+                        count=0,
+                        average_rating=0.0,
+                        total_ratings=0
+                    )
+            finally:
+                db.close()
         except Exception as e:
             stack_trace = traceback.format_exc()
             logger.error(f"Query error in get_activity_stats for {activity_key}: {str(e)}\n{stack_trace}")
