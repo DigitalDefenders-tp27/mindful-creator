@@ -162,6 +162,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 declare interface ImportMeta {
   readonly env: {
     readonly BACKEND_URL?: string;
+    readonly VITE_BACKEND_URL?: string;
     [key: string]: any;
   }
 }
@@ -196,8 +197,11 @@ const currentModalMemeIndex = ref(0);
 const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
 
-// Get backend API address from environment variables - try both BACKEND_URL and VITE_BACKEND_URL
-const API_BASE_URL = (import.meta as any).env.BACKEND_URL ||'https://api.tiezhu.org';
+// Get backend API address from environment variables
+// 优先使用环境变量，然后尝试默认API域名
+const API_BASE_URL = (import.meta as any).env.BACKEND_URL || 
+                    (import.meta as any).env.VITE_BACKEND_URL || 
+                    'https://mindful-creator-production.up.railway.app';
 
 
 // Define component events
@@ -301,7 +305,9 @@ async function initializeGameFromBackend() {
     const response = await fetch(url, {
       method: 'GET',
       headers: { 
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Origin': window.location.origin
       },
       credentials: 'include',
       mode: 'cors'

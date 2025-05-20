@@ -85,13 +85,15 @@ def add_cors_headers(response: Response, request: Request):
         "https://tiezhu.org", 
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
-        "https://inflowence.org"
+        "https://inflowence.org",
+        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
+        "https://api.tiezhu.org"  # API域名
     ]
     
     origin = None
     if "origin" in request.headers:
         origin = request.headers["origin"]
-        if origin in allowed_origins or origin.endswith("vercel.app"):
+        if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             response.headers["Access-Control-Allow-Origin"] = origin
         # 如果不在允许列表中，则不添加此头部，这会阻止跨域请求
     
@@ -264,14 +266,16 @@ async def options_initialize_game(http_request: Request):
         "https://tiezhu.org", 
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
-        "https://inflowence.org"
+        "https://inflowence.org",
+        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
+        "https://api.tiezhu.org"  # API域名
     ]
     
     # 检查请求来源是否在允许列表中
     origin = None
     if "origin" in http_request.headers:
         origin = http_request.headers["origin"]
-        if origin in allowed_origins or origin.endswith("vercel.app"):
+        if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             allowed_origin = origin
         else:
             allowed_origin = "null"  # 不允许的来源
@@ -341,14 +345,16 @@ async def options_serve_image(http_request: Request):
         "https://tiezhu.org", 
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
-        "https://inflowence.org"
+        "https://inflowence.org",
+        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
+        "https://api.tiezhu.org"  # API域名
     ]
     
     # 检查请求来源是否在允许列表中
     origin = None
     if "origin" in http_request.headers:
         origin = http_request.headers["origin"]
-        if origin in allowed_origins or origin.endswith("vercel.app"):
+        if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             allowed_origin = origin
         else:
             allowed_origin = "null"  # 不允许的来源

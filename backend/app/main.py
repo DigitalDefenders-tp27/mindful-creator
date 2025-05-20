@@ -196,10 +196,12 @@ allowed_origins = [
     "https://www.tiezhu.org",  # 带www的自定义域名
     "https://www.inflowence.org",  # Inflowence 域名
     "https://inflowence.org",  # 不带www的 Inflowence 域名
+    "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
+    "https://api.tiezhu.org",  # API域名
     # 移除: "https://*.vercel.app" - 通配符不被直接支持
 ]
-# 使用正则表达式匹配所有vercel.app域名和Vercel预览域名
-vercel_domain_regex = r"^https://[a-zA-Z0-9\\-]+\.vercel\.app$"
+# 使用正则表达式匹配所有vercel.app域名、Railway.app域名和Vercel预览域名
+vercel_domain_regex = r"^https://([a-zA-Z0-9\\-]+\.vercel\.app|[a-zA-Z0-9\\-]+\.up\.railway\.app)$"
 # Middleware already added, this logging confirms the values used.
 logger.info(f"CORS Allowed Origins: {allowed_origins}")
 logger.info(f"CORS Vercel Domain Regex: {vercel_domain_regex}")
