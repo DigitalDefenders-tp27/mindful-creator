@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from typing import List, Dict, Any
 from app.database import get_db
-from app.models import Rating
+from app.models.rating import Rating
 from app.schemas.rating import RatingCreate, Rating as RatingSchema, ActivityStats
 import logging
+import traceback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -26,85 +27,131 @@ async def options_ratings_all_paths():
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
 
+@router.get("/debug")
+async def debug_database(db: Session = Depends(get_db)):
+    """Debugging endpoint to check database connection and tables"""
+    try:
+        # Try a simple query first
+        result = db.execute(text("SELECT 1")).fetchone()
+        logger.info(f"Basic SELECT query result: {result}")
+        
+        # Try to list tables
+        try:
+            if 'postgresql' in db.bind.dialect.name:
+                tables = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")).fetchall()
+            else:  # SQLite
+                tables = db.execute(text("SELECT name FROM sqlite_master WHERE type='table'")).fetchall()
+            
+            logger.info(f"Tables in database: {tables}")
+            
+            # Check the activity_rating_counts table structure
+            try:
+                if 'activity_rating_counts' in [t[0] for t in tables]:
+                    if 'postgresql' in db.bind.dialect.name:
+                        columns = db.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'activity_rating_counts'")).fetchall()
+                    else:  # SQLite
+                        columns = db.execute(text("PRAGMA table_info(activity_rating_counts)")).fetchall()
+                    
+                    logger.info(f"activity_rating_counts columns: {columns}")
+                    return {
+                        "status": "success", 
+                        "message": "Database connection working",
+                        "tables": [t[0] for t in tables],
+                        "activity_rating_counts_columns": columns
+                    }
+                else:
+                    return {
+                        "status": "warning",
+                        "message": "activity_rating_counts table not found",
+                        "tables": [t[0] for t in tables]
+                    }
+            except Exception as e:
+                logger.error(f"Error checking table structure: {str(e)}")
+                return {
+                    "status": "partial",
+                    "message": f"Error checking table structure: {str(e)}",
+                    "tables": [t[0] for t in tables]
+                }
+        except Exception as e:
+            logger.error(f"Error listing tables: {str(e)}")
+            return {
+                "status": "partial",
+                "message": f"Error listing tables: {str(e)}",
+                "basic_query": result[0] == 1
+            }
+    except Exception as e:
+        stack_trace = traceback.format_exc()
+        logger.error(f"Database connection error: {str(e)}\n{stack_trace}")
+        return {
+            "status": "error",
+            "message": f"Database connection error: {str(e)}",
+            "stack_trace": stack_trace
+        }
+
 @router.post("/")
 def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
     """Create a new rating for an activity"""
     try:
         logger.info(f"Creating rating for activity_key={rating.activity_key}, rating={rating.rating}")
         
-        # Create new rating record
-        db_rating = Rating(
-            activity_type=rating.activity_key,
-            rating_value=rating.rating,
-            user_id=None  # Optional field, can be null
-        )
-        
-        db.add(db_rating)
-        db.commit()
-        db.refresh(db_rating)
-        logger.info(f"Successfully saved rating ID={db_rating.id}")
-        
-        # Get updated statistics for this activity
+        # Create new rating record with very minimal fields
         try:
-            stats_query = db.query(
+            db_rating = Rating(
+                activity_type=rating.activity_key,
+                rating_value=rating.rating,
+                user_id=None
+            )
+            
+            db.add(db_rating)
+            db.commit()
+            db.refresh(db_rating)
+            logger.info(f"Successfully saved rating ID={db_rating.id}")
+        except Exception as e:
+            stack_trace = traceback.format_exc()
+            logger.error(f"Error creating rating record: {str(e)}\n{stack_trace}")
+            raise HTTPException(status_code=500, detail=f"Error creating rating: {str(e)}")
+        
+        # Try to get updated stats for the activity
+        try:
+            stats = db.query(
                 Rating.activity_type,
                 func.count(Rating.id).label("count"),
-                func.avg(Rating.rating_value).label("average_rating"),
-                func.count(Rating.id).label("total_ratings")
-            ).filter(
-                Rating.activity_type == rating.activity_key
-            ).group_by(
-                Rating.activity_type
-            ).first()
+                func.avg(Rating.rating_value).label("avg_rating")
+            ).filter(Rating.activity_type == rating.activity_key).group_by(Rating.activity_type).first()
             
-            if not stats_query:
-                logger.warning(f"No statistics found for activity {rating.activity_key}, returning default statistics")
-                return {
-                    "rating": {
-                        "id": db_rating.id,
-                        "activity_key": db_rating.activity_type,
-                        "rating": db_rating.rating_value
-                    },
-                    "stats": {
-                        "activity_key": rating.activity_key,
-                        "count": 1,
-                        "average_rating": float(rating.rating),
-                        "total_ratings": 1
-                    }
-                }
-            
-            logger.info(f"Statistics for activity {rating.activity_key}: count={stats_query[1]}, avg={stats_query[2]}, total={stats_query[3]}")
-            return {
-                "rating": {
-                    "id": db_rating.id,
-                    "activity_key": db_rating.activity_type,
-                    "rating": db_rating.rating_value
-                },
-                "stats": {
-                    "activity_key": stats_query[0],
-                    "count": stats_query[1],
-                    "average_rating": float(stats_query[2] or 0),
-                    "total_ratings": stats_query[3]
-                }
+            if stats:
+                logger.info(f"Retrieved stats: {stats}")
+                count = stats.count
+                avg_rating = float(stats.avg_rating)
+            else:
+                # No stats, use the current rating
+                logger.info("No existing stats, using current rating")
+                count = 1
+                avg_rating = float(rating.rating)
+        except Exception as e:
+            stack_trace = traceback.format_exc()
+            logger.error(f"Error retrieving stats: {str(e)}\n{stack_trace}")
+            # Fallback to default values
+            count = 1
+            avg_rating = float(rating.rating)
+        
+        # Return the rating and stats
+        return {
+            "rating": {
+                "id": db_rating.id,
+                "activity_key": rating.activity_key,
+                "rating": rating.rating
+            },
+            "stats": {
+                "activity_key": rating.activity_key,
+                "count": count,
+                "average_rating": avg_rating,
+                "total_ratings": count
             }
-        except Exception as inner_e:
-            # If stats query fails, still return a valid response with just the rating
-            logger.error(f"Error getting statistics after rating creation: {str(inner_e)}")
-            return {
-                "rating": {
-                    "id": db_rating.id,
-                    "activity_key": db_rating.activity_type,
-                    "rating": db_rating.rating_value
-                },
-                "stats": {
-                    "activity_key": rating.activity_key,
-                    "count": 1,
-                    "average_rating": float(rating.rating),
-                    "total_ratings": 1
-                }
-            }
+        }
     except Exception as e:
-        logger.error(f"Error while creating rating: {str(e)}")
+        stack_trace = traceback.format_exc()
+        logger.error(f"Error while creating rating: {str(e)}\n{stack_trace}")
         raise HTTPException(status_code=500, detail=f"Error while creating rating: {str(e)}")
 
 @router.put("/")
@@ -127,33 +174,36 @@ def get_all_stats(db: Session = Depends(get_db)):
     """Get statistics for all activities"""
     try:
         logger.info("Getting statistics for all activities")
+        
         try:
-            stats_query = db.query(
+            stats = db.query(
                 Rating.activity_type,
                 func.count(Rating.id).label("count"),
-                func.avg(Rating.rating_value).label("average_rating"),
-                func.count(Rating.id).label("total_ratings")
-            ).group_by(
-                Rating.activity_type
-            ).all()
+                func.avg(Rating.rating_value).label("avg_rating")
+            ).group_by(Rating.activity_type).all()
             
-            logger.info(f"Found statistics for {len(stats_query)} activities")
-            return [
-                ActivityStats(
-                    activity_key=stat[0],
-                    count=stat[1],
-                    average_rating=float(stat[2] or 0),
-                    total_ratings=stat[3]
-                )
-                for stat in stats_query
-            ]
-        except Exception as query_error:
-            logger.error(f"Query error in get_all_stats: {str(query_error)}")
-            # Return empty list instead of error
+            if stats:
+                logger.info(f"Retrieved stats for {len(stats)} activities")
+                results = []
+                for stat in stats:
+                    results.append(ActivityStats(
+                        activity_key=stat.activity_type,
+                        count=stat.count,
+                        average_rating=float(stat.avg_rating),
+                        total_ratings=stat.count
+                    ))
+                return results
+            else:
+                logger.info("No ratings found in database")
+                return []
+        except Exception as e:
+            stack_trace = traceback.format_exc()
+            logger.error(f"Error querying statistics: {str(e)}\n{stack_trace}")
             return []
     except Exception as e:
-        logger.error(f"Error while getting all statistics: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error while getting statistics: {str(e)}")
+        stack_trace = traceback.format_exc()
+        logger.error(f"Error while getting all statistics: {str(e)}\n{stack_trace}")
+        return []
 
 @router.get("/{activity_key}", response_model=ActivityStats)
 def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
@@ -161,47 +211,32 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
     try:
         logger.info(f"Getting statistics for activity {activity_key}")
         
-        # Special path handling
-        if activity_key.startswith(":") or activity_key == "1":
-            logger.info(f"Detected special path {activity_key}, returning default empty statistics")
-            return ActivityStats(
-                activity_key="default",
-                count=0,
-                average_rating=0.0,
-                total_ratings=0
-            )
-            
-        # Query database
         try:
-            stats_query = db.query(
+            stat = db.query(
                 Rating.activity_type,
                 func.count(Rating.id).label("count"),
-                func.avg(Rating.rating_value).label("average_rating"),
-                func.count(Rating.id).label("total_ratings")
-            ).filter(
-                Rating.activity_type == activity_key
-            ).group_by(
-                Rating.activity_type
-            ).first()
+                func.avg(Rating.rating_value).label("avg_rating")
+            ).filter(Rating.activity_type == activity_key).group_by(Rating.activity_type).first()
             
-            if not stats_query:
-                logger.info(f"No statistics found for activity {activity_key}")
+            if stat:
+                logger.info(f"Retrieved stats: count={stat.count}, avg={stat.avg_rating}")
+                return ActivityStats(
+                    activity_key=activity_key,
+                    count=stat.count,
+                    average_rating=float(stat.avg_rating),
+                    total_ratings=stat.count
+                )
+            else:
+                logger.info(f"No ratings found for activity {activity_key}")
                 return ActivityStats(
                     activity_key=activity_key,
                     count=0,
                     average_rating=0.0,
                     total_ratings=0
                 )
-            
-            logger.info(f"Found statistics for activity {activity_key}: count={stats_query[1]}, avg={stats_query[2]}, total={stats_query[3]}")
-            return ActivityStats(
-                activity_key=stats_query[0],
-                count=stats_query[1],
-                average_rating=float(stats_query[2] or 0),
-                total_ratings=stats_query[3]
-            )
-        except Exception as query_error:
-            logger.error(f"Query error in get_activity_stats for {activity_key}: {str(query_error)}")
+        except Exception as e:
+            stack_trace = traceback.format_exc()
+            logger.error(f"Query error in get_activity_stats for {activity_key}: {str(e)}\n{stack_trace}")
             # Return default stats instead of error
             return ActivityStats(
                 activity_key=activity_key,
@@ -210,5 +245,12 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
                 total_ratings=0
             )
     except Exception as e:
-        logger.error(f"Error while getting statistics for activity {activity_key}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error while getting statistics: {str(e)}") 
+        stack_trace = traceback.format_exc()
+        logger.error(f"Error while getting statistics for activity {activity_key}: {str(e)}\n{stack_trace}")
+        # Return default stats instead of error
+        return ActivityStats(
+            activity_key=activity_key,
+            count=0,
+            average_rating=0.0,
+            total_ratings=0
+        ) 
