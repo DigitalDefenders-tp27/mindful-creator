@@ -113,6 +113,51 @@ def update_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         }
     }
 
+@router.get("/", response_model=List[ActivityStats])
+def get_all_stats(db: Session = Depends(get_db)):
+    stats = db.query(
+        Rating.activity_key,
+        func.count(Rating.id).label("count"),
+        func.avg(Rating.rating).label("average_rating"),
+        func.count(Rating.id).label("total_ratings")
+    ).group_by(
+        Rating.activity_key
+    ).all()
+
+    return [
+        ActivityStats(
+            activity_key=stat[0],
+            count=stat[1],
+            average_rating=float(stat[2] or 0),
+            total_ratings=stat[3]
+        )
+        for stat in stats
+    ]
+
+# Add route specifically for :1 parameter
+@router.post("/:1")
+def create_rating_with_one(rating: RatingCreate, db: Session = Depends(get_db)):
+    # Same implementation as create_rating
+    return create_rating(rating, db)
+
+# Add PUT endpoint specifically for :1 parameter
+@router.put("/:1")
+def update_rating_with_one(rating: RatingCreate, db: Session = Depends(get_db)):
+    # Same implementation as update_rating
+    return update_rating(rating, db)
+
+# Add POST endpoint that works with any id parameter
+@router.post("/{id}")
+def create_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
+    # Same implementation as create_rating, just ignoring the id parameter
+    return create_rating(rating, db)
+
+# Add PUT endpoint that works with any id parameter
+@router.put("/{id}")
+def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
+    # Same implementation as update_rating, just ignoring the id parameter
+    return update_rating(rating, db)
+
 @router.get("/{activity_key}", response_model=ActivityStats)
 def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
     stats = db.query(
@@ -139,25 +184,4 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
         count=stats[1],
         average_rating=float(stats[2] or 0),
         total_ratings=stats[3]
-    )
-
-@router.get("/", response_model=List[ActivityStats])
-def get_all_stats(db: Session = Depends(get_db)):
-    stats = db.query(
-        Rating.activity_key,
-        func.count(Rating.id).label("count"),
-        func.avg(Rating.rating).label("average_rating"),
-        func.count(Rating.id).label("total_ratings")
-    ).group_by(
-        Rating.activity_key
-    ).all()
-
-    return [
-        ActivityStats(
-            activity_key=stat[0],
-            count=stat[1],
-            average_rating=float(stat[2] or 0),
-            total_ratings=stat[3]
-        )
-        for stat in stats
-    ] 
+    ) 
