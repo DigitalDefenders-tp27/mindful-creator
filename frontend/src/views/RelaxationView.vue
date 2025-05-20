@@ -284,28 +284,50 @@ const activityComponents = {
 const api = {
   async submitRating(activityType, ratingValue) {
     try {
-      // First try with POST method
       const payload = {
         activity_key: activityType,
         rating: ratingValue,
         timestamp: new Date().toISOString()
       };
       
-      try {
-        const response = await axios.post('/api/ratings/', payload);
-        return response.data;
-      } catch (error) {
-        // If POST fails with 405 Method Not Allowed, try PUT instead
-        if (error.response && error.response.status === 405) {
-          console.log('POST method not allowed, trying PUT instead');
-          const putResponse = await axios.put('/api/ratings/', payload);
-          return putResponse.data;
+      console.log('Submitting rating with payload:', payload);
+      
+      // 尝试多种URL格式以提高成功率
+      const urls = [
+        '/api/ratings/', 
+        '/api/ratings',
+        '/api/ratings/1'
+      ];
+      
+      // 尝试每个URL
+      for (const url of urls) {
+        try {
+          console.log(`Trying POST to ${url}...`);
+          const response = await axios.post(url, payload);
+          console.log(`Success with POST to ${url}!`, response.data);
+          return response.data;
+        } catch (error) {
+          if (error.response && error.response.status === 405) {
+            console.log(`POST failed with 405 to ${url}, trying PUT...`);
+            try {
+              const putResponse = await axios.put(url, payload);
+              console.log(`Success with PUT to ${url}!`, putResponse.data);
+              return putResponse.data;
+            } catch (putError) {
+              console.error(`PUT also failed to ${url}:`, putError);
+              // 继续尝试下一个URL
+            }
+          } else {
+            console.error(`Error with ${url}:`, error);
+            // 继续尝试下一个URL
+          }
         }
-        // If it's another error, throw it
-        throw error;
       }
+      
+      // 如果所有URL都失败了，抛出一个通用错误
+      throw new Error("All rating submission attempts failed");
     } catch (error) {
-      console.error('Error submitting rating:', error);
+      console.error('Final error submitting rating:', error);
       throw error;
     }
   },

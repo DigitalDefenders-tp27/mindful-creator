@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict, Any
@@ -134,32 +134,30 @@ def get_all_stats(db: Session = Depends(get_db)):
         for stat in stats
     ]
 
-# Add route specifically for :1 parameter
-@router.post("/:1")
-def create_rating_with_one(rating: RatingCreate, db: Session = Depends(get_db)):
-    # Same implementation as create_rating
+# 通配符路径 - 处理所有POST请求到/api/ratings/开头的任何路径
+@router.post("/{path:path}")
+async def create_rating_wildcard(path: str, request: Request, rating: RatingCreate, db: Session = Depends(get_db)):
+    print(f"Rating POST received at wildcard path: /{path}")
     return create_rating(rating, db)
 
-# Add PUT endpoint specifically for :1 parameter
-@router.put("/:1")
-def update_rating_with_one(rating: RatingCreate, db: Session = Depends(get_db)):
-    # Same implementation as update_rating
-    return update_rating(rating, db)
-
-# Add POST endpoint that works with any id parameter
-@router.post("/{id}")
-def create_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
-    # Same implementation as create_rating, just ignoring the id parameter
-    return create_rating(rating, db)
-
-# Add PUT endpoint that works with any id parameter
-@router.put("/{id}")
-def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
-    # Same implementation as update_rating, just ignoring the id parameter
+# 通配符路径 - 处理所有PUT请求到/api/ratings/开头的任何路径
+@router.put("/{path:path}")
+async def update_rating_wildcard(path: str, request: Request, rating: RatingCreate, db: Session = Depends(get_db)):
+    print(f"Rating PUT received at wildcard path: /{path}")
     return update_rating(rating, db)
 
 @router.get("/{activity_key}", response_model=ActivityStats)
 def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
+    # 首先检查这是否是一个特殊路径，如"/:1"
+    if activity_key.startswith(":") or activity_key.startswith("="):
+        # 如果是特殊路径，返回空数据而不是查询数据库
+        return ActivityStats(
+            activity_key="unknown",
+            count=0,
+            average_rating=0.0,
+            total_ratings=0
+        )
+        
     stats = db.query(
         Rating.activity_key,
         func.count(Rating.id).label("count"),
