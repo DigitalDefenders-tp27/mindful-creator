@@ -302,20 +302,20 @@
                           <div v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0" class="mb-8 mt-8">
                 <h3 class="comments-section-title">Comments & Response Suggestions</h3>
               <div class="space-y-6">
-                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-white rounded-lg shadow-md border-l-4 border-blue-400 overflow-hidden">
+                <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-white rounded-lg shadow-md overflow-hidden">
                   <div class="flex flex-col">
-                    <div class="bg-blue-50 p-4 border-b border-blue-100">
+                    <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
                       <h4 class="font-bold text-blue-700 mb-2 flex items-center">
                         Original Comment:
                       </h4>
-                      <p class="mb-0 text-gray-800 whitespace-pre-wrap font-medium bg-white p-3 rounded-md border border-blue-100 shadow-sm">{{ example.comment || 'No example comment provided' }}</p>
+                      <p class="mb-0 text-gray-800 whitespace-pre-wrap font-medium bg-white p-4 rounded-md border border-blue-100 shadow-sm mx-2">{{ example.comment || 'No example comment provided' }}</p>
                     </div>
-                    <div class="p-4 bg-green-50">
+                    <div class="px-6 py-4 bg-green-50">
                       <h4 class="font-bold text-blue-700 mb-2 flex items-center">
                         <span class="mr-2">✅</span>
                         Suggested Response:
                       </h4>
-                      <p class="text-gray-800 whitespace-pre-wrap bg-white p-3 rounded-md border border-green-100 shadow-sm">{{ example.response || 'No response suggestion available' }}</p>
+                      <p class="text-gray-800 whitespace-pre-wrap bg-white p-4 rounded-md border border-green-100 shadow-sm mx-2">{{ example.response || 'No response suggestion available' }}</p>
                     </div>
                   </div>
                 </div>
@@ -3267,7 +3267,7 @@
     margin-bottom: 2.5rem;
     background-color: #f8f9fa;
     border-radius: 10px;
-    padding: 1.5rem;
+    padding: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
@@ -3284,7 +3284,7 @@
     line-height: 1.8;
     text-align: left;
     font-size: 1.05rem;
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
   .strategy-content br {
@@ -4318,10 +4318,10 @@
   .comments-section-title {
     font-size: 1.5rem;
     font-weight: 600;
-    margin: 1.5rem 0;
+    margin: 2rem 0;
     color: #333;
     text-align: center;
-    padding-top: 1rem;
+    padding: 1.5rem 0 1rem;
     position: relative;
   }
   

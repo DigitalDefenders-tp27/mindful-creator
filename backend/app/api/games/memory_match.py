@@ -75,6 +75,31 @@ async def get_db_connection():
         logger.error(f"DB Connection Failed (General Exception): {e}")
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
+# 在路由处理函数中添加CORS头部的辅助函数
+def add_cors_headers(response: Response, request: Request):
+    """添加CORS头部到响应对象"""
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173", 
+        "https://mindful-creator.vercel.app",  
+        "https://tiezhu.org", 
+        "https://www.tiezhu.org", 
+        "https://www.inflowence.org",
+        "https://inflowence.org"
+    ]
+    
+    origin = None
+    if "origin" in request.headers:
+        origin = request.headers["origin"]
+        if origin in allowed_origins or origin.endswith("vercel.app"):
+            response.headers["Access-Control-Allow-Origin"] = origin
+        # 如果不在允许列表中，则不添加此头部，这会阻止跨域请求
+    
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Origin, Accept"
+    
+    return response
+
 # New Endpoints using PostgreSQL
 @router.get("/initialize_game")
 async def initialize_game_data_with_local_urls_get(http_request: Request):
@@ -86,25 +111,37 @@ async def initialize_game_data_with_local_urls_get(http_request: Request):
         logger.info(f"初始化游戏(GET请求): 等级 {level}")
         
         # 复用现有逻辑处理请求
-        return await initialize_game_common(GameInitRequest(level=level), http_request)
+        result = await initialize_game_common(GameInitRequest(level=level), http_request)
+        
+        # 如果返回的是JSONResponse，应用CORS头部
+        if isinstance(result, JSONResponse):
+            return add_cors_headers(result, http_request)
+        return result
     except Exception as e:
         logger.error(f"初始化游戏GET请求处理失败: {e}", exc_info=True)
-        return JSONResponse(
+        response = JSONResponse(
             status_code=500,
             content={"detail": f"处理请求时出错: {str(e)}"}
         )
+        return add_cors_headers(response, http_request)
 
 @router.post("/initialize_game")
 async def initialize_game_data_with_local_urls_post(game_request: GameInitRequest, http_request: Request):
     try:
         logger.info(f"初始化游戏(POST请求): 等级 {game_request.level}")
-        return await initialize_game_common(game_request, http_request)
+        result = await initialize_game_common(game_request, http_request)
+        
+        # 如果返回的是JSONResponse，应用CORS头部
+        if isinstance(result, JSONResponse):
+            return add_cors_headers(result, http_request)
+        return result
     except Exception as e:
         logger.error(f"初始化游戏POST请求处理失败: {e}", exc_info=True)
-        return JSONResponse(
+        response = JSONResponse(
             status_code=500,
             content={"detail": f"处理请求时出错: {str(e)}"}
         )
+        return add_cors_headers(response, http_request)
 
 # 共用的处理函数
 async def initialize_game_common(game_request: GameInitRequest, http_request: Request):
@@ -216,12 +253,35 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
 
 # Add OPTIONS method handler for CORS preflight requests
 @router.options("/initialize_game")
-async def options_initialize_game():
+async def options_initialize_game(http_request: Request):
     logger.info("OPTIONS request received for /initialize_game")
+    
+    # 与main.py中设置相同的CORS规则
+    allowed_origins = [
+        "http://localhost:3000",  # 本地开发 (frontend)
+        "http://localhost:5173",  # Vite 开发服务器 (frontend)
+        "https://mindful-creator.vercel.app",  
+        "https://tiezhu.org", 
+        "https://www.tiezhu.org", 
+        "https://www.inflowence.org",
+        "https://inflowence.org"
+    ]
+    
+    # 检查请求来源是否在允许列表中
+    origin = None
+    if "origin" in http_request.headers:
+        origin = http_request.headers["origin"]
+        if origin in allowed_origins or origin.endswith("vercel.app"):
+            allowed_origin = origin
+        else:
+            allowed_origin = "null"  # 不允许的来源
+    else:
+        allowed_origin = "null"  # 无来源头部
+    
     return Response(
         status_code=200,
         headers={
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": allowed_origin,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
             "Access-Control-Max-Age": "3600"
@@ -230,22 +290,25 @@ async def options_initialize_game():
 
 # --- New Endpoint to Serve Images --- 
 @router.get("/images/{image_filename}")
-async def serve_meme_image(image_filename: str):
+async def serve_meme_image(image_filename: str, request: Request):
     try:
         # Sanitize filename to prevent directory traversal - basic check
         if "..." in image_filename or image_filename.startswith("/"):
-            return JSONResponse(status_code=400, content={"detail": "Invalid image filename."})
+            response = JSONResponse(status_code=400, content={"detail": "Invalid image filename."})
+            return add_cors_headers(response, request)
 
         image_path = MEME_IMAGE_DIR / image_filename
         
         # 检查目录是否存在
         if not MEME_IMAGE_DIR.exists():
             logger.error(f"Meme image directory does not exist: {MEME_IMAGE_DIR}")
-            return JSONResponse(status_code=500, content={"detail": "Image storage directory not found."})
+            response = JSONResponse(status_code=500, content={"detail": "Image storage directory not found."})
+            return add_cors_headers(response, request)
             
         if not image_path.is_file():
             logger.error(f"Image serving: File not found at {image_path}")
-            return JSONResponse(status_code=404, content={"detail": "Image not found."})
+            response = JSONResponse(status_code=404, content={"detail": "Image not found."})
+            return add_cors_headers(response, request)
         
         media_type = "image/jpeg" # Default
         if image_filename.lower().endswith(".png"):
@@ -257,10 +320,50 @@ async def serve_meme_image(image_filename: str):
         # Add more as needed: webp, etc.
 
         logger.info(f"Serving image: {image_filename} from {image_path} with media type {media_type}")
-        return FileResponse(str(image_path), media_type=media_type)
+        response = FileResponse(str(image_path), media_type=media_type)
+        return add_cors_headers(response, request)
+        
     except Exception as e:
         logger.error(f"Error serving image {image_filename}: {e}", exc_info=True)
-        return JSONResponse(status_code=500, content={"detail": f"Error serving image: {str(e)}"})
+        response = JSONResponse(status_code=500, content={"detail": f"Error serving image: {str(e)}"})
+        return add_cors_headers(response, request)
+
+# Add OPTIONS method handler for images route
+@router.options("/images/{image_filename}")
+async def options_serve_image(http_request: Request):
+    logger.info("OPTIONS request received for /images")
+    
+    # 与main.py中设置相同的CORS规则
+    allowed_origins = [
+        "http://localhost:3000",  # 本地开发 (frontend)
+        "http://localhost:5173",  # Vite 开发服务器 (frontend)
+        "https://mindful-creator.vercel.app",  
+        "https://tiezhu.org", 
+        "https://www.tiezhu.org", 
+        "https://www.inflowence.org",
+        "https://inflowence.org"
+    ]
+    
+    # 检查请求来源是否在允许列表中
+    origin = None
+    if "origin" in http_request.headers:
+        origin = http_request.headers["origin"]
+        if origin in allowed_origins or origin.endswith("vercel.app"):
+            allowed_origin = origin
+        else:
+            allowed_origin = "null"  # 不允许的来源
+    else:
+        allowed_origin = "null"  # 无来源头部
+    
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": allowed_origin,
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
 
 # The cleanup_temporary_memes_endpoint is no longer needed as frontend handles its own temp storage (Object URLs)
 # @router.post("/memory_match/cleanup_game")

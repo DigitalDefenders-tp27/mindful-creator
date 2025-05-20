@@ -99,14 +99,8 @@ except Exception as e:
 # Optional: CORS middleware
 logger.info("Adding CORS middleware...")
 try:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # You can restrict this to your frontend origin
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    logger.info("CORS middleware added.")
+    # CORS middleware will be added later with specific origins
+    logger.info("CORS middleware setup deferred.")
 except Exception as e:
     logger.critical(f"Failed to add CORS middleware: {e}", exc_info=True)
     raise
@@ -192,35 +186,33 @@ logger.info("Logging initial system resources...")
 log_system_resources()
 
 
-# Configure CORS middleware (already added, this is a note)
+# Configure CORS middleware
 logger.info("Setting up allowed origins for CORS...")
 allowed_origins = [
-    "http://localhost:3000",  # Local development (frontend)
-    "http://localhost:5173",  # Vite dev server (frontend)
-    "https://mindful-creator.vercel.app",  # Main Vercel production domain
-    "https://tiezhu.org", # Custom domain
-    "https://www.tiezhu.org", # Custom domain with www
-    "https://www.inflowence.org", # Inflowence domain
-    "https://inflowence.org", # Inflowence domain without www
-    # Add any other specific production/staging domains here
-    "*", # Allow all origins temporarily for debugging
+    "http://localhost:3000",  # 本地开发 (frontend)
+    "http://localhost:5173",  # Vite 开发服务器 (frontend)
+    "https://mindful-creator.vercel.app",  # 主 Vercel 生产域名
+    "https://tiezhu.org",  # 自定义域名
+    "https://www.tiezhu.org",  # 带www的自定义域名
+    "https://www.inflowence.org",  # Inflowence 域名
+    "https://inflowence.org",  # 不带www的 Inflowence 域名
+    # 移除: "https://*.vercel.app" - 通配符不被直接支持
 ]
-vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\\-]+-tp27\\.vercel\\.app$"
+# 使用正则表达式匹配所有vercel.app域名和Vercel预览域名
+vercel_domain_regex = r"^https://[a-zA-Z0-9\\-]+\.vercel\.app$"
 # Middleware already added, this logging confirms the values used.
 logger.info(f"CORS Allowed Origins: {allowed_origins}")
-logger.info(f"CORS Vercel Preview Regex: {vercel_preview_regex}")
-
-
+logger.info(f"CORS Vercel Domain Regex: {vercel_domain_regex}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # List of specific origins
-    allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
+    allow_origins=allowed_origins, # 特定允许的域名列表
+    allow_origin_regex=vercel_domain_regex, # 匹配所有vercel.app域名
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly specify allowed methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # Add this to expose all response headers
-    max_age=3600,  # Add cache time to improve performance
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # 明确指定允许的方法
+    allow_headers=["*"],  # 允许所有头部
+    expose_headers=["*"],  # 暴露所有响应头部
+    max_age=3600,  # 缓存时间以提高性能
 )
 
 logger.info("Importing HuggingFace Transformers and PyTorch...")
