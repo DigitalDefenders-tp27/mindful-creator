@@ -4,6 +4,7 @@ import time
 import sys
 import traceback
 import importlib
+import json  # 添加json模块导入
 import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response, HTTPException, status
@@ -99,14 +100,8 @@ except Exception as e:
 # Optional: CORS middleware
 logger.info("Adding CORS middleware...")
 try:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # You can restrict this to your frontend origin
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    logger.info("CORS middleware added.")
+    # CORS middleware will be added later with specific origins
+    logger.info("CORS middleware setup deferred.")
 except Exception as e:
     logger.critical(f"Failed to add CORS middleware: {e}", exc_info=True)
     raise
@@ -192,35 +187,35 @@ logger.info("Logging initial system resources...")
 log_system_resources()
 
 
-# Configure CORS middleware (already added, this is a note)
+# Configure CORS middleware
 logger.info("Setting up allowed origins for CORS...")
 allowed_origins = [
     "http://localhost:3000",  # Local development (frontend)
-    "http://localhost:5173",  # Vite dev server (frontend)
+    "http://localhost:5173",  # Vite development server (frontend)
     "https://mindful-creator.vercel.app",  # Main Vercel production domain
-    "https://tiezhu.org", # Custom domain
-    "https://www.tiezhu.org", # Custom domain with www
-    "https://www.inflowence.org", # Inflowence domain
-    "https://inflowence.org", # Inflowence domain without www
-    # Add any other specific production/staging domains here
-    "*", # Allow all origins temporarily for debugging
+    "https://tiezhu.org",  # Custom domain
+    "https://www.tiezhu.org",  # Custom domain with www
+    "https://www.inflowence.org",  # Inflowence domain
+    "https://inflowence.org",  # Inflowence domain without www
+    "https://mindful-creator-production.up.railway.app",  # Railway.app production environment
+    "https://api.tiezhu.org",  # API domain
+    # Removed: "https://*.vercel.app" - Wildcard not directly supported
 ]
-vercel_preview_regex = r"^https://mindful-creator-[a-zA-Z0-9\\-]+-tp27\\.vercel\\.app$"
+# Using regex to match all vercel.app domains, Railway.app domains and Vercel preview domains
+vercel_domain_regex = r"^https://([a-zA-Z0-9\\-]+\.vercel\.app|[a-zA-Z0-9\\-]+\.up\.railway\.app)$"
 # Middleware already added, this logging confirms the values used.
 logger.info(f"CORS Allowed Origins: {allowed_origins}")
-logger.info(f"CORS Vercel Preview Regex: {vercel_preview_regex}")
-
-
+logger.info(f"CORS Vercel Domain Regex: {vercel_domain_regex}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # List of specific origins
-    allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
+    allow_origins=allowed_origins, # List of specific allowed origins
+    allow_origin_regex=vercel_domain_regex, # Matches all vercel.app domains
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly specify allowed methods
     allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # Add this to expose all response headers
-    max_age=3600,  # Add cache time to improve performance
+    expose_headers=["*"],  # Expose all response headers
+    max_age=3600,  # Cache time to improve performance
 )
 
 logger.info("Importing HuggingFace Transformers and PyTorch...")

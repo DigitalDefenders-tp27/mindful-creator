@@ -156,7 +156,7 @@
             <div class="online-resources-container" :class="{ 'full-width': activeTab === 'online' }" v-if="activeTab === 'online'">
               <div class="online-resources-list">
                 <!-- New Relaxation Card - First Position -->
-                <div class="online-resource-card rainbow-border">
+                <div class="online-resource-card rainbow-border" @click="router.push('/relaxation')" style="cursor: pointer;">
                   <div class="resource-logo">
                     <img src="@/assets/icons/elements/relaxation-icon.svg" alt="Relaxation" class="resource-icon">
                   </div>
@@ -1521,7 +1521,7 @@ const sliderStyle = computed(() => {
 let chartInstance = null
 
 // API configuration for visualization
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'
 
 // Loading state for visualization
 const isLoading = ref(true)
@@ -3996,7 +3996,8 @@ section:not(:last-child)::after {
 
 .resource-link-btn:hover {
   background: #d4407f;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(231, 90, 151, 0.4);
 }
 
 @media (max-width: 768px) {

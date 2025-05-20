@@ -145,7 +145,7 @@ const showDebug = ref(true) // Set to false in production
 const debugResults = ref(null)
 
 // API configuration - update with your backend URL
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'
 console.log('Using backend URL:', BACKEND_URL)
 
 // Loading state

@@ -161,6 +161,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // TypeScript declaration for Vite environment variables
 declare interface ImportMeta {
   readonly env: {
+    readonly BACKEND_URL?: string;
     readonly VITE_BACKEND_URL?: string;
     [key: string]: any;
   }
@@ -195,9 +196,17 @@ const currentModalMemeIndex = ref(0);
 // New state variables for dramatic warning popups
 const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
-// Get backend API address from environment variables
-const API_BASE_URL = (import.meta as any).env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
 
+// Get backend API address from environment variables
+// Priority: environment variables, then fall back to api.tiezhu.org
+const baseUrlFromEnv = ((import.meta as any).env.BACKEND_URL || 
+                      (import.meta as any).env.VITE_BACKEND_URL || 
+                      'https://api.tiezhu.org');
+
+// Ensure URL has https:// protocol
+const API_BASE_URL = baseUrlFromEnv.startsWith('http') 
+                    ? baseUrlFromEnv 
+                    : `https://${baseUrlFromEnv}`;
 
 // Define component events
 const emit = defineEmits<{
@@ -294,14 +303,15 @@ async function initializeGameFromBackend() {
     const level = currentLevel.value;
     console.log('Accessing /api/games/memory_match/initialize_game');
     
-    // Use a direct URL to the backend instead of BASE_API_URL
-    const url = `https://mindful-creator-production.up.railway.app/api/games/memory_match/initialize_game?level=${level}`;
+    const url = `${API_BASE_URL}/api/games/memory_match/initialize_game?level=${level}`;
     console.log(`Sending GET request: ${url}`);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: { 
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Origin': window.location.origin
       },
       credentials: 'include',
       mode: 'cors'
@@ -361,7 +371,7 @@ async function initializeGameFromBackend() {
       // Ensure image path is set correctly
       if (meme.image_name) {
         // Set the image path to the API endpoint
-        meme.image_path = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+        meme.image_path = `${API_BASE_URL}/api/games/memory_match/images/${meme.image_name}`;
       }
       
       // Create a pair for each card
@@ -628,15 +638,15 @@ function getCardImagePath(card: Card) {
   
   // Try with image_name if available
   if (card.memeData.image_name) {
-    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${card.memeData.image_name}`;
+    return `${API_BASE_URL}/api/games/memory_match/images/${card.memeData.image_name}`;
   }
   
   // Default to error placeholder if API fails
-  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
 }
 
 function getModalImagePath(meme: MemeData | null) {
-  if (!meme) return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  if (!meme) return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
   
   // Use API path if available
   if (meme.image_path) {
@@ -645,11 +655,11 @@ function getModalImagePath(meme: MemeData | null) {
   
   // Try with image_name if available
   if (meme.image_name) {
-    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+    return `${API_BASE_URL}/api/games/memory_match/images/${meme.image_name}`;
   }
   
   // Default to error placeholder if API fails
-  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
 }
 
 // Update error handler
@@ -658,7 +668,7 @@ function handleImageError(event: Event) {
   console.error(`Failed to load image: ${target.src}`);
   
   // Set a consistent error image
-  target.src = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  target.src = `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
   
   // If the error persists and affects gameplay, we could show an error message
   // errorMessage.value = "Failed to load game images. Please try again later.";
@@ -1241,14 +1251,6 @@ function handleImageError(event: Event) {
   margin-bottom: 20px;
 }
 
-.meme-carousel.new-meme-carousel {
-  /* Using existing flex properties */
-}
-
-.modal-meme-item-container.new-meme-item-container {
-  /* Using existing flex properties */
-}
-
 .arrow-btn.new-arrow-btn {
   font-size: 2rem; /* Slightly smaller */
   color: #aaa;
@@ -1387,6 +1389,271 @@ function handleImageError(event: Event) {
   
   .sentiment-tag.new-sentiment-tag {
     width: 55%;
+  }
+}
+
+.modal-controls.new-modal-controls {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 30px !important;
+  margin-bottom: 20px !important;
+  padding: 15px !important;
+  gap: 15px !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  flex-direction: column !important;
+}
+
+.control-btn.new-control-btn {
+  display: inline-block !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 12px 25px !important;
+  font-size: 1.1rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+  min-width: 130px !important;
+  text-align: center !important;
+  margin: 5px !important;
+  text-decoration: none !important;
+  appearance: button !important;
+  -webkit-appearance: button !important;
+}
+
+.control-btn.new-control-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Create a container for the second row buttons */
+.second-row-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+  max-width: 500px !important;
+}
+
+/* Styles for Dramatic Warning Popups */
+.dramatic-warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure it's above other modals */
+  backdrop-filter: blur(8px);
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.dramatic-warning-modal {
+  background-color: #1e1e1e; /* Dark background */
+  color: #f0f0f0; /* Light text */
+  border-radius: 16px;
+  padding: 25px 30px;
+  width: min(90%, 550px);
+  max-height: 90vh;
+  box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5); /* Glowing effect */
+  border: 2px solid #ff5252; /* Red border */
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  animation: pulseBorder 1.5s infinite alternate;
+}
+
+@keyframes pulseBorder {
+  0% {
+    border-color: #ff5252;
+    box-shadow: 0 0 30px rgba(255, 82, 82, 0.7), 0 0 15px rgba(255, 174, 0, 0.5);
+  }
+  100% {
+    border-color: #ffae00; /* Orange border */
+    box-shadow: 0 0 40px rgba(255, 174, 0, 0.7), 0 0 20px rgba(255, 82, 82, 0.5);
+  }
+}
+
+.warning-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.warning-header h2 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  color: #ffae00; /* Bright orange */
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 15px;
+  text-shadow: 0 0 10px #ffae00, 0 0 5px #ff5252;
+}
+  
+.modal-controls.new-modal-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+@keyframes shakeIcon {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+.warning-content p {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  line-height: 1.6;
+  margin-bottom: 15px;
+  color: #dcdcdc; /* Lighter grey for paragraph text */
+}
+
+.warning-content p span { /* For the "No refunds" line */
+  font-weight: bold;
+  color: #ff5252; /* Red color for emphasis */
+  text-transform: uppercase;
+}
+
+.warning-actions {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.warning-btn {
+  color: white;
+  border: none;
+  border-radius: 25px; /* Pill shape */
+  padding: 12px 20px;
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.warning-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: brightness(1.1);
+}
+
+/* Specific button styles */
+.proceed-anyway-btn, .unleash-the-memes-btn {
+  background: linear-gradient(135deg, #ff5252, #ff1744); /* Fiery red gradient */
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+}
+.proceed-anyway-btn:hover, .unleash-the-memes-btn:hover {
+   box-shadow: 0 6px 20px rgba(255, 82, 82, 0.6);
+}
+
+.retreat-btn, .i-need-my-mommy-btn {
+  background: linear-gradient(135deg, #424242, #212121); /* Dark grey gradient */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.retreat-btn:hover, .i-need-my-mommy-btn:hover {
+   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Exit Game Cross Button Styles */
+.exit-game-cross-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Circular shape */
+  font-size: 28px; /* Large cross character */
+  font-weight: bold;
+  line-height: 38px; /* Center the cross vertically */
+  text-align: center;
+  cursor: pointer;
+  z-index: 1500; /* Ensure it's above game board but potentially below modals if any appear over game */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.exit-game-cross-btn:hover {
+  background-color: rgba(255, 82, 82, 0.8); /* More opaque red on hover */
+  transform: scale(1.1);
+}
+
+/* Added media query for very small screens (e.g., phones in portrait) */
+@media (max-width: 480px) {
+  .modal-content.new-modal-content {
+    padding: 15px; /* Reduce padding for smaller modals */
+    width: min(98%, 700px); /* Allow it to be slightly wider percentage-wise */
+  }
+
+  .new-modal-h2 {
+    font-size: clamp(1.8rem, 6vw, 2.2rem); /* Adjust title size */
+    margin-bottom: 8px;
+  }
+
+  .new-modal-subtitle {
+    font-size: clamp(0.9rem, 2.8vw, 1.1rem); /* Adjust subtitle size */
+    margin-bottom: 15px;
+  }
+
+  .level-badge.new-level-badge {
+    padding: 4px 10px;
+    font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+  }
+
+  .modal-meme-image-single.new-modal-meme-image {
+    max-height: 25vh; /* Further reduce image max height */
+    margin-bottom: 10px;
+  }
+
+  .meme-identifier.new-meme-identifier {
+    font-size: clamp(1rem, 2.8vw, 1.2rem);
+    margin-bottom: 12px;
+  }
+
+  .modal-meme-sentiments.new-modal-sentiments {
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .sentiment-progress-section {
+    margin-bottom: 10px;
+  }
+
+  .sentiment-progress-container {
+    height: 28px;
+  }
+
+  .sentiment-value {
+    font-size: 1rem;
+  }
+
+  .sentiment-item.new-sentiment-item .sentiment-label,
+  .sentiment-tag.new-sentiment-tag {
+    font-size: 0.9rem; /* Adjust sentiment text size */
+  }
+
+  .modal-controls.new-modal-controls {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .control-btn.new-control-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
   }
 }
 

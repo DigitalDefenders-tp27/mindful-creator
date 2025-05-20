@@ -134,12 +134,8 @@
   
   .huge-element {
     position: absolute;
-    transition: transform 8s ease;
     opacity: 0.2;
-  }
-  
-  .huge-element:hover {
-    transform: rotate(5deg) scale(1.05);
+    animation: slowFloat 30s ease-in-out infinite;
   }
   
   .huge-flower-1 {
@@ -148,6 +144,7 @@
     width: 15vw;
     height: 15vw;
     transform: rotate(-15deg);
+    animation-delay: -5s;
   }
   
   .huge-flower-2 {
@@ -156,6 +153,7 @@
     width: 18vw;
     height: 18vw;
     transform: rotate(15deg);
+    animation-delay: -10s;
   }
   
   .huge-z-1 {
@@ -164,6 +162,7 @@
     width: 20vw;
     height: 15vw;
     transform: rotate(-5deg);
+    animation-delay: -15s;
   }
   
   .huge-flower-3 {
@@ -172,6 +171,7 @@
     width: 16vw;
     height: 16vw;
     transform: rotate(25deg);
+    animation-delay: -20s;
   }
   
   .huge-z-2 {
@@ -180,6 +180,7 @@
     width: 18vw;
     height: 14vw;
     transform: rotate(-20deg);
+    animation-delay: -25s;
   }
 
   /* Decorative elements */
@@ -196,10 +197,7 @@
   .element {
     position: absolute;
     transition: transform 0.5s ease;
-  }
-  
-  .element:hover {
-    transform: rotate(15deg) scale(1.1);
+    animation: float 15s ease-in-out infinite;
   }
   
   /* Original 7 elements */
@@ -207,30 +205,35 @@
     top: 15%;
     left: 10%;
     width: 80px;
+    animation-delay: 0s;
   }
   
   .flower-green {
     top: 70%;
     right: 15%;
     width: 60px;
+    animation-delay: -2s;
   }
   
   .flower-orange {
     bottom: 20%;
     left: 20%;
     width: 100px;
+    animation-delay: -4s;
   }
   
   .flower-pink-round {
     top: 20%;
     right: 10%;
     width: 70px;
+    animation-delay: -6s;
   }
   
   .flower-red {
     top: 40%;
     left: 5%;
     width: 60px;
+    animation-delay: -8s;
   }
   
   .z-pink {
@@ -238,6 +241,7 @@
     right: 20%;
     width: 120px;
     opacity: 0.7;
+    animation-delay: -10s;
   }
   
   .z-red {
@@ -245,6 +249,7 @@
     left: 15%;
     width: 100px;
     opacity: 0.6;
+    animation-delay: -12s;
   }
 
   /* Additional elements - set 2 */
@@ -254,6 +259,7 @@
     width: 65px;
     transform: rotate(45deg);
     opacity: 0.8;
+    animation-delay: -3s;
   }
   
   .flower-orange-2 {
@@ -262,6 +268,7 @@
     width: 85px;
     transform: rotate(20deg);
     opacity: 0.7;
+    animation-delay: -5s;
   }
   
   .z-pink-2 {
@@ -270,6 +277,7 @@
     width: 90px;
     opacity: 0.5;
     transform: rotate(-10deg);
+    animation-delay: -7s;
   }
 
   h2 {
@@ -279,6 +287,75 @@
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     text-align: left;
     align-self: flex-start;
+  }
+
+  /* Animation keyframes */
+  @keyframes float {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    25% { transform: translate(10px, -15px) rotate(8deg) scale(1.05); }
+    50% { transform: translate(5px, 10px) rotate(-5deg) scale(1); }
+    75% { transform: translate(-10px, -5px) rotate(-8deg) scale(0.95); }
+    100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.05) rotate(5deg); }
+    50% { transform: scale(1.1) rotate(10deg); }
+    75% { transform: scale(1.05) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  
+  @keyframes wiggle {
+    0% { transform: rotate(-8deg) scale(1); }
+    25% { transform: rotate(8deg) scale(1.05); }
+    50% { transform: rotate(-5deg) scale(0.95); }
+    75% { transform: rotate(5deg) scale(1.02); }
+    100% { transform: rotate(-8deg) scale(1); }
+  }
+  
+  @keyframes slowFloat {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    33% { transform: translate(15px, -15px) rotate(8deg) scale(1.03); }
+    66% { transform: translate(-15px, 10px) rotate(-8deg) scale(0.97); }
+    100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  }
+  
+  /* Add a dedicated rotation animation for some elements */
+  @keyframes rotate {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  
+  @keyframes rotateReverse {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(-180deg) scale(1.1); }
+    100% { transform: rotate(-360deg) scale(1); }
+  }
+  
+  /* Create different animations for variety */
+  .flower-pink, .flower-orange, .flower-red { animation-name: float; }
+  .flower-green, .flower-pink-2 { animation-name: pulse; }
+  .z-pink, .flower-orange-2, .z-pink-2 { animation-name: wiggle; }
+  
+  /* Apply the rotation animation to specific elements */
+  .flower-pink-round {
+    animation: rotate 25s linear infinite !important;
+  }
+  
+  .z-red {
+    animation: rotateReverse 30s linear infinite !important;
+  }
+  
+  .huge-flower-1 {
+    animation: slowFloat 30s ease-in-out infinite, rotate 45s linear infinite !important;
+    animation-delay: -5s, 0s;
+  }
+  
+  .huge-flower-3 {
+    animation: slowFloat 30s ease-in-out infinite, rotateReverse 60s linear infinite !important;
+    animation-delay: -20s, 0s;
   }
   </style>
   
