@@ -574,26 +574,26 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   right: 0;
-  width: 960px;
+  width: 480px;
   height: 100%;
   display: grid;
-  grid-template-columns: repeat(6, 160px);
+  grid-template-columns: repeat(3, 160px);
   grid-template-rows: auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(-2rem);
+  transform: translateX(-1rem);
 }
 
 .top-row {
   display: grid;
   grid-template-columns: repeat(3, 160px);
-  gap: 0.5rem;
+  gap: 0.25rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 4 / 7;
+  grid-column: 1 / 4;
   grid-row: 1;
   justify-self: end;
 }
@@ -646,28 +646,28 @@ onUnmounted(() => {
 /* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
-    width: 840px;
-    grid-template-columns: repeat(6, 140px);
+    width: 420px;
+    grid-template-columns: repeat(3, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(-0.75rem);
   }
 }
 
 @media (max-width: 1536px) {
   .decorative-elements {
-    width: 720px;
-    grid-template-columns: repeat(6, 120px);
+    width: 360px;
+    grid-template-columns: repeat(3, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(-0.5rem);
   }
 }
 
 @media (max-width: 1280px) {
   .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
+    width: 300px;
+    grid-template-columns: repeat(3, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(-0.25rem);
     row-gap: 0.75rem;
   }
 }
