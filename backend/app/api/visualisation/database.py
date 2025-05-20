@@ -106,6 +106,17 @@ class TrainCleaned(Base):
     comments_received_per_day = Column("comments_received_per_day", Float)
     messages_sent_per_day = Column("messages_sent_per_day", Float)
     dominant_emotion = Column("dominant_emotion", String)
+    
+    # Add logging for model initialization
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                logger.warning(f"TrainCleaned __init__: Attribute {key} not found in model, skipping.")
+    
+    def __repr__(self):
+        return f"<TrainCleaned(user_id={self.user_id}, daily_usage_time={self.daily_usage_time}, dominant_emotion={self.dominant_emotion})>"
 
 class SmmhCleaned(Base):
     __tablename__ = 'smmh_cleaned'
@@ -136,8 +147,19 @@ class SmmhCleaned(Base):
     q19_interest_fluctuation_scale = Column(Integer) # DB: q19_interest_fluctuation_scale (int8)
     q20_sleep_issues_scale = Column(Integer) # DB: q20_sleep_issues_scale (int8)
     
-    usage_time_group = Column("Usage_Time_Group", Text) # Kept as per image, maps to DB "Usage_Time_Group"
-
+    # Ensure this maps correctly to the database column - critical for chart functionality
+    usage_time_group = Column("Usage_Time_Group", Text) # Maps to DB column "Usage_Time_Group"
+    
+    # Add logging for model initialization
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                logger.warning(f"SmmhCleaned __init__: Attribute {key} not found in model, skipping.")
+    
+    def __repr__(self):
+        return f"<SmmhCleaned(timestamp={self.timestamp_val}, usage_time_group={self.usage_time_group})>"
 
 def try_initialize_database():
     global engine, SessionLocal # Base, TrainCleaned, SmmhCleaned are defined at module level
@@ -353,29 +375,45 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
     logger.info(f"Visualisation DB - get_train_cleaned_data_orm received db_session of type: {type(db_session)}")
     if not db_session:
         logger.error("Visualisation DB - DB session not provided to get_train_cleaned_data_orm.")
-        return []
+        raise ValueError("DB session not provided to get_train_cleaned_data_orm")
     if not TrainCleaned:
         logger.error("Visualisation DB - TrainCleaned ORM model is not defined.")
-        return []
+        raise ValueError("TrainCleaned ORM model is not defined")
 
     logger.info(f"Visualisation DB - Querying TrainCleaned with ORM. Filters: {filters}, Limit: {limit}, Columns to load: {columns_to_load}")
     try:
         query_select_entities = []
         actual_column_names_for_zip = []
+        missing_columns = []
 
         if columns_to_load:
+            logger.info(f"Visualisation DB - Checking requested columns to load: {columns_to_load}")
+            # Check if any critical columns are missing from the request
+            critical_columns = ['daily_usage_time']
+            critical_columns_requested = [col for col in critical_columns if col in columns_to_load]
+            if critical_columns_requested:
+                logger.info(f"Visualisation DB - Critical columns requested: {critical_columns_requested}")
+
             for col_name_str in columns_to_load:
                 if hasattr(TrainCleaned, col_name_str):
                     query_select_entities.append(getattr(TrainCleaned, col_name_str))
                     actual_column_names_for_zip.append(col_name_str) # Use the attribute name for the dict key
+                    logger.info(f"Visualisation DB - Added column {col_name_str} to query")
                 else:
+                    missing_columns.append(col_name_str)
                     logger.warning(f"Visualisation DB - Attribute {col_name_str} not found in TrainCleaned model, skipping for load_only.")
+            
+            if missing_columns:
+                logger.warning(f"Visualisation DB - The following requested columns were not found in TrainCleaned model: {missing_columns}")
+                
             if not query_select_entities: # If all requested columns were invalid
                 logger.warning("Visualisation DB - No valid columns in columns_to_load for TrainCleaned, loading all attributes.")
                 query = db_session.query(TrainCleaned) # Fallback to full object query
             else:
                 query = db_session.query(*query_select_entities)
+                logger.info(f"Visualisation DB - Querying specific columns: {actual_column_names_for_zip}")
         else:
+            logger.info("Visualisation DB - No specific columns requested, querying all TrainCleaned attributes")
             query = db_session.query(TrainCleaned) # Default: query full object
 
         if filters:
@@ -386,11 +424,13 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
                         query = query.filter(column_attr.in_(value))
                     else:
                         query = query.filter(column_attr == value)
+                    logger.info(f"Visualisation DB - Added filter on {attribute_name}")
                 else:
                     logger.warning(f"Visualisation DB - Filter attribute {attribute_name} not found in TrainCleaned model.")
         
         if limit:
             query = query.limit(limit)
+            logger.info(f"Visualisation DB - Query limited to {limit} rows")
 
         # Log the string representation of the query for TrainCleaned
         try:
@@ -400,16 +440,35 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
         except Exception as e_compile:
             logger.error(f"Visualisation DB - Error compiling TrainCleaned query: {e_compile}", exc_info=True)
             logger.info(f"Visualisation DB - Basic query structure for TrainCleaned: {query}")
-            
-        results = query.all()
         
+        # Execute the query with detailed error handling
+        try:
+            results = query.all()
+            logger.info(f"Visualisation DB - TrainCleaned query returned {len(results)} rows")
+        except Exception as e_query:
+            logger.error(f"Visualisation DB - Error executing TrainCleaned query: {e_query}", exc_info=True)
+            # Check for timeout
+            if "timeout" in str(e_query).lower():
+                raise TimeoutError(f"Query timed out for TrainCleaned: {e_query}")
+            # Re-raise with context
+            raise ValueError(f"Failed to execute query against train_cleaned table: {e_query}")
+            
         data = []
-        if query_select_entities: # If specific columns were queried (and at least one was valid)
+        if query_select_entities and len(query_select_entities) > 0: # If specific columns were queried (and at least one was valid)
             # `results` will be a list of Row objects (tuple-like)
+            logger.info(f"Visualisation DB - Processing {len(results)} row tuples with columns: {actual_column_names_for_zip}")
             for row_tuple in results:
-                data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
+                # Validate the row tuple length matches expected columns
+                if len(row_tuple) != len(actual_column_names_for_zip):
+                    logger.warning(f"Visualisation DB - Row tuple length ({len(row_tuple)}) doesn't match column count ({len(actual_column_names_for_zip)})")
+                    continue
+                
+                # Create a dictionary from the row tuple
+                row_dict = dict(zip(actual_column_names_for_zip, row_tuple))
+                data.append(row_dict)
         else: # Full model objects were queried (or columns_to_load was empty/all invalid)
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
+            logger.info(f"Visualisation DB - Processing {len(results)} full model objects")
             processed_data = []
             column_attribute_keys = [] # Initialize
             if results: # Ensure there are results to inspect
@@ -418,6 +477,7 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
                 # Get a list of Python attribute names that correspond to columns
                 column_attribute_keys = [prop.key for prop in mapper.iterate_properties 
                                          if isinstance(prop, ColumnProperty)]
+                logger.info(f"Visualisation DB - Identified column attributes: {column_attribute_keys}")
             
             for row_obj in results:
                 row_as_dict = {}
@@ -428,7 +488,6 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
                         if hasattr(mapper.attrs[attr_key], 'expression') and hasattr(mapper.attrs[attr_key].expression, 'name'):
                             db_column_name = mapper.attrs[attr_key].expression.name
                         
-                        logger.info(f"{row_obj.__class__.__name__} - Accessing ORM attribute: '{attr_key}' (DB column: '{db_column_name}')")
                         value = getattr(row_obj, attr_key)
                         row_as_dict[attr_key] = value
                     except AttributeError as e_attr:
@@ -438,13 +497,16 @@ def get_train_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_
                 processed_data.append(row_as_dict)
             data = processed_data
 
-        logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows.")
+        # Validate the critical columns are present in the data (for at least the first row) if requested
+        if data and 'daily_usage_time' in columns_to_load and len(data) > 0 and 'daily_usage_time' not in data[0]:
+            logger.error(f"Visualisation DB - Critical column 'daily_usage_time' is missing from result data. Available columns: {list(data[0].keys())}")
+            raise ValueError("Critical column 'daily_usage_time' is missing from train_cleaned result data")
+
+        logger.info(f"Visualisation DB - TrainCleaned ORM query returned {len(data)} rows. Sample keys: {list(data[0].keys()) if data else []}")
         return data
     except Exception as e:
         logger.error(f"Visualisation DB - Error querying TrainCleaned with ORM: {e}", exc_info=True)
-        if ALLOW_DB_FAILURE:
-            return []
-        raise
+        raise # Always re-raise the exception to ensure errors are properly propagated
 
 def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_load=None):
     """
@@ -469,20 +531,36 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
     try:
         query_select_entities = []
         actual_column_names_for_zip = []
+        missing_columns = []
 
         if columns_to_load:
+            logger.info(f"Visualisation DB - Checking requested columns to load: {columns_to_load}")
+            # Check if any critical columns are missing from the request
+            critical_columns = ['usage_time_group']
+            critical_columns_requested = [col for col in critical_columns if col in columns_to_load]
+            if critical_columns_requested:
+                logger.info(f"Visualisation DB - Critical columns requested: {critical_columns_requested}")
+            
             for col_name_str in columns_to_load:
                 if hasattr(SmmhCleaned, col_name_str):
                     query_select_entities.append(getattr(SmmhCleaned, col_name_str))
                     actual_column_names_for_zip.append(col_name_str) # Use the attribute name
+                    logger.info(f"Visualisation DB - Added column {col_name_str} to query")
                 else:
+                    missing_columns.append(col_name_str)
                     logger.warning(f"Visualisation DB - Attribute {col_name_str} not found in SmmhCleaned model, skipping for load_only.")
+            
+            if missing_columns:
+                logger.warning(f"Visualisation DB - The following requested columns were not found in SmmhCleaned model: {missing_columns}")
+                
             if not query_select_entities: # If all requested columns were invalid
                 logger.warning("Visualisation DB - No valid columns in columns_to_load for SmmhCleaned, loading all attributes.")
                 query = db_session.query(SmmhCleaned) # Fallback
             else:
                 query = db_session.query(*query_select_entities)
+                logger.info(f"Visualisation DB - Querying specific columns: {actual_column_names_for_zip}")
         else:
+            logger.info("Visualisation DB - No specific columns requested, querying all SmmhCleaned attributes")
             query = db_session.query(SmmhCleaned) # Default: query full object
 
         if filters:
@@ -493,11 +571,13 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
                         query = query.filter(column_attr.in_(value))
                     else:
                         query = query.filter(column_attr == value)
+                    logger.info(f"Visualisation DB - Added filter on {attribute_name}")
                 else:
                     logger.warning(f"Visualisation DB - Filter attribute {attribute_name} not found in SmmhCleaned model.")
 
         if limit:
             query = query.limit(limit)
+            logger.info(f"Visualisation DB - Query limited to {limit} rows")
         
         # Log the string representation of the query
         try:
@@ -509,14 +589,34 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
             logger.error(f"Visualisation DB - Error compiling SmmhCleaned query: {e_compile}", exc_info=True)
             # Log a simpler version if advanced compilation fails
             logger.info(f"Visualisation DB - Basic query structure for SmmhCleaned: {query}")
-        results = query.all()
+        
+        # Execute the query with detailed error handling
+        try:
+            results = query.all()
+            logger.info(f"Visualisation DB - SmmhCleaned query returned {len(results)} rows")
+        except Exception as e_query:
+            logger.error(f"Visualisation DB - Error executing SmmhCleaned query: {e_query}", exc_info=True)
+            # Check for timeout
+            if "timeout" in str(e_query).lower():
+                raise TimeoutError(f"Query timed out for SmmhCleaned: {e_query}")
+            # Re-raise with context
+            raise ValueError(f"Failed to execute query against smmh_cleaned table: {e_query}")
 
         data = []
-        if query_select_entities: # If specific columns were queried
+        if query_select_entities and len(query_select_entities) > 0: # If specific columns were queried
+            logger.info(f"Visualisation DB - Processing {len(results)} row tuples with columns: {actual_column_names_for_zip}")
             for row_tuple in results:
-                data.append(dict(zip(actual_column_names_for_zip, row_tuple)))
+                # Validate the row tuple length matches expected columns
+                if len(row_tuple) != len(actual_column_names_for_zip):
+                    logger.warning(f"Visualisation DB - Row tuple length ({len(row_tuple)}) doesn't match column count ({len(actual_column_names_for_zip)})")
+                    continue
+                
+                # Create a dictionary from the row tuple
+                row_dict = dict(zip(actual_column_names_for_zip, row_tuple))
+                data.append(row_dict)
         else: # Full model objects were queried
             # Use column.key for both the dictionary key and getattr to use ORM attribute names
+            logger.info(f"Visualisation DB - Processing {len(results)} full model objects")
             processed_data = []
             column_attribute_keys = [] # Initialize
             if results: # Ensure there are results to inspect
@@ -525,6 +625,7 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
                 # Get a list of Python attribute names that correspond to columns
                 column_attribute_keys = [prop.key for prop in mapper.iterate_properties
                                          if isinstance(prop, ColumnProperty)]
+                logger.info(f"Visualisation DB - Identified column attributes: {column_attribute_keys}")
             
             for row_obj in results:
                 row_as_dict = {}
@@ -535,7 +636,6 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
                         if hasattr(mapper.attrs[attr_key], 'expression') and hasattr(mapper.attrs[attr_key].expression, 'name'):
                             db_column_name = mapper.attrs[attr_key].expression.name
 
-                        logger.info(f"{row_obj.__class__.__name__} - Accessing ORM attribute: '{attr_key}' (DB column: '{db_column_name}')")
                         value = getattr(row_obj, attr_key)
                         row_as_dict[attr_key] = value
                     except AttributeError as e_attr:
@@ -544,11 +644,16 @@ def get_smmh_cleaned_data_orm(db_session, filters=None, limit=None, columns_to_l
                         row_as_dict[attr_key] = f"ERROR_ACCESSING_{attr_key}"
                 processed_data.append(row_as_dict)
             data = processed_data
+        
+        # Validate the critical columns are present in the data (for at least the first row)
+        if data and 'usage_time_group' in columns_to_load and len(data) > 0 and 'usage_time_group' not in data[0]:
+            logger.error(f"Visualisation DB - Critical column 'usage_time_group' is missing from result data. Available columns: {list(data[0].keys())}")
+            raise ValueError("Critical column 'usage_time_group' is missing from smmh_cleaned result data")
             
-        logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows.")
+        logger.info(f"Visualisation DB - SmmhCleaned ORM query returned {len(data)} rows. Sample keys: {list(data[0].keys()) if data else []}")
         return data
     except Exception as e:
-        logger.error(f"Visualisation DB - Error querying SmmhCleaned with ORM (THIS IS THE LIKELY CULPRIT): {e}", exc_info=True)
+        logger.error(f"Visualisation DB - Error querying SmmhCleaned with ORM: {e}", exc_info=True)
         # Since ALLOW_DB_FAILURE defaults to False, we should re-raise to ensure it's not caught by a misconfigured ALLOW_DB_FAILURE=True scenario.
         # If ALLOW_DB_FAILURE was True, the original code would return [].
         # Forcing a raise here ensures the error is propagated if it's the cause of transaction abortion.

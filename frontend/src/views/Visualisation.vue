@@ -303,6 +303,23 @@ const fetchDataAndRender = async () => {
       schemaHasIssues = true; // Set to true if chart_data_shapes is not as expected
     }
     
+    // Additional check for smmh_cleaned_columns to ensure they contain required fields
+    if (schemaResponse.data && schemaResponse.data.smmh_cleaned_columns) {
+      const requiredSmmhColumns = ['usage_time_group', 'q20_sleep_issues_scale', 'q12_easily_distracted_scale', 
+                                   'q13_bothered_by_worries_scale', 'q14_difficulty_concentrating_scale'];
+      const missingColumns = requiredSmmhColumns.filter(col => 
+        !schemaResponse.data.smmh_cleaned_columns.includes(col));
+      
+      if (missingColumns.length > 0) {
+        const missingMsg = `Missing required SMMH columns: ${missingColumns.join(', ')}`;
+        console.warn(`fetchDataAndRender: ${missingMsg}`);
+        if (missingColumns.includes('usage_time_group')) {
+          schemaHasIssues = true;
+          schemaIssueReason = `Critical column 'usage_time_group' is missing. Sleep quality and anxiety charts may not load.`;
+        }
+      }
+    }
+    
     if (schemaHasIssues) {
       console.warn(`fetchDataAndRender: Aborting main chart data fetch due to pre-flight schema issue. Reason: ${schemaIssueReason}`);
       error.value = `Schema validation failed before fetching chart data: ${schemaIssueReason}. Visualizations may not load.`;
@@ -319,6 +336,34 @@ const fetchDataAndRender = async () => {
     ];
     const endpoint = tabEndpoints[currentTab.value];
     console.log(`fetchDataAndRender: Fetching chart data from ${BACKEND_URL}${endpoint}`);
+    
+    // Special handling for sleep-quality and anxiety endpoints
+    if (endpoint.includes('sleep-quality') || endpoint.includes('anxiety')) {
+      console.log(`fetchDataAndRender: This endpoint (${endpoint}) requires SMMH data with usage_time_group column.`);
+      // Check if we have the required columns from the schema check
+      if (schemaResponse.data && schemaResponse.data.smmh_cleaned_columns) {
+        if (!schemaResponse.data.smmh_cleaned_columns.includes('usage_time_group')) {
+          throw new Error(`Required column 'usage_time_group' is missing for ${endpoint} endpoint.`);
+        }
+        
+        // For sleep-quality endpoint
+        if (endpoint.includes('sleep-quality') && !schemaResponse.data.smmh_cleaned_columns.includes('q20_sleep_issues_scale')) {
+          throw new Error(`Required column 'q20_sleep_issues_scale' is missing for sleep-quality endpoint.`);
+        }
+        
+        // For anxiety endpoint
+        if (endpoint.includes('anxiety')) {
+          const anxietyColumns = ['q12_easily_distracted_scale', 'q13_bothered_by_worries_scale', 'q14_difficulty_concentrating_scale'];
+          const missingAnxietyColumns = anxietyColumns.filter(col => 
+            !schemaResponse.data.smmh_cleaned_columns.includes(col));
+          
+          if (missingAnxietyColumns.length > 0) {
+            throw new Error(`Required columns for anxiety endpoint are missing: ${missingAnxietyColumns.join(', ')}`);
+          }
+        }
+      }
+    }
+    
     const response = await axios.get(`${BACKEND_URL}${endpoint}`, { timeout: 30000 });
     
     if (!response.data || Object.keys(response.data).length === 0 || !response.data.labels || !response.data.datasets) {
@@ -333,7 +378,23 @@ const fetchDataAndRender = async () => {
 
   } catch (err) {
     console.error('fetchDataAndRender: Failed to fetch chart data or schema:', err);
-    error.value = `Failed to load visualisation: ${err.message}. Please ensure the backend is running and data is available.`;
+    
+    // Provide more specific error messages based on the tab
+    const tabSpecificErrors = [
+      "Screen Time & Emotions: Check if train_cleaned table has the required columns.",
+      "Sleep Quality: Check if smmh_cleaned table has 'usage_time_group' and 'q20_sleep_issues_scale' columns.",
+      "Engagement: Check if train_cleaned table has engagement metrics columns.",
+      "Anxiety: Check if smmh_cleaned table has anxiety scale columns (q12-q14)."
+    ];
+    
+    let errorMsg = `Failed to load visualisation: ${err.message}.`;
+    
+    // Add tab-specific help
+    if (currentTab.value >= 0 && currentTab.value < tabSpecificErrors.length) {
+      errorMsg += ` ${tabSpecificErrors[currentTab.value]}`;
+    }
+    
+    error.value = errorMsg;
     isLoading.value = false;
   }
 };

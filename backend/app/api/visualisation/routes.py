@@ -320,9 +320,10 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             "user_id", "age", "gender", "platform", "daily_usage_time", "posts_per_day",
             "likes_received_per_day", "comments_received_per_day", "messages_sent_per_day", "dominant_emotion"
         ]
+        
         # Updated list of all SmmhCleaned ORM attribute names based on the new schema
         smmh_cleaned_all_orm_attrs = [
-            "smmh_id", "timestamp_val", 
+            "timestamp_val", 
             "q1_age", "q2_gender", "q3_relationship_status", "q4_occupation_status",
             "q5_org_affiliation", "q6_use_social_media", "q7_platforms", "q8_avg_sm_time",
             "q9_unintentional_use", "q10_distracted_by_sm", "q11_restless_no_sm",
@@ -350,15 +351,21 @@ async def debug_data_schema(db_context_manager: Any = Depends(get_db)) -> Dict[s
             logger.error(f"Error getting train_cleaned sample using ORM: {e}", exc_info=True)
             
         try:
-            # Modify the list of columns to load for smmh_cleaned for this debug endpoint
-            # Requesting an actual existing column "timestamp_val" instead of non-existent "smmh_id"
-            smmh_cleaned_debug_attrs = [
-                "timestamp_val" 
+            # FIX: Request all required columns from smmh_cleaned table instead of just timestamp_val
+            # These columns are needed for the sleep quality and anxiety charts
+            smmh_required_columns = [
+                "timestamp_val", 
+                "usage_time_group",
+                "q12_easily_distracted_scale", 
+                "q13_bothered_by_worries_scale",
+                "q14_difficulty_concentrating_scale", 
+                "q20_sleep_issues_scale"
             ]
-            logger.info(f"debug-data-schema: Requesting column for SMMH: {smmh_cleaned_debug_attrs}")
+            
+            logger.info(f"debug-data-schema: Requesting columns for SMMH: {smmh_required_columns}")
 
-            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_cleaned_debug_attrs)
-            logger.info(f"debug-data-schema: smmh_data_list from ORM (with timestamp_val): {smmh_data_list}")
+            smmh_data_list = data_processors.get_smmh_cleaned_data_orm(actual_db_session, limit=1, columns_to_load=smmh_required_columns)
+            logger.info(f"debug-data-schema: smmh_data_list from ORM: {smmh_data_list}")
             if smmh_data_list and len(smmh_data_list) > 0:
                 smmh_data_sample = smmh_data_list[0]
                 logger.info(f"debug-data-schema: smmh_data_sample type: {type(smmh_data_sample)}, value: {smmh_data_sample}") # DETAILED LOGGING
