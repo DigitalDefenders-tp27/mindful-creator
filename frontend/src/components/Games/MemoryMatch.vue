@@ -294,8 +294,7 @@ async function initializeGameFromBackend() {
     const level = currentLevel.value;
     console.log('Accessing /api/games/memory_match/initialize_game');
     
-    // Use a direct URL to the backend instead of BASE_API_URL
-    const url = `https://mindful-creator-production.up.railway.app/api/games/memory_match/initialize_game?level=${level}`;
+    const url = `${API_BASE_URL}/api/games/memory_match/initialize_game?level=${level}`;
     console.log(`Sending GET request: ${url}`);
     
     const response = await fetch(url, {
@@ -361,7 +360,7 @@ async function initializeGameFromBackend() {
       // Ensure image path is set correctly
       if (meme.image_name) {
         // Set the image path to the API endpoint
-        meme.image_path = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+        meme.image_path = `${API_BASE_URL}/api/games/memory_match/images/${meme.image_name}`;
       }
       
       // Create a pair for each card
@@ -628,15 +627,15 @@ function getCardImagePath(card: Card) {
   
   // Try with image_name if available
   if (card.memeData.image_name) {
-    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${card.memeData.image_name}`;
+    return `${API_BASE_URL}/api/games/memory_match/images/${card.memeData.image_name}`;
   }
   
   // Default to error placeholder if API fails
-  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
 }
 
 function getModalImagePath(meme: MemeData | null) {
-  if (!meme) return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  if (!meme) return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
   
   // Use API path if available
   if (meme.image_path) {
@@ -645,11 +644,11 @@ function getModalImagePath(meme: MemeData | null) {
   
   // Try with image_name if available
   if (meme.image_name) {
-    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+    return `${API_BASE_URL}/api/games/memory_match/images/${meme.image_name}`;
   }
   
   // Default to error placeholder if API fails
-  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  return `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
 }
 
 // Update error handler
@@ -658,7 +657,7 @@ function handleImageError(event: Event) {
   console.error(`Failed to load image: ${target.src}`);
   
   // Set a consistent error image
-  target.src = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  target.src = `${API_BASE_URL}/api/games/memory_match/images/placeholder.jpg`;
   
   // If the error persists and affects gameplay, we could show an error message
   // errorMessage.value = "Failed to load game images. Please try again later.";
@@ -1239,14 +1238,6 @@ function handleImageError(event: Event) {
   padding: 0;
   margin-top: 0;
   margin-bottom: 20px;
-}
-
-.meme-carousel.new-meme-carousel {
-  /* Using existing flex properties */
-}
-
-.modal-meme-item-container.new-meme-item-container {
-  /* Using existing flex properties */
 }
 
 .arrow-btn.new-arrow-btn {
