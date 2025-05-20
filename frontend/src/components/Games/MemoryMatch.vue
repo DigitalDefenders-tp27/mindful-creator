@@ -321,13 +321,35 @@ async function initializeGameFromBackend() {
         // 尝试读取响应文本以获取更多错误信息
         let errorDetail = '';
         try {
-          const errorJson = await response.json();
-          errorDetail = errorJson.detail || '未提供详细错误信息';
-        } catch {
+          // 先尝试检查内容类型
+          const contentType = response.headers.get('content-type');
+          console.log(`响应内容类型: ${contentType}`);
+          
+          if (contentType && contentType.includes('application/json')) {
+            const errorJson = await response.json();
+            errorDetail = errorJson.detail || '未提供详细错误信息';
+          } else {
+            // 如果不是JSON，则读取为文本并记录前100个字符用于调试
+            const textResponse = await response.text();
+            console.error(`非JSON响应前100个字符: ${textResponse.substring(0, 100)}`);
+            errorDetail = `服务器返回非JSON响应 (${response.status})`;
+          }
+        } catch (parseError) {
+          console.error('解析响应时出错:', parseError);
           errorDetail = await response.text() || `HTTP错误 ${response.status}`;
         }
         
         throw new Error(`API 请求失败，状态码: ${response.status}。${errorDetail}`);
+      }
+      
+      // 这里在解析JSON之前先检查内容类型
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error(`响应内容类型不是JSON: ${contentType}`);
+        // 读取文本内容以便调试，但只打印前100个字符
+        const textResponse = await response.text();
+        console.error(`非JSON响应前100个字符: ${textResponse.substring(0, 100)}`);
+        throw new Error(`服务器返回了非JSON格式的响应: ${contentType}`);
       }
       
       // 解析响应数据

@@ -296,6 +296,14 @@ async def add_process_time_header(request: Request, call_next):
         process_time = time.time() - start_time
         logger.error(f"Request failed: {method} {url} - Error: {str(e)} - Time: {process_time:.4f}s")
         logger.error(traceback.format_exc())
+        
+        # 对于API请求，确保我们总是返回JSON而不是HTML
+        if url.startswith("/api/") or "json" in request.headers.get("accept", ""):
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Internal Server Error", "error": str(e)}
+            )
+        # 其他请求返回常规错误响应
         return JSONResponse(
             status_code=500,
             content={"detail": "Internal Server Error", "error": str(e)}
@@ -368,13 +376,26 @@ async def proxy_initialize_game_get(request: Request):
         # Extract level from query parameters
         params = dict(request.query_params)
         level = int(params.get("level", 1))
-        return await memory_match_router.initialize_game_data_with_local_urls(
+        
+        # 重要：确保添加请求对象
+        result = await memory_match_router.initialize_game_data_with_local_urls(
             game_request=GameInitRequest(level=level),
             http_request=request
         )
+        # 如果返回的是Response对象，直接返回
+        if isinstance(result, Response):
+            return result
+            
+        # 否则，确保我们返回一个JSONResponse
+        return JSONResponse(content=result)
+        
     except Exception as e:
         logger.error(f"Error in memory match initialization: {str(e)}")
-        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+        # 始终返回JSON格式的错误响应
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error processing game initialization: {str(e)}"}
+        )
 
 # 添加专门的OPTIONS处理器用于initialize_game端点
 @app.options("/api/games/memory_match/initialize_game")
