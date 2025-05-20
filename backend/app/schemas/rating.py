@@ -10,10 +10,17 @@ class RatingCreate(RatingBase):
     pass
 
 class Rating(RatingBase):
-    upload_timestamp: datetime
+    id: int
+    activity_type: str
+    rating_value: int
+    created_at: datetime
 
     class Config:
         orm_mode = True
+        fields = {
+            'activity_type': {'alias': 'activity_key'},
+            'rating_value': {'alias': 'rating'}
+        }
 
 class ActivityStats(BaseModel):
     activity_key: str

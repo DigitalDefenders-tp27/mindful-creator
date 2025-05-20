@@ -28,6 +28,7 @@ async def options_ratings_all_paths():
 
 @router.post("/")
 def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
+    """Create a new rating for an activity"""
     try:
         logger.info(f"Received new rating: activity_key={rating.activity_key}, rating={rating.rating}")
         
@@ -89,21 +90,25 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
 
 @router.put("/")
 def update_rating(rating: RatingCreate, db: Session = Depends(get_db)):
+    """Update an existing rating by creating a new one"""
     return create_rating(rating, db)
 
 @router.post("/{id}")
 def create_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
+    """Create a rating with a specified ID (ID is ignored)"""
     return create_rating(rating, db)
 
 @router.put("/{id}")
 def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(get_db)):
+    """Update a rating with a specified ID (ID is ignored)"""
     return create_rating(rating, db)
 
-@router.get("/", response_model=List[ActivityStats])
+@router.get("/")
 def get_all_stats(db: Session = Depends(get_db)):
+    """Get statistics for all activities"""
     try:
         logger.info("Getting statistics for all activities")
-        stats = db.query(
+        stats_query = db.query(
             Rating.activity_type,
             func.count(Rating.id).label("count"),
             func.avg(Rating.rating_value).label("average_rating"),
@@ -112,7 +117,7 @@ def get_all_stats(db: Session = Depends(get_db)):
             Rating.activity_type
         ).all()
         
-        logger.info(f"Found statistics for {len(stats)} activities")
+        logger.info(f"Found statistics for {len(stats_query)} activities")
         return [
             ActivityStats(
                 activity_key=stat[0],
@@ -120,7 +125,7 @@ def get_all_stats(db: Session = Depends(get_db)):
                 average_rating=float(stat[2] or 0),
                 total_ratings=stat[3]
             )
-            for stat in stats
+            for stat in stats_query
         ]
     except Exception as e:
         logger.error(f"Error while getting all statistics: {str(e)}")
@@ -128,6 +133,7 @@ def get_all_stats(db: Session = Depends(get_db)):
 
 @router.get("/{activity_key}", response_model=ActivityStats)
 def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
+    """Get statistics for a specific activity"""
     try:
         logger.info(f"Getting statistics for activity {activity_key}")
         
@@ -142,7 +148,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
             )
             
         # Query database
-        stats = db.query(
+        stats_query = db.query(
             Rating.activity_type,
             func.count(Rating.id).label("count"),
             func.avg(Rating.rating_value).label("average_rating"),
@@ -153,7 +159,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
             Rating.activity_type
         ).first()
         
-        if not stats:
+        if not stats_query:
             logger.info(f"No statistics found for activity {activity_key}")
             return ActivityStats(
                 activity_key=activity_key,
@@ -162,12 +168,12 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
                 total_ratings=0
             )
         
-        logger.info(f"Found statistics for activity {activity_key}: count={stats[1]}, avg={stats[2]}, total={stats[3]}")
+        logger.info(f"Found statistics for activity {activity_key}: count={stats_query[1]}, avg={stats_query[2]}, total={stats_query[3]}")
         return ActivityStats(
-            activity_key=stats[0],
-            count=stats[1],
-            average_rating=float(stats[2] or 0),
-            total_ratings=stats[3]
+            activity_key=stats_query[0],
+            count=stats_query[1],
+            average_rating=float(stats_query[2] or 0),
+            total_ratings=stats_query[3]
         )
     except Exception as e:
         logger.error(f"Error while getting statistics for activity {activity_key}: {str(e)}")
