@@ -579,12 +579,18 @@ const goToSlide = (index) => {
   currentSlideIndex.value = index;
 };
 
+// Update nextSlide function to only cycle forward
 const nextSlide = () => {
   currentSlideIndex.value = (currentSlideIndex.value + 1) % totalSlides.value;
 };
 
+// Update prevSlide function to cycle continuously in the forward direction when at the first slide
 const prevSlide = () => {
-  currentSlideIndex.value = (currentSlideIndex.value - 1 + totalSlides.value) % totalSlides.value;
+  if (currentSlideIndex.value === 0) {
+    currentSlideIndex.value = totalSlides.value - 1;
+  } else {
+    currentSlideIndex.value = currentSlideIndex.value - 1;
+  }
 };
 
 const handleKeydown = (event) => {
@@ -1773,305 +1779,90 @@ input[type="text"] {
 }
 
 @media (max-width: 1024px) {
-  .hero-section {
-    padding: 5rem 0 1rem;
-  }
-  .title-group h1 {
-    font-size: 3.8rem;
-  }
-  .title-group h2 {
-    font-size: 2.2rem;
-  }
-  .subtitle {
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-  }
-  .decorative-elements {
-    width: 400px;
-    grid-template-columns: repeat(4, 100px);
-    opacity: 0.4;
-  }
-  .license-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-  .section-title {
-    font-size: 2rem;
-  }
-  .section-description {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-  }
-  .carousel-main-title {
+  .banner-title {
     font-size: 1.8rem;
   }
-  .carousel-slide .content-section h2 {
+  
+  .banner-content {
+    min-height: 400px;
+    height: 400px;
+    padding: 1.75rem;
+  }
+  
+  .banner-content h2 {
     font-size: 1.5rem;
   }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
     font-size: 1rem !important;
-  }
-  .carousel-nav-button {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-  }
-  .carousel-nav-button.prev {
-    left: 10px;
-  }
-  .carousel-nav-button.next {
-    right: 10px;
-  }
-  .carousel-dots .dot {
-    width: 10px;
-    height: 10px;
   }
 }
 
 @media (max-width: 768px) {
-  .hero-section {
-    padding: 4rem 0 1rem;
+  .copyright-tips-banner {
+    padding: 1.5rem 0;
   }
-  .hero-content {
-    padding: 0 1rem;
-    align-items: flex-start;
-  }
-  .title-group h1 {
-    font-size: 3rem;
-  }
-  .title-group h2 {
-    font-size: 1.8rem;
-  }
-  .subtitle {
-    font-size: 1.1rem;
-    margin-top: 1rem;
-  }
-  .decorative-elements {
-    display: none;
-  }
-  .license-grid {
-    grid-template-columns: 1fr;
-  }
-  .license-card {
-    height: auto;
-    min-height: 180px;
-  }
-  .card-front, .card-back {
-    padding: 1.5rem;
-  }
-  .generator-container {
-    padding: 1.5rem;
-  }
-  .preview-section {
-    min-height: auto;
-  }
-  .image-preview {
-    min-height: 200px;
-  }
-  .preview-canvas {
-    max-height: 200px;
-  }
-  .control-step {
-    padding: 1rem;
-    padding-top: 2rem;
-  }
-  .license-options {
-    grid-template-columns: 1fr;
-  }
-  .font-selector {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-  .action-buttons-group {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
-  .interactive-content-carousel {
-    padding: 1.5rem;
-  }
-  .carousel-header-panel,
-  .carousel-container,
-  .carousel-dots {
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .carousel-main-title {
+  
+  .banner-title {
     font-size: 1.6rem;
   }
-  .carousel-slide .content-section {
+  
+  .banner-content {
     padding: 1.5rem;
+    min-height: 450px;
+    height: 450px;
   }
-  .carousel-slide .content-section h2 {
+  
+  .banner-content h2 {
     font-size: 1.4rem;
   }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
     font-size: 0.95rem !important;
   }
-}
-
-@media (max-width: 640px) {
-  .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.7);
-  }
-  .hero-section {
-    padding: 3rem 0 0.5rem;
-  }
-  .title-group h1 {
-    font-size: 2.5rem;
-  }
-  .title-group h2 {
-    font-size: 1.6rem;
-  }
-  .subtitle {
-    font-size: 1rem;
-  }
-  .image-preview {
-    max-width: 100%;
-    min-height: 180px;
-  }
-  .preview-canvas {
-    max-height: 180px;
-  }
-  .placeholder-upload {
-    min-height: 180px;
-  }
-  .section-title {
-    font-size: 1.8rem;
-  }
-  .section-description {
-    font-size: 1rem;
-  }
-  .carousel-nav-button {
+  
+  .banner-nav-button {
     width: 35px;
     height: 35px;
     font-size: 1.3rem;
   }
-  .carousel-main-title {
-    font-size: 1.5rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .hero-section {
-    padding: 2.5rem 0 0.5rem;
+  .copyright-tips-banner {
+    padding: 1rem 0;
   }
-  .title-group h1 {
-    font-size: 2rem;
-  }
-  .title-group h2 {
+  
+  .banner-title {
     font-size: 1.4rem;
+    margin-bottom: 1rem;
   }
-  .subtitle {
-    font-size: 0.9rem;
-  }
-  .license-card {
-    padding: 0.6rem;
-    min-height: 0;
-    height: auto;
-  }
-  .card-front, .card-back {
-    padding: 0.8rem;
-    justify-content: flex-start;
-  }
-  .license-icon {
-    font-size: 2rem;
-    margin-bottom: 0.3rem;
-  }
-  .license-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.2;
-  }
-  .license-subtitle {
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-    line-height: 1.3;
-  }
-  .license-details {
-    padding: 0;
-    margin: 0;
-  }
-  .license-details li {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-    padding-left: 1rem;
-    line-height: 1.4;
-  }
-  .generator-container {
+  
+  .banner-content {
     padding: 1rem;
+    min-height: 420px;
+    height: 420px;
   }
-  .preview-section {
-    padding: 1rem;
-  }
-  .image-preview {
-    min-height: 150px;
-  }
-  .preview-canvas {
-    max-height: 150px;
-  }
-  .placeholder-upload {
-    min-height: 150px;
-  }
-  .control-step {
-    padding: 1rem;
-    padding-top: 1.5rem;
-  }
-  .step-number {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
-  .step-title {
-    font-size: 1.1rem;
-  }
-  input[type="text"] {
-    padding: 0.6rem;
-    font-size: 0.9rem;
-  }
-  .font-selector {
-    grid-template-columns: 1fr;
-  }
-  .font-option {
-    padding: 0.6rem;
-    font-size: 0.85rem;
-  }
-  .color-option, .color-picker {
-    width: 30px;
-    height: 30px;
-  }
-  .slider-group label, .color-selector label {
-    font-size: 0.85rem;
-  }
-  .position-option {
-    width: 30px;
-    height: 30px;
-  }
-  .action-button {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-  }
-  .interactive-content-carousel {
-    padding: 1rem;
-  }
-  .carousel-main-title {
-    font-size: 1.4rem;
-  }
-  .carousel-slide .content-section {
-    padding: 1rem;
-  }
-  .carousel-slide .content-section h2 {
+  
+  .banner-content h2 {
     font-size: 1.3rem;
   }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
     font-size: 0.9rem !important;
   }
-  .carousel-dots .dot {
+  
+  .banner-nav-button {
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    margin: 0 0.5rem;
+  }
+  
+  .banner-dots .dot {
     width: 8px;
     height: 8px;
     margin: 0 4px;
@@ -2628,7 +2419,7 @@ button:disabled {
   max-width: 1200px;
   margin: 3rem auto;
   position: relative;
-  background: linear-gradient(135deg, #ff8a99, #ff6b98);
+  background: linear-gradient(135deg, #ffc0cb, #ffb6c1); /* Lighter pink background */
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   padding: 2rem 0;
@@ -2666,9 +2457,12 @@ button:disabled {
   flex-direction: column;
   background-color: rgba(255, 255, 255, 0.9);
   padding: 2rem;
-  border-radius: 0;
+  border-radius: 12px; /* Rounded rectangle corners */
   max-width: 900px;
+  min-height: 360px; /* Fixed height for all cards */
+  height: 360px; /* Ensure all cards are exactly the same height */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Add scrolling if content is too long */
 }
 
 .banner-content h2 {
@@ -2730,8 +2524,8 @@ button:disabled {
 }
 
 .banner-nav-button {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #ff6b98;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #ff8a9a;
   border: none;
   padding: 0;
   border-radius: 50%;
@@ -2786,6 +2580,12 @@ button:disabled {
     font-size: 1.8rem;
   }
   
+  .banner-content {
+    min-height: 400px;
+    height: 400px;
+    padding: 1.75rem;
+  }
+  
   .banner-content h2 {
     font-size: 1.5rem;
   }
@@ -2807,6 +2607,8 @@ button:disabled {
   
   .banner-content {
     padding: 1.5rem;
+    min-height: 450px;
+    height: 450px;
   }
   
   .banner-content h2 {
@@ -2837,6 +2639,8 @@ button:disabled {
   
   .banner-content {
     padding: 1rem;
+    min-height: 420px;
+    height: 420px;
   }
   
   .banner-content h2 {
