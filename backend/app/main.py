@@ -22,6 +22,7 @@ from app.routers import affirmations, breaths, journals, memes, ratings
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
 from app.api.games.routes import router as game_router
 from app.api.games.memory_match import router as memory_match_router
+from app.api.games.memory_match import GameInitRequest # Add this import
 import httpx
 from starlette.responses import RedirectResponse
 
@@ -83,6 +84,7 @@ allowed_origins = [
     "https://www.inflowence.org", # Inflowence domain
     "https://inflowence.org", # Inflowence domain without www
     # Add any other specific production/staging domains here
+    "*", # Allow all origins temporarily for debugging
 ]
 
 # Define a regex for Vercel preview deployments under your specific project/scope
@@ -94,10 +96,10 @@ app.add_middleware(
     allow_origins=allowed_origins, # List of specific origins
     allow_origin_regex=vercel_preview_regex, # Regex for Vercel previews
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly specify allowed methods
     allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # 添加这一行以暴露所有响应头
-    max_age=3600,  # 添加缓存时间以提高性能
+    expose_headers=["*"],  # Add this to expose all response headers
+    max_age=3600,  # Add cache time to improve performance
 )
 
 from transformers import AutoTokenizer
@@ -337,84 +339,28 @@ async def memory_match_options(path: str, request: Request):
 
 @app.get("/api/games/memory_match/images/{image_name:path}")
 async def proxy_image(image_name: str, request: Request):
-    logger.info(f"代理图片请求: {image_name}")
+    logger.info(f"Memory match image request: {image_name}")
     try:
-        # 生成外部API URL
-        target_url = f"https://api.tiezhu.org/api/games/memory_match/images/{image_name}"
-        logger.info(f"转发请求到: {target_url}")
-        
-        # 使用httpx进行代理请求
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                target_url,
-                headers={
-                    "Origin": "https://www.inflowence.org",
-                    "Referer": "https://www.inflowence.org/"
-                },
-                follow_redirects=True
-            )
-            
-            # 检查响应
-            if response.status_code != 200:
-                logger.error(f"外部API返回错误: {response.status_code}")
-                return Response(status_code=response.status_code)
-            
-            # 确定内容类型
-            content_type = response.headers.get("Content-Type", "image/jpeg")
-            
-            # 创建流响应
-            return StreamingResponse(
-                content=response.iter_bytes(),
-                media_type=content_type,
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Cache-Control": "max-age=3600"
-                }
-            )
+        # Use the local implementation from memory_match_router
+        return await memory_match_router.serve_meme_image(image_filename=image_name)
     except Exception as e:
-        logger.error(f"代理图片时出错: {str(e)}")
-        return Response(status_code=500, content=f"代理图片时出错: {str(e)}")
+        logger.error(f"Error serving image: {str(e)}")
+        return Response(status_code=500, content=f"Error serving image: {str(e)}")
 
 @app.post("/api/games/memory_match/initialize_game")
 async def proxy_initialize_game(request: Request):
-    logger.info("代理初始化游戏请求")
+    logger.info("Memory match game initialization request received")
     try:
-        # 获取请求体
         body = await request.json()
-        logger.info(f"接收到初始化游戏请求: {body}")
-        
-        # 生成外部API URL
-        target_url = "https://api.tiezhu.org/api/games/memory_match/initialize_game"
-        logger.info(f"转发请求到: {target_url}")
-        
-        # 使用httpx进行代理请求
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                target_url,
-                json=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "Origin": "https://www.inflowence.org",
-                    "Referer": "https://www.inflowence.org/"
-                },
-                follow_redirects=True
-            )
-            
-            # 检查响应
-            if response.status_code != 200:
-                logger.error(f"外部API返回错误: {response.status_code}, {response.text}")
-                return Response(
-                    content=response.text,
-                    status_code=response.status_code,
-                    media_type="application/json"
-                )
-            
-            # 返回响应
-            data = response.json()
-            return JSONResponse(content=data)
+        # Instead of proxying, use the local implementation
+        # Ensure that GameInitRequest is imported from memory_match.py
+        return await memory_match_router.initialize_game_data_with_local_urls(
+            game_request=GameInitRequest(**body),
+            http_request=request
+        )
     except Exception as e:
-        logger.error(f"代理初始化游戏时出错: {str(e)}")
-        return Response(status_code=500, content=f"代理初始化游戏时出错: {str(e)}")
+        logger.error(f"Error in memory match initialization: {str(e)}")
+        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
 
 # 添加专门的OPTIONS处理器用于initialize_game端点
 @app.options("/api/games/memory_match/initialize_game")
@@ -429,6 +375,68 @@ async def memory_match_initialize_options():
             "Access-Control-Max-Age": "3600"
         }
     )
+
+# Add a fallback endpoint for the initialize_game path without /api prefix
+@app.post("/games/memory_match/initialize_game")
+async def fallback_initialize_game(request: Request):
+    logger.info("Fallback initialize_game endpoint called - redirecting to /api/games/memory_match/initialize_game")
+    try:
+        # Get request body
+        body = await request.json()
+        logger.info(f"Received initialize_game request: {body}")
+        
+        # Forward to the real endpoint using httpx
+        async with httpx.AsyncClient() as client:
+            # Construct the target URL to the main initialize_game endpoint
+            # Use internal URL to avoid network issues
+            target_url = f"http://localhost:{port}/api/games/memory_match/initialize_game"
+            logger.info(f"Forwarding request to: {target_url}")
+            
+            response = await client.post(
+                target_url,
+                json=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "Origin": request.headers.get("Origin", "http://localhost"),
+                    "Referer": request.headers.get("Referer", "http://localhost")
+                }
+            )
+            
+            # Check response
+            if response.status_code != 200:
+                logger.error(f"API returned error: {response.status_code}, {response.text}")
+                return Response(
+                    content=response.text,
+                    status_code=response.status_code,
+                    media_type="application/json"
+                )
+            
+            # Return response
+            data = response.json()
+            return JSONResponse(content=data)
+    except Exception as e:
+        logger.error(f"Error in fallback_initialize_game: {str(e)}")
+        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+
+# Add an OPTIONS handler for the fallback endpoint
+@app.options("/games/memory_match/initialize_game")
+async def fallback_memory_match_initialize_options():
+    logger.info("Received CORS preflight request for fallback initialize_game endpoint")
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
+
+# Add an OPTIONS handler for the fallback path pattern
+@app.options("/games/memory_match/{path:path}")
+async def fallback_memory_match_options(path: str, request: Request):
+    logger.info(f"Received CORS preflight request for fallback path: {path}")
+    return Response(status_code=200)
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")
