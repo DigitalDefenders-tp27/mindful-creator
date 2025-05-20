@@ -63,12 +63,12 @@ async def get_db_connection():
     if PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV:
         db_host = PGHOST_ENV
         local_database_url = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{db_host}:{PGPORT_ENV}/{PGDATABASE_ENV}"
-        logger.info(f"get_db_connection: Constructed DATABASE_URL for host: {db_host}")
+        logger.info(f"get_db_connection: Constructed DATEBASE_PUBLIC_URL for host: {db_host}")
     else:
         logger.error("get_db_connection: Insufficient PG* vars (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) found.")
     
     if not local_database_url:
-        logger.error("Cannot connect to DB: DATABASE_URL could not be constructed or is not configured.")
+        logger.error("Cannot connect to DB: DATEBASE_PUBLIC_URL could not be constructed or is not configured.")
         # This specific detail will be shown to the frontend if this path is taken.
         raise HTTPException(status_code=500, detail="Database configuration error due to missing connection details in backend environment.")
     
