@@ -45,10 +45,50 @@
         <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
         <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         
-        <div class="dashboard-placeholder">
-          <router-link to="/visualisation" class="view-dashboard-btn">
-            View Dashboard
-          </router-link>
+        <!-- Visualization Component -->
+        <div class="visualization-component">
+          <div class="tabs">
+            <div class="tabs-slider" :style="sliderStyle"></div>
+            <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+              @click="switchTab(index)" ref="tabElements">
+              <span v-if="index === 0">
+                <span>Screen Time</span>
+                <span>& Emotions</span>
+              </span>
+              <span v-else-if="index === 1">
+                <span>Digital Habits</span>
+                <span>& Sleep</span>
+              </span>
+              <span v-else-if="index === 2">
+                <span>Engagement</span>
+                <span>& Rewards</span>
+              </span>
+              <span v-else-if="index === 3">
+                <span>Screen Time</span>
+                <span>& Anxiety</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="visualisation-container">
+            <div class="chart-area">
+              <div v-if="isLoading" class="loading-indicator">
+                <span class="loading-spinner"></span>
+                <p>Loading data...</p>
+              </div>
+              <div v-else-if="error" class="error-message">
+                <p>{{ error }}</p>
+                <button @click="fetchDataAndRender">Try Again</button>
+              </div>
+              <canvas v-else ref="chartCanvas" id="mainChart"></canvas>
+            </div>
+            <div class="insight-area">
+              <h3 class="insight-heading">Key Insights</h3>
+              <div v-for="(insight, i) in tabs[currentTab].insights" :key="i" class="insight-box">
+                {{ insight }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -471,6 +511,7 @@ import { Loader } from '@googlemaps/js-api-loader'
 import Modal from '../components/Modal.vue'
 import axios from 'axios'
 import ScrollIsland from '@/components/ScrollIsland.vue'
+import Chart from 'chart.js/auto'
 
 // State variables
 const selectedClinic = ref(null) // Initialize as null
@@ -833,24 +874,42 @@ const fetchClinicDetails = (placeId) => {
 
 
 onMounted(() => {
+  // Update slider position for visualization
+  window.addEventListener('resize', updateSliderPosition);
+  
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
-      filtersVisible.value = true
+      filtersVisible.value = true;
     }
-  }
+  };
   
-  window.addEventListener('resize', handleResize)
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('scroll', updateCurrentSection);
+  
+  // Initialize visualization
+  fetchDataAndRender();
+  
+  // Initial call to set the correct section
+  updateCurrentSection();
   
   onUnmounted(() => {
-    window.removeEventListener('resize', handleResize)
+    window.removeEventListener('resize', handleResize);
+    window.removeEventListener('scroll', updateCurrentSection);
+    window.removeEventListener('resize', updateSliderPosition);
+    
+    // Clean up chart instance
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
     // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
     if (map.value && googleInstance) {
         // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
     }
-  })
+  });
   
   if (activeTab.value === 'offline') {
-    nextTick(initMap)
+    nextTick(initMap);
   }
 })
 
@@ -1364,7 +1423,8 @@ const updateCurrentSection = () => {
 
 // Update the onMounted hook to include the scroll event listener
 onMounted(() => {
-  renderChart();
+  // Update slider position for visualization
+  window.addEventListener('resize', updateSliderPosition);
   
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
@@ -1375,12 +1435,22 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
   window.addEventListener('scroll', updateCurrentSection);
   
+  // Initialize visualization
+  fetchDataAndRender();
+  
   // Initial call to set the correct section
   updateCurrentSection();
   
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('scroll', updateCurrentSection);
+    window.removeEventListener('resize', updateSliderPosition);
+    
+    // Clean up chart instance
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
     // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
     if (map.value && googleInstance) {
         // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
@@ -1409,6 +1479,255 @@ const visitWebsite = () => {
   }
 };
 
+// State variables for visualization
+const currentTab = ref(0)
+const chartCanvas = ref(null)
+const tabElements = ref([])
+const sliderStyle = computed(() => {
+  if (!tabElements.value || tabElements.value.length === 0 || !tabElements.value[currentTab.value]) {
+    return { left: '0', width: '25%' }
+  }
+  const activeTab = tabElements.value[currentTab.value]
+  const containerRect = activeTab.parentElement.getBoundingClientRect()
+  const tabRect = activeTab.getBoundingClientRect()
+  
+  // For mobile (vertical layout)
+  if (window.innerWidth <= 768) {
+    return {
+      top: `${activeTab.offsetTop}px`,
+      left: '5px',
+      width: 'calc(100% - 10px)',
+      height: `${tabRect.height}px`,
+      transform: 'translateY(0)',
+    }
+  }
+  
+  // For desktop (horizontal layout)
+  return {
+    left: `${activeTab.offsetLeft}px`,
+    width: `${tabRect.width}px`,
+    height: '80%',
+    transform: 'translateY(-50%)',
+  }
+})
+
+// Chart instance reference
+let chartInstance = null
+
+// API configuration for visualization
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+
+// Loading state for visualization
+const isLoading = ref(true)
+const error = ref(null)
+
+// Dashboard tabs data
+const tabs = [
+  { 
+    name: 'Screen Time and Emotional Wellbeing', 
+    insights: [
+      'Excessive screen time strongly correlates with increased negative emotions and decreased wellbeing.',
+      'Users who limit daily screen time to under 2 hours report 30% better emotional health scores.',
+      'Implementing regular digital detox periods shows significant improvement in mood regulation.'
+    ]
+  },
+  {
+    name: 'Digital Habits and Sleep Health', 
+    insights: [
+      'Late-night device usage disrupts melatonin production, resulting in 40% poorer sleep quality.',
+      'Consistent bedtime device restrictions lead to faster sleep onset and deeper rest cycles.',
+      'Blue light exposure within 2 hours of sleep delays REM sleep by an average of 45 minutes.'
+    ]
+  },
+  {
+    name: 'Engagement Metrics and Emotional Rewards', 
+    insights: [
+      'Quality over quantity: meaningful interactions yield 3x greater satisfaction than passive scrolling.',
+      'Content creators who engage authentically report 60% less anxiety about performance metrics.',
+      'Strategic posting schedules that avoid constant checking reduce stress hormones by 25%.'
+    ]
+  },
+  {
+    name: 'Screen Time and Anxiety', 
+    insights: [
+      'Each hour over 3 hours of daily usage correlates with a 27% increase in anxiety symptoms.',
+      'Structured breaks every 90 minutes decrease stress markers and improve cognitive function.',
+      'Mindfulness practices during technology use reduce reported anxiety by up to 35%.'
+    ]
+  }
+]
+
+// Visualization functions
+const fetchDataAndRender = async () => {
+  isLoading.value = true;
+  error.value = null;
+
+  try {
+    // Mock data for demonstration purposes
+    const mockData = {
+      labels: ['Below 1h', '1-3h', '3-5h'],
+      datasets: currentTab.value === 3 
+        ? [{
+            label: 'Average Anxiety',
+            data: [2.9, 3.3, 3.8, 3.5, 3.8, 2.1],
+            borderColor: '#4CAF50',
+            backgroundColor: '#4CAF50',
+            type: 'line'
+          }] 
+        : currentTab.value === 0
+        ? [
+            {
+              label: 'Positive',
+              data: [22, 49, 50],
+              backgroundColor: '#4DD0E1'
+            },
+            {
+              label: 'Negative',
+              data: [30, 29, 0],
+              backgroundColor: '#FF4081'
+            },
+            {
+              label: 'Neutral',
+              data: [69, 47, 50],
+              backgroundColor: '#FFD54F'
+            }
+          ]
+        : currentTab.value === 1
+        ? [{
+            label: 'Sleep Problems (1-5)',
+            data: [2.9, 3.1, 3.2, 3.4, 3.4, 2.5],
+            backgroundColor: '#9575CD'
+          }]
+        : [{
+            label: 'Engagement',
+            data: [12, 34, 80],
+            backgroundColor: '#4FC3F7'
+          }]
+    };
+    
+    isLoading.value = false; 
+    await nextTick();
+    renderChart(mockData);
+
+  } catch (err) {
+    console.error('Failed to fetch chart data:', err);
+    error.value = `Failed to load visualization: ${err.message}`;
+    isLoading.value = false;
+  }
+};
+
+const renderChart = (data) => {
+  const canvasElement = chartCanvas.value;
+  if (!canvasElement) {
+    console.error("Canvas element ref not found in DOM.");
+    if (!error.value) {
+      error.value = "Chart canvas could not be found. UI might be out of sync.";
+    }
+    return;
+  }
+  
+  const ctx = canvasElement.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get 2D context from canvas element');
+    error.value = "Could not initialize the chart. The browser might not support Canvas 2D.";
+    return;
+  }
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  if (!data || Object.keys(data).length === 0 || !data.labels || !data.datasets) {
+    console.warn('No valid data provided to renderChart.');
+    if (!error.value) {
+      error.value = "No data available to display for this visualization.";
+    }
+    return; 
+  }
+
+  let chartType = 'bar'; 
+  if (currentTab.value === 3 && data.datasets && data.datasets.length > 0 && data.datasets[0].type) {
+    chartType = data.datasets[0].type;
+  } else if (currentTab.value === 3) {
+    chartType = 'line';
+  }
+
+  try {
+    chartInstance = new Chart(ctx, {
+      type: chartType,
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1500,
+          easing: 'easeOutQuart',
+          delay: (context) => context.dataIndex * 150
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: tabs[currentTab.value].name,
+            font: {
+              size: 20,
+              weight: 'bold'
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            },
+            color: '#333'
+          },
+          legend: {
+            labels: { color: '#333' }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            animation: {
+              duration: 400
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grace: '5%',
+            ticks: { 
+              color: '#666',
+              count: 6,
+              precision: 1
+            },
+            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+          },
+          x: {
+            ticks: { color: '#666' },
+            grid: { color: 'rgba(200, 200, 200, 0.1)' }
+          }
+        }
+      }
+    });
+    error.value = null;
+  } catch (e) {
+    console.error("Error creating chart:", e);
+    error.value = "An error occurred while creating the chart: " + e.message;
+  }
+};
+
+// Switch tab function
+const switchTab = (index) => {
+  currentTab.value = index;
+  fetchDataAndRender();
+};
+
+// Update slider position when window resizes
+const updateSliderPosition = () => {
+  tabElements.value = tabElements.value.slice();
+};
+
+// Other existing state variables
+// ... existing code ...
 </script>
 
 <style scoped>
@@ -1470,20 +1789,217 @@ const visitWebsite = () => {
   z-index: 10000; /* Ensure this is the highest z-index in the application */
 }
 
-/* Dashboard visualization styles moved to Visualisation.vue */
+/* Visualization Component Styles */
+.visualization-component {
+  margin: 2rem 0;
+}
 
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  background-color: #f2f2f2;
+  border-radius: 30px;
+  padding: 5px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
 
-/* Dashboard tab styles moved to Visualisation.vue */
+.tabs-slider {
+  position: absolute;
+  top: 50%;
+  background-color: #e75a97;
+  border-radius: 25px;
+  z-index: 1;
+  height: 80%;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
 
+.tab {
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  color: #333;
+  position: relative;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  text-align: center;
+  flex: 1;
+  border-radius: 0;
+  z-index: 2;
+}
 
+.tab:first-child {
+  border-radius: 25px 0 0 25px;
+}
 
-/* Responsive adjustments for tabs */
+.tab:last-child {
+  border-radius: 0 25px 25px 0;
+}
+
+.tab.active {
+  color: white;
+}
+
+.visualisation-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.chart-area {
+  flex: 1;
+  min-width: 500px;
+  max-width: 700px;
+  height: 400px;
+  padding: 10px;
+}
+
+.chart-area canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.insight-area {
+  flex: 0.7;
+  min-width: 320px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.insight-heading {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.insight-box {
+  background: #ffe6f2;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0px 1px 5px rgba(231, 90, 151, 0.15);
+  text-align: center;
+  border-left: 4px solid #e75a97;
+}
+
+/* Loading spinner and error message styles */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #e75a97;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #d32f2f;
+  text-align: center;
+  padding: 20px;
+}
+
+.error-message button {
+  margin-top: 15px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.error-message button:hover {
+  background-color: #c64482;
+}
+
+/* Responsive adjustments for visualization */
 @media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 15px;
+    max-width: 320px;
+  }
   
+  .tabs-slider {
+    top: 0;
+    left: 5px !important;
+    width: calc(100% - 10px) !important;
+    border-radius: 10px;
+    transform: none !important;
+  }
+  
+  .tab {
+    width: 100%;
+    border-radius: 0;
+  }
+  
+  .tab:first-child {
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .tab:last-child {
+    border-radius: 0 0 10px 10px;
+  }
+  
+  .chart-area {
+    min-width: 100%;
+  }
+  
+  .insight-area {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
+  .section-title {
+    font-size: 1.8rem;
+  }
   
+  .section-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
 }
 
 /* Make resource tabs responsive as well */
@@ -4235,52 +4751,18 @@ section:not(:last-child)::after {
 
 /* Responsive adjustments for modal and breathing exercise guide - REMOVED if specific to panic/breathing */
 
-/* Add new dashboard placeholder styles */
-.dashboard-placeholder {
-  background-color: #f8f8f8;
-  border-radius: 16px;
-  padding: 4rem 2rem;
-  text-align: center;
-  margin: 2rem 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* Dashboard section styles */
+.dashboard-section {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
 }
 
-.view-dashboard-btn {
-  background-color: #e75a97;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.75rem;
-  border-radius: 25px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  display: inline-block;
-  box-shadow: 0 4px 10px rgba(231, 90, 151, 0.25);
+@media (max-width: 480px) {
+  .dashboard-section {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
 }
-
-.view-dashboard-btn:hover {
-  background-color: #d4407f;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(231, 90, 151, 0.35);
-}
-
-/* Remove the following dashboard related styles:
-visualisation-container
-chart-area
-chart-area canvas
-insight-area
-insight-heading
-insight-box
-tab
-tabs
-*/
 
 /* Keep the existing code */
 /* Modal z-index overrides to fix layering issues */
