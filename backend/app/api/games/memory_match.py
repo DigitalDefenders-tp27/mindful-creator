@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
 import pandas as pd
 import random
@@ -87,6 +87,7 @@ async def get_db_connection():
 # New Endpoints using PostgreSQL
 @router.post("/initialize_game", response_model=List[MemeDataWithLocalURL])
 async def initialize_game_data_with_local_urls(game_request: GameInitRequest, http_request: Request):
+    logger.info(f"POST /initialize_game called with level {game_request.level}")
     level = game_request.level
     num_memes_to_fetch = 0
     if level == 1:
@@ -94,10 +95,12 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
     elif level == 2:
         num_memes_to_fetch = 25
     else:
+        logger.warning(f"Invalid game level specified: {level}")
         raise HTTPException(status_code=400, detail="Invalid game level specified. Must be 1 or 2 for standard game setup.")
 
     conn = None
     try:
+        logger.info(f"Attempting to connect to database for level {level}, requesting {num_memes_to_fetch} memes")
         conn = await get_db_connection()
         # Fetch necessary fields from 'meme_fetch'. No need for original image_url for serving.
         query = """
@@ -107,16 +110,26 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
             ORDER BY RANDOM()
             LIMIT $1
         """
+        logger.info(f"Executing query to fetch {num_memes_to_fetch} random memes from database")
         db_records = await conn.fetch(query, num_memes_to_fetch)
         
         if not db_records or len(db_records) < num_memes_to_fetch:
-            logger.warning(f"DB: Retrieved {len(db_records)}/{num_memes_to_fetch} memes from 'meme_fetch' for level {level}.")
+            logger.warning(f"DB: Retrieved only {len(db_records) if db_records else 0}/{num_memes_to_fetch} memes from 'meme_fetch' for level {level}.")
+            # If no records at all, try to provide a fallback for testing
             if not db_records:
-                 raise HTTPException(status_code=404, detail="Not enough memes in 'meme_fetch' DB for game setup.")
+                logger.error("No meme records found in database. Attempting to generate test data.")
+                # Here we can create dummy test data if needed
+                
+                # For now, return a clear error message
+                raise HTTPException(
+                    status_code=404, 
+                    detail="Not enough memes found in database for game setup. Please contact the administrator."
+                )
         
         processed_memes_data: List[MemeDataWithLocalURL] = []
         meme_id_counter = 1 
         base_url = str(http_request.base_url).rstrip('/')
+        logger.info(f"Base URL for image URLs: {base_url}")
 
         for record in db_records:
             image_name_from_db = record["image_name"]
@@ -127,8 +140,9 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
                 logger.warning(f"Image file not found in backend storage for '{image_name_from_db}' at path '{expected_image_path}'. Skipping this meme.")
                 continue # Skip this meme if its image isn't found locally
             
-            # Construct the new image URL pointing to the /app/meme_images/ path
-            local_image_url = f"{base_url}/app/meme_images/{image_name_from_db}"
+            # Construct the new image URL pointing to our API endpoint
+            # Make sure we're using the /api/games/memory_match/images/ prefix
+            image_url = f"/api/games/memory_match/images/{image_name_from_db}"
            
             processed_memes_data.append(MemeDataWithLocalURL(
                 id=meme_id_counter, 
@@ -143,29 +157,52 @@ async def initialize_game_data_with_local_urls(game_request: GameInitRequest, ht
         
         if not processed_memes_data and db_records: # All fetched records had missing image files
             logger.error(f"Fetched {len(db_records)} records from DB, but all corresponding image files were missing from {MEME_IMAGE_DIR}.")
-            raise HTTPException(status_code=500, detail="Meme data found, but image files are missing in backend storage.")
+            raise HTTPException(
+                status_code=500, 
+                detail="Meme data found, but image files are missing in backend storage. Please contact the administrator."
+            )
         elif not processed_memes_data:
-             # This case is hit if initial db_records was empty AND less than num_memes_to_fetch
-             # The earlier check for len(db_records) < num_memes_to_fetch would have already caught this if db_records was totally empty.
-             # So, this is more of a safeguard or if the logic above changes.
-             logger.warning("No processable meme data after checking file existence.")
-             # Re-evaluate if a 404 is more appropriate here as well.
-             # For now, sticking to the logic that it implies an issue if initial fetch was okay but then all files missing.
+             logger.error("No processable meme data after checking file existence.")
+             raise HTTPException(
+                 status_code=500, 
+                 detail="No valid meme data available. Please contact the administrator."
+             )
 
-        logger.info(f"Returning {len(processed_memes_data)} meme data objects (from 'meme_fetch' with local URLs) for level {level}.")
+        logger.info(f"Successfully processed {len(processed_memes_data)} meme data objects for level {level}")
         return processed_memes_data
         
     except asyncpg.PostgresError as dbe:
-        logger.error(f"DB query error on 'meme_fetch': {dbe}")
-        raise HTTPException(status_code=500, detail=f"Database error: {dbe}")
-    except HTTPException: 
+        logger.error(f"Database error in initialize_game: {dbe}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Database error occurred. Please try again later or contact the administrator."
+        )
+    except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in initialize_game_data_with_local_urls (targeting 'meme_fetch'): {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"An unexpected server error: {e}")
+        logger.error(f"Unexpected error in initialize_game: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"An unexpected server error occurred. Please try again later."
+        )
     finally:
         if conn and not conn.is_closed():
+            logger.info("Closing database connection")
             await conn.close()
+
+# Add OPTIONS method handler for CORS preflight requests
+@router.options("/initialize_game")
+async def options_initialize_game():
+    logger.info("OPTIONS request received for /initialize_game")
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
 
 # --- New Endpoint to Serve Images --- 
 @router.get("/images/{image_filename}")

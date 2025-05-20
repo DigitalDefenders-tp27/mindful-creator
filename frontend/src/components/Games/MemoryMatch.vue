@@ -40,9 +40,9 @@
             <div class="card-front"></div>
             <div class="card-back">
               <img 
-                :src="`/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                :src="card_iter.memeData.image_path || `/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
                 alt="Meme card" 
-                @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
+                @error="event => (event.target as HTMLImageElement).src = '/images/placeholder.png'"
               >
             </div>
           </div>
@@ -64,8 +64,8 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="`/api/games/memory_match/images/${currentModalMeme.image_name}`"
-                @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
+                :src="currentModalMeme.image_path || `/api/games/memory_match/images/${currentModalMeme.image_name}` || '/images/placeholder.png'"
+                @error="event => (event.target as HTMLImageElement).src = '/images/placeholder.png'"
                 class="modal-meme-image-single new-modal-meme-image"
               >
               <p class="meme-identifier new-meme-identifier">Meme {{ currentModalMemeIndex + 1 }}</p>
@@ -284,33 +284,52 @@ async function initializeGameFromBackend() {
     try {
       console.log(`尝试 #${retryCount + 1}: 请求 ${levels[currentLevel.value].pairs} 对卡片，等级 ${currentLevel.value}`);
       
-      // 尝试使用不同的路径
+      // 准备请求参数
       const requestOptions = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ level: currentLevel.value }),
-        credentials: 'include'
+        // 不要使用 credentials: 'include'，这可能会导致CORS问题
+        mode: 'cors'
       };
       
-      // 使用普通URL
+      // 始终先尝试带有 /api 前缀的路由
+      console.log('尝试访问 /api/games/memory_match/initialize_game');
       let response;
+      
       try {
-        console.log('尝试访问 /api/games/memory_match/initialize_game');
+        // 主请求尝试
         response = await fetch('/api/games/memory_match/initialize_game', requestOptions);
+        console.log(`/api 路径状态码: ${response.status}`);
       } catch (err) {
-        console.warn('第一次尝试失败，重试...');
-        // 如果第一次失败，尝试使用不同的路径
-        console.log('尝试访问 /games/memory_match/initialize_game');
+        console.error('主API调用失败:', err);
+        // 如果主请求失败，尝试后备路径
+        console.log('尝试访问后备路径 /games/memory_match/initialize_game');
         response = await fetch('/games/memory_match/initialize_game', requestOptions);
+        console.log(`后备路径状态码: ${response.status}`);
       }
       
+      // 检查HTTP状态码
       if (!response.ok) {
-        throw new Error(`API 请求失败，状态码: ${response.status}`);
+        // 尝试读取响应文本以获取更多错误信息
+        let errorDetail = '';
+        try {
+          const errorJson = await response.json();
+          errorDetail = errorJson.detail || '未提供详细错误信息';
+        } catch {
+          errorDetail = await response.text() || `HTTP错误 ${response.status}`;
+        }
+        
+        throw new Error(`API 请求失败，状态码: ${response.status}。${errorDetail}`);
       }
       
+      // 解析响应数据
       const memeData = await response.json();
       if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
-        throw new Error("API 没有返回卡片数据");
+        throw new Error("API 没有返回有效的卡片数据");
       }
       
       console.log(`成功接收到 ${memeData.length} 张卡片图片`);
@@ -322,6 +341,17 @@ async function initializeGameFromBackend() {
       // 创建卡片对
       const pairs = [];
       for (const meme of memeData) {
+        // 检查图片路径并确保它们以正确的前缀开始
+        // 确保所有图片路径使用/api前缀
+        if (meme.image_name) {
+          // 如果图片路径不是以/api开头，则添加前缀
+          if (!meme.image_path) {
+            meme.image_path = `/api/games/memory_match/images/${meme.image_name}`;
+          } else if (!meme.image_path.startsWith('/api')) {
+            meme.image_path = `/api${meme.image_path}`;
+          }
+        }
+        
         // 为每张卡片创建一对
         for (let i = 0; i < 2; i++) {
           pairs.push({
