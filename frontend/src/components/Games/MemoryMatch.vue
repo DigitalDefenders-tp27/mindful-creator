@@ -40,9 +40,9 @@
             <div class="card-front"></div>
             <div class="card-back">
               <img 
-                :src="card_iter.memeData.image_path || `/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                :src="getCardImagePath(card_iter)" 
                 alt="Meme card" 
-                @error="event => (event.target as HTMLImageElement).src = '/images/placeholder.png'"
+                @error="handleImageError($event)"
               >
             </div>
           </div>
@@ -64,8 +64,8 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="currentModalMeme.image_path || `/api/games/memory_match/images/${currentModalMeme.image_name}` || '/images/placeholder.png'"
-                @error="event => (event.target as HTMLImageElement).src = '/images/placeholder.png'"
+                :src="getModalImagePath(currentModalMeme)" 
+                @error="handleImageError($event)"
                 class="modal-meme-image-single new-modal-meme-image"
               >
               <p class="meme-identifier new-meme-identifier">Meme {{ currentModalMemeIndex + 1 }}</p>
@@ -188,8 +188,12 @@ const currentModalMemeIndex = ref(0);
 const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
 
-// Hard-coded backend API address
-const API_BASE_URL = '';
+// Use environment variables for the backend URL
+// Using type assertion to fix the linter error
+// const BASE_API_URL = ((import.meta as any).env?.VITE_BACKEND_URL as string) || '';
+
+// Comment out the environment variable approach until properly configured
+// const BASE_API_URL = ((import.meta as any).env?.VITE_API_BASE_URL as string) || '';
 
 // Define emits
 const emit = defineEmits(['game-completed', 'exit-game']);
@@ -197,7 +201,8 @@ const emit = defineEmits(['game-completed', 'exit-game']);
 interface MemeData {
   id: any;
   image_name: string;
-  image_url: string;
+  image_url?: string;
+  image_path?: string;
   // text: string;
   humour?: string;
   sarcasm?: string;
@@ -207,7 +212,8 @@ interface MemeData {
 }
 
 interface Card {
-  id: number;
+  id: string | number;
+  pairId?: number | string | any;
   memeData: MemeData;
   isFlipped: boolean;
   isMatched: boolean;
@@ -275,184 +281,105 @@ async function initializeGameFromBackend() {
   gameMemesForModal.value = [];
   currentModalMemeIndex.value = 0;
 
-  // 最大重试次数
-  const maxRetries = 3;
-  let retryCount = 0;
-  let lastError = null;
-
-  while (retryCount < maxRetries) {
-    try {
-      console.log(`尝试 #${retryCount + 1}: 请求 ${levels[currentLevel.value].pairs} 对卡片，等级 ${currentLevel.value}`);
-      
-      // 使用GET请求
-      const level = currentLevel.value;
-      console.log('尝试访问 /api/games/memory_match/initialize_game');
-      let response;
-      
+  try {
+    console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value}`);
+    
+    const level = currentLevel.value;
+    console.log('Accessing /api/games/memory_match/initialize_game');
+    
+    // Use a direct URL to the backend instead of BASE_API_URL
+    const url = `https://mindful-creator-production.up.railway.app/api/games/memory_match/initialize_game?level=${level}`;
+    console.log(`Sending GET request: ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      mode: 'cors'
+    });
+    console.log(`API response status code: ${response.status}`);
+    
+    // Check HTTP status code
+    if (!response.ok) {
+      // Try to read response text for more error information
+      let errorDetail = '';
       try {
-        // 主请求尝试 - 优先使用GET方法
-        const url = `/api/games/memory_match/initialize_game?level=${level}`;
-        console.log(`尝试GET请求: ${url}`);
-        response = await fetch(url, {
-          method: 'GET',
-          headers: { 
-            'Accept': 'application/json'
-          },
-          mode: 'cors'
+        // Check content type first
+        const contentType = response.headers.get('content-type');
+        console.log(`Response content type: ${contentType}`);
+        
+        if (contentType && contentType.includes('application/json')) {
+          const errorJson = await response.json();
+          errorDetail = errorJson.detail || 'No detailed error information provided';
+        } else {
+          // If not JSON, read as text for debugging
+          const textResponse = await response.text();
+          console.error(`Non-JSON response: ${textResponse.substring(0, 100)}...`);
+          errorDetail = `Server returned non-JSON response (${response.status})`;
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        errorDetail = await response.text() || `HTTP error ${response.status}`;
+      }
+      
+      throw new Error(`API request failed, status code: ${response.status}. ${errorDetail}`);
+    }
+    
+    // Check content type before parsing JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error(`Response content type is not JSON: ${contentType}`);
+      const textResponse = await response.text();
+      console.error(`Non-JSON response: ${textResponse.substring(0, 100)}...`);
+      throw new Error(`Server returned a non-JSON format response: ${contentType}`);
+    }
+    
+    // Parse response data
+    const memeData = await response.json();
+    if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
+      throw new Error("API did not return valid card data");
+    }
+    
+    console.log(`Successfully received ${memeData.length} card images`);
+    
+    // Store card data for victory modal
+    gameMemesForModal.value = [...memeData];
+    currentModalMemeIndex.value = 0;
+    
+    // Create card pairs
+    const pairs: Card[] = [];
+    for (const meme of memeData) {
+      // Ensure image path is set correctly
+      if (meme.image_name) {
+        // Set the image path to the API endpoint
+        meme.image_path = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+      }
+      
+      // Create a pair for each card
+      for (let i = 0; i < 2; i++) {
+        pairs.push({
+          id: `${meme.id}-${i}`,
+          pairId: meme.id,
+          memeData: meme,
+          isFlipped: false,
+          isMatched: false
         });
-        console.log(`/api GET 路径状态码: ${response.status}`);
-        
-        // 如果GET请求失败，尝试POST请求
-        if (!response.ok && response.status === 405) {
-          console.log("GET请求被拒绝(405 Method Not Allowed)，尝试POST请求");
-          
-          response = await fetch('/api/games/memory_match/initialize_game', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify({ level: currentLevel.value }),
-            mode: 'cors'
-          });
-          console.log(`/api POST 路径状态码: ${response.status}`);
-        }
-      } catch (err) {
-        console.error('主API调用失败:', err);
-        // 如果主请求失败，尝试后备路径
-        console.log('尝试访问后备路径 /games/memory_match/initialize_game');
-        
-        try {
-          // 先尝试GET请求
-          const url = `/games/memory_match/initialize_game?level=${level}`;
-          response = await fetch(url, {
-            method: 'GET',
-            headers: { 
-              'Accept': 'application/json'
-            },
-            mode: 'cors'
-          });
-          console.log(`后备路径GET状态码: ${response.status}`);
-          
-          // 如果GET请求失败，尝试POST请求
-          if (!response.ok && response.status === 405) {
-            console.log("后备GET请求被拒绝(405 Method Not Allowed)，尝试POST请求");
-            
-            response = await fetch('/games/memory_match/initialize_game', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({ level: currentLevel.value }),
-              mode: 'cors'
-            });
-            console.log(`后备路径POST状态码: ${response.status}`);
-          }
-        } catch (backupErr) {
-          console.error('后备路径请求也失败:', backupErr);
-          throw backupErr; // 重新抛出异常以进入重试逻辑
-        }
-      }
-      
-      // 检查HTTP状态码
-      if (!response.ok) {
-        // 尝试读取响应文本以获取更多错误信息
-        let errorDetail = '';
-        try {
-          // 先尝试检查内容类型
-          const contentType = response.headers.get('content-type');
-          console.log(`响应内容类型: ${contentType}`);
-          
-          if (contentType && contentType.includes('application/json')) {
-            const errorJson = await response.json();
-            errorDetail = errorJson.detail || '未提供详细错误信息';
-          } else {
-            // 如果不是JSON，则读取为文本并记录前100个字符用于调试
-            const textResponse = await response.text();
-            console.error(`非JSON响应前100个字符: ${textResponse.substring(0, 100)}`);
-            errorDetail = `服务器返回非JSON响应 (${response.status})`;
-          }
-        } catch (parseError) {
-          console.error('解析响应时出错:', parseError);
-          errorDetail = await response.text() || `HTTP错误 ${response.status}`;
-        }
-        
-        throw new Error(`API 请求失败，状态码: ${response.status}。${errorDetail}`);
-      }
-      
-      // 这里在解析JSON之前先检查内容类型
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error(`响应内容类型不是JSON: ${contentType}`);
-        // 读取文本内容以便调试，但只打印前100个字符
-        const textResponse = await response.text();
-        console.error(`非JSON响应前100个字符: ${textResponse.substring(0, 100)}`);
-        throw new Error(`服务器返回了非JSON格式的响应: ${contentType}`);
-      }
-      
-      // 解析响应数据
-      const memeData = await response.json();
-      if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
-        throw new Error("API 没有返回有效的卡片数据");
-      }
-      
-      console.log(`成功接收到 ${memeData.length} 张卡片图片`);
-      
-      // 存储卡片数据用于胜利模态框
-      gameMemesForModal.value = [...memeData];
-      currentModalMemeIndex.value = 0;
-      
-      // 创建卡片对
-      const pairs = [];
-      for (const meme of memeData) {
-        // 检查图片路径并确保它们以正确的前缀开始
-        // 确保所有图片路径使用/api前缀
-        if (meme.image_name) {
-          // 如果图片路径不是以/api开头，则添加前缀
-          if (!meme.image_path) {
-            meme.image_path = `/api/games/memory_match/images/${meme.image_name}`;
-          } else if (!meme.image_path.startsWith('/api')) {
-            meme.image_path = `/api${meme.image_path}`;
-          }
-        }
-        
-        // 为每张卡片创建一对
-        for (let i = 0; i < 2; i++) {
-          pairs.push({
-            id: `${meme.id}-${i}`,
-            pairId: meme.id,
-            memeData: meme,
-            isFlipped: false,
-            isMatched: false
-          });
-        }
-      }
-      
-      // 洗牌
-      const shuffled = shuffleArray([...pairs]);
-      cards.value = shuffled;
-      
-      totalPairs.value = memeData.length;
-      isLoading.value = false;
-      return; // 成功，退出重试循环
-      
-    } catch (error) {
-      console.error(`尝试 #${retryCount + 1} 失败:`, error);
-      lastError = error;
-      retryCount++;
-      
-      if (retryCount < maxRetries) {
-        console.log(`等待 ${retryCount * 1000}ms 后重试...`);
-        await new Promise(resolve => setTimeout(resolve, retryCount * 1000)); // 增加等待时间
       }
     }
+    
+    // Shuffle
+    const shuffled = shuffleArray(pairs);
+    cards.value = shuffled;
+    
+    isLoading.value = false;
+    
+  } catch (error) {
+    console.error("Game initialization failed:", error);
+    errorMessage.value = `Game loading failed: ${error.message}. Please try again later.`;
+    isLoading.value = false;
   }
-  
-  // 所有尝试都失败
-  console.error(`在 ${maxRetries} 次尝试后仍然失败`, lastError);
-  errorMessage.value = `加载游戏失败: ${lastError?.message || '未知错误'}。请稍后再试。`;
-  isLoading.value = false;
 }
 
 function selectLevel(level: LevelKey) {
@@ -684,6 +611,51 @@ watch(currentLevel, (newLevel) => {
     matchedPairs.value = 0;
   }
 });
+
+// Update image path helper functions
+function getCardImagePath(card: Card) {
+  // Use API path if available
+  if (card.memeData.image_path) {
+    return card.memeData.image_path;
+  }
+  
+  // Try with image_name if available
+  if (card.memeData.image_name) {
+    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${card.memeData.image_name}`;
+  }
+  
+  // Default to error placeholder if API fails
+  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+}
+
+function getModalImagePath(meme: MemeData | null) {
+  if (!meme) return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  
+  // Use API path if available
+  if (meme.image_path) {
+    return meme.image_path;
+  }
+  
+  // Try with image_name if available
+  if (meme.image_name) {
+    return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/${meme.image_name}`;
+  }
+  
+  // Default to error placeholder if API fails
+  return `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+}
+
+// Update error handler
+function handleImageError(event: Event) {
+  const target = event.target as HTMLImageElement;
+  console.error(`Failed to load image: ${target.src}`);
+  
+  // Set a consistent error image
+  target.src = `https://mindful-creator-production.up.railway.app/api/games/memory_match/images/placeholder.jpg`;
+  
+  // If the error persists and affects gameplay, we could show an error message
+  // errorMessage.value = "Failed to load game images. Please try again later.";
+}
 
 </script>
 
