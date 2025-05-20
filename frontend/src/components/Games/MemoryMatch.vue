@@ -284,13 +284,13 @@ async function initializeGameFromBackend() {
     try {
       console.log(`尝试 #${retryCount + 1}: 请求 ${levels[currentLevel.value].pairs} 对卡片，等级 ${currentLevel.value}`);
       
-      // 使用GET请求代替POST请求
+      // 使用GET请求
       const level = currentLevel.value;
       console.log('尝试访问 /api/games/memory_match/initialize_game');
       let response;
       
       try {
-        // 主请求尝试 - 使用GET方法
+        // 主请求尝试 - 优先使用GET方法
         const url = `/api/games/memory_match/initialize_game?level=${level}`;
         console.log(`尝试GET请求: ${url}`);
         response = await fetch(url, {
@@ -300,20 +300,59 @@ async function initializeGameFromBackend() {
           },
           mode: 'cors'
         });
-        console.log(`/api 路径状态码: ${response.status}`);
+        console.log(`/api GET 路径状态码: ${response.status}`);
+        
+        // 如果GET请求失败，尝试POST请求
+        if (!response.ok && response.status === 405) {
+          console.log("GET请求被拒绝(405 Method Not Allowed)，尝试POST请求");
+          
+          response = await fetch('/api/games/memory_match/initialize_game', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ level: currentLevel.value }),
+            mode: 'cors'
+          });
+          console.log(`/api POST 路径状态码: ${response.status}`);
+        }
       } catch (err) {
         console.error('主API调用失败:', err);
         // 如果主请求失败，尝试后备路径
         console.log('尝试访问后备路径 /games/memory_match/initialize_game');
-        const url = `/games/memory_match/initialize_game?level=${level}`;
-        response = await fetch(url, {
-          method: 'GET',
-          headers: { 
-            'Accept': 'application/json'
-          },
-          mode: 'cors'
-        });
-        console.log(`后备路径状态码: ${response.status}`);
+        
+        try {
+          // 先尝试GET请求
+          const url = `/games/memory_match/initialize_game?level=${level}`;
+          response = await fetch(url, {
+            method: 'GET',
+            headers: { 
+              'Accept': 'application/json'
+            },
+            mode: 'cors'
+          });
+          console.log(`后备路径GET状态码: ${response.status}`);
+          
+          // 如果GET请求失败，尝试POST请求
+          if (!response.ok && response.status === 405) {
+            console.log("后备GET请求被拒绝(405 Method Not Allowed)，尝试POST请求");
+            
+            response = await fetch('/games/memory_match/initialize_game', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ level: currentLevel.value }),
+              mode: 'cors'
+            });
+            console.log(`后备路径POST状态码: ${response.status}`);
+          }
+        } catch (backupErr) {
+          console.error('后备路径请求也失败:', backupErr);
+          throw backupErr; // 重新抛出异常以进入重试逻辑
+        }
       }
       
       // 检查HTTP状态码

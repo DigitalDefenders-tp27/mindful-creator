@@ -355,31 +355,12 @@ async def proxy_image(image_name: str, request: Request):
         logger.error(f"Error serving image: {str(e)}")
         return Response(status_code=500, content=f"Error serving image: {str(e)}")
 
-@app.post("/api/games/memory_match/initialize_game")
-async def proxy_initialize_game(request: Request):
-    logger.info("Memory match game initialization POST request received")
-    try:
-        body = await request.json()
-        # Instead of proxying, use the local implementation
-        return await memory_match_router.initialize_game_data_with_local_urls(
-            game_request=GameInitRequest(**body),
-            http_request=request
-        )
-    except Exception as e:
-        logger.error(f"Error in memory match initialization: {str(e)}")
-        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
-
 @app.get("/api/games/memory_match/initialize_game")
 async def proxy_initialize_game_get(request: Request):
     logger.info("Memory match game initialization GET request received")
     try:
-        # Extract level from query parameters
-        params = dict(request.query_params)
-        level = int(params.get("level", 1))
-        
-        # 重要：确保添加请求对象
-        result = await memory_match_router.initialize_game_data_with_local_urls(
-            game_request=GameInitRequest(level=level),
+        # 直接调用独立的GET处理函数
+        result = await memory_match_router.initialize_game_data_with_local_urls_get(
             http_request=request
         )
         # 如果返回的是Response对象，直接返回
@@ -390,7 +371,35 @@ async def proxy_initialize_game_get(request: Request):
         return JSONResponse(content=result)
         
     except Exception as e:
-        logger.error(f"Error in memory match initialization: {str(e)}")
+        logger.error(f"Error in memory match initialization GET: {str(e)}")
+        # 始终返回JSON格式的错误响应
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error processing game initialization: {str(e)}"}
+        )
+
+@app.post("/api/games/memory_match/initialize_game")
+async def proxy_initialize_game_post(request: Request):
+    logger.info("Memory match game initialization POST request received")
+    try:
+        # 解析请求体
+        body = await request.json()
+        
+        # 调用专用的POST处理函数
+        result = await memory_match_router.initialize_game_data_with_local_urls_post(
+            game_request=GameInitRequest(**body),
+            http_request=request
+        )
+        
+        # 如果返回的是Response对象，直接返回
+        if isinstance(result, Response):
+            return result
+            
+        # 否则，确保我们返回一个JSONResponse
+        return JSONResponse(content=result)
+        
+    except Exception as e:
+        logger.error(f"Error in memory match initialization POST: {str(e)}")
         # 始终返回JSON格式的错误响应
         return JSONResponse(
             status_code=500,
@@ -405,7 +414,7 @@ async def memory_match_initialize_options():
         status_code=200,
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
             "Access-Control-Max-Age": "3600"
         }
@@ -420,79 +429,27 @@ async def fallback_initialize_game(request: Request):
         body = await request.json()
         logger.info(f"Received initialize_game request: {body}")
         
-        # Forward to the real endpoint using httpx
-        async with httpx.AsyncClient() as client:
-            # Construct the target URL to the main initialize_game endpoint
-            # Use internal URL to avoid network issues
-            target_url = f"http://localhost:{port}/api/games/memory_match/initialize_game"
-            logger.info(f"Forwarding request to: {target_url}")
-            
-            response = await client.post(
-                target_url,
-                json=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "Origin": request.headers.get("Origin", "http://localhost"),
-                    "Referer": request.headers.get("Referer", "http://localhost")
-                }
-            )
-            
-            # Check response
-            if response.status_code != 200:
-                logger.error(f"API returned error: {response.status_code}, {response.text}")
-                return Response(
-                    content=response.text,
-                    status_code=response.status_code,
-                    media_type="application/json"
-                )
-            
-            # Return response
-            data = response.json()
-            return JSONResponse(content=data)
+        # 直接调用我们已有的处理程序
+        return await proxy_initialize_game_post(request)
     except Exception as e:
         logger.error(f"Error in fallback_initialize_game: {str(e)}")
-        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error processing game initialization: {str(e)}"}
+        )
 
 @app.get("/games/memory_match/initialize_game")
 async def fallback_initialize_game_get(request: Request):
     logger.info("Fallback initialize_game GET endpoint called - redirecting to /api/games/memory_match/initialize_game")
     try:
-        # Extract level from query parameters
-        params = dict(request.query_params)
-        level = params.get("level", "1")
-        logger.info(f"Received initialize_game GET request with level: {level}")
-        
-        # Forward to the real endpoint using httpx
-        async with httpx.AsyncClient() as client:
-            # Construct the target URL to the main initialize_game endpoint
-            # Use internal URL to avoid network issues
-            target_url = f"http://localhost:{port}/api/games/memory_match/initialize_game?level={level}"
-            logger.info(f"Forwarding GET request to: {target_url}")
-            
-            response = await client.get(
-                target_url,
-                headers={
-                    "Accept": "application/json",
-                    "Origin": request.headers.get("Origin", "http://localhost"),
-                    "Referer": request.headers.get("Referer", "http://localhost")
-                }
-            )
-            
-            # Check response
-            if response.status_code != 200:
-                logger.error(f"API returned error: {response.status_code}, {response.text}")
-                return Response(
-                    content=response.text,
-                    status_code=response.status_code,
-                    media_type="application/json"
-                )
-            
-            # Return response
-            data = response.json()
-            return JSONResponse(content=data)
+        # 直接调用我们的GET处理程序
+        return await proxy_initialize_game_get(request)
     except Exception as e:
         logger.error(f"Error in fallback_initialize_game_get: {str(e)}")
-        return Response(status_code=500, content=f"Error processing game initialization: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error processing game initialization: {str(e)}"}
+        )
 
 # Add an OPTIONS handler for the fallback endpoint
 @app.options("/games/memory_match/initialize_game")
@@ -502,7 +459,7 @@ async def fallback_memory_match_initialize_options():
         status_code=200,
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
             "Access-Control-Max-Age": "3600"
         }
