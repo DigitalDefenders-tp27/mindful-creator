@@ -248,16 +248,14 @@
 
     <!-- Main Content -->
     <div class="container" style="max-width: 100%; padding: 0;">
-      <!-- Interactive Content Carousel Section -->
-      <div class="interactive-content-carousel">
-        <div class="carousel-header-panel">
-          <h2 class="carousel-main-title">Copyright Tips</h2>
-        </div>
-
-        <div class="carousel-container">
-          <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
-            <div v-for="(slide, index) in slidesData" :key="index" class="carousel-slide">
-              <div class="content-section">
+      <!-- Transforming card-based carousel to rotating banner style -->
+      <div class="copyright-tips-banner">
+        <h2 class="banner-title">Copyright Tips</h2>
+        
+        <div class="banner-container">
+          <div class="banner-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
+            <div v-for="(slide, index) in slidesData" :key="index" class="banner-slide">
+              <div class="banner-content">
                 <h2>{{ slide.title }}</h2>
                 <div v-html="slide.content"></div>
               </div>
@@ -265,20 +263,22 @@
           </div>
         </div>
 
-        <div class="carousel-dots">
-          <span
-            v-for="(_slide, index) in slidesData"
-            :key="`dot-${index}`"
-            :class="{ active: index === currentSlideIndex }"
-            @click="goToSlide(index)"
-            class="dot"
-            :aria-label="`Go to slide ${index + 1}`"
-          ></span>
+        <div class="banner-controls">
+          <button @click="prevSlide" class="banner-nav-button prev" aria-label="Previous slide">&lt;</button>
+          
+          <div class="banner-dots">
+            <span
+              v-for="(_slide, index) in slidesData"
+              :key="`dot-${index}`"
+              :class="{ active: index === currentSlideIndex }"
+              @click="goToSlide(index)"
+              class="dot"
+              :aria-label="`Go to slide ${index + 1}`"
+            ></span>
+          </div>
+          
+          <button @click="nextSlide" class="banner-nav-button next" aria-label="Next slide">&gt;</button>
         </div>
-
-        <!-- Arrows are now positioned absolutely relative to interactive-content-carousel -->
-        <button @click="prevSlide" class="carousel-nav-button prev" aria-label="Previous slide">&lt;</button>
-        <button @click="nextSlide" class="carousel-nav-button next" aria-label="Next slide">&gt;</button>
       </div>
 
       <!-- Disclaimer Section (now a direct child of the full-width container) -->
@@ -2620,6 +2620,245 @@ button:disabled {
   }
   @keyframes popIn {
     from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
+  }
+}
+
+/* Styles for the Copyright Tips Banner */
+.copyright-tips-banner {
+  max-width: 1200px;
+  margin: 3rem auto;
+  position: relative;
+  background: linear-gradient(135deg, #ff8a99, #ff6b98);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  padding: 2rem 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.banner-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.banner-container {
+  overflow: hidden;
+  margin: 0;
+}
+
+.banner-wrapper {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.banner-slide {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+}
+
+.banner-content {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 0;
+  max-width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.banner-content h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.banner-content h2:after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #FF6B6B, #4ECDC4);
+  border-radius: 3px;
+}
+
+.banner-content :deep(p) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 1.2rem;
+}
+
+.banner-content :deep(li) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 0.6rem;
+}
+
+.banner-content :deep(ul),
+.banner-content :deep(ol) {
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+.banner-content :deep(ul.resources-list li a) {
+  color: #007bff;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.banner-content :deep(ul.resources-list li a:hover) {
+  color: #0056b3;
+}
+
+.banner-content :deep(strong) {
+  font-weight: 600;
+}
+
+.banner-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.banner-nav-button {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #ff6b98;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  margin: 0 0.75rem;
+}
+
+.banner-nav-button:hover {
+  background-color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.banner-dots {
+  display: flex;
+  justify-content: center;
+}
+
+.banner-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 0 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.banner-dots .dot:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.banner-dots .dot.active {
+  background-color: white;
+  transform: scale(1.25);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments for the banner */
+@media (max-width: 1024px) {
+  .banner-title {
+    font-size: 1.8rem;
+  }
+  
+  .banner-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .copyright-tips-banner {
+    padding: 1.5rem 0;
+  }
+  
+  .banner-title {
+    font-size: 1.6rem;
+  }
+  
+  .banner-content {
+    padding: 1.5rem;
+  }
+  
+  .banner-content h2 {
+    font-size: 1.4rem;
+  }
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
+    font-size: 0.95rem !important;
+  }
+  
+  .banner-nav-button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .copyright-tips-banner {
+    padding: 1rem 0;
+  }
+  
+  .banner-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .banner-content {
+    padding: 1rem;
+  }
+  
+  .banner-content h2 {
+    font-size: 1.3rem;
+  }
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
+    font-size: 0.9rem !important;
+  }
+  
+  .banner-nav-button {
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    margin: 0 0.5rem;
+  }
+  
+  .banner-dots .dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
   }
 }
 </style> 
