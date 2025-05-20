@@ -1276,7 +1276,7 @@ const submitFeedback = async () => {
   submitted.value = true
 
   try {
-    await axios.post('http://localhost:8001/api/activities/submit-rating', {
+    await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/activities/submit-rating`, {
       activity: currentActivity.value,
       rating: rating.value,
       timestamp: new Date().toISOString()

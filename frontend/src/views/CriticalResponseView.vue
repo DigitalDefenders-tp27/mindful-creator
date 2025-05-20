@@ -838,7 +838,7 @@
     
     // API URL options - will try alternatives if primary fails
     const apiUrls = [
-      'https://api.tiezhu.org/api/youtube/analyse_full',  // Use the full analysis endpoint
+      `${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/youtube/analyse_full`,  // Use the full analysis endpoint
     ]
     let primaryApiUrl = apiUrls[0]
     
@@ -854,7 +854,7 @@
       let serverAvailable = false
       try {
         console.log('Performing health check...')
-        const healthCheck = await fetch('https://api.tiezhu.org/api/health', {
+        const healthCheck = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/health`, {
           method: 'GET',
           signal: AbortSignal.timeout(5000)
         })

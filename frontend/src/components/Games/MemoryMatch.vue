@@ -189,7 +189,7 @@ const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
 
 // Hard-coded backend API address
-const API_BASE_URL = 'https://api.tiezhu.org';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
 
 // Define emits
 const emit = defineEmits(['game-completed', 'exit-game']);

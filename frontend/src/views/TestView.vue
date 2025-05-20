@@ -133,7 +133,7 @@ const analyzeComments = async () => {
   
   try {
     // Send request to backend API
-    const response = await fetch('https://gleaming-celebration.railway.internal/api/youtube/analyse', {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/youtube/analyse`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
