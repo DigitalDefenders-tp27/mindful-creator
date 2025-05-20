@@ -39,6 +39,77 @@ export async function applyWatermark(imageFile, text, position = 'bottom-right',
 }
 
 /**
+ * Calculate the position coordinates for SVG text
+ * 
+ * @param {string} position - Position name (top-left, bottom-right, etc.)
+ * @param {number} width - Canvas width 
+ * @param {number} height - Canvas height
+ * @param {number} textWidth - Estimated text width
+ * @param {number} textHeight - Text height
+ * @returns {Object} - {x, y} coordinates
+ */
+function calculatePosition(position, width, height, textWidth, textHeight) {
+  // Padding from edge
+  const padding = 20;
+  
+  // Determine x position
+  let x;
+  if (position.endsWith('left')) {
+    x = padding;
+  } else if (position.endsWith('right')) {
+    x = width - textWidth - padding;
+  } else {
+    // Center
+    x = (width - textWidth) / 2;
+  }
+  
+  // Determine y position
+  let y;
+  if (position.startsWith('top')) {
+    y = textHeight + padding;
+  } else if (position.startsWith('bottom')) {
+    y = height - padding;
+  } else {
+    // Middle
+    y = height / 2;
+  }
+  
+  return { x: Math.round(x), y: Math.round(y) };
+}
+
+/**
+ * Generate SVG watermark locally (client-side fallback)
+ * 
+ * @param {string} text - The watermark text
+ * @param {number} width - Width of the canvas 
+ * @param {number} height - Height of the canvas
+ * @param {string} position - Position of the watermark
+ * @param {number} size - Font size of the watermark
+ * @param {string} color - Color of the watermark text
+ * @param {string} fontFamily - Font family of the watermark text
+ * @returns {string} - SVG content as string
+ */
+function generateLocalSvg(text, width, height, position, size, color, fontFamily) {
+  // Estimate text width (very rough approximation)
+  const textWidth = text.length * size * 0.6;
+  const textHeight = size;
+  
+  // Calculate position
+  const { x, y } = calculatePosition(position, width, height, textWidth, textHeight);
+  
+  // Create SVG content
+  const svgContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <!-- Shadow -->
+  <text x="${x + 2}" y="${y + 2}" font-family="${fontFamily}" font-size="${size}px" fill="rgba(0,0,0,0.5)">${text}</text>
+  <!-- Main text -->
+  <text x="${x}" y="${y}" font-family="${fontFamily}" font-size="${size}px" fill="${color}">${text}</text>
+</svg>`;
+  
+  return svgContent;
+}
+
+/**
  * Create a transparent SVG watermark
  * 
  * @param {string} text - The watermark text
@@ -67,39 +138,17 @@ export async function createSvgWatermark(text, width = 800, height = 600, positi
     });
 
     if (!response.ok) {
-      let errorDetailMessage = `Failed to create SVG watermark. Status: ${response.status}`;
-      const responseForJson = response.clone(); // Clone for JSON parsing
-      const responseForText = response.clone(); // Clone for text parsing
-
-      try {
-        // Try to parse as JSON first, as some APIs might return JSON error details
-        const errorData = await responseForJson.json();
-        errorDetailMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
-      } catch (jsonError) {
-        // If JSON parsing fails, read as text (e.g., for HTML error pages or plain text errors)
-        try {
-          const textError = await responseForText.text();
-          // Use the textError if it's not empty, otherwise stick with the status message
-          if (textError && textError.trim() !== '') {
-            errorDetailMessage = textError;
-          }
-        } catch (textParseError) {
-          // If reading as text also fails, log this and stick with the status code message
-          console.error('Failed to parse error response as JSON or text:', textParseError);
-        }
-      }
-      throw new Error(errorDetailMessage);
+      // If API call fails, generate SVG locally as fallback
+      console.warn("Failed to create SVG watermark from API, falling back to client-side generation");
+      return generateLocalSvg(text, width, height, position, size, color, fontFamily);
     }
 
     return await response.text();
   } catch (error) {
-    console.error('Error creating SVG watermark:', error);
-    // Ensure the error propagated is useful
-    if (error instanceof Error) {
-        throw error;
-    } else {
-        throw new Error(String(error));
-    }
+    console.error('Error creating SVG watermark from API:', error);
+    // If any error occurs, fall back to client-side SVG generation
+    console.warn("Using client-side SVG generation as fallback");
+    return generateLocalSvg(text, width, height, position, size, color, fontFamily);
   }
 }
 

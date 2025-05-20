@@ -222,16 +222,16 @@
           </div>
           
           <div class="generator-actions">
-            <button 
-              v-if="!uploadedImage" 
-              class="action-button download-button" 
-              @click="downloadNotice"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Download to local
-            </button>
-            <div v-else class="action-buttons-group">
+            <div class="action-buttons-group">
               <button 
+                class="action-button download-button" 
+                @click="downloadNotice"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download to local
+              </button>
+              <button 
+                v-if="uploadedImage"
                 class="action-button" 
                 @click="downloadWatermarkedImage" 
                 :disabled="isApplyingWatermark"
@@ -890,11 +890,25 @@ const downloadTransparentWatermark = async () => {
     isSuccess.value = true;
     errorMessage.value = '';
     
-    // Get SVG content from API with current color
+    // Calculate dimensions - use image dimensions if available, or reasonable defaults
+    let width = 800;
+    let height = 600;
+    
+    if (originalImage.value) {
+      // Use uploaded image dimensions
+      width = originalImage.value.width;
+      height = originalImage.value.height;
+    } else {
+      // No image uploaded, use reasonably sized dimensions for standalone watermark
+      width = 1200;
+      height = 630; // Good for social media sharing
+    }
+    
+    // Get SVG content from the updated CopyrightService (which now has fallback)
     const svgContent = await createSvgWatermark(
       copyrightText.value,
-      originalImage.value ? originalImage.value.width : 800,
-      originalImage.value ? originalImage.value.height : 600,
+      width,
+      height,
       watermarkPosition.value,
       watermarkSize.value,
       watermarkColor.value,
