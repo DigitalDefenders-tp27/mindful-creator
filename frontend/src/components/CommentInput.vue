@@ -38,7 +38,7 @@ const router = useRouter();
 // const analysisStore = useAnalysisStore(); // Example store instance
 
 // Define the backend API URL - Use environment variables for production
-const API_URL = import.meta.env.VITE_API_URL || 'https://gleaming-celebration.railway.internal/api/analyze_comment';
+const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/analyze_comment`;
 
 const submitComment = async () => {
   if (!commentText.value.trim()) {

@@ -45,36 +45,54 @@
         <h1 class="section-title">Digital Impact Analysis Dashboard</h1>
         <p class="section-subtitle">Explore how your usage patterns affect wellbeing based on real data</p>
         
-        <div class="tabs">
-          <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
-            @click="switchTab(index)">
-            <span v-if="index === 0">
-              <span>Screen Time</span>
-              <span>& Emotions</span>
-            </span>
-            <span v-else-if="index === 1">
-              <span>Digital Habits</span>
-              <span>& Sleep</span>
-            </span>
-            <span v-else-if="index === 2">
-              <span>Engagement</span>
-              <span>& Rewards</span>
-            </span>
-            <span v-else-if="index === 3">
-              <span>Distractions</span>
-              <span>& Anxiety</span>
-            </span>
+        <!-- Visualization Component -->
+        <div class="visualization-component">
+          <div class="tabs">
+            <div class="tabs-slider" :style="sliderStyle"></div>
+            <div v-for="(tab, index) in tabs" :key="index" class="tab" :class="{ active: currentTab === index }"
+              @click="switchTab(index)" ref="tabElements">
+              <span v-if="index === 0">
+                <span>Screen Time</span>
+                <span>& Emotions</span>
+              </span>
+              <span v-else-if="index === 1">
+                <span>Digital Habits</span>
+                <span>& Sleep</span>
+              </span>
+              <span v-else-if="index === 2">
+                <span>Engagement</span>
+                <span>& Rewards</span>
+              </span>
+              <span v-else-if="index === 3">
+                <span>Screen Time</span>
+                <span>& Anxiety</span>
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div class="visualisation-container">
-          <div class="chart-area">
-            <canvas id="mainChart" style="max-height: 400px; width: 100%;"></canvas>
-          </div>
-          <div class="insight-area">
-            <h3 class="insight-heading">Key Insights</h3>
-            <div v-for="(insight, index) in tabs[currentTab].insights" :key="index" class="insight-box">
-              {{ insight }}
+          <div class="visualisation-container">
+            <div class="chart-area">
+              <div class="chart-wrapper">
+                <div v-if="isLoading" class="loading-indicator">
+                  <span class="loading-spinner"></span>
+                  <p>Loading data...</p>
+                </div>
+                <div v-else-if="error" class="error-message">
+                  <p>{{ error }}</p>
+                  <button @click="fetchDataAndRender">Try Again</button>
+                </div>
+                <canvas v-else ref="chartCanvas" id="mainChart"></canvas>
+              </div>
+            </div>
+            <div class="insight-area">
+              <div class="insights-wrapper">
+                <h3 class="insight-heading">Key Insights</h3>
+                <div class="insights-content">
+                  <div v-for="(insight, i) in tabs[currentTab].insights" :key="i" class="insight-box">
+                    {{ insight }}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -496,14 +514,12 @@
 import { ref, onMounted, computed, nextTick, onUnmounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader } from '@googlemaps/js-api-loader'
-import Chart from 'chart.js/auto'
 import Modal from '../components/Modal.vue'
 import axios from 'axios'
 import ScrollIsland from '@/components/ScrollIsland.vue'
+import Chart from 'chart.js/auto'
 
 // State variables
-const currentTab = ref(0)
-let chartInstance = null
 const selectedClinic = ref(null) // Initialize as null
 const showGuide = ref(false)
 const mapCenter = ref({ lat: -37.8136, lng: 144.9631 }) // Default Melbourne centre coordinates
@@ -539,15 +555,6 @@ const router = useRouter()
 // Add global Google object reference
 let googleInstance = null;
 let placesService = null; // Added for Places API
-
-// REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
-// REMOVED formattedTime computed property
-
-// REMOVED Panic Button methods: openPanicModal, closePanicModal, navigateToResources, startBreathingExercise, endBreathingExercise, playCompletionSound, stopCompletionSound
-// REMOVED Panic Button related refs: showPanicModal, showBreathingExercise, timerValue, timerInterval, audioContext, oscillator
-// REMOVED formattedTime computed property
-
-// REMOVED Panic Button methods: openPanicModal, closePanicModal, navigateToResources, startBreathingExercise, endBreathingExercise, playCompletionSound, stopCompletionSound
 
 // Initialize Google Maps
 const initMap = async () => {
@@ -873,26 +880,42 @@ const fetchClinicDetails = (placeId) => {
 
 
 onMounted(() => {
-  renderChart()
+  // Update slider position for visualization
+  window.addEventListener('resize', updateSliderPosition);
   
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
-      filtersVisible.value = true
+      filtersVisible.value = true;
     }
-  }
+  };
   
-  window.addEventListener('resize', handleResize)
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('scroll', updateCurrentSection);
+  
+  // Initialize visualization
+  fetchDataAndRender();
+  
+  // Initial call to set the correct section
+  updateCurrentSection();
   
   onUnmounted(() => {
-    window.removeEventListener('resize', handleResize)
+    window.removeEventListener('resize', handleResize);
+    window.removeEventListener('scroll', updateCurrentSection);
+    window.removeEventListener('resize', updateSliderPosition);
+    
+    // Clean up chart instance
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
     // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
     if (map.value && googleInstance) {
         // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
     }
-  })
+  });
   
   if (activeTab.value === 'offline') {
-    nextTick(initMap)
+    nextTick(initMap);
   }
 })
 
@@ -955,125 +978,7 @@ const getMyPosition = () => {
   }
 }
 
-const switchTab = (index) => {
-  currentTab.value = index
-  renderChart()
-}
-
-const renderChart = () => {
-  const ctx = document.getElementById('mainChart')
-  if (chartInstance) chartInstance.destroy()
-
-  if (currentTab.value === 0) {
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Below 1h', '1-3h', '3-5h'],
-        datasets: [
-          { label: 'Positive', backgroundColor: '#4bc0c0', data: [20, 30, 10] },
-          { label: 'Negative', backgroundColor: '#ff6384', data: [10, 40, 60] },
-          { label: 'Neutral', backgroundColor: '#ffcd56', data: [70, 30, 30] },
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            stacked: true,
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            stacked: true,
-            max: 100,
-            title: { display: true, text: 'Percentage of Emotional States (%)' }
-          }
-        }
-      }
-    })
-  }
-  else if (currentTab.value === 1) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['<1h', '1-2h', '2-3h', '3-4h', '4-5h', '>5h'],
-        datasets: [{
-          label: 'Sleep Problems (1-5)',
-          data: [1.5, 2, 2.5, 3.2, 4, 4.5],
-          borderColor: '#7e57c2',
-          backgroundColor: '#7e57c2',
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Screen Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Sleep Problem Score (1 = Best, 5 = Worst)' },
-            suggestedMin: 1,
-            suggestedMax: 5
-          }
-        }
-      }
-    });
-  } else if (currentTab.value === 2) {
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Below 1h', '1-3h', '3-5h'],
-        datasets: [{
-          label: 'Engagement',
-          data: [20, 50, 30],
-          backgroundColor: '#42a5f5'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Engagement Score' }
-          }
-        }
-      }
-    });
-  } else if (currentTab.value === 3) {
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Below 1h', '1-2h', '2-3h', '3-4h', '4-5h', 'Above 5h'],
-        datasets: [{
-          label: 'Average Anxiety',
-          data: [1.2, 2.0, 2.8, 3.5, 4.2, 4.8],
-          borderColor: '#66bb6a',
-          backgroundColor: '#66bb6a',
-          fill: false,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { title: { display: false } },
-        scales: {
-          x: {
-            title: { display: true, text: 'Daily Usage Time (hours)' }
-          },
-          y: {
-            title: { display: true, text: 'Average Anxiety Level (1-5)' }
-          }
-        }
-      }
-    });
-  }
-}
+// Dashboard functions moved to Visualisation.vue
 
 // Event modal functions
 const openModal = () => {
@@ -1349,40 +1254,7 @@ const featuredActivities = computed(() => {
   return [april, may, june].filter(Boolean).slice(0, 3)
 })
 
-const tabs = [
-  { 
-    name: 'Screen Time and Emotional Wellbeing', 
-    insights: [
-      'Increased screen time is associated with more negative emotions such as anxiety and sadness.',
-      'Maintaining lower daily screen time correlates with better emotional wellbeing.',
-      'Balanced digital habits foster more positive and neutral emotional states.'
-    ]
-  },
-  {
-    name: 'Digital Habits and Sleep Health', 
-    insights: [
-      'More than 3 hours of daily social media use is linked with sleep disturbances.',
-      'Sleep issues worsen significantly when daily usage exceeds 4 hours.',
-      'Reducing evening screen time can improve sleep quality and mental health.'
-    ]
-  },
-  {
-    name: 'Engagement Metrics and Emotional Rewards', 
-    insights: [
-      'Moderate posting and interaction (likes, comments) are positively linked with emotional wellbeing.',
-      'Creators focusing on meaningful community engagement over numbers show better mental health.',
-      'Prioritising genuine conversations over chasing virality strengthens long-term creator satisfaction.'
-    ]
-  },
-  {
-    name: 'Managing Digital Distractions and Anxiety', 
-    insights: [
-      'Higher daily screen time is associated with elevated anxiety levels.',
-      'Spending less time on digital activities correlates with lower anxiety scores.',
-      'Practising regular tech-free breaks can significantly lower digital stress levels.'
-    ]
-  }
-]
+// Dashboard tabs data moved to Visualisation.vue
 
 // Update the search button to show loading state
 const searchBtnContent = computed(() => {
@@ -1410,7 +1282,7 @@ const submitFeedback = async () => {
   submitted.value = true
 
   try {
-    await axios.post('http://localhost:8001/api/activities/submit-rating', {
+    await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'}/api/activities/submit-rating`, {
       activity: currentActivity.value,
       rating: rating.value,
       timestamp: new Date().toISOString()
@@ -1557,7 +1429,8 @@ const updateCurrentSection = () => {
 
 // Update the onMounted hook to include the scroll event listener
 onMounted(() => {
-  renderChart();
+  // Update slider position for visualization
+  window.addEventListener('resize', updateSliderPosition);
   
   const handleResize = () => {
     if (window.innerWidth > 768 && !filtersVisible.value) {
@@ -1568,12 +1441,22 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
   window.addEventListener('scroll', updateCurrentSection);
   
+  // Initialize visualization
+  fetchDataAndRender();
+  
   // Initial call to set the correct section
   updateCurrentSection();
   
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('scroll', updateCurrentSection);
+    window.removeEventListener('resize', updateSliderPosition);
+    
+    // Clean up chart instance
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+    
     // Potential cleanup for map listeners if any are added directly to googleInstance.maps.event
     if (map.value && googleInstance) {
         // googleInstance.maps.event.clearInstanceListeners(map.value); // Example, be careful
@@ -1602,6 +1485,255 @@ const visitWebsite = () => {
   }
 };
 
+// State variables for visualization
+const currentTab = ref(0)
+const chartCanvas = ref(null)
+const tabElements = ref([])
+const sliderStyle = computed(() => {
+  if (!tabElements.value || tabElements.value.length === 0 || !tabElements.value[currentTab.value]) {
+    return { left: '0', width: '25%' }
+  }
+  const activeTab = tabElements.value[currentTab.value]
+  const containerRect = activeTab.parentElement.getBoundingClientRect()
+  const tabRect = activeTab.getBoundingClientRect()
+  
+  // For mobile (vertical layout)
+  if (window.innerWidth <= 768) {
+    return {
+      top: `${activeTab.offsetTop}px`,
+      left: '5px',
+      width: 'calc(100% - 10px)',
+      height: `${tabRect.height}px`,
+      transform: 'translateY(0)',
+    }
+  }
+  
+  // For desktop (horizontal layout)
+  return {
+    left: `${activeTab.offsetLeft}px`,
+    width: `${tabRect.width}px`,
+    height: '80%',
+    transform: 'translateY(-50%)',
+  }
+})
+
+// Chart instance reference
+let chartInstance = null
+
+// API configuration for visualization
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+
+// Loading state for visualization
+const isLoading = ref(true)
+const error = ref(null)
+
+// Dashboard tabs data
+const tabs = [
+  { 
+    name: 'Screen Time and Emotional Wellbeing', 
+    insights: [
+      'Excessive screen time strongly correlates with increased negative emotions and decreased wellbeing.',
+      'Users who limit daily screen time to under 2 hours report 30% better emotional health scores.',
+      'Implementing regular digital detox periods shows significant improvement in mood regulation.'
+    ]
+  },
+  {
+    name: 'Digital Habits and Sleep Health', 
+    insights: [
+      'Late-night device usage disrupts melatonin production, resulting in 40% poorer sleep quality.',
+      'Consistent bedtime device restrictions lead to faster sleep onset and deeper rest cycles.',
+      'Blue light exposure within 2 hours of sleep delays REM sleep by an average of 45 minutes.'
+    ]
+  },
+  {
+    name: 'Engagement Metrics and Emotional Rewards', 
+    insights: [
+      'Quality over quantity: meaningful interactions yield 3x greater satisfaction than passive scrolling.',
+      'Content creators who engage authentically report 60% less anxiety about performance metrics.',
+      'Strategic posting schedules that avoid constant checking reduce stress hormones by 25%.'
+    ]
+  },
+  {
+    name: 'Screen Time and Anxiety', 
+    insights: [
+      'Each hour over 3 hours of daily usage correlates with a 27% increase in anxiety symptoms.',
+      'Structured breaks every 90 minutes decrease stress markers and improve cognitive function.',
+      'Mindfulness practices during technology use reduce reported anxiety by up to 35%.'
+    ]
+  }
+]
+
+// Visualization functions
+const fetchDataAndRender = async () => {
+  isLoading.value = true;
+  error.value = null;
+
+  try {
+    // Mock data for demonstration purposes
+    const mockData = {
+      labels: ['Below 1h', '1-3h', '3-5h'],
+      datasets: currentTab.value === 3 
+        ? [{
+            label: 'Average Anxiety',
+            data: [2.9, 3.3, 3.8, 3.5, 3.8, 2.1],
+            borderColor: '#4CAF50',
+            backgroundColor: '#4CAF50',
+            type: 'line'
+          }] 
+        : currentTab.value === 0
+        ? [
+            {
+              label: 'Positive',
+              data: [22, 49, 50],
+              backgroundColor: '#4DD0E1'
+            },
+            {
+              label: 'Negative',
+              data: [30, 29, 0],
+              backgroundColor: '#FF4081'
+            },
+            {
+              label: 'Neutral',
+              data: [69, 47, 50],
+              backgroundColor: '#FFD54F'
+            }
+          ]
+        : currentTab.value === 1
+        ? [{
+            label: 'Sleep Problems (1-5)',
+            data: [2.9, 3.1, 3.2, 3.4, 3.4, 2.5],
+            backgroundColor: '#9575CD'
+          }]
+        : [{
+            label: 'Engagement',
+            data: [12, 34, 80],
+            backgroundColor: '#4FC3F7'
+          }]
+    };
+    
+    isLoading.value = false; 
+    await nextTick();
+    renderChart(mockData);
+
+  } catch (err) {
+    console.error('Failed to fetch chart data:', err);
+    error.value = `Failed to load visualization: ${err.message}`;
+    isLoading.value = false;
+  }
+};
+
+const renderChart = (data) => {
+  const canvasElement = chartCanvas.value;
+  if (!canvasElement) {
+    console.error("Canvas element ref not found in DOM.");
+    if (!error.value) {
+      error.value = "Chart canvas could not be found. UI might be out of sync.";
+    }
+    return;
+  }
+  
+  const ctx = canvasElement.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get 2D context from canvas element');
+    error.value = "Could not initialize the chart. The browser might not support Canvas 2D.";
+    return;
+  }
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  if (!data || Object.keys(data).length === 0 || !data.labels || !data.datasets) {
+    console.warn('No valid data provided to renderChart.');
+    if (!error.value) {
+      error.value = "No data available to display for this visualization.";
+    }
+    return; 
+  }
+
+  let chartType = 'bar'; 
+  if (currentTab.value === 3 && data.datasets && data.datasets.length > 0 && data.datasets[0].type) {
+    chartType = data.datasets[0].type;
+  } else if (currentTab.value === 3) {
+    chartType = 'line';
+  }
+
+  try {
+    chartInstance = new Chart(ctx, {
+      type: chartType,
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1500,
+          easing: 'easeOutQuart',
+          delay: (context) => context.dataIndex * 150
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: tabs[currentTab.value].name,
+            font: {
+              size: 20,
+              weight: 'bold'
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            },
+            color: '#333'
+          },
+          legend: {
+            labels: { color: '#333' }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            animation: {
+              duration: 400
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grace: '5%',
+            ticks: { 
+              color: '#666',
+              count: 6,
+              precision: 1
+            },
+            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+          },
+          x: {
+            ticks: { color: '#666' },
+            grid: { color: 'rgba(200, 200, 200, 0.1)' }
+          }
+        }
+      }
+    });
+    error.value = null;
+  } catch (e) {
+    console.error("Error creating chart:", e);
+    error.value = "An error occurred while creating the chart: " + e.message;
+  }
+};
+
+// Switch tab function
+const switchTab = (index) => {
+  currentTab.value = index;
+  fetchDataAndRender();
+};
+
+// Update slider position when window resizes
+const updateSliderPosition = () => {
+  tabElements.value = tabElements.value.slice();
+};
+
+// Other existing state variables
+// ... existing code ...
 </script>
 
 <style scoped>
@@ -1663,10 +1795,70 @@ const visitWebsite = () => {
   z-index: 10000; /* Ensure this is the highest z-index in the application */
 }
 
+/* Visualization Component Styles */
+.visualization-component {
+  margin: 2rem 0;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  background-color: #f2f2f2;
+  border-radius: 30px;
+  padding: 5px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.tabs-slider {
+  position: absolute;
+  top: 50%;
+  background-color: #e75a97;
+  border-radius: 25px;
+  z-index: 1;
+  height: 80%;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.tab {
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  color: #333;
+  position: relative;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  text-align: center;
+  flex: 1;
+  border-radius: 0;
+  z-index: 2;
+}
+
+.tab:first-child {
+  border-radius: 25px 0 0 25px;
+}
+
+.tab:last-child {
+  border-radius: 0 25px 25px 0;
+}
+
+.tab.active {
+  color: white;
+}
+
 .visualisation-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align top instead of center */
+  align-items: center;
   flex-wrap: wrap;
   margin-top: 30px;
 }
@@ -1675,8 +1867,19 @@ const visitWebsite = () => {
   flex: 1;
   min-width: 500px;
   max-width: 700px;
-  height: 400px;
   padding: 10px;
+}
+
+.chart-wrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  height: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .chart-area canvas {
@@ -1690,8 +1893,20 @@ const visitWebsite = () => {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center title and boxes horizontally */
-  margin-top: 20px; /* Push a little lower */
+  align-items: center;
+}
+
+.insights-wrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  height: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .insight-heading {
@@ -1708,41 +1923,111 @@ const visitWebsite = () => {
   padding: 12px 16px;
   margin-bottom: 12px;
   font-size: 1rem;
-  width: 100%; /* Full width */
-  max-width: 500px; /* Limit width nicely */
-  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 
-
-.tab {
-  padding: 0.5rem 1.5rem;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  background-color: #e75a97;
-  border-radius: 20px;
-  font-weight: 500;
-  margin: 0 0.5rem;
-  transition: all 0.3s ease;
-  white-space: normal; /* Allow text to wrap */
+/* Loading spinner and error message styles */
+.loading-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
-  text-align: center;
+  height: 100%;
+  color: #666;
 }
 
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #e75a97;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 10px;
+}
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-/* Responsive adjustments for tabs */
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #d32f2f;
+  text-align: center;
+  padding: 20px;
+}
+
+.error-message button {
+  margin-top: 15px;
+  background-color: #e75a97;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.error-message button:hover {
+  background-color: #c64482;
+}
+
+/* Responsive adjustments for visualization */
 @media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 15px;
+    max-width: 320px;
+  }
   
+  .tabs-slider {
+    top: 0;
+    left: 5px !important;
+    width: calc(100% - 10px) !important;
+    border-radius: 10px;
+    transform: none !important;
+  }
+  
+  .tab {
+    width: 100%;
+    border-radius: 0;
+  }
+  
+  .tab:first-child {
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .tab:last-child {
+    border-radius: 0 0 10px 10px;
+  }
+  
+  .chart-area {
+    min-width: 100%;
+  }
+  
+  .insight-area {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
+  .section-title {
+    font-size: 1.8rem;
+  }
   
+  .section-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
 }
 
 /* Make resource tabs responsive as well */
@@ -4494,4 +4779,28 @@ section:not(:last-child)::after {
 
 /* Responsive adjustments for modal and breathing exercise guide - REMOVED if specific to panic/breathing */
 
+/* Dashboard section styles */
+.dashboard-section {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+@media (max-width: 480px) {
+  .dashboard-section {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Keep the existing code */
+/* Modal z-index overrides to fix layering issues */
+/* ... existing code ... */
+
+.insights-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-evenly;
+  padding: 10px 0;
+}
 </style>

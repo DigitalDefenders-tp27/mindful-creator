@@ -46,36 +46,27 @@ class MemeDataWithLocalURL(BaseModel):
 
 # Helper functions for the new mechanism
 async def get_db_connection():
-    PGHOST_ENV = os.getenv("PGHOST")
-    PGUSER_ENV = os.getenv("PGUSER")
-    PGPASSWORD_ENV = os.getenv("PGPASSWORD")
-    PGDATABASE_ENV = os.getenv("PGDATABASE")
-    PGPORT_ENV = os.getenv("PGPORT", "5432") # Default PostgreSQL port
+    # Prioritize DATABASE_PUBLIC_URL, then DATABASE_URL
+    db_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
 
-    # Diagnostic logging (can be removed after confirming the fix)
-    logger.info(f"get_db_connection: Read PGHOST_ENV: '{PGHOST_ENV}'")
-    logger.info(f"get_db_connection: Read PGUSER_ENV: '{PGUSER_ENV}'")
-    # logger.info(f"get_db_connection: Read PGPASSWORD_ENV: '{'********' if PGPASSWORD_ENV else 'None'}'") # Mask password
-    logger.info(f"get_db_connection: Read PGDATABASE_ENV: '{PGDATABASE_ENV}'")
-    logger.info(f"get_db_connection: Read PGPORT_ENV: '{PGPORT_ENV}'")
+    if not db_url:
+        logger.error("get_db_connection: Neither DATABASE_PUBLIC_URL nor DATABASE_URL environment variables are set.")
 
-    local_database_url = None
-    if PGHOST_ENV and PGUSER_ENV and PGPASSWORD_ENV and PGDATABASE_ENV:
-        db_host = PGHOST_ENV
-        local_database_url = f"postgresql://{PGUSER_ENV}:{PGPASSWORD_ENV}@{db_host}:{PGPORT_ENV}/{PGDATABASE_ENV}"
-        logger.info(f"get_db_connection: Constructed DATEBASE_PUBLIC_URL for host: {db_host}")
-    else:
-        logger.error("get_db_connection: Insufficient PG* vars (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) found.")
-    
-    if not local_database_url:
-        logger.error("Cannot connect to DB: DATEBASE_PUBLIC_URL could not be constructed or is not configured.")
         # This specific detail will be shown to the frontend if this path is taken.
-        raise HTTPException(status_code=500, detail="Database configuration error due to missing connection details in backend environment.")
+        raise HTTPException(status_code=500, detail="Database configuration error: Connection URL not found in backend environment.")
+
+    # asyncpg expects 'postgres://' but SQLAlchemy often uses 'postgresql://'.
+    # Ensure the URL starts with 'postgres://' for asyncpg if it was 'postgresql://'.
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgres://", 1)
+        logger.info(f"get_db_connection: Converted URL to start with postgres:// for asyncpg.")
     
+    logger.info(f"get_db_connection: Attempting to connect using URL (credentials masked): {db_url.split('@')[0] if '@' in db_url else db_url}@{db_url.split('@')[1].split('/')[0] if '@' in db_url and '/' in db_url.split('@')[1] else '****'}/{db_url.split('/')[-1] if '/' in db_url else '****'}")
+
     try:
-        conn = await asyncpg.connect(local_database_url)
+        conn = await asyncpg.connect(db_url)
         # Avoid logging the full URL with password in production if possible, or just the host part
-        logger.info(f"DB Connected to host: {local_database_url.split('@')[-1].split('/')[0] if '@' in local_database_url else 'DB'}")
+        logger.info(f"DB Connected to host: {db_url.split('@')[-1].split('/')[0] if '@' in db_url else 'DB'}")
         return conn
     except asyncpg.PostgresError as dbe:
         logger.error(f"DB Connection Failed (asyncpg.PostgresError): {dbe}")

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict, Any
 from app.database import get_db
-from app.models.rating import Rating
+from app.models import Rating
 from app.schemas.rating import RatingCreate, Rating as RatingSchema, ActivityStats
 import logging
 
