@@ -335,12 +335,12 @@ async def root():
     """
 
 # Add CORS support for memory match router
-@app.options("/games/memory_match/{path:path}")
+@app.options("/api/games/memory_match/{path:path}")
 async def memory_match_options(path: str, request: Request):
     logger.info(f"接收到CORS预检请求: {path}")
     return Response(status_code=200)
 
-@app.get("/games/memory_match/images/{image_name:path}")
+@app.get("/api/games/memory_match/images/{image_name:path}")
 async def proxy_image(image_name: str, request: Request):
     logger.info(f"代理图片请求: {image_name}")
     try:
@@ -380,7 +380,7 @@ async def proxy_image(image_name: str, request: Request):
         logger.error(f"代理图片时出错: {str(e)}")
         return Response(status_code=500, content=f"代理图片时出错: {str(e)}")
 
-@app.post("/games/memory_match/initialize_game")
+@app.post("/api/games/memory_match/initialize_game")
 async def proxy_initialize_game(request: Request):
     logger.info("代理初始化游戏请求")
     try:
@@ -420,6 +420,20 @@ async def proxy_initialize_game(request: Request):
     except Exception as e:
         logger.error(f"代理初始化游戏时出错: {str(e)}")
         return Response(status_code=500, content=f"代理初始化游戏时出错: {str(e)}")
+
+# 添加专门的OPTIONS处理器用于initialize_game端点
+@app.options("/api/games/memory_match/initialize_game")
+async def memory_match_initialize_options():
+    logger.info("接收到initialize_game的CORS预检请求")
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Origin, Accept",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")

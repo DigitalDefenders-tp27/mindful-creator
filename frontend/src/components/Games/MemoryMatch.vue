@@ -275,58 +275,89 @@ async function initializeGameFromBackend() {
   gameMemesForModal.value = [];
   currentModalMemeIndex.value = 0;
 
-  try {
-    console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
-    
-    // 尝试使用本地API
-    const response = await fetch(`/api/games/memory_match/initialize_game`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ level: currentLevel.value }),
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
-    }
-    
-    const memeData = await response.json();
-    if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
-      throw new Error("No meme data returned from the API");
-    }
-    
-    console.log(`Received ${memeData.length} memes from backend.`);
-    
-    // Store the meme data for the victory modal
-    gameMemesForModal.value = [...memeData];
-    currentModalMemeIndex.value = 0;
-    
-    // Create pairs
-    const pairs = [];
-    for (const meme of memeData) {
-      // Create two cards with the same image/pair ID
-      for (let i = 0; i < 2; i++) {
-        pairs.push({
-          id: `${meme.id}-${i}`,
-          pairId: meme.id,
-          memeData: meme,
-          isFlipped: false,
-          isMatched: false
-        });
+  // 最大重试次数
+  const maxRetries = 3;
+  let retryCount = 0;
+  let lastError = null;
+
+  while (retryCount < maxRetries) {
+    try {
+      console.log(`尝试 #${retryCount + 1}: 请求 ${levels[currentLevel.value].pairs} 对卡片，等级 ${currentLevel.value}`);
+      
+      // 尝试使用不同的路径
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level: currentLevel.value }),
+        credentials: 'include'
+      };
+      
+      // 使用普通URL
+      let response;
+      try {
+        console.log('尝试访问 /api/games/memory_match/initialize_game');
+        response = await fetch('/api/games/memory_match/initialize_game', requestOptions);
+      } catch (err) {
+        console.warn('第一次尝试失败，重试...');
+        // 如果第一次失败，尝试使用不同的路径
+        console.log('尝试访问 /games/memory_match/initialize_game');
+        response = await fetch('/games/memory_match/initialize_game', requestOptions);
+      }
+      
+      if (!response.ok) {
+        throw new Error(`API 请求失败，状态码: ${response.status}`);
+      }
+      
+      const memeData = await response.json();
+      if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
+        throw new Error("API 没有返回卡片数据");
+      }
+      
+      console.log(`成功接收到 ${memeData.length} 张卡片图片`);
+      
+      // 存储卡片数据用于胜利模态框
+      gameMemesForModal.value = [...memeData];
+      currentModalMemeIndex.value = 0;
+      
+      // 创建卡片对
+      const pairs = [];
+      for (const meme of memeData) {
+        // 为每张卡片创建一对
+        for (let i = 0; i < 2; i++) {
+          pairs.push({
+            id: `${meme.id}-${i}`,
+            pairId: meme.id,
+            memeData: meme,
+            isFlipped: false,
+            isMatched: false
+          });
+        }
+      }
+      
+      // 洗牌
+      const shuffled = shuffleArray([...pairs]);
+      cards.value = shuffled;
+      
+      totalPairs.value = memeData.length;
+      isLoading.value = false;
+      return; // 成功，退出重试循环
+      
+    } catch (error) {
+      console.error(`尝试 #${retryCount + 1} 失败:`, error);
+      lastError = error;
+      retryCount++;
+      
+      if (retryCount < maxRetries) {
+        console.log(`等待 ${retryCount * 1000}ms 后重试...`);
+        await new Promise(resolve => setTimeout(resolve, retryCount * 1000)); // 增加等待时间
       }
     }
-    
-    // Shuffle the pairs
-    const shuffled = shuffleArray([...pairs]);
-    cards.value = shuffled;
-    
-    totalPairs.value = memeData.length;
-    isLoading.value = false;
-  } catch (error) {
-    console.error("Error in initializeGameFromBackend:", error);
-    errorMessage.value = `Failed to load game: ${error.message}. Please try again later.`;
-    isLoading.value = false;
   }
+  
+  // 所有尝试都失败
+  console.error(`在 ${maxRetries} 次尝试后仍然失败`, lastError);
+  errorMessage.value = `加载游戏失败: ${lastError?.message || '未知错误'}。请稍后再试。`;
+  isLoading.value = false;
 }
 
 function selectLevel(level: LevelKey) {
