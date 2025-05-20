@@ -4,6 +4,7 @@ import time
 import sys
 import traceback
 import importlib
+import json  # 添加json模块导入
 import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response, HTTPException, status
@@ -189,18 +190,18 @@ log_system_resources()
 # Configure CORS middleware
 logger.info("Setting up allowed origins for CORS...")
 allowed_origins = [
-    "http://localhost:3000",  # 本地开发 (frontend)
-    "http://localhost:5173",  # Vite 开发服务器 (frontend)
-    "https://mindful-creator.vercel.app",  # 主 Vercel 生产域名
-    "https://tiezhu.org",  # 自定义域名
-    "https://www.tiezhu.org",  # 带www的自定义域名
-    "https://www.inflowence.org",  # Inflowence 域名
-    "https://inflowence.org",  # 不带www的 Inflowence 域名
-    "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
-    "https://api.tiezhu.org",  # API域名
-    # 移除: "https://*.vercel.app" - 通配符不被直接支持
+    "http://localhost:3000",  # Local development (frontend)
+    "http://localhost:5173",  # Vite development server (frontend)
+    "https://mindful-creator.vercel.app",  # Main Vercel production domain
+    "https://tiezhu.org",  # Custom domain
+    "https://www.tiezhu.org",  # Custom domain with www
+    "https://www.inflowence.org",  # Inflowence domain
+    "https://inflowence.org",  # Inflowence domain without www
+    "https://mindful-creator-production.up.railway.app",  # Railway.app production environment
+    "https://api.tiezhu.org",  # API domain
+    # Removed: "https://*.vercel.app" - Wildcard not directly supported
 ]
-# 使用正则表达式匹配所有vercel.app域名、Railway.app域名和Vercel预览域名
+# Using regex to match all vercel.app domains, Railway.app domains and Vercel preview domains
 vercel_domain_regex = r"^https://([a-zA-Z0-9\\-]+\.vercel\.app|[a-zA-Z0-9\\-]+\.up\.railway\.app)$"
 # Middleware already added, this logging confirms the values used.
 logger.info(f"CORS Allowed Origins: {allowed_origins}")
@@ -208,13 +209,13 @@ logger.info(f"CORS Vercel Domain Regex: {vercel_domain_regex}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # 特定允许的域名列表
-    allow_origin_regex=vercel_domain_regex, # 匹配所有vercel.app域名
+    allow_origins=allowed_origins, # List of specific allowed origins
+    allow_origin_regex=vercel_domain_regex, # Matches all vercel.app domains
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # 明确指定允许的方法
-    allow_headers=["*"],  # 允许所有头部
-    expose_headers=["*"],  # 暴露所有响应头部
-    max_age=3600,  # 缓存时间以提高性能
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly specify allowed methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # Expose all response headers
+    max_age=3600,  # Cache time to improve performance
 )
 
 logger.info("Importing HuggingFace Transformers and PyTorch...")

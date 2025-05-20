@@ -75,9 +75,9 @@ async def get_db_connection():
         logger.error(f"DB Connection Failed (General Exception): {e}")
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
-# 在路由处理函数中添加CORS头部的辅助函数
+# Helper function to add CORS headers to route handler responses
 def add_cors_headers(response: Response, request: Request):
-    """添加CORS头部到响应对象"""
+    """Add CORS headers to response object"""
     allowed_origins = [
         "http://localhost:3000",
         "http://localhost:5173", 
@@ -86,8 +86,8 @@ def add_cors_headers(response: Response, request: Request):
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
         "https://inflowence.org",
-        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
-        "https://api.tiezhu.org"  # API域名
+        "https://mindful-creator-production.up.railway.app",  # Railway.app production environment
+        "https://api.tiezhu.org"  # API domain
     ]
     
     origin = None
@@ -95,7 +95,7 @@ def add_cors_headers(response: Response, request: Request):
         origin = request.headers["origin"]
         if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             response.headers["Access-Control-Allow-Origin"] = origin
-        # 如果不在允许列表中，则不添加此头部，这会阻止跨域请求
+        # If not in allowed list, don't add this header, which will block cross-origin requests
     
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Origin, Accept"
@@ -106,46 +106,46 @@ def add_cors_headers(response: Response, request: Request):
 @router.get("/initialize_game")
 async def initialize_game_data_with_local_urls_get(http_request: Request):
     try:
-        # 从查询参数获取level值
+        # Get level value from query parameters
         params = dict(http_request.query_params)
         level = int(params.get("level", 1))
         
-        logger.info(f"初始化游戏(GET请求): 等级 {level}")
+        logger.info(f"Initializing game (GET request): level {level}")
         
-        # 复用现有逻辑处理请求
+        # Reuse existing logic to process request
         result = await initialize_game_common(GameInitRequest(level=level), http_request)
         
-        # 如果返回的是JSONResponse，应用CORS头部
+        # If result is a JSONResponse, apply CORS headers
         if isinstance(result, JSONResponse):
             return add_cors_headers(result, http_request)
         return result
     except Exception as e:
-        logger.error(f"初始化游戏GET请求处理失败: {e}", exc_info=True)
+        logger.error(f"Initializing game GET request processing failed: {e}", exc_info=True)
         response = JSONResponse(
             status_code=500,
-            content={"detail": f"处理请求时出错: {str(e)}"}
+            content={"detail": f"Processing request failed: {str(e)}"}
         )
         return add_cors_headers(response, http_request)
 
 @router.post("/initialize_game")
 async def initialize_game_data_with_local_urls_post(game_request: GameInitRequest, http_request: Request):
     try:
-        logger.info(f"初始化游戏(POST请求): 等级 {game_request.level}")
+        logger.info(f"Initializing game (POST request): level {game_request.level}")
         result = await initialize_game_common(game_request, http_request)
         
-        # 如果返回的是JSONResponse，应用CORS头部
+        # If result is a JSONResponse, apply CORS headers
         if isinstance(result, JSONResponse):
             return add_cors_headers(result, http_request)
         return result
     except Exception as e:
-        logger.error(f"初始化游戏POST请求处理失败: {e}", exc_info=True)
+        logger.error(f"Initializing game POST request processing failed: {e}", exc_info=True)
         response = JSONResponse(
             status_code=500,
-            content={"detail": f"处理请求时出错: {str(e)}"}
+            content={"detail": f"Processing request failed: {str(e)}"}
         )
         return add_cors_headers(response, http_request)
 
-# 共用的处理函数
+# Shared processing function
 async def initialize_game_common(game_request: GameInitRequest, http_request: Request):
     level = game_request.level
     num_memes_to_fetch = 0
@@ -258,29 +258,29 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
 async def options_initialize_game(http_request: Request):
     logger.info("OPTIONS request received for /initialize_game")
     
-    # 与main.py中设置相同的CORS规则
+    # Use the same CORS rules as in main.py
     allowed_origins = [
-        "http://localhost:3000",  # 本地开发 (frontend)
-        "http://localhost:5173",  # Vite 开发服务器 (frontend)
+        "http://localhost:3000",  # Local development (frontend)
+        "http://localhost:5173",  # Vite development server (frontend)
         "https://mindful-creator.vercel.app",  
         "https://tiezhu.org", 
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
         "https://inflowence.org",
-        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
-        "https://api.tiezhu.org"  # API域名
+        "https://mindful-creator-production.up.railway.app",  # Railway.app production environment
+        "https://api.tiezhu.org"  # API domain
     ]
     
-    # 检查请求来源是否在允许列表中
+    # Check if request origin is in allowed list
     origin = None
     if "origin" in http_request.headers:
         origin = http_request.headers["origin"]
         if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             allowed_origin = origin
         else:
-            allowed_origin = "null"  # 不允许的来源
+            allowed_origin = "null"  # Disallowed origin
     else:
-        allowed_origin = "null"  # 无来源头部
+        allowed_origin = "null"  # No origin header
     
     return Response(
         status_code=200,
@@ -303,7 +303,7 @@ async def serve_meme_image(image_filename: str, request: Request):
 
         image_path = MEME_IMAGE_DIR / image_filename
         
-        # 检查目录是否存在
+        # Check if directory exists
         if not MEME_IMAGE_DIR.exists():
             logger.error(f"Meme image directory does not exist: {MEME_IMAGE_DIR}")
             response = JSONResponse(status_code=500, content={"detail": "Image storage directory not found."})
@@ -337,29 +337,29 @@ async def serve_meme_image(image_filename: str, request: Request):
 async def options_serve_image(http_request: Request):
     logger.info("OPTIONS request received for /images")
     
-    # 与main.py中设置相同的CORS规则
+    # Use the same CORS rules as in main.py
     allowed_origins = [
-        "http://localhost:3000",  # 本地开发 (frontend)
-        "http://localhost:5173",  # Vite 开发服务器 (frontend)
+        "http://localhost:3000",  # Local development (frontend)
+        "http://localhost:5173",  # Vite development server (frontend)
         "https://mindful-creator.vercel.app",  
         "https://tiezhu.org", 
         "https://www.tiezhu.org", 
         "https://www.inflowence.org",
         "https://inflowence.org",
-        "https://mindful-creator-production.up.railway.app",  # Railway.app 生产环境
-        "https://api.tiezhu.org"  # API域名
+        "https://mindful-creator-production.up.railway.app",  # Railway.app production environment
+        "https://api.tiezhu.org"  # API domain
     ]
     
-    # 检查请求来源是否在允许列表中
+    # Check if request origin is in allowed list
     origin = None
     if "origin" in http_request.headers:
         origin = http_request.headers["origin"]
         if origin in allowed_origins or origin.endswith("vercel.app") or origin.endswith("railway.app"):
             allowed_origin = origin
         else:
-            allowed_origin = "null"  # 不允许的来源
+            allowed_origin = "null"  # Disallowed origin
     else:
-        allowed_origin = "null"  # 无来源头部
+        allowed_origin = "null"  # No origin header
     
     return Response(
         status_code=200,

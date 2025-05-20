@@ -198,10 +198,10 @@ const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
 
 // Get backend API address from environment variables
-// 优先使用环境变量，然后尝试默认API域名
+// Priority: environment variables, then fall back to api.tiezhu.org
 const API_BASE_URL = (import.meta as any).env.BACKEND_URL || 
                     (import.meta as any).env.VITE_BACKEND_URL || 
-                    'https://mindful-creator-production.up.railway.app';
+                    'https://api.tiezhu.org';
 
 
 // Define component events

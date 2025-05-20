@@ -1521,7 +1521,7 @@ const sliderStyle = computed(() => {
 let chartInstance = null
 
 // API configuration for visualization
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://gleaming-celebration-production-66cb.up.railway.app'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org'
 
 // Loading state for visualization
 const isLoading = ref(true)
