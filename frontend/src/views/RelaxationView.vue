@@ -284,15 +284,29 @@ const activityComponents = {
 const api = {
   async submitRating(activityType, ratingValue) {
     try {
-      const response = await axios.post('/api/ratings/', {
+      // First try with POST method
+      const payload = {
         activity_key: activityType,
         rating: ratingValue,
         timestamp: new Date().toISOString()
-      })
-      return response.data
+      };
+      
+      try {
+        const response = await axios.post('/api/ratings/', payload);
+        return response.data;
+      } catch (error) {
+        // If POST fails with 405 Method Not Allowed, try PUT instead
+        if (error.response && error.response.status === 405) {
+          console.log('POST method not allowed, trying PUT instead');
+          const putResponse = await axios.put('/api/ratings/', payload);
+          return putResponse.data;
+        }
+        // If it's another error, throw it
+        throw error;
+      }
     } catch (error) {
-      console.error('Error submitting rating:', error)
-      throw error
+      console.error('Error submitting rating:', error);
+      throw error;
     }
   },
 
