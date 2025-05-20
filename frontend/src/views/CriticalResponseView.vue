@@ -68,6 +68,11 @@
         </div>
       </div>
 
+      <!-- Banner Section Title -->
+      <div class="banner-section-title-container">
+        <h2 class="banner-section-title">Criticism VS. Cyberbully</h2>
+      </div>
+
       <!-- Banner Sections -->
       <div class="banners-container">
         <button class="banner-nav prev-banner" @click="prevBanner">
@@ -134,7 +139,7 @@
           <div class="process-card no-hover">
             <div class="card-number">1</div>
             <div class="card-content">
-              <img src="/src/assets/icons/elements/video.png" alt="Smartphone icon" class="card-icon">
+              <img src="/public/icons/elements/video.png" alt="Smartphone icon" class="card-icon">
               <p class="card-text">Open your Youtube video.</p>
             </div>
           </div>
@@ -142,7 +147,7 @@
           <div class="process-card no-hover">
             <div class="card-number">2</div>
             <div class="card-content">
-              <img src="/src/assets/icons/elements/copy.png" alt="Copy icon" class="card-icon">
+              <img src="/public/icons/elements/copy.png" alt="Copy icon" class="card-icon">
               <p class="card-text">Copy the URL.</p>
             </div>
           </div>
@@ -150,7 +155,7 @@
           <div class="process-card no-hover">
             <div class="card-number">3</div>
             <div class="card-content">
-              <img src="/src/assets/icons/elements/paste.png" alt="Link icon" class="card-icon">
+              <img src="/public/icons/elements/paste.png" alt="Link icon" class="card-icon">
               <p class="card-text">Paste it into the box below.</p>
             </div>
           </div>
@@ -160,14 +165,24 @@
       <!-- Comments Response Scripts Section -->
       <div class="youtube-analysis-section">
         <div class="analysis-container mt-8 mb-12 p-6 border-2 border-black rounded-lg shadow-md bg-white mx-auto">
-          <h3 class="section-title">YouTube Comment Analysis</h3>
+          <h3 class="section-title">YouTube Comments Analysis</h3>
           <div class="input-group">
             <input 
               v-model="youtubeUrl" 
               type="text" 
               class="youtube-input"
               placeholder="Enter YouTube video URL (https://www.youtube.com/watch?v=...)"
+              @input="analysisError = null"
             />
+            <button 
+              v-if="youtubeUrl" 
+              @click="youtubeUrl = ''" 
+              class="clear-button"
+              type="button"
+              aria-label="Clear input"
+            >
+              ×
+            </button>
             <button 
               @click="analyzeYoutubeComments" 
               class="analyze-button"
@@ -179,7 +194,6 @@
           </div>
           <p v-if="analysisError" class="error-message">
             <strong>Strewth!</strong> {{ analysisError }}
-            <button @click="retryAnalysis" class="retry-button">Give it another go</button>
           </p>
           <p v-if="isLoading" class="loading-message">
             <span class="loading-spinner"></span>
@@ -199,8 +213,8 @@
           <div class="modal-content">
             <!-- Video Info -->
             <div class="video-info-section section-divider">
-              <p><strong>Video URL:</strong> {{ youtubeUrl }}</p>
-              <p><strong>Comments Analysed:</strong> {{ analysisResult?.total_comments || 0 }}</p>
+              <p class="video-info-item"><strong>Video URL:</strong> {{ youtubeUrl }}</p>
+              <p class="video-info-item"><strong>Comments Analysed:</strong> {{ analysisResult?.total_comments || 0 }}</p>
             </div>
             
             <!-- WebSocket Error Warning -->
@@ -213,14 +227,22 @@
               </div>
             </div>
             
-            <!-- Debug Information (Add after video info section) -->
-            <div class="debug-info section-divider">
-              <p class="note-message"><strong>Debug Info:</strong></p>
-              <details>
-                <summary>Response Data Structure</summary>
-                <pre class="debug-data">{{ JSON.stringify(analysisResult, null, 2) }}</pre>
-              </details>
+            <!-- Disclaimers -->
+            <div class="disclaimer-section section-divider">
+              <div class="disclaimer-content">
+                <h4><span style="white-space: nowrap; font-weight: 800;">⚠️ Important Disclaimers</span></h4>
+                <ul class="disclaimer-list">
+                  <li>This page may display insulting or offensive content from YouTube comments.</li>
+                  <li>The analysis may include comments in languages other than English.</li>
+                  <li>Our system has limited capability in processing comments written in non-English languages.</li>
+                  <li>The quantity of negative comments and toxic comments may differ as they are classified using different criteria.</li>
+                  <li>The statistics, analysis, and response strategies are generated by NLP and LLM models which may occasionally make mistakes or provide imperfect suggestions.</li>
+                </ul>
+              </div>
             </div>
+          </div>
+            
+
             
             <!-- Results Grid -->
             <div class="results-grid section-divider">
@@ -277,8 +299,8 @@
             </div>
             
             <!-- Example Comments Section -->
-            <div v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0" class="mb-8">
-              <h3 class="text-xl font-bold mb-4 border-b pb-2 bg-blue-100 text-blue-800 py-2 px-4 rounded-t-lg">Comments & Response Suggestions</h3>
+                          <div v-if="analysisResult?.example_comments && analysisResult.example_comments.length > 0" class="mb-8 mt-8">
+                <h3 class="comments-section-title">Comments & Response Suggestions</h3>
               <div class="space-y-6">
                 <div v-for="(example, index) in analysisResult.example_comments" :key="index" class="bg-white rounded-lg shadow-md border-l-4 border-blue-400 overflow-hidden">
                   <div class="flex flex-col">
@@ -286,26 +308,19 @@
                       <h4 class="font-bold text-blue-700 mb-2 flex items-center">
                         Original Comment:
                       </h4>
-                      <p class="mb-0 text-gray-800 whitespace-pre-wrap font-medium">{{ example.comment || 'No example comment provided' }}</p>
+                      <p class="mb-0 text-gray-800 whitespace-pre-wrap font-medium bg-white p-3 rounded-md border border-blue-100 shadow-sm">{{ example.comment || 'No example comment provided' }}</p>
                     </div>
                     <div class="p-4 bg-green-50">
-                      <h4 class="font-bold text-green-600 mb-2 flex items-center">
+                      <h4 class="font-bold text-blue-700 mb-2 flex items-center">
                         <span class="mr-2">✅</span>
-                        Suggested Professional Response:
+                        Suggested Response:
                       </h4>
                       <p class="text-gray-800 whitespace-pre-wrap bg-white p-3 rounded-md border border-green-100 shadow-sm">{{ example.response || 'No response suggestion available' }}</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="mt-6 px-4 py-3 bg-gray-50 rounded-md border border-gray-200 flex items-center justify-between">
-                <p class="text-sm text-gray-600">
-                  <span class="font-semibold">{{ analysisResult.example_comments.length }}</span> {{ analysisResult.example_comments.length === 1 ? 'comment' : 'comments' }} shown with professional response examples.
-                </p>
-                <div class="text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-                  Use these as templates for your own responses
-                </div>
-              </div>
+
             </div>
             <div v-else class="mb-8 p-6 bg-yellow-50 border-l-4 border-yellow-400 rounded-md shadow-sm">
               <div class="flex items-center">
@@ -526,7 +541,7 @@
           </div>
         </div>
       </div>
-    </div>
+  
   </template>
 
   <script setup>
@@ -541,12 +556,12 @@
   const analysisStore = useAnalysisStore()
   analysisStore.$reset()
 
-  import bell from '../assets/emojis/bell.png'
-  import happy from '../assets/emojis/Happy.png'
-  import peace from '../assets/emojis/Peace.png'
-  import angry from '../assets/emojis/Angry.png'
-  import sad from '../assets/emojis/Sad.png'
-  import mda from '../assets/emojis/Mad.png'
+  import bell from '/public/emojis/bell.png'
+  import happy from '/public/emojis/Happy.png'
+  import peace from '/public/emojis/Peace.png'
+  import angry from '/public/emojis/Angry.png'
+  import sad from '/public/emojis/Sad.png'
+  import mda from '/public/emojis/Mad.png'
 
   const router = useRouter()
   const showCheckIn = ref(false)
@@ -638,6 +653,41 @@
   const showResultsModal = ref(false)
   const analysisResult = ref({})
 
+  // Computed property to check if the URL is valid
+  const isValidYoutubeUrl = computed(() => {
+    if (!youtubeUrl.value) return false
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
+    return youtubeRegex.test(youtubeUrl.value)
+  })
+
+  // Helper function to normalize YouTube URLs
+  const normalizeYoutubeUrl = (url) => {
+    if (!url) return url
+    
+    // If URL starts with youtube.com or youtu.be without protocol, add https://
+    if (url.match(/^(youtube\.com|youtu\.be)/)) {
+      return `https://${url}`
+    }
+    
+    // If URL starts with www. without protocol, add https://
+    if (url.match(/^www\./)) {
+      return `https://${url}`
+    }
+    
+    // If URL doesn't have protocol, assume https://
+    if (!url.match(/^https?:\/\//)) {
+      return `https://${url}`
+    }
+    
+    return url
+  }
+
+  // Method to set an example URL
+  const setExampleUrl = () => {
+    youtubeUrl.value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    analysisError.value = null
+  }
+
   // Format toxicity type names to more readable format
   const formatToxicityType = (type) => {
     // Handle different formats returned by backend (capitalised or lowercase)
@@ -664,25 +714,38 @@
   const formatStrategies = (strategies) => {
     if (!strategies) return '';
     
-    // Remove markdown code block markers and bold markers
+    // Remove markdown code block markers
     let cleanedStrategies = strategies
       .replace(/```markdown\n?/g, '')
-      .replace(/```/g, '')
-      .replace(/\*\*/g, '');  // Remove bold markers
+      .replace(/```/g, '');
     
-    // Remove extra bullet points and clean up formatting
-    cleanedStrategies = cleanedStrategies
-      .replace(/•\s*•\s*/g, '• ')  // Replace double bullets with single
-      .replace(/^\s*•\s*/gm, '• ')  // Ensure consistent bullet point format
-      .replace(/\n\s*\n/g, '\n')    // Remove extra newlines
-      .trim();
+    // Clean up formatting and add extra spacing between strategies
+    cleanedStrategies = cleanedStrategies.trim();
     
-    // Convert to HTML
+    // Process each line - add bold to the beginning of each strategy
     return cleanedStrategies
       .split('\n')
-      .map(line => line.trim())
+      .map(line => {
+        line = line.trim();
+        if (line.length > 0) {
+          // If line starts with a word followed by a colon, make it bold
+          if (/^[A-Za-z0-9\s]+:/.test(line)) {
+            const parts = line.split(':');
+            if (parts.length >= 2) {
+              return `<strong>${parts[0]}:</strong>${parts.slice(1).join(':')}`;
+            }
+          }
+          
+          // Find the first significant word and make it bold
+          const words = line.split(' ');
+          if (words.length > 1) {
+            return `<strong>${words[0]}</strong> ${words.slice(1).join(' ')}`;
+          }
+        }
+        return line;
+      })
       .filter(line => line.length > 0)
-      .join('<br>');
+      .join('<br><br>'); // Add extra line break between strategies
   }
   
   // Calculate percentage for toxicity types
@@ -757,15 +820,18 @@
       return
     }
     
+    // Normalize the URL first
+    const normalizedUrl = normalizeYoutubeUrl(youtubeUrl.value)
+    
     // Validate URL format
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(\S*)?$/
-    if (!youtubeRegex.test(youtubeUrl.value)) {
-      console.warn('Invalid YouTube URL format:', youtubeUrl.value)
-      analysisError.value = 'Please enter a valid YouTube URL, that one\'s not right'
+    if (!youtubeRegex.test(normalizedUrl)) {
+      console.warn('Invalid YouTube URL format:', normalizedUrl)
+      analysisError.value = 'Please entre a valid YouTube URL, that one\'s not right.'
       return
     }
     
-    console.log('URL validation passed:', youtubeUrl.value)
+    console.log('URL validation passed:', normalizedUrl)
     
     // Set loading state
     isLoading.value = true
@@ -810,7 +876,8 @@
       try {
         // Send request to backend API with improved error handling
         console.log('Preparing POST request with data:', {
-          url: youtubeUrl.value,
+          url: normalizedUrl,
+          youtube_url: normalizedUrl,  // Include both formats for compatibility
           limit: 100
         })
         
@@ -830,8 +897,8 @@
                 'Accept': 'application/json'
               },
               body: JSON.stringify({
-                url: youtubeUrl.value,
-                youtube_url: youtubeUrl.value,  // Include both formats for compatibility
+                url: normalizedUrl,
+                youtube_url: normalizedUrl,  // Include both formats for compatibility
                 limit: 100
               }),
               signal: controller.signal
@@ -1229,6 +1296,51 @@
     text-align: center;
   }
 
+  /* Add only the essential new styles */
+  .clear-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+  }
+
+  .clear-button:hover {
+    color: #555;
+    background-color: #f5f5f5;
+  }
+
+  .url-examples {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .example-url-button {
+    background: none;
+    border: none;
+    color: #7e78d2;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .example-url-button:hover {
+    color: #65c9a4;
+  }
+
+  /* Existing styles */
   .hero-section {
     min-height: 40vh;
     background-color: rgb(255, 252, 244);
@@ -1378,10 +1490,19 @@
     }
     .title-group h2 {
       font-size: 3.75rem;
+      white-space: nowrap; /* Keep on one line for large screens */
     }
     .subtitle {
       font-size: 1.875rem;
       white-space: nowrap; /* Keep nowrap for very large screens only */
+    }
+  }
+
+  /* Add a new breakpoint to handle mid-size screens */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .title-group h2 {
+      font-size: 2.75rem;
+      white-space: nowrap; /* Ensure it stays on one line for medium-large screens too */
     }
   }
 
@@ -1689,7 +1810,7 @@
     }
     
     .next-banner {
-      right: 10px;
+      right: 15px;
     }
   }
   
@@ -2967,11 +3088,50 @@
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #eee;
+    text-align: left;
   }
 
-  .video-info-section p {
+  .video-info-item {
     margin: 0.5rem 0;
     color: #333;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+  }
+  
+  /* Disclaimer Section */
+  .disclaimer-section {
+    background-color: #fff8e1;
+    border: 1px solid #ffecb3;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .disclaimer-icon {
+    font-size: 2rem;
+    margin-top: 0.25rem;
+  }
+  
+  .disclaimer-content h4 {
+    font-size: 1.3rem;
+    color: #856404;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .disclaimer-list {
+    padding-left: 1.5rem;
+    margin: 0;
+    text-align: left;
+  }
+  
+  .disclaimer-list li {
+    color: #856404;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
   }
 
   /* Results Grid */
@@ -3131,6 +3291,12 @@
     margin-bottom: 0.5rem;
     display: block;
     content: "";
+  }
+  
+  .strategy-content strong {
+    color: #333;
+    font-weight: 700;
+    font-size: 1.1rem;
   }
 
   /* Example Comments Section */
@@ -3622,21 +3788,35 @@
 
   /* Banner Section Styles */
   .banners-container {
-    max-width: 1100px;
-    width: 90%;
-    margin: 0 auto 5rem;
+    width: 100%;
+    margin: 0 0 5rem;
     position: relative;
+    height: 400px; /* Fixed height to prevent content shifting */
+    overflow: hidden;
   }
   
   .banner-section {
-    position: relative;
-    padding: 2rem;
-    border-radius: 16px;
+    position: absolute; /* Position absolutely within container */
+    padding: 3rem 0;
+    border-radius: 0;
     overflow: hidden;
     width: 100%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(230, 239, 182, 0.3);
+    box-shadow: none;
+    border: none;
     transition: all 0.3s ease;
+    top: 0;
+    left: 0;
+    height: 100%;
+  }
+  
+  .banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   
   .banner-title {
@@ -3656,14 +3836,94 @@
   }
   
   .constructive, .cyberbullying {
-    background-color: #fff;
-    background-image: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.98));
-    padding: 1.5rem;
+    padding: 1.8rem;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(230, 239, 182, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: relative;
+    transition: transform 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
   }
-
+  
+  .constructive {
+    background: linear-gradient(135deg, #f1f9ea, #e5f4d5);
+    border-left: 5px solid #65c9a4;
+    color: #2c4a30;
+  }
+  
+  .constructive::before {
+    content: "👍";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.6rem;
+    opacity: 0.2;
+  }
+  
+  .cyberbullying {
+    background: linear-gradient(135deg, #fff1f0, #ffe4e1);
+    border-left: 5px solid #ff7d6e;
+    color: #742f29;
+  }
+  
+  .cyberbullying::before {
+    content: "👎";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.6rem;
+    opacity: 0.2;
+  }
+  
+  .constructive h3, .cyberbullying h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+  }
+  
+  .constructive h3 {
+    color: #1a7652;
+  }
+  
+  .constructive h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #65c9a4;
+    border-radius: 1.5px;
+  }
+  
+  .cyberbullying h3 {
+    color: #d44333;
+  }
+  
+  .cyberbullying h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ff7d6e;
+    border-radius: 1.5px;
+  }
+  
+  .constructive p, .cyberbullying p {
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+  
+  .constructive:hover, .cyberbullying:hover {
+    transform: translateY(-3px);
+  }
+  
   .banner-nav {
     background-color: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(230, 239, 182, 0.3);
@@ -3683,11 +3943,11 @@
   }
   
   .prev-banner {
-    left: -20px;
+    left: 20px;
   }
   
   .next-banner {
-    right: -20px;
+    right: 20px;
   }
   
   .banner-nav:hover {
@@ -3735,7 +3995,7 @@
 
   @media (max-width: 768px) {
     .comparison-content {
-      flex-direction: column;
+      grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
@@ -3801,41 +4061,32 @@
   }
 
   /* Transition animations for banners */
-  /* Ensure these are at the root of your <style scoped> or in a global style if preferred */
-
   .slide-fade-enter-active,
   .slide-fade-leave-active {
-    transition: transform 0.5s ease-in-out; /* MODIFIED: Using ease-in-out */
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     position: absolute;
     width: 100%;
-    top: 0; /* Ensure they align vertically */
+    height: 100%;
+    top: 0;
     left: 0;
+    backface-visibility: hidden;
+    will-change: transform;
   }
 
   .slide-fade-enter-from {
-    /* Opacity is 1 by default */
-    transform: translateX(100%); /* Start off-screen to the right */
+    transform: translateX(100%);
+    opacity: 1;
   }
 
   .slide-fade-leave-to {
-    /* Opacity is 1 by default, will be removed from DOM after */
-    transform: translateX(-100%); /* Exit off-screen to the left */
+    transform: translateX(-100%);
+    opacity: 1;
   }
 
-  /* Ensure the element that is not actively entering/leaving is at translateX(0) */
   .slide-fade-enter-to,
   .slide-fade-leave-from {
     transform: translateX(0);
-  }
-
-  @media (max-width: 992px) {
-    .banner-content {
-      padding: 0 3rem;
-    }
-    
-    .banner-title {
-      font-size: 2rem;
-    }
+    opacity: 1;
   }
 
   /* Positive popup styling */
@@ -3938,6 +4189,47 @@
     z-index: 2;
   }
 
+  /* Banner Section Title Styling */
+  .banner-section-title-container {
+    text-align: center;
+    margin: 3rem auto 2rem;
+    position: relative;
+  }
+
+  .banner-section-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #333;
+    display: inline-block;
+    position: relative;
+    margin: 0 auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .banner-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #7e78d2, #65c9a4);
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .banner-section-title {
+      font-size: 2.2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .banner-section-title {
+      font-size: 1.8rem;
+    }
+  }
+
   .section-title {
     font-size: 2.5rem;
     color: #000;
@@ -3968,6 +4260,79 @@
 
   section:not(:last-child)::after {
     display: none;
+  }
+
+  .next-banner {
+    right: 15px;
+  }
+  
+  .banner-nav:hover {
+    background-color: #65c9a4;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .arrow-icon {
+    font-size: 1rem;
+    display: inline-block;
+  }
+  
+  /* Banner pagination dots */
+  .banner-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .dot.active {
+    background-color: #65c9a4;
+    transform: scale(1.3);
+  }
+
+  @media (max-width: 992px) {
+    .banner-content {
+      padding: 0 3rem;
+    }
+    
+    .banner-title {
+      font-size: 2rem;
+    }
+  }
+
+  .comment-icon {
+    font-size: 2rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Comments Section Title */
+  .comments-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.5rem 0;
+    color: #333;
+    text-align: center;
+    padding-top: 1rem;
+    position: relative;
+  }
+  
+  .comments-section-title::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
   }
   </style>
 

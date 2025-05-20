@@ -115,7 +115,9 @@ class WatermarkHandler:
                                     width: int = 800, 
                                     height: int = 600, 
                                     position: str = "bottom-right",
-                                    size: int = 24) -> str:
+                                    size: int = 24,
+                                    color: str = "#FFFFFF",
+                                    font_family: str = "Arial, sans-serif") -> str:
         """
         Create a transparent SVG watermark.
         
@@ -125,13 +127,15 @@ class WatermarkHandler:
             height: Height of the canvas
             position: Position of the watermark
             size: Font size
+            color: Color of the watermark text
+            font_family: CSS font-family string
             
         Returns:
             SVG content as string
         """
         try:
             # Create SVG drawing
-            dwg = svgwrite.Drawing(size=(width, height), profile='tiny')
+            dwg = svgwrite.Drawing(size=(width, height), profile='full', debug=False)
             
             # Calculate position (approximate since SVG text metrics are different)
             # We'll assume the text width is roughly 10 pixels per character
@@ -140,16 +144,20 @@ class WatermarkHandler:
             
             x, y = self._calculate_position(position, width, height, text_width, text_height)
             
-            # Add drop shadow
+            # Add drop shadow (using a slightly darker version of the chosen color or black)
+            # For simplicity, shadow is black here, but could be derived from 'color'
+            shadow_opacity = 0.5 # Keep shadow opacity fixed or make it a parameter
+            shadow_fill = "black" 
+
             shadow = dwg.text(text, insert=(x+2, y+2), 
-                           fill='black', opacity=0.5, 
-                           style=f'font-size:{size}px; font-family:Arial, sans-serif')
+                           fill=shadow_fill, opacity=shadow_opacity, 
+                           style=f'font-size:{size}px; font-family:{font_family}')
             dwg.add(shadow)
             
             # Add main text
             text_elem = dwg.text(text, insert=(x, y), 
-                              fill='white', 
-                              style=f'font-size:{size}px; font-family:Arial, sans-serif')
+                              fill=color,  # Use the color parameter
+                              style=f'font-size:{size}px; font-family:{font_family}') # Use font_family
             dwg.add(text_elem)
             
             # Return SVG as string

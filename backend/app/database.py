@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 使用环境变量中的 DATEBASE_PUBLIC_URL
-DATEBASE_PUBLIC_URL = os.getenv("DATEBASE_PUBLIC_URL", "postgresql://username:password@host:port/dbname")
+DATEBASE_PUBLIC_URL = os.getenv("DATEBASE_PUBLIC_URL", "postgresql://username:password@host:5432/dbname")
 
 # 创建数据库引擎
 engine = create_engine(

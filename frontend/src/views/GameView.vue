@@ -79,6 +79,11 @@
       <input v-model="password" type="password" placeholder="Password" @keyup.enter="checkPassword" />
       <button @click="checkPassword">Submit</button>
     </div>
+    
+    <!-- Data Citation Section -->
+    <div class="data-citation">
+      <p>Data Sources: We use the Memotion Dataset 7k (Sharma et al., 2020) <a href="https://www.kaggle.com/datasets/williamscott701/memotion-dataset-7k" target="_blank">@Kaggle</a></p>
+    </div>
   </div>
 </template>
 
@@ -430,80 +435,138 @@ function checkPassword() {
   
   .hero-content {
     min-height: 40vh;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .slogan {
-    margin-left: 1.5rem;
+    margin-left: 0;
+    max-width: 100%;
   }
   
   .decorative-elements {
-    transform: translateX(0) scale(0.9);
-    opacity: 0.5;
+    transform: translateX(0) scale(0.8);
+    opacity: 0.4;
     row-gap: 0.5rem;
     justify-content: end;
+  }
+  .title-group h1 {
+    font-size: 3.5rem;
+  }
+  .title-group h2 {
+    font-size: 2rem;
+  }
+  .subtitle {
+    font-size: 1.15rem;
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
-    min-height: 22vh;
-    padding: 7rem 0 0.5rem;
+    min-height: auto;
+    padding: 7rem 0 1rem;
   }
   
   .hero-content {
-    min-height: 22vh;
+    min-height: auto;
     flex-direction: column;
     align-items: flex-start;
-    padding-top: 0.75rem;
+    padding: 0.75rem 1rem 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .slogan {
-    margin-left: 1rem;
-    max-width: 90%;
+    margin-left: 0;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .title-group h1, .title-group h2, .subtitle {
+    text-align: left;
+    white-space: normal;
   }
   
   .decorative-elements {
-    opacity: 0.1;
-    transform: translateX(0) scale(0.8);
+    display: none;
+  }
+  .title-group h1 {
+    font-size: 2.8rem;
+  }
+  .title-group h2 {
+    font-size: 1.75rem;
+  }
+  .subtitle {
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 640px) {
   .hero-section {
-    min-height: 18vh;
-    padding: 7.5rem 0 0.5rem;
+    min-height: auto;
+    padding: 7rem 0 1rem;
     margin-bottom: 1rem;
   }
 
   .hero-content {
-    padding: 0 1rem;
-    min-height: 18vh;
-    padding-top: 0.25rem;
+    padding: 0.25rem 1rem 0;
+    min-height: auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .slogan {
     padding-top: 0;
+    margin-left: 0;
+    max-width: 100%;
   }
 
   .decorative-elements {
     opacity: 0;
     transform: translateX(0) scale(0.7);
   }
+  .title-group h1 {
+    font-size: 2.2rem;
+  }
+  .title-group h2 {
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
   .hero-section {
     min-height: 16vh;
-    padding: 8rem 0 0.5rem;
+    padding: 8rem 0.5rem 0.5rem;
   }
   
   .hero-content {
     min-height: 16vh;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .slogan {
+    margin-left: 0;
+    max-width: 100%;
   }
   
   .decorative-elements {
     opacity: 0;
     display: none;
+  }
+  .title-group h1 {
+    font-size: 1.8rem;
+  }
+  .title-group h2 {
+    font-size: 1.25rem;
+  }
+  .subtitle {
+    font-size: 0.8rem;
   }
 }
 
@@ -746,5 +809,24 @@ function checkPassword() {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* Citation styles */
+.data-citation {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.data-citation a {
+  color: #FF3D8C;
+  text-decoration: none;
+}
+
+.data-citation a:hover {
+  text-decoration: underline;
 }
 </style> 

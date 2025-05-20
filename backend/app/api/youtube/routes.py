@@ -26,7 +26,7 @@ class YouTubeRequest(BaseModel):
     """
     url: Optional[str] = None
     youtube_url: Optional[str] = None
-    limit: int = 5
+    limit: int = 100
     
     @validator('url', 'youtube_url', pre=True)
     def check_url(cls, v, values):
@@ -43,8 +43,8 @@ class YouTubeRequest(BaseModel):
     def check_limit(cls, v):
         if v < 1:
             return 1
-        if v > 50:
-            return 50
+        if v > 100:
+            return 100
         return v
 
 @router.post(
