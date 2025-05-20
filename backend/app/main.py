@@ -90,6 +90,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # 添加这一行以暴露所有响应头
+    max_age=3600,  # 添加缓存时间以提高性能
 )
 
 from transformers import AutoTokenizer
