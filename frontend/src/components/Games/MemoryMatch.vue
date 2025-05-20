@@ -158,6 +158,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Removed: import router from '@/router';
 // Removed: import { showConfetti } from '@/utils/confetti';
 
+// TypeScript declaration for Vite environment variables
+declare interface ImportMeta {
+  readonly env: {
+    readonly VITE_BACKEND_URL?: string;
+    [key: string]: any;
+  }
+}
+
 // const gameStore = useGameStore(); // Removed
 
 // Game levels and their configurations
@@ -187,12 +195,14 @@ const currentModalMemeIndex = ref(0);
 // New state variables for dramatic warning popups
 const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
+// Get backend API address from environment variables
+const API_BASE_URL = (import.meta as any).env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
 
-// Hard-coded backend API address
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.tiezhu.org';
-
-// Define emits
-const emit = defineEmits(['game-completed', 'exit-game']);
+// Define component events
+const emit = defineEmits<{
+  'game-completed': [] // Event emitted when game is completed
+  'exit-game': [] // Event emitted when player exits the game
+}>();
 
 interface MemeData {
   id: any;
