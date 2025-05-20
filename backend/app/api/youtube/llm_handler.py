@@ -119,16 +119,16 @@ async def analyze_sentiment(comments: List[str]) -> Dict[str, int]:
         logger.error("Cannot analyze sentiment: API key missing")
         return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
     
-    # 如果评论过多，只选择一部分进行分析
+    # If there are too many comments, select only a subset for analysis
     sample_size = min(50, len(comments))
     if len(comments) > sample_size:
         import random
-        # 随机选择评论，确保代表性
+        # Randomly select comments to ensure representative sampling
         sampled_comments = random.sample(comments, sample_size)
     else:
         sampled_comments = comments
     
-    # 准备提示词
+    # Prepare prompt for the LLM
     comments_text = "\n".join([f"- {comment}" for comment in sampled_comments])
     prompt = f"""Analyze these YouTube comments and classify each one as Positive, Neutral, or Negative:
 
@@ -168,7 +168,7 @@ DO NOT add any explanation, introductory text, or other formatting.
         resp.raise_for_status()
         data = resp.json()
         
-        # 检查响应结构
+        # Check response structure
         if 'choices' not in data:
             logger.error(f"API response missing 'choices' key: {data}")
             return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
@@ -193,35 +193,35 @@ DO NOT add any explanation, introductory text, or other formatting.
             logger.error("No content in API response")
             return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
             
-        # 尝试解析JSON
+        # Attempt to parse JSON
         try:
             sentiment_data = json.loads(content)
-            # 确保我们有所有需要的键
+            # Ensure we have all required keys
             if "Positive" not in sentiment_data or "Neutral" not in sentiment_data or "Negative" not in sentiment_data:
                 logger.error(f"JSON response missing required keys: {sentiment_data}")
                 return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
                 
-            # 数值有效性检查
+            # Check for valid numerical values
             if not all(isinstance(sentiment_data[key], int) for key in ["Positive", "Neutral", "Negative"]):
                 logger.error(f"JSON response contains non-integer values: {sentiment_data}")
                 return {"Positive": 0, "Neutral": len(comments), "Negative": 0}
                 
-            # 确保总数不超过样本大小
+            # Ensure total count doesn't exceed sample size
             total = sentiment_data["Positive"] + sentiment_data["Neutral"] + sentiment_data["Negative"]
             if total > sample_size:
                 logger.error(f"Total sentiment count {total} exceeds sample size {sample_size}")
-                # 调整数值以确保总和正确
+                # Adjust values to ensure correct total
                 scale_factor = sample_size / total
                 sentiment_data = {
                     "Positive": int(sentiment_data["Positive"] * scale_factor),
                     "Neutral": int(sentiment_data["Neutral"] * scale_factor),
                     "Negative": int(sentiment_data["Negative"] * scale_factor)
                 }
-                # 确保总和等于样本大小
+                # Ensure the sum equals the sample size
                 diff = sample_size - sum(sentiment_data.values())
-                sentiment_data["Neutral"] += diff  # 将差值添加到Neutral类别
+                sentiment_data["Neutral"] += diff  # Add difference to Neutral category
                 
-            # 如果分析的是样本，根据比例扩展到整个评论集
+            # If we analysed a sample, scale up to the full comment set
             if len(comments) > sample_size:
                 scale_factor = len(comments) / sample_size
                 sentiment_data = {
@@ -229,9 +229,9 @@ DO NOT add any explanation, introductory text, or other formatting.
                     "Neutral": int(sentiment_data["Neutral"] * scale_factor),
                     "Negative": int(sentiment_data["Negative"] * scale_factor)
                 }
-                # 确保总和等于评论总数
+                # Ensure the sum equals the total comment count
                 diff = len(comments) - sum(sentiment_data.values())
-                sentiment_data["Neutral"] += diff  # 将差值添加到Neutral类别
+                sentiment_data["Neutral"] += diff  # Add difference to Neutral category
                 
             return sentiment_data
             
@@ -568,7 +568,7 @@ Return ONLY the JSON object with no other text."""
     logger.warning("Failed to generate any valid examples, using fallback")
     return generate_fallback_examples(critical_comments)
 
-# 修改降级函数，返回无格式的纯文本
+# Fallback function returning plain text without formatting
 def generate_fallback_strategies(comments: List[str]) -> str:
     """Generate predefined response strategies in plain text"""
     return """Acknowledge the feedback without defensiveness: Thank viewers for taking time to comment and show appreciation for their engagement.

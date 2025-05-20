@@ -10,7 +10,7 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# OPTIONS方法支持预检请求
+# OPTIONS method to support preflight requests
 @router.options("/{path:path}")
 async def options_ratings_all_paths():
     return Response(status_code=200)
@@ -18,9 +18,9 @@ async def options_ratings_all_paths():
 @router.post("/")
 def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
     try:
-        logger.info(f"接收到新评分: activity_key={rating.activity_key}, rating={rating.rating}")
+        logger.info(f"Received new rating: activity_key={rating.activity_key}, rating={rating.rating}")
         
-        # 创建新的评分记录
+        # Create new rating record
         db_rating = Rating(
             activity_key=rating.activity_key,
             rating=rating.rating
@@ -28,9 +28,9 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         db.add(db_rating)
         db.commit()
         db.refresh(db_rating)
-        logger.info(f"成功保存评分 ID={db_rating.id}")
+        logger.info(f"Successfully saved rating ID={db_rating.id}")
         
-        # 获取该活动的更新统计信息
+        # Get updated statistics for this activity
         stats = db.query(
             Rating.activity_key,
             func.count(Rating.id).label("count"),
@@ -43,7 +43,7 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
         ).first()
         
         if not stats:
-            logger.warning(f"未找到活动 {rating.activity_key} 的统计信息，这应该是这个活动的第一个评分")
+            logger.warning(f"No statistics found for activity {rating.activity_key}, this should be the first rating for this activity")
             return {
                 "rating": {
                     "id": db_rating.id,
@@ -58,7 +58,7 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
                 }
             }
         
-        logger.info(f"活动 {rating.activity_key} 的统计信息: count={stats[1]}, avg={stats[2]}, total={stats[3]}")
+        logger.info(f"Statistics for activity {rating.activity_key}: count={stats[1]}, avg={stats[2]}, total={stats[3]}")
         return {
             "rating": {
                 "id": db_rating.id,
@@ -73,8 +73,8 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
             }
         }
     except Exception as e:
-        logger.error(f"创建评分时出错: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"创建评分时出错: {str(e)}")
+        logger.error(f"Error while creating rating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error while creating rating: {str(e)}")
 
 @router.put("/")
 def update_rating(rating: RatingCreate, db: Session = Depends(get_db)):
@@ -91,7 +91,7 @@ def update_rating_with_id(id: str, rating: RatingCreate, db: Session = Depends(g
 @router.get("/")
 def get_all_stats(db: Session = Depends(get_db)):
     try:
-        logger.info("获取所有活动的统计信息")
+        logger.info("Getting statistics for all activities")
         stats = db.query(
             Rating.activity_key,
             func.count(Rating.id).label("count"),
@@ -101,7 +101,7 @@ def get_all_stats(db: Session = Depends(get_db)):
             Rating.activity_key
         ).all()
         
-        logger.info(f"找到 {len(stats)} 个活动的统计信息")
+        logger.info(f"Found statistics for {len(stats)} activities")
         return [
             ActivityStats(
                 activity_key=stat[0],
@@ -112,17 +112,17 @@ def get_all_stats(db: Session = Depends(get_db)):
             for stat in stats
         ]
     except Exception as e:
-        logger.error(f"获取所有统计信息时出错: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"获取统计信息时出错: {str(e)}")
+        logger.error(f"Error while getting all statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error while getting statistics: {str(e)}")
 
 @router.get("/{activity_key}", response_model=ActivityStats)
 def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
     try:
-        logger.info(f"获取活动 {activity_key} 的统计信息")
+        logger.info(f"Getting statistics for activity {activity_key}")
         
-        # 特殊路径处理
+        # Special path handling
         if activity_key.startswith(":") or activity_key == "1":
-            logger.info(f"检测到特殊路径 {activity_key}，返回默认空统计")
+            logger.info(f"Detected special path {activity_key}, returning default empty statistics")
             return ActivityStats(
                 activity_key="default",
                 count=0,
@@ -130,7 +130,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
                 total_ratings=0
             )
             
-        # 查询数据库
+        # Query database
         stats = db.query(
             Rating.activity_key,
             func.count(Rating.id).label("count"),
@@ -143,7 +143,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
         ).first()
         
         if not stats:
-            logger.info(f"未找到活动 {activity_key} 的统计信息")
+            logger.info(f"No statistics found for activity {activity_key}")
             return ActivityStats(
                 activity_key=activity_key,
                 count=0,
@@ -151,7 +151,7 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
                 total_ratings=0
             )
         
-        logger.info(f"找到活动 {activity_key} 的统计信息: count={stats[1]}, avg={stats[2]}, total={stats[3]}")
+        logger.info(f"Found statistics for activity {activity_key}: count={stats[1]}, avg={stats[2]}, total={stats[3]}")
         return ActivityStats(
             activity_key=stats[0],
             count=stats[1],
@@ -159,5 +159,5 @@ def get_activity_stats(activity_key: str, db: Session = Depends(get_db)):
             total_ratings=stats[3]
         )
     except Exception as e:
-        logger.error(f"获取活动 {activity_key} 的统计信息时出错: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"获取统计信息时出错: {str(e)}") 
+        logger.error(f"Error while getting statistics for activity {activity_key}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error while getting statistics: {str(e)}") 

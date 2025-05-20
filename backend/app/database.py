@@ -1,3 +1,11 @@
+"""
+Database connection and configuration module.
+
+This module handles database connections for both PostgreSQL and SQLite,
+with resilient connection handling, connection pooling, and automatic retries.
+It provides the Base class for ORM models and SessionLocal factory for database sessions.
+"""
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -13,6 +21,7 @@ from sqlalchemy.exc import OperationalError, DatabaseError
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("database")
 
+# Load environment variables from .env file if present
 load_dotenv()
 
 # Get DATABASE_URL from environment variables, trying both common variables
@@ -76,10 +85,10 @@ else:
     logger.info(f"Using SQLite database: {DATABASE_URL}")
     engine = create_engine(DATABASE_URL)
 
-# Create session factory
+# Create session factory for creating database sessions
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create base class
+# Create base class for declarative model definitions
 Base = declarative_base()
 
 # Dependency with retry logic
@@ -90,7 +99,15 @@ Base = declarative_base()
 )
 def get_db():
     """
-    Get database session with retry logic for transient connection issues
+    Get database session with retry logic for transient connection issues.
+    
+    This function is designed to be used as a FastAPI dependency.
+    It yields a database session and ensures proper cleanup after use.
+    
+    Retries up to 3 times with exponential backoff for transient DB errors.
+    
+    Returns:
+        SQLAlchemy Session: Active database session
     """
     db = SessionLocal()
     try:
@@ -105,7 +122,12 @@ def get_db():
 
 # Create tables safely
 def create_tables():
-    """Create all tables defined in models"""
+    """
+    Create all database tables defined in SQLAlchemy models.
+    
+    This function creates tables for all models that inherit from Base.
+    It handles errors gracefully depending on the ALLOW_DB_FAILURE setting.
+    """
     try:
         logger.info("Creating database tables")
         Base.metadata.create_all(bind=engine)
@@ -125,6 +147,10 @@ try:
 except ImportError:
     # Fallback implementation if needed
     def get_connection():
-        """Fallback implementation of get_connection"""
+        """
+        Fallback implementation of get_connection for compatibility.
+        
+        Returns a raw connection from the SQLAlchemy engine.
+        """
         logger.warning("Using fallback get_connection implementation")
         return engine.connect()

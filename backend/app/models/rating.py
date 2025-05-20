@@ -5,7 +5,16 @@ from app.database import Base
 class Rating(Base):
     """
     Database model for activity ratings.
-    Maps to the activity_ratings table in the database.
+    
+    This model maps to the activity_ratings table in the database and stores
+    user-provided ratings for various mindfulness activities. Each record 
+    represents a single user rating for a specific activity type.
+    
+    The table includes:
+    - A unique ID (primary key)
+    - The activity type being rated
+    - The numerical rating value
+    - A timestamp when the rating was created
     """
     __tablename__ = "activity_ratings"
 

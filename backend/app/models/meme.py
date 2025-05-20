@@ -5,16 +5,23 @@ from typing import Optional
 
 class MemeFetch(Base):
     """
-    Database model for meme fetching.
-    Maps to the meme_fetch table in the database.
+    SQLAlchemy database model for meme fetching.
+    
+    This model maps to the meme_fetch table in the database and is used 
+    for retrieving meme data for the memory match game. It contains
+    sentiment analysis attributes of each meme.
+    
+    The image_name serves as the primary key, linking to the actual image files
+    stored in the meme_images directory.
     """
     __tablename__ = "meme_fetch"
 
-    # Based on the SQL query, using the same column names
-    # If there's a need for a primary key that isn't apparent from the SQL,
-    # you may need to adjust this model
+    # Using the existing column names from the database table
+    # The image_name is set as the primary key to uniquely identify each meme
     image_name = Column(String, primary_key=True, index=True)
-    humour = Column(String, nullable=True)
+    
+    # Sentiment analysis attributes
+    humour = Column(String, nullable=True)  # Australian spelling for humor
     sarcasm = Column(String, nullable=True)
     offensive = Column(String, nullable=True)
     motivational = Column(String, nullable=True)
