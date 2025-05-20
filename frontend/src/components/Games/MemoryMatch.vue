@@ -40,7 +40,7 @@
             <div class="card-front"></div>
             <div class="card-back">
               <img 
-                :src="`${API_BASE_URL}/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
+                :src="`/api/games/memory_match/images/${card_iter.memeData.image_name}` || '/images/placeholder.png'" 
                 alt="Meme card" 
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
               >
@@ -64,7 +64,7 @@
             <button @click="prevModalMeme" class="arrow-btn left-arrow new-arrow-btn">&#x276E;</button>
             <div class="modal-meme-item-container new-meme-item-container">
               <img 
-                :src="`${API_BASE_URL}/api/games/memory_match/images/${currentModalMeme.image_name}`"
+                :src="`/api/games/memory_match/images/${currentModalMeme.image_name}`"
                 @error="event => (event.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error'"
                 class="modal-meme-image-single new-modal-meme-image"
               >
@@ -189,7 +189,7 @@ const showWarningPopup1 = ref(false);
 const showWarningPopup2 = ref(false);
 
 // Hard-coded backend API address
-const API_BASE_URL = 'https://api.tiezhu.org';
+const API_BASE_URL = '';
 
 // Define emits
 const emit = defineEmits(['game-completed', 'exit-game']);
@@ -277,42 +277,54 @@ async function initializeGameFromBackend() {
 
   try {
     console.log(`Requesting ${levels[currentLevel.value].pairs} pairs for level ${currentLevel.value} from backend.`);
-    const response = await fetch(`${API_BASE_URL}/api/games/memory_match/initialize_game`, {
+    
+    // 尝试使用本地API
+    const response = await fetch(`/api/games/memory_match/initialize_game`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ level: currentLevel.value }),
+      credentials: 'include'
     });
-
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: "Failed to parse error response." }));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      throw new Error(`API request failed with status: ${response.status}`);
     }
-
-    const memesFromApi: MemeData[] = await response.json();
-    console.log('Memes received from API:', memesFromApi);
-
-    if (memesFromApi.length < levels[currentLevel.value].pairs) {
-      throw new Error(`Not enough memes. Expected ${levels[currentLevel.value].pairs}, got ${memesFromApi.length}.`);
+    
+    const memeData = await response.json();
+    if (!memeData || !Array.isArray(memeData) || memeData.length === 0) {
+      throw new Error("No meme data returned from the API");
     }
-
-    const gameCards: Card[] = [];
-    const memesForLevel = memesFromApi.slice(0, levels[currentLevel.value].pairs);
-
-    gameMemesForModal.value = [...memesForLevel];
-
-    memesForLevel.forEach((meme, index) => {
-      gameCards.push({ id: index * 2, memeData: meme, isFlipped: false, isMatched: false });
-      gameCards.push({ id: index * 2 + 1, memeData: meme, isFlipped: false, isMatched: false });
-    });
-
-    cards.value = shuffleArray(gameCards);
-    console.log('Shuffled cards ready:', cards.value);
-
-  } catch (error: any) {
-    console.error('Error initializing game:', error);
-    errorMessage.value = error.message || "An unknown error occurred.";
-    stopGame();
-  } finally {
+    
+    console.log(`Received ${memeData.length} memes from backend.`);
+    
+    // Store the meme data for the victory modal
+    gameMemesForModal.value = [...memeData];
+    currentModalMemeIndex.value = 0;
+    
+    // Create pairs
+    const pairs = [];
+    for (const meme of memeData) {
+      // Create two cards with the same image/pair ID
+      for (let i = 0; i < 2; i++) {
+        pairs.push({
+          id: `${meme.id}-${i}`,
+          pairId: meme.id,
+          memeData: meme,
+          isFlipped: false,
+          isMatched: false
+        });
+      }
+    }
+    
+    // Shuffle the pairs
+    const shuffled = shuffleArray([...pairs]);
+    cards.value = shuffled;
+    
+    totalPairs.value = memeData.length;
+    isLoading.value = false;
+  } catch (error) {
+    console.error("Error in initializeGameFromBackend:", error);
+    errorMessage.value = `Failed to load game: ${error.message}. Please try again later.`;
     isLoading.value = false;
   }
 }

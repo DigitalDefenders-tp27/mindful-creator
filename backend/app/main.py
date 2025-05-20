@@ -6,9 +6,9 @@ import traceback
 import importlib
 import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.routing import APIRouter
 import datetime
 import uvicorn
@@ -16,10 +16,14 @@ import platform
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.routers import affirmations, breaths, journals, memes, ratings
+from app.routers import affirmations, breaths, journals, memes, ratings, users
 
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
+from app.api.games.routes import router as game_router
+from app.api.games.memory_match import router as memory_match_router
+import httpx
+from starlette.responses import RedirectResponse
 
 # First import only the base router to ensure health check endpoint is available
 # from app.api.router import router as api_router
@@ -75,7 +79,9 @@ allowed_origins = [
     "http://localhost:5173",  # Vite dev server (frontend)
     "https://mindful-creator.vercel.app",  # Main Vercel production domain
     "https://tiezhu.org", # Custom domain
-    "https://www.tiezhu.org" # Custom domain with www
+    "https://www.tiezhu.org", # Custom domain with www
+    "https://www.inflowence.org", # Inflowence domain
+    "https://inflowence.org", # Inflowence domain without www
     # Add any other specific production/staging domains here
 ]
 
@@ -228,7 +234,8 @@ ADDITIONAL_ROUTES = [
     ("app.routers.breaths", "/api/breaths"),
     ("app.routers.journals", "/api/journals"),
     ("app.routers.memes", "/api/memes"),
-    ("app.routers.ratings", "/api/ratings")
+    ("app.routers.ratings", "/api/ratings"),
+    ("app.routers.users", "/api/users")
     # ("app.api.games", "/api/games") # Removed from dynamic list
 ]
 
@@ -239,6 +246,18 @@ logger.info("Explicitly included games_api_router at prefix /api/games")
 # Explicitly include the ratings router
 app.include_router(ratings.router, prefix="/api/ratings")
 logger.info("Explicitly included ratings router at prefix /api/ratings")
+
+# Explicitly include the users router
+app.include_router(users.router, prefix="/api/users")
+logger.info("Explicitly included users router at prefix /api/users")
+
+# Explicitly include the game router
+app.include_router(game_router, prefix="/api/games")
+logger.info("Explicitly included game router at prefix /api/games")
+
+# Explicitly include the memory match router
+app.include_router(memory_match_router, prefix="/api/games/memory_match")
+logger.info("Explicitly included memory match router at prefix /api/games/memory_match")
 
 logger.info("Loading additional routes...")
 for route_module, prefix in ADDITIONAL_ROUTES:
@@ -314,6 +333,93 @@ async def root():
         </body>
     </html>
     """
+
+# Add CORS support for memory match router
+@app.options("/games/memory_match/{path:path}")
+async def memory_match_options(path: str, request: Request):
+    logger.info(f"接收到CORS预检请求: {path}")
+    return Response(status_code=200)
+
+@app.get("/games/memory_match/images/{image_name:path}")
+async def proxy_image(image_name: str, request: Request):
+    logger.info(f"代理图片请求: {image_name}")
+    try:
+        # 生成外部API URL
+        target_url = f"https://api.tiezhu.org/api/games/memory_match/images/{image_name}"
+        logger.info(f"转发请求到: {target_url}")
+        
+        # 使用httpx进行代理请求
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                target_url,
+                headers={
+                    "Origin": "https://www.inflowence.org",
+                    "Referer": "https://www.inflowence.org/"
+                },
+                follow_redirects=True
+            )
+            
+            # 检查响应
+            if response.status_code != 200:
+                logger.error(f"外部API返回错误: {response.status_code}")
+                return Response(status_code=response.status_code)
+            
+            # 确定内容类型
+            content_type = response.headers.get("Content-Type", "image/jpeg")
+            
+            # 创建流响应
+            return StreamingResponse(
+                content=response.iter_bytes(),
+                media_type=content_type,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "max-age=3600"
+                }
+            )
+    except Exception as e:
+        logger.error(f"代理图片时出错: {str(e)}")
+        return Response(status_code=500, content=f"代理图片时出错: {str(e)}")
+
+@app.post("/games/memory_match/initialize_game")
+async def proxy_initialize_game(request: Request):
+    logger.info("代理初始化游戏请求")
+    try:
+        # 获取请求体
+        body = await request.json()
+        logger.info(f"接收到初始化游戏请求: {body}")
+        
+        # 生成外部API URL
+        target_url = "https://api.tiezhu.org/api/games/memory_match/initialize_game"
+        logger.info(f"转发请求到: {target_url}")
+        
+        # 使用httpx进行代理请求
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                target_url,
+                json=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "Origin": "https://www.inflowence.org",
+                    "Referer": "https://www.inflowence.org/"
+                },
+                follow_redirects=True
+            )
+            
+            # 检查响应
+            if response.status_code != 200:
+                logger.error(f"外部API返回错误: {response.status_code}, {response.text}")
+                return Response(
+                    content=response.text,
+                    status_code=response.status_code,
+                    media_type="application/json"
+                )
+            
+            # 返回响应
+            data = response.json()
+            return JSONResponse(content=data)
+    except Exception as e:
+        logger.error(f"代理初始化游戏时出错: {str(e)}")
+        return Response(status_code=500, content=f"代理初始化游戏时出错: {str(e)}")
 
 if __name__ == "__main__":
     logger.info(f"Starting server on port {port}")
