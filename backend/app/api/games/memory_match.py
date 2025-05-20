@@ -9,6 +9,10 @@ import asyncpg
 from pathlib import Path
 import logging
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from app.database import SessionLocal
+from app.models.meme import MemeFetch
+import sqlalchemy
 
 router = APIRouter()
 
@@ -45,7 +49,9 @@ class MemeDataWithLocalURL(BaseModel):
     overall_sentiment: Optional[str] = None
 
 # Helper functions for the new mechanism
+# Legacy connection function using asyncpg - now replaced with ORM
 async def get_db_connection():
+    logger.warning("get_db_connection using asyncpg is deprecated. Use get_db() dependency instead.")
     # Prioritize DATABASE_PUBLIC_URL, then DATABASE_URL
     db_url = os.getenv("DATABASE_PUBLIC_URL") or os.getenv("DATABASE_URL")
 
@@ -74,6 +80,14 @@ async def get_db_connection():
     except Exception as e:
         logger.error(f"DB Connection Failed (General Exception): {e}")
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
+
+# New dependency function for SQLAlchemy ORM session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Helper function to add CORS headers to route handler responses
 def add_cors_headers(response: Response, request: Request):
@@ -104,7 +118,7 @@ def add_cors_headers(response: Response, request: Request):
 
 # New Endpoints using PostgreSQL
 @router.get("/initialize_game")
-async def initialize_game_data_with_local_urls_get(http_request: Request):
+async def initialize_game_data_with_local_urls_get(http_request: Request, db: Session = Depends(get_db)):
     try:
         # Get level value from query parameters
         params = dict(http_request.query_params)
@@ -128,7 +142,7 @@ async def initialize_game_data_with_local_urls_get(http_request: Request):
         return add_cors_headers(response, http_request)
 
 @router.post("/initialize_game")
-async def initialize_game_data_with_local_urls_post(game_request: GameInitRequest, http_request: Request):
+async def initialize_game_data_with_local_urls_post(game_request: GameInitRequest, http_request: Request, db: Session = Depends(get_db)):
     try:
         logger.info(f"Initializing game (POST request): level {game_request.level}")
         result = await initialize_game_common(game_request, http_request)
@@ -160,33 +174,40 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
             content={"detail": "Invalid game level specified. Must be 1 or 2 for standard game setup."}
         )
 
-    conn = None
+    # Use ORM approach with SQLAlchemy
     try:
-        logger.info(f"Attempting to connect to database for level {level}, requesting {num_memes_to_fetch} memes")
-        conn = await get_db_connection()
-        # Fetch necessary fields from 'meme_fetch'. No need for original image_url for serving.
-        query = """
-            SELECT image_name, humour, sarcasm, offensive, motivational, overall_sentiment
-            FROM meme_fetch
-            WHERE image_name IS NOT NULL AND image_name <> ''
-            ORDER BY RANDOM()
-            LIMIT $1
-        """
-        logger.info(f"Executing query to fetch {num_memes_to_fetch} random memes from database")
-        db_records = await conn.fetch(query, num_memes_to_fetch)
+        logger.info(f"Attempting to connect to database using ORM for level {level}, requesting {num_memes_to_fetch} memes")
         
-        if not db_records or len(db_records) < num_memes_to_fetch:
-            logger.warning(f"DB: Retrieved only {len(db_records) if db_records else 0}/{num_memes_to_fetch} memes from 'meme_fetch' for level {level}.")
-            # If no records at all, try to provide a fallback for testing
-            if not db_records:
-                logger.error("No meme records found in database. Attempting to generate test data.")
-                # Here we can create dummy test data if needed
-                
-                # For now, return a clear error message
-                return JSONResponse(
-                    status_code=404,
-                    content={"detail": "Not enough memes found in database for game setup. Please contact the administrator."}
+        # Create a new session from the SessionLocal factory
+        with SessionLocal() as db:
+            # Using SQLAlchemy ORM to fetch random memes
+            # We use func.random() from SQLAlchemy for the ORDER BY RANDOM()
+            query = db.query(MemeFetch).filter(
+                sqlalchemy.and_(
+                    MemeFetch.image_name.is_not(None),
+                    MemeFetch.image_name != ''
                 )
+            ).order_by(sqlalchemy.func.random()).limit(num_memes_to_fetch)
+            
+            # Log the SQL that would be executed
+            logger.info(f"ORM Query: {query}")
+            
+            # Execute the query
+            logger.info(f"Executing ORM query to fetch {num_memes_to_fetch} random memes from database")
+            db_records = query.all()
+            
+            if not db_records or len(db_records) < num_memes_to_fetch:
+                logger.warning(f"DB: Retrieved only {len(db_records) if db_records else 0}/{num_memes_to_fetch} memes from 'meme_fetch' for level {level}.")
+                # If no records at all, try to provide a fallback for testing
+                if not db_records:
+                    logger.error("No meme records found in database. Attempting to generate test data.")
+                    # Here we can create dummy test data if needed
+                    
+                    # For now, return a clear error message
+                    return JSONResponse(
+                        status_code=404,
+                        content={"detail": "Not enough memes found in database for game setup. Please contact the administrator."}
+                    )
         
         processed_memes_data: List[MemeDataWithLocalURL] = []
         meme_id_counter = 1 
@@ -194,7 +215,8 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
         logger.info(f"Base URL for image URLs: {base_url}")
 
         for record in db_records:
-            image_name_from_db = record["image_name"]
+            # With ORM, we access attributes directly rather than using dictionary keys
+            image_name_from_db = record.image_name
             
             # Verify the image file actually exists in our downloaded image directory
             expected_image_path = MEME_IMAGE_DIR / image_name_from_db
@@ -218,11 +240,11 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
             processed_memes_data.append(MemeDataWithLocalURL(
                 id=meme_id_counter, 
                 image_name=image_name_from_db,
-                humour=record["humour"],
-                sarcasm=record["sarcasm"],
-                offensive=record["offensive"],
-                motivational=record["motivational"],
-                overall_sentiment=record["overall_sentiment"]
+                humour=record.humour,
+                sarcasm=record.sarcasm,
+                offensive=record.offensive,
+                motivational=record.motivational,
+                overall_sentiment=record.overall_sentiment
             ))
             meme_id_counter += 1
         
@@ -242,16 +264,18 @@ async def initialize_game_common(game_request: GameInitRequest, http_request: Re
         logger.info(f"Successfully processed {len(processed_memes_data)} meme data objects for level {level}")
         return processed_memes_data
         
-    except asyncpg.PostgresError as dbe:
+    except sqlalchemy.exc.SQLAlchemyError as dbe:
         logger.error(f"Database error in initialize_game: {dbe}")
         return JSONResponse(
             status_code=500,
             content={"detail": f"Database error occurred. Please try again later or contact the administrator."}
         )
-    finally:
-        if conn and not conn.is_closed():
-            logger.info("Closing database connection")
-            await conn.close()
+    except Exception as e:
+        logger.error(f"General error in initialize_game: {e}")
+        return JSONResponse(
+            status_code=500, 
+            content={"detail": f"An error occurred during game initialization. Please try again later."}
+        )
 
 # Add OPTIONS method handler for CORS preflight requests
 @router.options("/initialize_game")
