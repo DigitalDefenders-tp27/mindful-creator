@@ -1569,55 +1569,35 @@ const fetchDataAndRender = async () => {
   error.value = null;
 
   try {
-    // Mock data for demonstration purposes
-    const mockData = {
-      labels: ['Below 1h', '1-3h', '3-5h'],
-      datasets: currentTab.value === 3 
-        ? [{
-            label: 'Average Anxiety',
-            data: [2.9, 3.3, 3.8, 3.5, 3.8, 2.1],
-            borderColor: '#4CAF50',
-            backgroundColor: '#4CAF50',
-            type: 'line'
-          }] 
-        : currentTab.value === 0
-        ? [
-            {
-              label: 'Positive',
-              data: [22, 49, 50],
-              backgroundColor: '#4DD0E1'
-            },
-            {
-              label: 'Negative',
-              data: [30, 29, 0],
-              backgroundColor: '#FF4081'
-            },
-            {
-              label: 'Neutral',
-              data: [69, 47, 50],
-              backgroundColor: '#FFD54F'
-            }
-          ]
-        : currentTab.value === 1
-        ? [{
-            label: 'Sleep Problems (1-5)',
-            data: [2.9, 3.1, 3.2, 3.4, 3.4, 2.5],
-            backgroundColor: '#9575CD'
-          }]
-        : [{
-            label: 'Engagement',
-            data: [12, 34, 80],
-            backgroundColor: '#4FC3F7'
-          }]
-    };
+    let chartData;
+    // Define API endpoints for each tab
+    const endpoints = [
+      '/api/visualisation/screen-time-emotions', // Screen time and emotions
+      '/api/visualisation/sleep-quality',        // Digital habits and sleep
+      '/api/visualisation/engagement',           // Engagement metrics
+      '/api/visualisation/anxiety'               // Screen time and anxiety
+    ];
+    
+    // Select the appropriate endpoint based on current tab
+    const endpoint = endpoints[currentTab.value];
+    console.log(`Fetching data from endpoint: ${endpoint}`);
+    
+    // Make API request to backend
+    const response = await axios.get(BACKEND_URL + endpoint);
+    chartData = response.data;
+    
+    // Validate response data structure
+    if (!chartData || !chartData.labels || !chartData.datasets) {
+      throw new Error('Invalid data format received from API');
+    }
     
     isLoading.value = false; 
     await nextTick();
-    renderChart(mockData);
+    renderChart(chartData);
 
   } catch (err) {
     console.error('Failed to fetch chart data:', err);
-    error.value = `Failed to load visualization: ${err.message}`;
+    error.value = `Failed to load visualisation: ${err.message}`;
     isLoading.value = false;
   }
 };
@@ -1635,7 +1615,7 @@ const renderChart = (data) => {
   const ctx = canvasElement.getContext('2d');
   if (!ctx) {
     console.error('Failed to get 2D context from canvas element');
-    error.value = "Could not initialize the chart. The browser might not support Canvas 2D.";
+    error.value = "Could not initialise the chart. The browser might not support Canvas 2D.";
     return;
   }
 
@@ -1646,7 +1626,7 @@ const renderChart = (data) => {
   if (!data || Object.keys(data).length === 0 || !data.labels || !data.datasets) {
     console.warn('No valid data provided to renderChart.');
     if (!error.value) {
-      error.value = "No data available to display for this visualization.";
+      error.value = "No data available to display for this visualisation.";
     }
     return; 
   }
