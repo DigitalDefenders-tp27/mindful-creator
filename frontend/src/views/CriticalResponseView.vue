@@ -14,13 +14,17 @@
             <!-- Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable rotating">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Green.svg" alt="Flower" class="element hoverable">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
               </div>
+            </div>
+            
+            <!-- Second Row -->
+            <div class="second-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+                <img src="/src/assets/icons/elements/Flower_Pink.svg" alt="Flower" class="element hoverable rotating">
               </div>
             </div>
           </div>
@@ -1514,7 +1518,7 @@
     height: 100%;
     display: grid;
     grid-template-columns: repeat(6, 160px);
-    grid-template-rows: auto;
+    grid-template-rows: auto auto;
     row-gap: 1rem;
     padding: 2rem 0;
     z-index: 1;
@@ -1533,13 +1537,25 @@
   
   .top-row {
     display: grid;
-    grid-template-columns: repeat(3, 160px);
+    grid-template-columns: repeat(2, 160px);
     gap: 0.5rem;
     align-items: start;
     margin: 0;
     padding: 0;
-    grid-column: 4 / 7;
+    grid-column: 5 / 7;
     grid-row: 1;
+    justify-self: end;
+  }
+
+  .second-row {
+    display: grid;
+    grid-template-columns: 160px;
+    gap: 0.5rem;
+    align-items: start;
+    margin: 0;
+    padding: 0;
+    grid-column: 6 / 7;
+    grid-row: 2;
     justify-self: end;
   }
 
@@ -1568,6 +1584,12 @@
 
   .top-row .element:hover {
     transform: rotate(-15deg) scale(1.1);
+    animation: slowRotate 5s linear infinite;
+  }
+
+  .second-row .element:hover {
+    transform: rotate(-15deg) scale(1.1);
+    animation: slowRotate 5s linear infinite;
   }
   
   /* 大屏幕：正常显示装饰元素 */
@@ -4333,6 +4355,20 @@
     right: 0;
     height: 1px;
     background-color: #e0e0e0;
+  }
+
+  /* Add rotation animation */
+  @keyframes slowRotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .rotating {
+    animation: slowRotate 30s linear infinite;
   }
   </style>
 

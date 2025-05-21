@@ -4,7 +4,7 @@ import time
 import sys
 import traceback
 import importlib
-import json  # 添加json模块导入
+import json  # Import json module for JSON processing
 import psutil  # Added for system resource monitoring
 from typing import Dict, Any, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request, Response, HTTPException, status
@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 from app.routers import affirmations, breaths, journals, memes, ratings
 from app.routes import data_fetch_orm
 from starlette.middleware.base import BaseHTTPMiddleware
-
+from app.database import create_tables
 
 # Explicitly import the games router
 from app.api.games import router as games_api_router # Assuming games_router is exported as router in app/api/games/__init__.py
@@ -34,7 +34,14 @@ from starlette.responses import RedirectResponse
 # from app.api.router import router as api_router
 from app.api.youtube.routes import router as youtube_router
 
-
+# Create database tables here at startup
+try:
+    create_tables()
+    logging.info("Database tables created successfully!")
+except Exception as e:
+    logging.error(f"Error creating database tables: {e}")
+    if os.getenv("ALLOW_DB_FAILURE", "false").lower() != "true":
+        raise
 
 logging.basicConfig(
     level=logging.DEBUG,  # Use DEBUG for more verbose output during startup

@@ -14,13 +14,17 @@
           <!-- Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Flower" class="element hoverable rotating">
             </div>
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Switch_Red.svg" alt="Flower" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
             </div>
+          </div>
+          
+          <!-- Second Row -->
+          <div class="second-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Orange.svg" alt="Flower" class="element hoverable rotating">
             </div>
           </div>
         </div>
@@ -222,16 +226,9 @@
           </div>
           
           <div class="generator-actions">
-            <button 
-              v-if="!uploadedImage" 
-              class="action-button download-button" 
-              @click="downloadNotice"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Download to local
-            </button>
-            <div v-else class="action-buttons-group">
+            <div class="action-buttons-group">
               <button 
+                v-if="uploadedImage"
                 class="action-button" 
                 @click="downloadWatermarkedImage" 
                 :disabled="isApplyingWatermark"
@@ -255,37 +252,41 @@
 
     <!-- Main Content -->
     <div class="container" style="max-width: 100%; padding: 0;">
-      <!-- Interactive Content Carousel Section -->
+      <!-- Transforming card-based carousel to rotating banner style -->
       <div class="interactive-content-carousel">
         <div class="carousel-header-panel">
           <h2 class="carousel-main-title">Copyright Tips</h2>
         </div>
+        
+          <div class="carousel-container">
+    <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
+      <div v-for="(slide, index) in slidesData" :key="index" class="carousel-slide" :class="[index === currentSlideIndex ? 'active' : '', slideDirection]">
+        <div class="content-section">
+          <h2>{{ slide.title }}</h2>
+          <div v-html="slide.content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="carousel-container">
-          <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
-            <div v-for="(slide, index) in slidesData" :key="index" class="carousel-slide">
-              <div class="content-section">
-                <h2>{{ slide.title }}</h2>
-                <div v-html="slide.content"></div>
-              </div>
+        <div class="carousel-navigation">
+          <div class="navigation-container">
+            <button @click="prevSlide" class="carousel-nav-button prev" aria-label="Previous slide">&lt;</button>
+            
+            <div class="carousel-dots">
+              <span
+                v-for="(_slide, index) in slidesData"
+                :key="`dot-${index}`"
+                :class="{ active: index === currentSlideIndex }"
+                @click="goToSlide(index)"
+                class="dot"
+                :aria-label="`Go to slide ${index + 1}`"
+              ></span>
             </div>
+            
+            <button @click="nextSlide" class="carousel-nav-button next" aria-label="Next slide">&gt;</button>
           </div>
         </div>
-
-        <div class="carousel-dots">
-          <span
-            v-for="(_slide, index) in slidesData"
-            :key="`dot-${index}`"
-            :class="{ active: index === currentSlideIndex }"
-            @click="goToSlide(index)"
-            class="dot"
-            :aria-label="`Go to slide ${index + 1}`"
-          ></span>
-        </div>
-
-        <!-- Arrows are now positioned absolutely relative to interactive-content-carousel -->
-        <button @click="prevSlide" class="carousel-nav-button prev" aria-label="Previous slide">&lt;</button>
-        <button @click="nextSlide" class="carousel-nav-button next" aria-label="Next slide">&gt;</button>
       </div>
 
       <!-- Disclaimer Section (now a direct child of the full-width container) -->
@@ -581,17 +582,28 @@ const slidesData = ref([
 const currentSlideIndex = ref(0);
 const totalSlides = computed(() => slidesData.value.length);
 const currentSlideTitle = computed(() => slidesData.value[currentSlideIndex.value].title);
+const slideDirection = ref('right'); // Default slide direction
 
 const goToSlide = (index) => {
+  // Determine slide direction based on index
+  slideDirection.value = index > currentSlideIndex.value ? 'right' : 'left';
   currentSlideIndex.value = index;
 };
 
+// Update nextSlide function to only cycle forward
 const nextSlide = () => {
+  slideDirection.value = 'right';
   currentSlideIndex.value = (currentSlideIndex.value + 1) % totalSlides.value;
 };
 
+// Update prevSlide function to cycle continuously in the reverse direction
 const prevSlide = () => {
-  currentSlideIndex.value = (currentSlideIndex.value - 1 + totalSlides.value) % totalSlides.value;
+  slideDirection.value = 'left';
+  if (currentSlideIndex.value === 0) {
+    currentSlideIndex.value = totalSlides.value - 1;
+  } else {
+    currentSlideIndex.value = currentSlideIndex.value - 1;
+  }
 };
 
 const handleKeydown = (event) => {
@@ -785,22 +797,6 @@ const selectPosition = (position) => {
   updateWatermark();
 };
 
-// Download text copyright notice
-const downloadNotice = () => {
-  // Create element to hold copyright text
-  const element = document.createElement('a');
-  const file = new Blob([copyrightText.value], {type: 'text/plain'});
-  element.href = URL.createObjectURL(file);
-  element.download = `copyright-notice-${creatorName.value.replace(/\s+/g, '-')}.txt`;
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
-  
-  statusMessage.value = 'Copyright notice downloaded successfully';
-  isSuccess.value = true;
-  errorMessage.value = '';
-};
-
 // Download watermarked image using the API
 const downloadWatermarkedImage = async () => {
   if (!originalImage.value) return;
@@ -890,11 +886,25 @@ const downloadTransparentWatermark = async () => {
     isSuccess.value = true;
     errorMessage.value = '';
     
-    // Get SVG content from API with current color
+    // Calculate dimensions - use image dimensions if available, or reasonable defaults
+    let width = 800;
+    let height = 600;
+    
+    if (originalImage.value) {
+      // Use uploaded image dimensions
+      width = originalImage.value.width;
+      height = originalImage.value.height;
+    } else {
+      // No image uploaded, use reasonably sized dimensions for standalone watermark
+      width = 1200;
+      height = 630; // Good for social media sharing
+    }
+    
+    // Get SVG content from the updated CopyrightService (which now has fallback)
     const svgContent = await createSvgWatermark(
       copyrightText.value,
-      originalImage.value ? originalImage.value.width : 800,
-      originalImage.value ? originalImage.value.height : 600,
+      width,
+      height,
       watermarkPosition.value,
       watermarkSize.value,
       watermarkColor.value,
@@ -1078,7 +1088,7 @@ const handleCardTouch = (event) => {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(6, 160px);
-  grid-template-rows: auto;
+  grid-template-rows: auto auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
@@ -1089,12 +1099,12 @@ const handleCardTouch = (event) => {
 
 .top-row {
   display: grid;
-  grid-template-columns: repeat(3, 160px);
+  grid-template-columns: repeat(2, 160px);
   gap: 0.5rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 4 / 7;
+  grid-column: 5 / 7;
   grid-row: 1;
   justify-self: end;
 }
@@ -1124,6 +1134,12 @@ const handleCardTouch = (event) => {
 
 .top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
+  animation: slowRotate 5s linear infinite;
+}
+
+.second-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+  animation: slowRotate 5s linear infinite;
 }
 
 /* License Cards Section */
@@ -1721,8 +1737,7 @@ input[type="text"] {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1.5rem);
   }
 }
 
@@ -1731,8 +1746,7 @@ input[type="text"] {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1rem);
   }
 }
 
@@ -1750,9 +1764,11 @@ input[type="text"] {
     max-width: 100%;
   }
   .decorative-elements {
-    width: 500px;
-    grid-template-columns: repeat(5, 100px);
-    opacity: 0.6;
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
   }
   .title-group h1 {
     font-size: 4.5rem;
@@ -1783,310 +1799,289 @@ input[type="text"] {
 
 @media (max-width: 1024px) {
   .hero-section {
-    padding: 5rem 0 1rem;
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
   }
-  .title-group h1 {
-    font-size: 3.8rem;
+  
+  .hero-content {
+    min-height: 40vh;
   }
-  .title-group h2 {
-    font-size: 2.2rem;
+  
+  .slogan {
+    margin-left: 1.5rem;
   }
-  .subtitle {
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-  }
+  
   .decorative-elements {
-    width: 400px;
-    grid-template-columns: repeat(4, 100px);
-    opacity: 0.4;
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
   }
-  .license-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  
+  .title-group h1 {
+    @apply text-5xl;
   }
-  .section-title {
-    font-size: 2rem;
+  
+  .title-group h2 {
+    @apply text-4xl;
   }
-  .section-description {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
+  
+  .subtitle {
+    @apply text-xl;
   }
-  .carousel-main-title {
+  
+  .banner-title {
     font-size: 1.8rem;
   }
-  .carousel-slide .content-section h2 {
+  
+  .banner-content {
+    min-height: 400px;
+    height: 400px;
+    padding: 1.75rem;
+  }
+  
+  .banner-content h2 {
     font-size: 1.5rem;
   }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
     font-size: 1rem !important;
-  }
-  .carousel-nav-button {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-  }
-  .carousel-nav-button.prev {
-    left: 10px;
-  }
-  .carousel-nav-button.next {
-    right: 10px;
-  }
-  .carousel-dots .dot {
-    width: 10px;
-    height: 10px;
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 4rem 0 1rem;
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
   }
+  
   .hero-content {
-    padding: 0 1rem;
-    align-items: flex-start;
-  }
-  .title-group h1 {
-    font-size: 3rem;
-  }
-  .title-group h2 {
-    font-size: 1.8rem;
-  }
-  .subtitle {
-    font-size: 1.1rem;
-    margin-top: 1rem;
-  }
-  .decorative-elements {
-    display: none;
-  }
-  .license-grid {
-    grid-template-columns: 1fr;
-  }
-  .license-card {
-    height: auto;
-    min-height: 180px;
-  }
-  .card-front, .card-back {
-    padding: 1.5rem;
-  }
-  .generator-container {
-    padding: 1.5rem;
-  }
-  .preview-section {
-    min-height: auto;
-  }
-  .image-preview {
-    min-height: 200px;
-  }
-  .preview-canvas {
-    max-height: 200px;
-  }
-  .control-step {
-    padding: 1rem;
-    padding-top: 2rem;
-  }
-  .license-options {
-    grid-template-columns: 1fr;
-  }
-  .font-selector {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-  .action-buttons-group {
+    min-height: 22vh;
     flex-direction: column;
-    gap: 0.5rem;
+    align-items: flex-start;
+    padding-top: 0.75rem;
   }
-  .action-button {
-    width: 100%;
-    justify-content: center;
+  
+  .slogan {
+    margin-left: 1rem;
+    max-width: 90%;
   }
-  .interactive-content-carousel {
-    padding: 1.5rem;
-  }
-  .carousel-header-panel,
-  .carousel-container,
-  .carousel-dots {
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .carousel-main-title {
-    font-size: 1.6rem;
-  }
-  .carousel-slide .content-section {
-    padding: 1.5rem;
-  }
-  .carousel-slide .content-section h2 {
-    font-size: 1.4rem;
-  }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
-    font-size: 0.95rem !important;
-  }
-}
-
-@media (max-width: 640px) {
+  
   .decorative-elements {
     opacity: 0.1;
-    transform: translateX(0) scale(0.7);
+    transform: translateX(0) scale(0.8);
   }
-  .hero-section {
-    padding: 3rem 0 0.5rem;
-  }
+
   .title-group h1 {
-    font-size: 2.5rem;
+    @apply text-4xl;
   }
+  
   .title-group h2 {
+    @apply text-3xl;
+  }
+  
+  .subtitle {
+    @apply text-lg;
+  }
+  
+  .copyright-tips-banner {
+    padding: 1.5rem 0;
+  }
+  
+  .banner-title {
     font-size: 1.6rem;
   }
-  .subtitle {
-    font-size: 1rem;
+  
+  .banner-content {
+    padding: 1.5rem;
+    min-height: 450px;
+    height: 450px;
   }
-  .image-preview {
-    max-width: 100%;
-    min-height: 180px;
+  
+  .banner-content h2 {
+    font-size: 1.4rem;
   }
-  .preview-canvas {
-    max-height: 180px;
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
+    font-size: 0.95rem !important;
   }
-  .placeholder-upload {
-    min-height: 180px;
-  }
-  .section-title {
-    font-size: 1.8rem;
-  }
-  .section-description {
-    font-size: 1rem;
-  }
-  .carousel-nav-button {
+  
+  .banner-nav-button {
     width: 35px;
     height: 35px;
     font-size: 1.3rem;
   }
-  .carousel-main-title {
-    font-size: 1.5rem;
-  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .hero-section {
-    padding: 2.5rem 0 0.5rem;
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
   }
+
+  .hero-content {
+    padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+
+  .slogan {
+    padding-top: 0;
+  }
+
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+
   .title-group h1 {
-    font-size: 2rem;
+    @apply text-3xl;
   }
+  
   .title-group h2 {
-    font-size: 1.4rem;
+    @apply text-2xl;
   }
+  
   .subtitle {
-    font-size: 0.9rem;
+    @apply text-base;
   }
-  .license-card {
-    padding: 0.6rem;
-    min-height: 0;
-    height: auto;
+  
+  .copyright-tips-banner {
+    padding: 1rem 0;
   }
-  .card-front, .card-back {
-    padding: 0.8rem;
-    justify-content: flex-start;
-  }
-  .license-icon {
-    font-size: 2rem;
-    margin-bottom: 0.3rem;
-  }
-  .license-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.2rem;
-    line-height: 1.2;
-  }
-  .license-subtitle {
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-    line-height: 1.3;
-  }
-  .license-details {
-    padding: 0;
-    margin: 0;
-  }
-  .license-details li {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-    padding-left: 1rem;
-    line-height: 1.4;
-  }
-  .generator-container {
-    padding: 1rem;
-  }
-  .preview-section {
-    padding: 1rem;
-  }
-  .image-preview {
-    min-height: 150px;
-  }
-  .preview-canvas {
-    max-height: 150px;
-  }
-  .placeholder-upload {
-    min-height: 150px;
-  }
-  .control-step {
-    padding: 1rem;
-    padding-top: 1.5rem;
-  }
-  .step-number {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
-  .step-title {
-    font-size: 1.1rem;
-  }
-  input[type="text"] {
-    padding: 0.6rem;
-    font-size: 0.9rem;
-  }
-  .font-selector {
-    grid-template-columns: 1fr;
-  }
-  .font-option {
-    padding: 0.6rem;
-    font-size: 0.85rem;
-  }
-  .color-option, .color-picker {
-    width: 30px;
-    height: 30px;
-  }
-  .slider-group label, .color-selector label {
-    font-size: 0.85rem;
-  }
-  .position-option {
-    width: 30px;
-    height: 30px;
-  }
-  .action-button {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-  }
-  .interactive-content-carousel {
-    padding: 1rem;
-  }
-  .carousel-main-title {
+  
+  .banner-title {
     font-size: 1.4rem;
+    margin-bottom: 1rem;
   }
-  .carousel-slide .content-section {
+  
+  .banner-content {
     padding: 1rem;
+    min-height: 420px;
+    height: 420px;
   }
-  .carousel-slide .content-section h2 {
+  
+  .banner-content h2 {
     font-size: 1.3rem;
   }
-  .carousel-slide .content-section :deep(p),
-  .carousel-slide .content-section :deep(li) {
+  
+  .banner-content :deep(p),
+  .banner-content :deep(li) {
     font-size: 0.9rem !important;
   }
-  .carousel-dots .dot {
+  
+  .banner-nav-button {
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    margin: 0 0.5rem;
+  }
+  
+  .banner-dots .dot {
     width: 8px;
     height: 8px;
     margin: 0 4px;
   }
 }
 
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+  
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+
+  .title-group h1 {
+    font-size: 2.5rem;
+    white-space: normal;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+    white-space: normal;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    white-space: normal;
+  }
+  
+  .license-cards-section {
+    padding: 0.75rem;
+  }
+  .section-title {
+    font-size: 1.8rem;
+  }
+  .section-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .license-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .license-card {
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0 1.2rem;
+    transition: box-shadow 0.2s;
+  }
+}
+
+/* CSS additions to add after the .top-row CSS block */
+.second-row {
+  display: grid;
+  grid-template-columns: 160px;
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 3 / 4;
+  grid-row: 2;
+  justify-self: end;
+}
+
+/* Add rotation animation */
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotating {
+  animation: slowRotate 30s linear infinite;
+}
+
+/* Element hover animation */
+.top-row .element:hover, 
+.second-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* Re-add the preview-canvas style that was accidentally removed */
 .preview-canvas {
   width: 100%;
   height: 100%;
@@ -2322,23 +2317,137 @@ button:disabled {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Styles for the new Interactive Content Carousel */
+/* License card mobile styles */
+@media (max-width: 480px) {
+  .license-card:active {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  
+  .card-front {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: none;
+    padding: 0;
+    position: static;
+    z-index: 1;
+  }
+  
+  .license-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+  }
+  
+  .license-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 0;
+  }
+  
+  .license-subtitle {
+    display: none;
+  }
+  
+  .card-back, .license-details {
+    display: none !important;
+  }
+  
+  .license-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  
+  .license-modal-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 2rem 1.5rem 1.2rem 1.5rem;
+    max-width: 90vw;
+    width: 340px;
+    text-align: center;
+    position: relative;
+    animation: popIn 0.2s;
+  }
+  
+  .modal-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+  }
+  
+  .modal-subtitle {
+    font-size: 1.05rem;
+    color: #666;
+    margin-bottom: 1.1rem;
+  }
+  
+  .modal-details {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.2rem;
+    text-align: left;
+  }
+  
+  .modal-details li {
+    margin-bottom: 0.7rem;
+    font-size: 1rem;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  
+  .modal-tap-to-close {
+    font-size: 0.95rem;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
+  }
+}
+
+/* Reset image preview button */
+.reset-image-preview-btn {
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Transforming card-based carousel to rotating banner style */
 .interactive-content-carousel {
-  max-width: 1200px;
-  margin: 3rem auto;
+  width: 100vw;
+  margin: 3rem 0;
   position: relative;
   background-color: #fff0f5;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  padding: 2rem 0;
   box-sizing: border-box;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .carousel-header-panel {
   padding: 0 0 1.5rem 0;
   text-align: center;
-  margin-left: 42px;
-  margin-right: 42px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .carousel-main-title {
@@ -2351,20 +2460,20 @@ button:disabled {
 .carousel-container {
   overflow: hidden;
   border-radius: 0;
-  margin: 0;
-  margin-left: 42px;
-  margin-right: 42px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+  max-width: 1200px;
+  position: relative;
 }
 
 .carousel-wrapper {
   display: flex;
-  transition: transform 0.5s ease-in-out;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .carousel-slide {
   flex: 0 0 100%;
   box-sizing: border-box;
+  padding: 0 42px;
 }
 
 .carousel-slide .content-section {
@@ -2374,8 +2483,34 @@ button:disabled {
   flex-direction: column;
   background-color: #fff;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateX(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.carousel-slide-enter-active, .carousel-slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.carousel-slide-enter-from.slide-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.carousel-slide-enter-from.slide-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.carousel-slide-leave-to.slide-right {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.carousel-slide-leave-to.slide-left {
+  transform: translateX(100%);
+  opacity: 0;
 }
 
 .carousel-slide .content-section h2 {
@@ -2431,57 +2566,51 @@ button:disabled {
 }
 
 .carousel-navigation {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.navigation-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .carousel-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
   background-color: #ff6b98;
   color: white;
   border: none;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: bold;
   transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   z-index: 10;
-}
-
-.carousel-nav-button.prev {
-  left: 20px;
-}
-
-.carousel-nav-button.next {
-  right: 20px;
+  top: unset;
+  transform: none;
 }
 
 .carousel-nav-button:hover {
   background-color: #e0527e;
-  transform: translateY(-50%) scale(1.1);
+  transform: scale(1.1);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.carousel-nav-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  opacity: 0.7;
-  box-shadow: none;
 }
 
 .carousel-dots {
   display: flex;
   justify-content: center;
-  margin-top: 1.5rem;
-  margin-left: 42px;
-  margin-right: 42px;
+  margin: 0;
 }
 
 .carousel-dots .dot {
@@ -2504,131 +2633,41 @@ button:disabled {
   transform: scale(1.25);
 }
 
-/* Style for the reset button in preview area */
-.reset-image-preview-btn {
-  margin-top: 0.25rem;
-  margin-bottom: 1rem;
-  /* Other styles are inherited from .action-button.secondary-button */
+.carousel-nav-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
 }
 
-/* Add modal styles and adjust mobile card grid */
-@media (max-width: 480px) {
-  .license-cards-section {
-    padding: 0.75rem;
+/* Additional styles for slide transitions with direction */
+.carousel-slide.active.right .content-section {
+  animation: slideInRight 0.5s forwards;
+}
+
+.carousel-slide.active.left .content-section {
+  animation: slideInLeft 0.5s forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
   }
-  .section-title {
-    font-size: 1.8rem;
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
-  .section-description {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
   }
-  .license-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .license-card {
-    height: 60px;
-    min-height: 60px;
-    max-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    cursor: pointer;
-    overflow: hidden;
-    padding: 0 1.2rem;
-    transition: box-shadow 0.2s;
-  }
-  .license-card:active {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  }
-  .card-front {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    background: none;
-    padding: 0;
-    position: static;
-    z-index: 1;
-  }
-  .license-icon {
-    font-size: 1.5rem;
-    margin-right: 1rem;
-  }
-  .license-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #222;
-    margin-bottom: 0;
-  }
-  .license-subtitle {
-    display: none;
-  }
-  .card-back, .license-details {
-    display: none !important;
-  }
-  .license-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.35);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s;
-  }
-  .license-modal-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    padding: 2rem 1.5rem 1.2rem 1.5rem;
-    max-width: 90vw;
-    width: 340px;
-    text-align: center;
-    position: relative;
-    animation: popIn 0.2s;
-  }
-  .modal-icon {
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
-  }
-  .modal-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 0.2rem;
-  }
-  .modal-subtitle {
-    font-size: 1.05rem;
-    color: #666;
-    margin-bottom: 1.1rem;
-  }
-  .modal-details {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 1.2rem;
-    text-align: left;
-  }
-  .modal-details li {
-    margin-bottom: 0.7rem;
-    font-size: 1rem;
-    position: relative;
-    padding-left: 1.5rem;
-  }
-  .modal-tap-to-close {
-    font-size: 0.95rem;
-    color: #888;
-    margin-top: 0.5rem;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-  @keyframes popIn {
-    from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 </style> 

@@ -13,16 +13,19 @@
           <!-- 右上角第一排 / Top Row Right -->
           <div class="top-row">
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable rotating">
             </div>
             <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
-            </div>
-            <div class="element-wrapper">
-              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable rotating">
             </div>
           </div>
           
+          <!-- Add Second Row -->
+          <div class="second-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -574,27 +577,39 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   right: 0;
-  width: 960px;
+  width: 480px;
   height: 100%;
   display: grid;
-  grid-template-columns: repeat(6, 160px);
-  grid-template-rows: auto;
+  grid-template-columns: repeat(3, 160px);
+  grid-template-rows: auto auto;
   row-gap: 1rem;
   padding: 2rem 0;
   z-index: 1;
   pointer-events: none;
-  transform: translateX(-2rem);
+  transform: translateX(-1rem);
 }
 
 .top-row {
   display: grid;
-  grid-template-columns: repeat(3, 160px);
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, 160px);
+  gap: 0.25rem;
   align-items: start;
   margin: 0;
   padding: 0;
-  grid-column: 4 / 7;
+  grid-column: 2 / 4;
   grid-row: 1;
+  justify-self: end;
+}
+
+.second-row {
+  display: grid;
+  grid-template-columns: 160px;
+  gap: 0.25rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 3 / 4;
+  grid-row: 2;
   justify-self: end;
 }
 
@@ -622,20 +637,9 @@ onUnmounted(() => {
 }
 
 /* Removing hover enlargement effects */
-.top-row .element:hover {
-  transform: none;
-}
-
-.top-row-2 .element:hover {
-  transform: none;
-}
-
-.bottom-row-1 .element:hover {
-  transform: none;
-}
-
-.bottom-row-2 .element:hover {
-  transform: none;
+.top-row .element:hover, 
+.second-row .element:hover {
+  animation: slowRotate 5s linear infinite;
 }
 
 /* Also update card icon hover effect to remove enlargement */
@@ -646,28 +650,28 @@ onUnmounted(() => {
 /* Responsive adjustments */
 @media (max-width: 1800px) {
   .decorative-elements {
-    width: 840px;
-    grid-template-columns: repeat(6, 140px);
+    width: 420px;
+    grid-template-columns: repeat(3, 140px);
     opacity: 0.9;
-    transform: translateX(-1.5rem);
+    transform: translateX(-0.75rem);
   }
 }
 
 @media (max-width: 1536px) {
   .decorative-elements {
-    width: 720px;
-    grid-template-columns: repeat(6, 120px);
+    width: 360px;
+    grid-template-columns: repeat(3, 120px);
     opacity: 0.8;
-    transform: translateX(-1rem);
+    transform: translateX(-0.5rem);
   }
 }
 
 @media (max-width: 1280px) {
   .decorative-elements {
-    width: 600px;
-    grid-template-columns: repeat(6, 100px);
+    width: 300px;
+    grid-template-columns: repeat(3, 100px);
     opacity: 0.7;
-    transform: translateX(-0.5rem);
+    transform: translateX(-0.25rem);
     row-gap: 0.75rem;
   }
 }
@@ -1825,6 +1829,26 @@ p {
 /* Override hover in auto-flip mode to prevent conflicts */
 .auto-flip-trigger:hover :deep(.relative) {
   transform: rotateY(180deg) !important;
+}
+
+/* Add rotation animation */
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotating {
+  animation: slowRotate 30s linear infinite;
+}
+
+/* Adjust hover effect to combine with rotation */
+.top-row .element:hover, 
+.second-row .element:hover {
+  animation: slowRotate 5s linear infinite;
 }
 </style>
 

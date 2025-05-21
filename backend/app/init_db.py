@@ -6,36 +6,36 @@ from sqlalchemy import inspect
 def init_ratings():
     db = SessionLocal()
     try:
-        # 检查表是否存在
+        # Check if the table exists
         inspector = inspect(engine)
         if not inspector.has_table("activity_ratings"):
             print("Table 'activity_ratings' does not exist. Creating tables...")
             create_tables()
         
-        # 创建一些初始评分数据
+        # Create initial rating data
         initial_ratings = [
-            # 为每个活动类型创建多条评分记录，模拟多人评分
-            # breathing活动
+            # Create multiple rating records for each activity type to simulate user ratings
+            # Breathing activity
             Rating(activity_key="breathing", rating=5),
             Rating(activity_key="breathing", rating=4),
             Rating(activity_key="breathing", rating=5),
-            # meditation活动
+            # Meditation activity
             Rating(activity_key="meditation", rating=4),
             Rating(activity_key="meditation", rating=5),
             Rating(activity_key="meditation", rating=3),
-            # grounding活动
+            # Grounding activity
             Rating(activity_key="grounding", rating=5),
             Rating(activity_key="grounding", rating=4),
-            # nature活动
+            # Nature activity
             Rating(activity_key="nature", rating=4),
             Rating(activity_key="nature", rating=5),
-            # stretching活动
+            # Stretching activity
             Rating(activity_key="stretching", rating=5),
             Rating(activity_key="stretching", rating=4),
-            # color-breathing活动
+            # Colour breathing activity
             Rating(activity_key="color-breathing", rating=4),
             Rating(activity_key="color-breathing", rating=3),
-            # affirmation活动
+            # Affirmation activity
             Rating(activity_key="affirmation", rating=5),
             Rating(activity_key="affirmation", rating=4),
         ]
@@ -51,6 +51,6 @@ def init_ratings():
         db.close()
 
 if __name__ == "__main__":
-    print("Initializing ratings data...")
+    print("Initialising ratings data...")
     init_ratings()
-    print("Database initialization complete!") 
+    print("Database initialisation complete!") 
