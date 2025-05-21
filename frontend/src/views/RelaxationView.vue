@@ -471,7 +471,8 @@ const submitFeedback = async () => {
           },
           body: JSON.stringify(payload),
           // Handle redirects automatically
-          redirect: 'follow'
+          redirect: 'follow',
+          mode: 'cors'
         })
     
         if (response.ok) {

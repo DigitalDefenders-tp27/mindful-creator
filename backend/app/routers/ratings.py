@@ -7,6 +7,7 @@ from app.models.rating import Rating
 from app.schemas.rating import RatingCreate, Rating as RatingSchema, ActivityStats
 import logging
 import traceback
+import json
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -149,8 +150,8 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
             count = 1
             avg_rating = float(rating.rating)
         
-        # Return the rating and stats
-        return {
+        # Create response with CORS headers
+        response_data = {
             "rating": {
                 "id": db_rating.id,
                 "activity_key": rating.activity_key,
@@ -163,6 +164,18 @@ def create_rating(rating: RatingCreate, db: Session = Depends(get_db)):
                 "total_ratings": count
             }
         }
+        
+        response = Response(
+            content=json.dumps(response_data),
+            media_type="application/json"
+        )
+        
+        # Add CORS headers
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        
+        return response
     except Exception as e:
         stack_trace = traceback.format_exc()
         logger.error(f"Error while creating rating: {str(e)}\n{stack_trace}")
@@ -243,7 +256,7 @@ def get_activity_stats(activity_key: str):
                 
                 if stat:
                     logger.info(f"Retrieved stats: count={stat.count}, avg={stat.avg_rating}")
-                    return ActivityStats(
+                    stats = ActivityStats(
                         activity_key=activity_key,
                         count=stat.count,
                         average_rating=float(stat.avg_rating),
@@ -251,31 +264,73 @@ def get_activity_stats(activity_key: str):
                     )
                 else:
                     logger.info(f"No ratings found for activity {activity_key}")
-                    return ActivityStats(
+                    stats = ActivityStats(
                         activity_key=activity_key,
                         count=0,
                         average_rating=0.0,
                         total_ratings=0
                     )
+                
+                # Convert to dict and return as JSON with CORS headers
+                response_data = stats.dict()
+                response = Response(
+                    content=json.dumps(response_data),
+                    media_type="application/json"
+                )
+                
+                # Add CORS headers
+                response.headers["Access-Control-Allow-Origin"] = "*"
+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                
+                return response
             finally:
                 db.close()
         except Exception as e:
             stack_trace = traceback.format_exc()
             logger.error(f"Query error in get_activity_stats for {activity_key}: {str(e)}\n{stack_trace}")
             # Return default stats instead of error
-            return ActivityStats(
+            stats = ActivityStats(
                 activity_key=activity_key,
                 count=0,
                 average_rating=0.0,
                 total_ratings=0
             )
+            
+            # Convert to dict and return as JSON with CORS headers
+            response_data = stats.dict()
+            response = Response(
+                content=json.dumps(response_data),
+                media_type="application/json"
+            )
+            
+            # Add CORS headers
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            
+            return response
     except Exception as e:
         stack_trace = traceback.format_exc()
         logger.error(f"Error while getting statistics for activity {activity_key}: {str(e)}\n{stack_trace}")
         # Return default stats instead of error
-        return ActivityStats(
+        stats = ActivityStats(
             activity_key=activity_key,
             count=0,
             average_rating=0.0,
             total_ratings=0
-        ) 
+        )
+        
+        # Convert to dict and return as JSON with CORS headers
+        response_data = stats.dict()
+        response = Response(
+            content=json.dumps(response_data),
+            media_type="application/json"
+        )
+        
+        # Add CORS headers
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        
+        return response 

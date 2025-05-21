@@ -13,6 +13,9 @@ export function getApiUrl(endpoint) {
     return endpoint;
   }
   
+  // Ensure endpoint doesn't have trailing slash
+  endpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+  
   // Development environment with Vite proxy
   if (import.meta.env.DEV) {
     // If endpoint already starts with /api/, return as is
@@ -26,16 +29,19 @@ export function getApiUrl(endpoint) {
   }
   
   // Production environment
+  // Remove trailing slash from API_URL if it exists
+  const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  
   // If endpoint already has /api prefix
   if (endpoint.startsWith('/api/')) {
     // Remove the leading slash to avoid double slashes
     const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-    return `${API_URL}/${path}`;
+    return `${baseUrl}/${path}`;
   }
   
   // If endpoint doesn't have /api prefix, add it
   const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  return `${API_URL}/api/${path}`;
+  return `${baseUrl}/api/${path}`;
 }
 
 // Helper for fetch with proper error handling
@@ -53,13 +59,17 @@ export async function apiFetch(endpoint, options = {}) {
     },
     // Allow automatic redirects
     redirect: 'follow',
+    // Don't send credentials by default to avoid CORS preflight issues
+    credentials: options.credentials || 'omit',
+    // Always use CORS
+    mode: 'cors'
   };
   
   try {
     const response = await fetch(url, fetchOptions);
     
-    // Check if we received a redirect
-    if (response.status === 307 || response.status === 308) {
+    // Handle HTTP redirects
+    if ([301, 302, 307, 308].includes(response.status)) {
       const redirectUrl = response.headers.get('Location');
       console.log(`Received redirect to: ${redirectUrl}`);
       
