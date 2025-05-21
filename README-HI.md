@@ -22,7 +22,7 @@
 
 1. रिपॉजिटरी को क्लोन करें
    ```bash
-   git clone https://github.com/aseemcodes72/mindful-creator.git
+   git clone https://github.com/DigitalDefenders-tp27/mindful-creator.git
    cd mindful-creator
    ```
 

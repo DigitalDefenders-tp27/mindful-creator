@@ -22,7 +22,7 @@ A Vue.js application for content creators to manage their content and engage wit
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/aseemcodes72/mindful-creator.git
+   git clone https://github.com/DigitalDefenders-tp27/mindful-creator.git
    cd mindful-creator
    ```
 
