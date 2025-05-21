@@ -9,11 +9,14 @@ A Vue.js application for content creators to manage their content and engage wit
 - **Content Management**: Organise and schedule your content ethically
 - **Analytics**: Track your impact and audience growth
 - **Relaxation Zone**: Activities to help content creators maintain mental wellbeing
+- **Critical Response**: Tools to handle feedback and criticism constructively
+- **Memory Match Game**: A fun game to take mental breaks using real memes
 
 ## Prerequisites
 
 - Node.js (v16 or higher)
 - npm (v7 or higher)
+- Python 3.9+ (for backend)
 
 ## Installation
 
@@ -23,19 +26,30 @@ A Vue.js application for content creators to manage their content and engage wit
    cd mindful-creator
    ```
 
-2. Install dependencies
+2. Install frontend dependencies
    ```bash
+   cd frontend
    npm install
    ```
 
-3. Start the development server
+3. Install backend dependencies
    ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+4. Start the development servers
+
+   Frontend:
+   ```bash
+   cd frontend
    npm run dev
    ```
 
-4. Build for production
+   Backend:
    ```bash
-   npm run build
+   cd backend
+   python run_server.py
    ```
 
 ## Project Structure
@@ -44,44 +58,35 @@ A Vue.js application for content creators to manage their content and engage wit
 mindful-creator/
 ├── frontend/                # Frontend code
 │   ├── public/              # Static assets
+│   │   ├── icons/           # UI icons
+│   │   ├── media/           # Media files
+│   │   ├── memes/           # Meme images for games
+│   │   └── emojis/          # Emotion emojis
 │   ├── src/                 # Source files
 │   │   ├── assets/          # Images, icons, etc.
-│   │   │   ├── icons/       # UI icons
-│   │   │   ├── images/      # Content images
-│   │   │   └── emojis/      # Emotion emojis
 │   │   ├── components/      # Vue components
 │   │   │   ├── ui/          # UI components
-│   │   │   └── Activities/  # Activity components
+│   │   │   ├── Activities/  # Relaxation activities
+│   │   │   └── Games/       # Game components
 │   │   ├── content/         # Content files
 │   │   ├── lib/             # Utility libraries
 │   │   ├── router/          # Vue Router configuration
 │   │   ├── stores/          # Pinia stores
 │   │   ├── styles/          # Global styles
-│   │   ├── utils/           # Utility functions
 │   │   ├── views/           # Page components
 │   │   ├── App.vue          # Root component
 │   │   └── main.js          # Entry point
-│   ├── .gitignore           # Git ignore file
-│   ├── index.html           # HTML template
-│   ├── package.json         # Dependencies and scripts
-│   ├── postcss.config.js    # PostCSS configuration
-│   ├── tailwind.config.js   # Tailwind CSS configuration
 │   └── vite.config.js       # Vite configuration
 ├── backend/                 # Backend code
 │   ├── app/                 # Main application
 │   │   ├── api/             # API endpoints
-│   │   ├── routes/          # Route handlers
-│   │   ├── __init__.py      # Package initialisation
+│   │   ├── routers/         # Route handlers
 │   │   └── main.py          # Main application file
-│   ├── datasets/            # Data files
-│   ├── tests/               # Test files
-│   ├── .env                 # Environment variables
-│   ├── .env.example         # Example environment variables
-│   ├── database.py          # Database configuration
-│   ├── Dockerfile           # Docker configuration
+│   ├── models/              # Data models
+│   ├── scripts/             # Utility scripts
 │   ├── requirements.txt     # Python dependencies
-│   └── run.py               # Server runner
-└── data/                    # Project data files
+│   └── run_server.py        # Server runner
+└── README.md                # Project documentation
 ```
 
 ## Key Sections
@@ -90,31 +95,64 @@ mindful-creator/
 Learn about building trust through authenticity and creating content that makes a positive impact.
 
 ### Critical Response
-Turn feedback into growth and protect yourself from cyberbullying.
+Turn feedback into growth and protect yourself from cyberbullying with tools to analyse YouTube comments and develop appropriate responses.
 
 ### Relaxation Zone
-Peaceful moments for mental reset with various relaxation activities.
+Peaceful moments for mental reset with various relaxation activities including:
+- Breathing exercises
+- Guided meditation
+- Sensory grounding
+- Nature sounds
+- Stretching routines
+- Colour breathing
+- Affirmation reflection
+- Journaling
+
+### Memory Match Game
+A fun meme-matching game that provides a mental break while using real memes from the Memotion dataset.
 
 ## Technologies Used
 
-- **Frontend**:
-  - Vue.js 3
-  - Vue Router
-  - Tailwind CSS
-  - Marked (for Markdown rendering)
-  - Vite (for build and development)
-  - Pinia (for state management)
+### Frontend
+- **Framework**: Vue.js 3.5
+- **State Management**: Pinia 3.0
+- **Routing**: Vue Router 4.3
+- **UI Components**: 
+  - Tailwind CSS 3.4
+  - Headless UI
+  - Lucide icons
+- **Charts & Visualisations**:
+  - ApexCharts 4.7
+  - Chart.js 4.4
+- **Build Tools**: 
+  - Vite 6.2
+  - PostCSS 8.5
+  - Autoprefixer 10.4
 
-- **Backend**:
-  - FastAPI (Python web framework)
-  - SQLite (database)
-  - Python 3.9+
+### Backend
+- **Framework**: FastAPI 0.95
+- **Database**: SQLite/PostgreSQL with SQLAlchemy 2.0
+- **Authentication**: JWT
+- **Data Processing**: 
+  - NumPy
+  - Pandas 2.1
+  - TensorFlow 2.15
+  - scikit-learn 1.2
+- **Natural Language Processing**:
+  - NLTK 3.8
+  - Transformers 4.30
 
-- **Design Features**:
-  - Responsive Design
-  - Animations & Transitions
-  - Interactive UI Elements
-  - Accessibility Support
+## Deployment
+
+This application can be deployed using:
+- Railway
+- Vercel
+- Docker
+
+For Railway deployment:
+1. Configure the Railway project with both frontend and backend services
+2. Set the appropriate environment variables
+3. Ensure the meme dataset is properly configured
 
 ## Acknowledgements
 
@@ -124,40 +162,4 @@ Peaceful moments for mental reset with various relaxation activities.
 
 ---
 
-### Frontend Dependencies
-- Vue.js (^3.5.13)
-- Vue Router (^4.3.0)
-- Tailwind CSS (^3.4.17)
-- Vite (^6.2.4)
-- PostCSS (^8.5.3)
-- Autoprefixer (^10.4.21)
-- Axios (^1.6.7)
-- Marked (^12.0.0)
-- Class Variance Authority (^0.7.1)
-- CLSX (^2.1.1)
-- Lucide Vue Next (^0.487.0)
-- Tailwind Merge (^2.6.0)
-- Tailwind CSS Animate (^1.0.7)
-- Pinia (^2.1.7)
-
-### Frontend Dev Dependencies
-- @vitejs/plugin-vue (^5.2.3)
-- @vue/eslint-config-prettier (^10.2.0)
-- ESLint
-  - @eslint/js (^9.22.0)
-  - eslint-plugin-oxlint (^0.16.0)
-  - eslint-plugin-vue (~10.0.0)
-- Globals (^16.0.0)
-- npm-run-all2 (^7.0.2)
-- Oxlint (^0.16.0)
-- Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2)
-
-### Backend Dependencies
-- fastapi
-- uvicorn
-- sqlalchemy
-- python-dotenv
-- pydantic
-- pytest
-- httpx 
+*This project is designed to support content creators in Australia and worldwide in maintaining ethical practices and emotional wellbeing while engaging with their audience.* 

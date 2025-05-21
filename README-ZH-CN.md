@@ -9,11 +9,14 @@
 - **内容管理**: 以道德方式组织和安排您的内容
 - **分析**: 跟踪您的影响力和受众增长
 - **放松区**: 帮助内容创作者保持心理健康的活动
+- **批判性回应**: 处理反馈和批评的工具
+- **记忆配对游戏**: 使用真实迷因图像休息头脑的有趣游戏
 
 ## 前提条件
 
 - Node.js (v16 或更高版本)
 - npm (v7 或更高版本)
+- Python 3.9+ (后端)
 
 ## 安装
 
@@ -23,19 +26,30 @@
    cd mindful-creator
    ```
 
-2. 安装依赖
+2. 安装前端依赖
    ```bash
+   cd frontend
    npm install
    ```
 
-3. 启动开发服务器
+3. 安装后端依赖
    ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+4. 启动开发服务器
+
+   前端:
+   ```bash
+   cd frontend
    npm run dev
    ```
 
-4. 构建生产版本
+   后端:
    ```bash
-   npm run build
+   cd backend
+   python run_server.py
    ```
 
 ## 项目结构
@@ -44,44 +58,35 @@
 mindful-creator/
 ├── frontend/                # 前端代码
 │   ├── public/              # 静态资源
+│   │   ├── icons/           # UI图标
+│   │   ├── media/           # 媒体文件
+│   │   ├── memes/           # 迷因图片（游戏）
+│   │   └── emojis/          # 情感表情
 │   ├── src/                 # 源文件
 │   │   ├── assets/          # 图片、图标等
-│   │   │   ├── icons/       # UI图标
-│   │   │   ├── images/      # 内容图片
-│   │   │   └── emojis/      # 情感表情
 │   │   ├── components/      # Vue 组件
 │   │   │   ├── ui/          # UI组件
-│   │   │   └── Activities/  # 活动组件
+│   │   │   ├── Activities/  # 放松活动
+│   │   │   └── Games/       # 游戏组件
 │   │   ├── content/         # 内容文件
 │   │   ├── lib/             # 工具库
 │   │   ├── router/          # Vue Router 配置
 │   │   ├── stores/          # Pinia 状态管理
 │   │   ├── styles/          # 全局样式
-│   │   ├── utils/           # 工具函数
 │   │   ├── views/           # 页面组件
 │   │   ├── App.vue          # 根组件
 │   │   └── main.js          # 入口文件
-│   ├── .gitignore           # Git 忽略文件
-│   ├── index.html           # HTML 模板
-│   ├── package.json         # 依赖和脚本
-│   ├── postcss.config.js    # PostCSS 配置
-│   ├── tailwind.config.js   # Tailwind CSS 配置
 │   └── vite.config.js       # Vite 配置
 ├── backend/                 # 后端代码
 │   ├── app/                 # 主应用程序
 │   │   ├── api/             # API 端点
-│   │   ├── routes/          # 路由处理器
-│   │   ├── __init__.py      # 包初始化
+│   │   ├── routers/         # 路由处理器
 │   │   └── main.py          # 主应用程序文件
-│   ├── datasets/            # 数据文件
-│   ├── tests/               # 测试文件
-│   ├── .env                 # 环境变量
-│   ├── .env.example         # 环境变量示例
-│   ├── database.py          # 数据库配置
-│   ├── Dockerfile           # Docker 配置
+│   ├── models/              # 数据模型
+│   ├── scripts/             # 实用脚本
 │   ├── requirements.txt     # Python 依赖
-│   └── run.py               # 服务器运行器
-└── data/                    # 项目数据文件
+│   └── run_server.py        # 服务器运行器
+└── README.md                # 项目文档
 ```
 
 ## 主要部分
@@ -90,31 +95,64 @@ mindful-creator/
 了解如何通过真实性建立信任，创建产生积极影响的内容。
 
 ### 批判性回应
-将反馈转化为成长，保护自己免受网络欺凌。
+将反馈转化为成长，保护自己免受网络欺凌，使用工具分析YouTube评论并制定适当的回应策略。
 
 ### 放松区
-通过各种放松活动，为心灵提供平静时刻。
+通过各种放松活动，为心灵提供平静时刻，包括：
+- 呼吸练习
+- 引导冥想
+- 感官接地
+- 自然声音
+- 伸展运动
+- 色彩呼吸
+- 肯定反思
+- 写日记
+
+### 记忆配对游戏
+一个有趣的迷因匹配游戏，使用来自Memotion数据集的真实迷因，提供精神休息。
 
 ## 使用的技术
 
-- **前端**:
-  - Vue.js 3框架
-  - Vue路由
-  - Tailwind CSS样式库
-  - Marked (用于Markdown渲染)
-  - Vite (用于构建和开发)
-  - Pinia (用于状态管理)
+### 前端
+- **框架**: Vue.js 3.5
+- **状态管理**: Pinia 3.0
+- **路由**: Vue Router 4.3
+- **UI组件**: 
+  - Tailwind CSS 3.4
+  - Headless UI
+  - Lucide 图标
+- **图表与可视化**:
+  - ApexCharts 4.7
+  - Chart.js 4.4
+- **构建工具**: 
+  - Vite 6.2
+  - PostCSS 8.5
+  - Autoprefixer 10.4
 
-- **后端**:
-  - FastAPI (Python网络框架)
-  - SQLite (数据库)
-  - Python 3.9+
+### 后端
+- **框架**: FastAPI 0.95
+- **数据库**: SQLite/PostgreSQL 与 SQLAlchemy 2.0
+- **认证**: JWT
+- **数据处理**: 
+  - NumPy
+  - Pandas 2.1
+  - TensorFlow 2.15
+  - scikit-learn 1.2
+- **自然语言处理**:
+  - NLTK 3.8
+  - Transformers 4.30
 
-- **设计特性**:
-  - 响应式设计
-  - 动画和过渡效果
-  - 交互式UI元素
-  - 无障碍支持
+## 部署
+
+本应用可以通过以下方式部署：
+- Railway
+- Vercel
+- Docker
+
+对于Railway部署：
+1. 配置Railway项目，包含前端和后端服务
+2. 设置适当的环境变量
+3. 确保迷因数据集正确配置
 
 ## 致谢
 
@@ -124,40 +162,4 @@ mindful-creator/
 
 ---
 
-### 前端依赖
-- Vue.js (^3.5.13)
-- Vue Router (^4.3.0)
-- Tailwind CSS (^3.4.17)
-- Vite (^6.2.4)
-- PostCSS (^8.5.3)
-- Autoprefixer (^10.4.21)
-- Axios (^1.6.7)
-- Marked (^12.0.0)
-- Class Variance Authority (^0.7.1)
-- CLSX (^2.1.1)
-- Lucide Vue Next (^0.487.0)
-- Tailwind Merge (^2.6.0)
-- Tailwind CSS Animate (^1.0.7)
-- Pinia (^2.1.7)
-
-### 前端开发依赖
-- @vitejs/plugin-vue (^5.2.3)
-- @vue/eslint-config-prettier (^10.2.0)
-- ESLint
-  - @eslint/js (^9.22.0)
-  - eslint-plugin-oxlint (^0.16.0)
-  - eslint-plugin-vue (~10.0.0)
-- Globals (^16.0.0)
-- npm-run-all2 (^7.0.2)
-- Oxlint (^0.16.0)
-- Prettier (3.5.3)
-- Vite Plugin Vue DevTools (^7.7.2)
-
-### 后端依赖
-- fastapi
-- uvicorn
-- sqlalchemy
-- python-dotenv
-- pydantic
-- pytest
-- httpx 
+*此项目旨在帮助澳大利亚及全球内容创作者在与受众互动时保持道德实践和情感健康。* 
