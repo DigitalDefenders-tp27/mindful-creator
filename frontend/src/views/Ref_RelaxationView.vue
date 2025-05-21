@@ -16,20 +16,16 @@
             <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
           </div>
           <div class="decorative-elements">
-            <!-- Top Row Right -->
+            <!-- 右上角第一排 / Top Row Right -->
             <div class="top-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
+                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable">
               </div>
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable rotating">
+                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable">
               </div>
-            </div>
-            
-            <!-- Second Row -->
-            <div class="second-row">
               <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable rotating">
+                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable">
               </div>
             </div>
           </div>
@@ -79,7 +75,7 @@
           <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
             <div class="encouragement">
               <h3>{{ currentEncouragement }}</h3>
-              <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. </p>
+              <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. ��</p>
             </div>
           </div>
           
@@ -201,38 +197,38 @@ const activities = [
 
 // Adding layout classes to create different card sizes
 const activitiesWithLayout = computed(() => [
-  // First row: Breathing Exercise + Guided Meditation (2 cards)
+  // 第一行：呼吸练习 + 引导冥想（2卡）
   { 
     ...activities[0], 
-    class: 'lg:col-span-2 md:col-span-2 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Breathing Exercise - wide card
+    class: 'lg:col-span-2 md:col-span-2 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 呼吸练习 - 宽卡片
   }, 
   { 
     ...activities[1], 
-    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Guided Meditation
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 引导冥想
   },
   
-  // Second row: Sensory Grounding + Nature Sounds + Stretching Routine (3 cards)
+  // 第二行：感官训练 + 大自然声音 + 伸展练习（3卡）
   { 
     ...activities[2], 
-    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Sensory Grounding
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 感官训练
   },
   { 
     ...activities[3], 
-    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Nature Sounds
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 大自然声音
   },
   { 
     ...activities[4], 
-    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Stretching Routine
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 伸展练习
   },
   
-  // Third row: Colour Breathing + Affirmation Reflection (2 cards)
+  // 第三行：颜色呼吸 + 肯定反思（2卡）
   { 
     ...activities[5], 
-    class: 'lg:col-span-2 md:col-span-2 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Colour Breathing - wide card
+    class: 'lg:col-span-2 md:col-span-2 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 颜色呼吸 - 宽卡片
   },
   { 
     ...activities[6], 
-    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // Affirmation Reflection
+    class: 'lg:col-span-1 md:col-span-1 sm:col-span-2 lg:h-[22rem] md:h-[20rem] sm:h-[16rem]' // 肯定反思
   }
 ]);
 
@@ -284,32 +280,32 @@ const activityComponents = {
   journal: markRaw(JournalPrompt)
 }
 
-// API calls related to ratings
+// 评分相关的API调用
 const api = {
   async submitRating(activityType, ratingValue) {
     try {
-      console.log(`Submitting rating: activity=${activityType}, rating=${ratingValue}`);
+      console.log(`正在提交评分：活动=${activityType}, 评分=${ratingValue}`);
       
-      // Create rating data
+      // 创建评分数据
       const ratingData = {
         activity_key: activityType,
         rating: ratingValue
       };
       
-      // Send POST request
+      // 发送POST请求
       const response = await apiFetch('/api/ratings', {
         method: 'POST',
         body: JSON.stringify(ratingData)
       });
       
-      console.log('Rating submission successful, returned data:', response);
+      console.log('提交评分成功，返回数据:', response);
       
-      // Return server response
+      // 返回服务器响应
       return response;
     } catch (error) {
-      console.error('Rating submission failed:', error);
+      console.error('提交评分失败:', error);
       
-      // Return a default response to ensure UI flow continues
+      // 返回一个默认响应，确保UI流程继续
       return {
         rating: {
           id: Date.now(),
@@ -335,7 +331,7 @@ const api = {
         total_ratings: data.total_ratings
       };
     } catch (error) {
-      console.error('Failed to get activity statistics:', error);
+      console.error('获取活动统计信息失败:', error);
       return {
         count: 0,
         average_rating: 0,
@@ -351,7 +347,7 @@ const api = {
         stats_by_activity: data
       };
     } catch (error) {
-      console.error('Failed to get all statistics:', error);
+      console.error('获取所有统计信息失败:', error);
       return {
         stats_by_activity: []
       };
@@ -376,21 +372,21 @@ const startActivity = async (type) => {
   journalSubmitted.value = false
 
   try {
-    // Get rating statistics for the activity
-    console.log(`Getting rating data for activity ${type}`)
+    // 获取活动的评分统计信息
+    console.log(`正在获取活动 ${type} 的评分数据`)
     
-    // Use apiFetch to get rating data
+    // 使用apiFetch获取评分数据
     const stats = await apiFetch(`/api/ratings/${type}`)
-    console.log(`Received rating data for activity ${type}:`, stats)
+    console.log(`获取到活动 ${type} 的评分数据:`, stats)
     
-    // Update statistics
+    // 更新统计信息
     totalRatings.value = stats.total_ratings || 0
     averageRating.value = stats.average_rating || 0
     
-    console.log(`Updating UI: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
+    console.log(`更新UI: 总评分数=${totalRatings.value}, 平均评分=${averageRating.value}`)
   } catch (error) {
-    console.error('Failed to get activity rating statistics:', error)
-    // Default values
+    console.error('获取活动评分统计失败:', error)
+    // 默认值
     totalRatings.value = 0
     averageRating.value = 0
   }
@@ -412,104 +408,50 @@ const closeModal = () => {
 
 const submitFeedback = async () => {
   if (rating.value === 0) {
-    alert('Please give a rating before submitting.')
+    alert('请在提交前给出评分。')
     return
   }
 
   try {
-    console.log('Submitting rating:', currentActivity.value, rating.value)
+    console.log('正在提交评分:', currentActivity.value, rating.value)
     
-    // Show processing status
+    // 显示处理中状态
     const feedbackElement = document.querySelector('.feedback')
     if (feedbackElement) {
       feedbackElement.style.opacity = '0.6'
     }
     
-    // Construct request data
+    // 构造请求数据
     const payload = {
       activity_key: currentActivity.value,
       rating: rating.value
     }
     
-    console.log('Data to be submitted:', payload)
+    console.log('准备提交的数据:', payload)
     
-    // Use apiFetch to send rating request
-    try {
-      const result = await apiFetch('/api/ratings', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      
-      console.log('Rating submission successful, server returned:', result)
-      
-      // Update statistics
-      if (result && result.stats) {
-        totalRatings.value = result.stats.total_ratings || result.stats.count || 0
-        averageRating.value = result.stats.average_rating || 0
-        console.log(`Updated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-      } else {
-        // If no valid statistics received, manually calculate new statistics
-        const newTotal = totalRatings.value + 1
-        const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-        totalRatings.value = newTotal
-        averageRating.value = newAverage
-        console.log(`Manually calculated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-      }
-    } catch (fetchError) {
-      console.error('API call failed, trying direct fetch:', fetchError)
-      
-      // As a fallback, try direct fetch with explicit HTTPS URL
-      try {
-        const apiUrl = 'https://api.tiezhu.org/api/ratings'
-        console.log('Attempting direct fetch to:', apiUrl)
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload),
-          // Handle redirects automatically
-          redirect: 'follow'
-        })
+    // 使用apiFetch发送评分请求
+    const result = await apiFetch('/api/ratings', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
     
-        if (response.ok) {
-          const result = await response.json()
-          console.log('Direct fetch successful:', result)
+    console.log('评分提交成功，服务器返回:', result)
     
-          // Update statistics
-          if (result && result.stats) {
-            totalRatings.value = result.stats.total_ratings || result.stats.count || 0
-            averageRating.value = result.stats.average_rating || 0
-            console.log(`Updated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-          } else {
-            // If no valid statistics received, manually calculate new statistics
-            const newTotal = totalRatings.value + 1
-            const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-            totalRatings.value = newTotal
-            averageRating.value = newAverage
-            console.log(`Manually calculated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-          }
-        } else {
-          console.error(`Direct fetch failed: HTTP status code ${response.status}`)
-          const newTotal = totalRatings.value + 1
-          const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-          totalRatings.value = newTotal
-          averageRating.value = newAverage
-          console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-        }
-      } catch (directFetchError) {
-        console.error('Direct fetch also failed:', directFetchError)
-        const newTotal = totalRatings.value + 1
-        const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-        totalRatings.value = newTotal
-        averageRating.value = newAverage
-        console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-      }
+    // 更新统计信息
+    if (result && result.stats) {
+      totalRatings.value = result.stats.total_ratings || result.stats.count || 0
+      averageRating.value = result.stats.average_rating || 0
+      console.log(`更新后的统计: 总评分=${totalRatings.value}, 平均评分=${averageRating.value}`)
+    } else {
+      // 如果没有收到有效的统计信息，手动计算新的统计数据
+      const newTotal = totalRatings.value + 1
+      const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
+      totalRatings.value = newTotal
+      averageRating.value = newAverage
+      console.log(`手动计算的统计: 总评分=${totalRatings.value}, 平均评分=${averageRating.value}`)
     }
     
-    // Show success message
+    // 显示成功信息
     setTimeout(() => {
       if (feedbackElement) {
         feedbackElement.style.display = 'none'
@@ -526,17 +468,17 @@ const submitFeedback = async () => {
       }, 100)
     }, 500)
   } catch (error) {
-    console.error('Error submitting rating:', error)
+    console.error('提交评分时出错:', error)
     
-    // Even in case of error, update UI to provide good user experience
-    // Manually update statistics
+    // 即使出错，仍然更新UI以提供良好用户体验
+    // 手动更新统计数据
     const newTotal = totalRatings.value + 1
     const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
     totalRatings.value = newTotal
     averageRating.value = newAverage
-    console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
+    console.log(`出错后手动计算的统计: 总评分=${totalRatings.value}, 平均评分=${averageRating.value}`)
     
-    // Show success message
+    // 显示成功信息
     const feedbackElement = document.querySelector('.feedback')
     if (feedbackElement) {
       feedbackElement.style.display = 'none'
@@ -712,18 +654,6 @@ function checkPassword() {
   justify-self: end;
 }
 
-.second-row {
-  display: grid;
-  grid-template-columns: repeat(3, 160px);
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 4 / 7;
-  grid-row: 2;
-  justify-self: end;
-}
-
 .element-wrapper {
   width: 160px;
   height: 120px;
@@ -747,20 +677,7 @@ function checkPassword() {
   transition: all 0.5s ease;
 }
 
-.element.rotating {
-  animation: slowRotate 30s infinite alternate linear;
-}
-
-@keyframes slowRotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(15deg);
-  }
-}
-
-.top-row .element:hover, .second-row .element:hover {
+.top-row .element:hover {
   transform: rotate(-15deg) scale(1.1);
 }
 
