@@ -61,24 +61,21 @@ export async function apiFetch(endpoint, options = {}) {
     redirect: 'follow',
     // Don't send credentials by default to avoid CORS preflight issues
     credentials: options.credentials || 'omit',
+    // Always use CORS
+    mode: 'cors'
   };
-  
-  // In development, don't use CORS mode (will be handled by the Vite proxy)
-  if (!import.meta.env.DEV) {
-    fetchOptions.mode = 'cors';
-  }
   
   try {
     const response = await fetch(url, fetchOptions);
     
-    // Handle HTTP redirects if needed
+    // Handle HTTP redirects
     if ([301, 302, 307, 308].includes(response.status)) {
       const redirectUrl = response.headers.get('Location');
       console.log(`Received redirect to: ${redirectUrl}`);
       
-      // Ensure redirect URL uses HTTPS (except for localhost)
+      // Ensure redirect URL uses HTTPS
       const secureRedirectUrl = redirectUrl?.startsWith('http://')
-        ? (redirectUrl.includes('localhost') ? redirectUrl : redirectUrl.replace('http://', 'https://'))
+        ? redirectUrl.replace('http://', 'https://')
         : redirectUrl;
         
       if (secureRedirectUrl) {
@@ -95,28 +92,10 @@ export async function apiFetch(endpoint, options = {}) {
     }
     
     if (!response.ok) {
-      // If we get a 500 error, include more details in the error message
-      if (response.status === 500) {
-        let errorDetails;
-        try {
-          // Try to parse the error response if possible
-          errorDetails = await response.text();
-          console.error('Server 500 error details:', errorDetails);
-        } catch (textError) {
-          errorDetails = 'No error details available';
-        }
-        throw new Error(`API request failed with status 500 - Server Error: ${errorDetails}`);
-      }
-      
       throw new Error(`API request failed with status ${response.status}`);
     }
     
-    try {
-      return await response.json();
-    } catch (jsonError) {
-      console.warn('Response was not JSON:', jsonError);
-      return { success: true, message: 'Operation completed (no JSON response)' };
-    }
+    return await response.json();
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
     throw error;
