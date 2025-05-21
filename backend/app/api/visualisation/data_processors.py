@@ -147,7 +147,7 @@ def process_screen_time_emotions(db_session) -> Dict[str, Any]:
             
             if emotion in ('happiness', 'joy', 'contentment'):
                 time_groups[time_group]['positive_count'] += 1
-            elif emotion in ('anger', 'sadness', 'fear', 'disgust'):
+            elif emotion in ('anger', 'sadness', 'fear', 'disgust', 'anxiety', 'stress', 'boredom'):
                 time_groups[time_group]['negative_count'] += 1
             elif emotion in ('neutral', 'surprise'):
                 time_groups[time_group]['neutral_count'] += 1

@@ -71,7 +71,7 @@
           </div>
 
           <div class="visualisation-container">
-            <div class="chart-area">
+            <div class="chart-area" :class="{ 'anxiety-chart': currentTab === 3, 'sleep-chart': currentTab === 1 }">
               <div class="chart-wrapper">
                 <div v-if="isLoading" class="loading-indicator">
                   <span class="loading-spinner"></span>
@@ -1632,10 +1632,127 @@ const renderChart = (data) => {
   }
 
   let chartType = 'bar'; 
-  if (currentTab.value === 3 && data.datasets && data.datasets.length > 0 && data.datasets[0].type) {
-    chartType = data.datasets[0].type;
-  } else if (currentTab.value === 3) {
-    chartType = 'line';
+  
+  // Handle sleep chart (tab 1) and anxiety chart (tab 3) specially
+  if (currentTab.value === 1 || currentTab.value === 3) {
+    // Set chart type to line for anxiety chart
+    if (currentTab.value === 3) {
+      chartType = 'line';
+    }
+    
+    // Check if we have the chart data
+    if (data.labels && data.datasets && data.datasets.length > 0) {
+      // For sleep chart, rename the label to "Sleep Quality"
+      if (currentTab.value === 1 && data.datasets[0]) {
+        data.datasets[0].label = "Sleep Quality";
+      }
+      
+      // Find the index of "Less than an Hour" if it exists
+      const lessHourIndex = data.labels.findIndex(label => 
+        label.toLowerCase().includes('less') && label.toLowerCase().includes('hour'));
+      
+      if (lessHourIndex !== -1) {
+        // Replace "Less than an Hour" with "<1h"
+        data.labels[lessHourIndex] = '<1h';
+        
+        // Move "<1h" to the beginning
+        const lessHourLabel = data.labels.splice(lessHourIndex, 1)[0];
+        data.labels.unshift(lessHourLabel);
+        
+        // Move corresponding data point
+        data.datasets.forEach(dataset => {
+          if (dataset.data && dataset.data.length > lessHourIndex) {
+            const lessHourValue = dataset.data.splice(lessHourIndex, 1)[0];
+            dataset.data.unshift(lessHourValue);
+          }
+        });
+      }
+      
+      // Re-order the other labels for consistent screen time progression
+      const timeOrderMap = {
+        '<1h': 0,
+        '1-2h': 1,
+        '2-3h': 2, 
+        '3-4h': 3,
+        '4-5h': 4,
+        '>5h': 5
+      };
+      
+      // Sort labels and data together
+      const combined = data.labels.map((label, i) => {
+        return {
+          label,
+          data: data.datasets.map(ds => ds.data[i])
+        };
+      });
+      
+      // Skip the first item (which is now "<1h")
+      const firstItem = combined.shift();
+      
+      // Sort remaining items
+      combined.sort((a, b) => {
+        // Try to extract time patterns
+        const getOrder = (label) => {
+          for (const [pattern, order] of Object.entries(timeOrderMap)) {
+            if (label.includes(pattern)) return order;
+          }
+          return 999; // Unknown pattern
+        };
+        
+        return getOrder(a.label) - getOrder(b.label);
+      });
+      
+      // Put "<1h" back at the beginning
+      combined.unshift(firstItem);
+      
+      // Reconstruct the labels and data arrays
+      data.labels = combined.map(item => item.label);
+      data.datasets.forEach((ds, dsIndex) => {
+        ds.data = combined.map(item => item.data[dsIndex]);
+      });
+      
+      // For anxiety chart, add gradient and invert values
+      if (currentTab.value === 3) {
+        // Invert the data values by calculating the max value and subtracting
+        if (data.datasets[0] && data.datasets[0].data) {
+          const maxValue = Math.max(...data.datasets[0].data.filter(val => !isNaN(val)));
+          const minValue = Math.min(...data.datasets[0].data.filter(val => !isNaN(val)));
+          
+          // Invert the values (maxValue + minValue - value) to keep the same range but inverted
+          data.datasets[0].data = data.datasets[0].data.map(value => 
+            maxValue + minValue - value
+          );
+          
+          // Create gradient for the line (red at top to green at bottom)
+          if (ctx) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, '#e74c3c');    // Red for high anxiety (top)
+            gradient.addColorStop(0.5, '#f39c12');  // Orange for medium
+            gradient.addColorStop(1, '#2ecc71');    // Green for low anxiety (bottom)
+            
+            // Apply gradient to the line
+            data.datasets[0].borderColor = gradient;
+            data.datasets[0].backgroundColor = gradient;
+          }
+        }
+      }
+    }
+  }
+  
+  // For the emotions chart (tab 0), ensure we're displaying percentages correctly
+  if (currentTab.value === 0) {
+    // Rename labels for clarity
+    if (data.datasets && data.datasets.length > 0) {
+      data.datasets.forEach(dataset => {
+        if (dataset.label === "Positive") {
+          dataset.label = "Positive Emotions %";
+        } else if (dataset.label === "Negative") {
+          dataset.label = "Negative Emotions %";
+        } else if (dataset.label === "Neutral") {
+          dataset.label = "Neutral Emotions %";
+        }
+      });
+    }
   }
 
   try {
@@ -1645,6 +1762,14 @@ const renderChart = (data) => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 20,
+            bottom: 20,
+            left: 20,
+            right: 20
+          }
+        },
         animation: {
           duration: 1500,
           easing: 'easeOutQuart',
@@ -1673,6 +1798,23 @@ const renderChart = (data) => {
             bodyColor: '#fff',
             animation: {
               duration: 400
+            },
+            callbacks: {
+              // Customize tooltip for different charts
+              label: (context) => {
+                if (currentTab.value === 3) {
+                  const value = context.parsed.y;
+                  const label = context.dataset.label || '';
+                  return `${label}: ${value} (${value > 3 ? 'Low' : value > 2 ? 'Moderate' : 'High'} anxiety)`;
+                }
+                else if (currentTab.value === 0) {
+                  // For emotions chart, show percentage
+                  const value = context.parsed.y;
+                  const label = context.dataset.label || '';
+                  return `${label.replace(' %', '')}: ${value.toFixed(1)}%`;
+                }
+                return context.dataset.label + ': ' + context.parsed.y;
+              }
             }
           }
         },
@@ -1680,12 +1822,30 @@ const renderChart = (data) => {
           y: {
             beginAtZero: false,
             grace: '5%',
+            // Set specific y-axis settings for emotions chart
+            ...(currentTab.value === 0 && {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Percentage (%)',
+                color: '#666'
+              },
+              ticks: {
+                color: '#666',
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }),
             ticks: { 
               color: '#666',
               count: 6,
               precision: 1
             },
-            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+            grid: { color: 'rgba(200, 200, 200, 0.2)' },
+            // Hide y-axis for anxiety and sleep charts
+            display: currentTab.value !== 3 && currentTab.value !== 1
           },
           x: {
             ticks: { color: '#666' },
@@ -1860,11 +2020,22 @@ const updateSliderPosition = () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .chart-area canvas {
   width: 100% !important;
   height: 100% !important;
+  margin: 0 auto;
+}
+
+/* Add custom styling for anxiety and sleep charts */
+.chart-area.anxiety-chart,
+.chart-area.sleep-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .insight-area {
