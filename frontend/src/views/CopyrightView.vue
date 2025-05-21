@@ -253,35 +253,39 @@
     <!-- Main Content -->
     <div class="container" style="max-width: 100%; padding: 0;">
       <!-- Transforming card-based carousel to rotating banner style -->
-      <div class="copyright-tips-banner">
-        <h2 class="banner-title">Copyright Tips</h2>
-        
-        <div class="banner-container">
-          <div class="banner-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
-            <div v-for="(slide, index) in slidesData" :key="index" class="banner-slide">
-              <div class="banner-content">
-                <h2>{{ slide.title }}</h2>
-                <div v-html="slide.content"></div>
-              </div>
-            </div>
-          </div>
+      <div class="interactive-content-carousel">
+        <div class="carousel-header-panel">
+          <h2 class="carousel-main-title">Copyright Tips</h2>
         </div>
+        
+          <div class="carousel-container">
+    <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentSlideIndex * 100}%)` }">
+      <div v-for="(slide, index) in slidesData" :key="index" class="carousel-slide" :class="[index === currentSlideIndex ? 'active' : '', slideDirection]">
+        <div class="content-section">
+          <h2>{{ slide.title }}</h2>
+          <div v-html="slide.content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="banner-controls">
-          <button @click="prevSlide" class="banner-nav-button prev" aria-label="Previous slide">&lt;</button>
-          
-          <div class="banner-dots">
-            <span
-              v-for="(_slide, index) in slidesData"
-              :key="`dot-${index}`"
-              :class="{ active: index === currentSlideIndex }"
-              @click="goToSlide(index)"
-              class="dot"
-              :aria-label="`Go to slide ${index + 1}`"
-            ></span>
+        <div class="carousel-navigation">
+          <div class="navigation-container">
+            <button @click="prevSlide" class="carousel-nav-button prev" aria-label="Previous slide">&lt;</button>
+            
+            <div class="carousel-dots">
+              <span
+                v-for="(_slide, index) in slidesData"
+                :key="`dot-${index}`"
+                :class="{ active: index === currentSlideIndex }"
+                @click="goToSlide(index)"
+                class="dot"
+                :aria-label="`Go to slide ${index + 1}`"
+              ></span>
+            </div>
+            
+            <button @click="nextSlide" class="carousel-nav-button next" aria-label="Next slide">&gt;</button>
           </div>
-          
-          <button @click="nextSlide" class="banner-nav-button next" aria-label="Next slide">&gt;</button>
         </div>
       </div>
 
@@ -578,18 +582,23 @@ const slidesData = ref([
 const currentSlideIndex = ref(0);
 const totalSlides = computed(() => slidesData.value.length);
 const currentSlideTitle = computed(() => slidesData.value[currentSlideIndex.value].title);
+const slideDirection = ref('right'); // Default slide direction
 
 const goToSlide = (index) => {
+  // Determine slide direction based on index
+  slideDirection.value = index > currentSlideIndex.value ? 'right' : 'left';
   currentSlideIndex.value = index;
 };
 
 // Update nextSlide function to only cycle forward
 const nextSlide = () => {
+  slideDirection.value = 'right';
   currentSlideIndex.value = (currentSlideIndex.value + 1) % totalSlides.value;
 };
 
-// Update prevSlide function to cycle continuously in the forward direction when at the first slide
+// Update prevSlide function to cycle continuously in the reverse direction
 const prevSlide = () => {
+  slideDirection.value = 'left';
   if (currentSlideIndex.value === 0) {
     currentSlideIndex.value = totalSlides.value - 1;
   } else {
@@ -2418,5 +2427,247 @@ button:disabled {
 .reset-image-preview-btn {
   margin-top: 0.25rem;
   margin-bottom: 1rem;
+}
+
+/* Transforming card-based carousel to rotating banner style */
+.interactive-content-carousel {
+  width: 100vw;
+  margin: 3rem 0;
+  position: relative;
+  background-color: #fff0f5;
+  padding: 2rem 0;
+  box-sizing: border-box;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+.carousel-header-panel {
+  padding: 0 0 1.5rem 0;
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.carousel-main-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.carousel-container {
+  overflow: hidden;
+  border-radius: 0;
+  margin: 0 auto;
+  max-width: 1200px;
+  position: relative;
+}
+
+.carousel-wrapper {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 0 42px;
+}
+
+.carousel-slide .content-section {
+  margin-bottom: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateX(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.carousel-slide-enter-active, .carousel-slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.carousel-slide-enter-from.slide-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.carousel-slide-enter-from.slide-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.carousel-slide-leave-to.slide-right {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.carousel-slide-leave-to.slide-left {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.carousel-slide .content-section h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.carousel-slide .content-section h2:after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #FF6B6B, #4ECDC4);
+  border-radius: 3px;
+}
+
+.carousel-slide .content-section :deep(p) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 1.2rem;
+}
+
+.carousel-slide .content-section :deep(li) {
+  font-size: 1.1rem !important;
+  line-height: 1.8;
+  margin-bottom: 0.6rem;
+}
+
+.carousel-slide .content-section :deep(ul),
+.carousel-slide .content-section :deep(ol) {
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Styling for links within the carousel's resources list */
+.carousel-slide .content-section :deep(ul.resources-list li a) {
+  color: #007bff; /* Standard blue for links */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.carousel-slide .content-section :deep(ul.resources-list li a:hover) {
+  color: #0056b3; /* Darker blue on hover */
+}
+
+.carousel-slide .content-section :deep(strong) {
+  font-weight: 600;
+}
+
+.carousel-navigation {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.navigation-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.carousel-nav-button {
+  position: relative;
+  background-color: #ff6b98;
+  color: white;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  z-index: 10;
+  top: unset;
+  transform: none;
+}
+
+.carousel-nav-button:hover {
+  background-color: #e0527e;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+.carousel-dots .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ddd;
+  margin: 0 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.carousel-dots .dot:hover {
+  background-color: #ccc;
+  transform: scale(1.1);
+}
+
+.carousel-dots .dot.active {
+  background-color: #ff6b98;
+  transform: scale(1.25);
+}
+
+.carousel-nav-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+/* Additional styles for slide transitions with direction */
+.carousel-slide.active.right .content-section {
+  animation: slideInRight 0.5s forwards;
+}
+
+.carousel-slide.active.left .content-section {
+  animation: slideInLeft 0.5s forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 </style> 
