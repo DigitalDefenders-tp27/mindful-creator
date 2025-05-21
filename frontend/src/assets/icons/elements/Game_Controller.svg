@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120px" height="120px" viewBox="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Game Controller</title>
+    <g id="Game-Controller" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Main Controller Body -->
+        <path d="M95,35 C104.941,35 113,43.059 113,53 L113,67 C113,76.941 104.941,85 95,85 L25,85 C15.059,85 7,76.941 7,67 L7,53 C7,43.059 15.059,35 25,35 L95,35 Z" 
+              id="Controller-Body" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"></path>
+        
+        <!-- Left Side Grip -->
+        <circle cx="30" cy="60" r="18" fill="#F8F8F8" stroke="#FFFFFF" stroke-width="1"></circle>
+        
+        <!-- Directional Buttons -->
+        <rect x="22" y="52" width="6" height="16" rx="1" fill="#333333"></rect>
+        <rect x="17" y="57" width="16" height="6" rx="1" fill="#333333"></rect>
+        
+        <!-- Right Side Grip -->
+        <circle cx="90" cy="60" r="18" fill="#F8F8F8" stroke="#FFFFFF" stroke-width="1"></circle>
+        
+        <!-- Action Buttons -->
+        <circle cx="82" cy="52" r="5" fill="#FF3D8C"></circle>
+        <circle cx="98" cy="52" r="5" fill="#4D8CD5"></circle>
+        <circle cx="82" cy="68" r="5" fill="#6FCF97"></circle>
+        <circle cx="98" cy="68" r="5" fill="#FF8B3D"></circle>
+        
+        <!-- Center Buttons -->
+        <rect x="52" y="57" width="6" height="6" rx="1" fill="#333333"></rect>
+        <rect x="62" y="57" width="6" height="6" rx="1" fill="#333333"></rect>
+    </g>
+</svg> 

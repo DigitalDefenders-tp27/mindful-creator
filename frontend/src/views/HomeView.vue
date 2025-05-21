@@ -193,6 +193,21 @@
               </FlipCard>
             </router-link>
           </div>
+          
+          <!-- Game Card (Full Width) -->
+          <div class="game-card-container">
+            <router-link to="/games" class="game-card-link">
+              <div class="journey-card game-card">
+                <div class="card-content">
+                  <img src="/src/assets/icons/elements/Game_Controller.svg" alt="Game Controller" class="card-icon">
+                  <div class="card-text">
+                    <h3>Play Games</h3>
+                    <p class="game-card-description">Take a break and enjoy some fun and educational games</p>
+                  </div>
+                </div>
+              </div>
+            </router-link>
+          </div>
         </div>
       </div>
     </section>
@@ -1849,6 +1864,142 @@ p {
 .top-row .element:hover, 
 .second-row .element:hover {
   animation: slowRotate 5s linear infinite;
+}
+
+/* Game card styles */
+.game-card-container {
+  width: 100%;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.game-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: 100%;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  padding: 5px;
+}
+
+.game-card-link:hover {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+}
+
+.journey-card.game-card {
+  background: linear-gradient(135deg, #FF7E5F, #FEB47B);
+  min-height: 160px;
+  height: auto;
+  max-height: 200px;
+  aspect-ratio: unset;
+  display: flex;
+  align-items: center;
+  border-color: rgba(255, 126, 95, 0.8);
+}
+
+.journey-card.game-card .card-content {
+  flex-direction: row;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.journey-card.game-card .card-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 0;
+}
+
+.journey-card.game-card .card-text {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.journey-card.game-card h3 {
+  color: white;
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-card-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.2rem;
+  max-width: 500px;
+}
+
+/* Responsive styles for game card */
+@media (max-width: 1200px) {
+  .journey-card.game-card .card-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .journey-card.game-card h3 {
+    font-size: 1.8rem;
+  }
+  
+  .game-card-description {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 950px) {
+  .journey-card.game-card .card-content {
+    gap: 1.5rem;
+  }
+  
+  .journey-card.game-card .card-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .journey-card.game-card h3 {
+    font-size: 1.6rem;
+  }
+  
+  .game-card-description {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-card-link {
+    width: 90%;
+    max-width: 380px;
+  }
+  
+  .journey-card.game-card {
+    min-height: 140px;
+  }
+  
+  .journey-card.game-card .card-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .journey-card.game-card .card-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .journey-card.game-card .card-text {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .journey-card.game-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .game-card-description {
+    font-size: 0.9rem;
+    text-align: center;
+  }
 }
 </style>
 

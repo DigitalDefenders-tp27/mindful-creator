@@ -110,6 +110,17 @@
                   @click="setBanner(index)"
                 ></span>
               </div>
+              
+              <!-- Seek Help Link inside banner -->
+              <div class="seek-help">
+                <RippleButton
+                  class="help-button"
+                  rippleColor="rgba(255, 255, 255, 0.6)"
+                  @click="handleSeekHelp"
+                >
+                  SEEK HELP
+                </RippleButton>
+              </div>
             </div>
           </div>
         </transition>
@@ -117,17 +128,6 @@
         <button class="banner-nav next-banner" @click="nextBanner">
           <span class="arrow-icon">❯</span>  
         </button>
-      </div>
-
-      <!-- Seek Help Link -->
-      <div class="seek-help">
-        <RippleButton
-          class="help-button"
-          rippleColor="rgba(255, 255, 255, 0.6)"
-          @click="handleSeekHelp"
-        >
-          SEEK HELP
-        </RippleButton>
       </div>
 
       <!-- Check Your Comment Section -->
@@ -2240,26 +2240,28 @@
   .seek-help {
     display: flex;
     justify-content: center;
-    margin: 2rem auto 4rem;
+    margin: 2rem auto 1.5rem;
   }
 
   .help-button {
-    padding: 0.75rem 2rem;
+    padding: 0.75rem 2.5rem;
     background-color: #7e78d2;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 25px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
 
   .help-button:hover {
     background-color: #65c9a4;
     transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
 
   .overlay {
@@ -3965,11 +3967,11 @@
   }
   
   .prev-banner {
-    left: 20px;
+    left: 80px;
   }
   
   .next-banner {
-    right: 20px;
+    right: 80px;
   }
   
   .banner-nav:hover {
@@ -4216,6 +4218,7 @@
     text-align: center;
     margin: 3rem auto 2rem;
     position: relative;
+    padding-top: 30px;
   }
 
   .banner-section-title {

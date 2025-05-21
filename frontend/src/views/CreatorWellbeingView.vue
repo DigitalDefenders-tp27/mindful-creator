@@ -71,7 +71,7 @@
           </div>
 
           <div class="visualisation-container">
-            <div class="chart-area">
+            <div class="chart-area" :class="{ 'anxiety-chart': currentTab === 3, 'sleep-chart': currentTab === 1 }">
               <div class="chart-wrapper">
                 <div v-if="isLoading" class="loading-indicator">
                   <span class="loading-spinner"></span>
@@ -252,9 +252,9 @@
                       <div v-for="line in selectedClinic.openingHours.weekday_text" :key="line" class="hours-line">
                         <span>{{ line }}</span>
                       </div>
-                      <div v-if="selectedClinic.openingHours.open_now !== undefined" 
-                           :class="['open-status', selectedClinic.openingHours.open_now ? 'open' : 'closed']">
-                        {{ selectedClinic.openingHours.open_now ? 'Open now' : 'Closed now' }}
+                      <div v-if="selectedClinic.openingHours.is_open !== undefined" 
+                           :class="['open-status', selectedClinic.openingHours.is_open ? 'open' : 'closed']">
+                        {{ selectedClinic.openingHours.is_open ? 'Open now' : 'Closed now' }}
                       </div>
                     </template>
                     <template v-else-if="selectedClinic && selectedClinic.place_id && (!selectedClinic.openingHours || !selectedClinic.openingHours.weekday_text)">
@@ -316,11 +316,12 @@
               <div class="activity-tags">
                 <span v-for="(tag, tagIndex) in activity.tags.slice(0, 2)" 
                       :key="tagIndex" 
-                      :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
+                      :class="['tag', tag.toLowerCase().replace(' ', '-'),
+                               tag.startsWith('$') ? 'price-tag' : '']">{{ tag }}</span>
               </div>
               <div class="activity-details">
                 <span class="group-size">{{ activity.location }}</span>
-                <span class="location">{{ activity.price === 'Free' ? 'Free Event' : activity.price }}</span>
+                <span class="location">{{ activity.price === 'Free' ? 'Free Event' : (activity.price === 'Paid' && activity.tags.some(tag => tag.startsWith('$')) ? activity.tags.find(tag => tag.startsWith('$')) : activity.price) }}</span>
               </div>
             </div>
           </a>
@@ -424,7 +425,9 @@
               <div class="event-info">
                 <h3>{{ event.title }}</h3>
                 <div class="event-tags">
-                  <span v-for="(tag, index) in event.tags" :key="index" :class="['tag', tag.toLowerCase().replace(' ', '-')]">{{ tag }}</span>
+                  <span v-for="(tag, index) in event.tags" :key="index" 
+                        :class="['tag', tag.toLowerCase().replace(' ', '-'), 
+                                 tag.startsWith('$') ? 'price-tag' : '']">{{ tag }}</span>
                 </div>
                 <p class="event-description">{{ event.description }}</p>
                 <div class="event-meta">
@@ -520,7 +523,30 @@ import ScrollIsland from '@/components/ScrollIsland.vue'
 import Chart from 'chart.js/auto'
 
 // State variables
-const selectedClinic = ref(null) // Initialize as null
+const defaultClinic = {
+  id: 'default-clinic',
+  name: 'The Melbourne Centre of Psychotherapy and Consultancy',
+  lat: -37.8136, 
+  lng: 144.9631,
+  address: '55 Rathdowne St, Carlton VIC 3053',
+  website: 'https://www.mcpc.org.au',
+  phone: '(03) 9347 2434',
+  rating: 4.7,
+  reviews: 28,
+  openingHours: {
+    weekday_text: [
+      'Monday: 9:00 AM – 5:00 PM',
+      'Tuesday: 9:00 AM – 5:00 PM',
+      'Wednesday: 9:00 AM – 5:00 PM',
+      'Thursday: 9:00 AM – 5:00 PM',
+      'Friday: 9:00 AM – 5:00 PM',
+      'Saturday: Closed',
+      'Sunday: Closed'
+    ],
+    is_open: false
+  }
+}
+const selectedClinic = ref(defaultClinic) // Initialize with default clinic
 const showGuide = ref(false)
 const mapCenter = ref({ lat: -37.8136, lng: 144.9631 }) // Default Melbourne centre coordinates
 const userLocation = ref(null)
@@ -556,112 +582,91 @@ const router = useRouter()
 let googleInstance = null;
 let placesService = null; // Added for Places API
 
-// Initialize Google Maps
+// Initialize Google Maps - completely rewritten to fix structure
 const initMap = async () => {
+  console.log('Starting map initialization...');
   try {
-    // If map already exists, clean it first
-    if (map.value) {
-      map.value = null;
-    }
-    
-    // Clear all markers
-    if (markers.value && markers.value.length > 0) {
-      markers.value.forEach(marker => marker.setMap(null));
-      markers.value = [];
-    }
-
-    // Check API key
+    // Basic setup
     if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
       throw new Error('Google Maps API key is missing');
     }
-
-    // Check map container
+    
     const mapElement = document.getElementById('google-map');
-    if (!mapElement) {
-      throw new Error('Map container not found');
+    if (!mapElement) throw new Error('Map container not found');
+    
+    // Clear previous map
+    if (map.value) map.value = null;
+    
+    // Clear markers
+    if (markers.value && markers.value.length > 0) {
+      markers.value.forEach(marker => {
+        if (marker && marker.setMap) marker.setMap(null);
+      });
+      markers.value = [];
     }
-
-    // Ensure map container is visible
-    if (!mapElement.offsetParent) {
-      console.log('Map container is not visible, waiting for it to become visible...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Wait for DOM update
-    }
-
-    // Set map container dimensions
+    
+    // Configure map container
     mapElement.style.width = '100%';
     mapElement.style.height = '100%';
-
+    
+    // Create loader
     const loader = new Loader({
       apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
       version: "weekly",
-      libraries: ["places", "maps", "marker"], // Ensure maps and marker libraries are loaded
+      libraries: ["places", "maps", "marker"],
       language: "en",
       region: "AU"
     });
-
-    // Load Google Maps
+    
+    // Load maps
     googleInstance = await loader.load();
     const { Map } = await googleInstance.maps.importLibrary("maps");
-    // const { AdvancedMarkerElement } = await googleInstance.maps.importLibrary("marker"); // For advanced markers if needed
-
-    // Initialize map
+    
+    // Create map
     map.value = new Map(mapElement, {
-      center: mapCenter.value, // Use mapCenter ref
+      center: mapCenter.value,
       zoom: 13,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
-      mapId: 'MINDFUL_CREATOR_MAP_ID', // Optional: for cloud-based map styling
       styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }]
-        },
-        { // Hide most business POIs to de-clutter, we will add our own.
-          featureType: "poi.business",
-          stylers: [{ visibility: "off" }],
-        },
+        { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+        { featureType: "poi.business", stylers: [{ visibility: "off" }] }
       ]
     });
     
+    // Setup places service
     placesService = new googleInstance.maps.places.PlacesService(map.value);
-    googleInstance.maps.event.trigger(map.value, 'resize');
-
-
-    // Initialize Places Autocomplete
-    const input = document.querySelector('.search-input'); // Ensure this selector is correct
+    
+    // Set up autocomplete
+    const input = document.querySelector('.search-input');
     if (input) {
       const autocomplete = new googleInstance.maps.places.Autocomplete(input, {
-        // bounds for Melbourne area as an example, adjust as needed or remove for broader search
         bounds: new googleInstance.maps.LatLngBounds(
           new googleInstance.maps.LatLng(-38.5, 144.5), 
           new googleInstance.maps.LatLng(-37.5, 145.5)
         ),
         componentRestrictions: { country: 'au' },
-        fields: ['geometry', 'name', 'formatted_address', 'place_id'], // Request needed fields
+        fields: ['geometry', 'name', 'formatted_address', 'place_id'],
         types: ['address']
       });
-
+      
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace();
         if (place.geometry) {
-          searchAddress.value = place.formatted_address || place.name; // Update search input text
+          searchAddress.value = place.formatted_address || place.name;
           handlePlaceSelection(place);
         }
       });
     }
-
-    // Initial search for clinics around the map center
-    findAndDisplayNearbyClinics(map.value.getCenter());
-
-
+    
+    console.log('Map initialized successfully');
   } catch (error) {
     console.error("Error initializing map:", error);
     alert(error.message || 'Error loading map. Please refresh the page and try again.');
     isSearching.value = false;
   }
-};
+}
 
 // Update updateMarkers function
 const updateMarkers = async () => {
@@ -673,11 +678,17 @@ const updateMarkers = async () => {
 
     // Clear existing clinic markers (markers ref stores clinic markers)
     if (markers.value && markers.value.length > 0) {
-      markers.value.forEach(marker => marker.setMap(null));
+      markers.value.forEach(marker => {
+        if (marker.setMap) {
+          marker.setMap(null); // For regular markers
+        } else if (marker.map) {
+          marker.map = null; // For advanced markers
+        }
+      });
       markers.value = []; // Reset the array
     }
 
-    // Add marker for each clinic from displayedClinics
+    // Use regular markers for reliability
     displayedClinics.value.forEach(clinic => {
       const marker = new googleInstance.maps.Marker({
         position: { lat: clinic.lat, lng: clinic.lng },
@@ -685,10 +696,10 @@ const updateMarkers = async () => {
         title: clinic.name,
         icon: {
           path: googleInstance.maps.SymbolPath.CIRCLE,
-          scale: 8, // size
-          fillColor: "red", // Red dot for clinics
+          scale: 10,
+          fillColor: "#e75a97", // Pink dot for clinics
           fillOpacity: 1,
-          strokeWeight: 1,
+          strokeWeight: 2,
           strokeColor: "white"
         },
         animation: googleInstance.maps.Animation.DROP
@@ -697,8 +708,34 @@ const updateMarkers = async () => {
       marker.addListener('click', () => {
         selectClinic(clinic);
       });
+      
       markers.value.push(marker);
     });
+    
+    // Fit map bounds to include both user location and all clinics
+    if (userLocation.value && displayedClinics.value.length > 0) {
+      const bounds = new googleInstance.maps.LatLngBounds();
+      
+      // Add user location to bounds
+      bounds.extend(new googleInstance.maps.LatLng(
+        userLocation.value.lat,
+        userLocation.value.lng
+      ));
+      
+      // Add all clinic locations to bounds
+      displayedClinics.value.forEach(clinic => {
+        bounds.extend(new googleInstance.maps.LatLng(
+          clinic.lat,
+          clinic.lng
+        ));
+      });
+      
+      // Fit the map to these bounds
+      map.value.fitBounds(bounds);
+      
+      // Add some padding to the bounds
+      map.value.setZoom(map.value.getZoom() - 0.5);
+    }
   } catch (error) {
     console.error("Error updating markers:", error);
   }
@@ -759,65 +796,131 @@ const findAndDisplayNearbyClinics = (location) => {
   const currentClinic = selectedClinic.value;
   
   isSearching.value = true;
-  // Don't clear selectedClinic immediately to maintain UI
-  // selectedClinic.value = null; // Clear previous selection - REMOVED
   
   // Clear existing clinic markers
   if (markers.value && markers.value.length > 0) {
     markers.value.forEach(marker => marker.setMap(null));
     markers.value = [];
   }
+  
   // Store current clinics before clearing
   const previousClinics = [...displayedClinics.value];
   displayedClinics.value = [];
 
+  // Use a simpler request with just essential parameters
+  // Make sure location is properly formatted
+  const locationObj = location instanceof googleInstance.maps.LatLng 
+    ? location 
+    : new googleInstance.maps.LatLng(location.lat, location.lng);
+    
   const request = {
-    location: location,
+    location: locationObj,
     radius: 5000, // 5km radius
-    keyword: 'psychologist OR "mental health clinic" OR therapy',
-    // type: ['health'] // Optional: can make search broader or narrower. Test with keyword first.
+    keyword: 'psychologist OR therapy', // Simpler keyword
   };
 
-  placesService.nearbySearch(request, (results, status) => {
+  try {
+    placesService.nearbySearch(request, (results, status) => {
     if (status === googleInstance.maps.places.PlacesServiceStatus.OK && results) {
+      // Process and filter results
       displayedClinics.value = results
         .filter(place => place.business_status === 'OPERATIONAL') // Filter for operational places
         .map(place => ({
-        id: place.place_id,
-        name: place.name,
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-        address: place.vicinity,
-        website: place.website || null,
-        rating: place.rating || 0,
-        reviews: place.user_ratings_total || 0,
-        openingHours: place.opening_hours ? { open_now: place.opening_hours.open_now } : null, // Basic info from nearby
-        photos: place.photos || null,
-        place_id: place.place_id,
-      }));
+          id: place.place_id,
+          name: place.name,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          address: place.vicinity,
+          website: place.website || null,
+          rating: place.rating || 0,
+          reviews: place.user_ratings_total || 0,
+          openingHours: place.opening_hours ? { 
+            is_open: place.opening_hours.isOpen ? place.opening_hours.isOpen() : undefined 
+          } : null,
+          photos: place.photos || null,
+          place_id: place.place_id,
+        }));
 
-      updateMarkers();
-
+      // If we have results, update markers (which will also adjust map bounds)
       if (displayedClinics.value.length > 0) {
-        selectClinic(displayedClinics.value[0]); // Auto-select the first one
+        // Before updating markers, show a message about how many clinics were found
+        const clinicsCount = displayedClinics.value.length;
+        
+        if (userMarker.value) {
+          const infoContent = `<div style="text-align:center;padding:5px;">
+            <strong>Found ${clinicsCount} clinic${clinicsCount !== 1 ? 's' : ''} nearby</strong>
+          </div>`;
+          
+          const infoWindow = new googleInstance.maps.InfoWindow({
+            content: infoContent,
+            disableAutoPan: true
+          });
+          
+          infoWindow.open(map.value, userMarker.value);
+          
+          // Close after 3 seconds
+          setTimeout(() => {
+            infoWindow.close();
+          }, 3000);
+        }
+        
+        // Update markers (this will also adjust the map bounds)
+        updateMarkers();
+        
+        // Auto-select the first one (nearest)
+        selectClinic(displayedClinics.value[0]);
       } else {
+        // No results found
         alert('No operational psychology clinics found nearby with the current filters.');
+        
+        // Center back on user location
+        if (userLocation.value && map.value) {
+          map.value.setCenter(userLocation.value);
+          map.value.setZoom(14);
+        }
+        
         // Restore previous clinic if no results found
         selectedClinic.value = currentClinic;
       }
     } else if (status === googleInstance.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
       alert('No psychology clinics found nearby.');
+      
+      // Center back on user location
+      if (userLocation.value && map.value) {
+        map.value.setCenter(userLocation.value);
+        map.value.setZoom(14);
+      }
+      
       displayedClinics.value = previousClinics; // Restore previous clinics
       updateMarkers();
       selectedClinic.value = currentClinic; // Restore previous selection
     } else {
       alert('Nearby search failed. Status: ' + status);
       console.error('PlacesService.nearbySearch failed with status:', status);
+      
+      // Center back on user location
+      if (userLocation.value && map.value) {
+        map.value.setCenter(userLocation.value);
+        map.value.setZoom(14);
+      }
+      
       displayedClinics.value = previousClinics; // Restore previous clinics
       selectedClinic.value = currentClinic; // Restore previous selection
     }
     isSearching.value = false;
   });
+  } catch (error) {
+    console.error('Error calling Places API:', error);
+    isSearching.value = false;
+    displayedClinics.value = previousClinics; // Restore previous clinics
+    selectedClinic.value = currentClinic; // Restore previous selection
+    if (map.value && userLocation.value) {
+      alert('Sorry, we encountered an error finding clinics. Please try again later.');
+      // Just show user's location
+      map.value.setCenter(userLocation.value);
+      map.value.setZoom(15);
+    }
+  }
 };
 
 const selectClinic = (clinic) => {
@@ -860,7 +963,7 @@ const fetchClinicDetails = (placeId) => {
         reviews: place.user_ratings_total || 0,
         openingHours: place.opening_hours ? {
             weekday_text: place.opening_hours.weekday_text || ["Opening hours not available"],
-            open_now: typeof place.opening_hours.isOpen === 'function' ? place.opening_hours.isOpen() : undefined
+            is_open: typeof place.opening_hours.isOpen === 'function' ? place.opening_hours.isOpen() : undefined
         } : { weekday_text: ["Opening hours not available"] },
         photos: place.photos || null,
         googleMapsUrl: place.url,
@@ -935,28 +1038,46 @@ const getMyPosition = () => {
         mapCenter.value = userLocation.value
         
         if (map.value && googleInstance) {
+          // Immediately center on user location for visual feedback
           map.value.setCenter(userLocation.value)
-          map.value.setZoom(14)
+          map.value.setZoom(15) // Slightly closer zoom to see neighborhood details
           
+          // Remove existing user marker if present
           if (userMarker.value) {
             userMarker.value.setMap(null)
           }
           
+          // Create a more prominent user location marker
           userMarker.value = new googleInstance.maps.Marker({
             position: userLocation.value,
             map: map.value,
-            icon: { // Blue for user location
+            icon: {
               path: googleInstance.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: "#4285F4",
+              scale: 12, // Larger scale for better visibility
+              fillColor: "#4285F4", // Google blue for user location
               fillOpacity: 1,
               strokeColor: "#FFFFFF",
               strokeWeight: 2
             },
             animation: googleInstance.maps.Animation.DROP,
-            title: "Your Location"
+            title: "Your Location",
+            zIndex: 1000 // Ensure user marker appears above clinic markers
           })
           
+          // Show a brief notification that we're finding clinics
+          const infoWindow = new googleInstance.maps.InfoWindow({
+            content: '<div style="text-align:center;padding:5px;">Finding clinics near you...</div>',
+            disableAutoPan: true
+          });
+          
+          infoWindow.open(map.value, userMarker.value);
+          
+          // Close the info window after 2 seconds
+          setTimeout(() => {
+            infoWindow.close();
+          }, 2000);
+          
+          // Find nearby clinics - map bounds will be adjusted in updateMarkers
           findAndDisplayNearbyClinics(userLocation.value);
         } else {
           isSearching.value = false; // Map not ready
@@ -1081,7 +1202,7 @@ const events = [
   {
     id: 3,
     title: 'Workplace Wellbeing: How to Build Confidence and Manage Stress',
-    tags: ['October', 'Workplace Wellbeing', 'Paid'],
+    tags: ['October', 'Workplace Wellbeing', '$108.9'],
     description: "You'll learn about both positive and negative factors at play in workplace.",
     location: 'Sydney',
     address: '20 Bond Street, Sydney NSW 2000',
@@ -1532,17 +1653,17 @@ const tabs = [
   { 
     name: 'Screen Time and Emotional Wellbeing', 
     insights: [
-      'Excessive screen time strongly correlates with increased negative emotions and decreased wellbeing.',
-      'Users who limit daily screen time to under 2 hours report 30% better emotional health scores.',
-      'Implementing regular digital detox periods shows significant improvement in mood regulation.'
+      'Screen time between 3-5 hours shows the highest percentage of positive emotions at around 50%.',
+      'Users with less than 1 hour screen time report predominantly negative emotions (70%).',
+      'As screen time increases from 1 to 5 hours, the ratio of positive to negative emotions improves.'
     ]
   },
   {
     name: 'Digital Habits and Sleep Health', 
     insights: [
-      'Late-night device usage disrupts melatonin production, resulting in 40% poorer sleep quality.',
-      'Consistent bedtime device restrictions lead to faster sleep onset and deeper rest cycles.',
-      'Blue light exposure within 2 hours of sleep delays REM sleep by an average of 45 minutes.'
+      'Longer screen time (over 5 hours) correlates with higher self-reported sleep quality scores.',
+      'Users with minimal screen time (under 1 hour) report the poorest sleep quality ratings.',
+      'Sleep quality scores show a steady increase as daily digital engagement time increases.'
     ]
   },
   {
@@ -1556,9 +1677,9 @@ const tabs = [
   {
     name: 'Screen Time and Anxiety', 
     insights: [
-      'Each hour over 3 hours of daily usage correlates with a 27% increase in anxiety symptoms.',
-      'Structured breaks every 90 minutes decrease stress markers and improve cognitive function.',
-      'Mindfulness practices during technology use reduce reported anxiety by up to 35%.'
+      'Users with minimal screen time (under 1 hour) report the highest levels of anxiety.',
+      'Anxiety levels decrease significantly as screen time increases from 1 to 3 hours.',
+      'The most stable and lowest anxiety levels are observed in users with over 5 hours of daily screen time.'
     ]
   }
 ]
@@ -1569,55 +1690,35 @@ const fetchDataAndRender = async () => {
   error.value = null;
 
   try {
-    // Mock data for demonstration purposes
-    const mockData = {
-      labels: ['Below 1h', '1-3h', '3-5h'],
-      datasets: currentTab.value === 3 
-        ? [{
-            label: 'Average Anxiety',
-            data: [2.9, 3.3, 3.8, 3.5, 3.8, 2.1],
-            borderColor: '#4CAF50',
-            backgroundColor: '#4CAF50',
-            type: 'line'
-          }] 
-        : currentTab.value === 0
-        ? [
-            {
-              label: 'Positive',
-              data: [22, 49, 50],
-              backgroundColor: '#4DD0E1'
-            },
-            {
-              label: 'Negative',
-              data: [30, 29, 0],
-              backgroundColor: '#FF4081'
-            },
-            {
-              label: 'Neutral',
-              data: [69, 47, 50],
-              backgroundColor: '#FFD54F'
-            }
-          ]
-        : currentTab.value === 1
-        ? [{
-            label: 'Sleep Problems (1-5)',
-            data: [2.9, 3.1, 3.2, 3.4, 3.4, 2.5],
-            backgroundColor: '#9575CD'
-          }]
-        : [{
-            label: 'Engagement',
-            data: [12, 34, 80],
-            backgroundColor: '#4FC3F7'
-          }]
-    };
+    let chartData;
+    // Define API endpoints for each tab
+    const endpoints = [
+      '/api/visualisation/screen-time-emotions', // Screen time and emotions
+      '/api/visualisation/sleep-quality',        // Digital habits and sleep
+      '/api/visualisation/engagement',           // Engagement metrics
+      '/api/visualisation/anxiety'               // Screen time and anxiety
+    ];
+    
+    // Select the appropriate endpoint based on current tab
+    const endpoint = endpoints[currentTab.value];
+    console.log(`Fetching data from endpoint: ${endpoint}`);
+    
+    // Make API request to backend
+    const response = await axios.get(BACKEND_URL + endpoint);
+    chartData = response.data;
+    
+    // Validate response data structure
+    if (!chartData || !chartData.labels || !chartData.datasets) {
+      throw new Error('Invalid data format received from API');
+    }
     
     isLoading.value = false; 
     await nextTick();
-    renderChart(mockData);
+    renderChart(chartData);
 
   } catch (err) {
     console.error('Failed to fetch chart data:', err);
-    error.value = `Failed to load visualization: ${err.message}`;
+    error.value = `Failed to load visualisation: ${err.message}`;
     isLoading.value = false;
   }
 };
@@ -1635,7 +1736,7 @@ const renderChart = (data) => {
   const ctx = canvasElement.getContext('2d');
   if (!ctx) {
     console.error('Failed to get 2D context from canvas element');
-    error.value = "Could not initialize the chart. The browser might not support Canvas 2D.";
+    error.value = "Could not initialise the chart. The browser might not support Canvas 2D.";
     return;
   }
 
@@ -1646,16 +1747,133 @@ const renderChart = (data) => {
   if (!data || Object.keys(data).length === 0 || !data.labels || !data.datasets) {
     console.warn('No valid data provided to renderChart.');
     if (!error.value) {
-      error.value = "No data available to display for this visualization.";
+      error.value = "No data available to display for this visualisation.";
     }
     return; 
   }
 
   let chartType = 'bar'; 
-  if (currentTab.value === 3 && data.datasets && data.datasets.length > 0 && data.datasets[0].type) {
-    chartType = data.datasets[0].type;
-  } else if (currentTab.value === 3) {
-    chartType = 'line';
+  
+  // Handle sleep chart (tab 1) and anxiety chart (tab 3) specially
+  if (currentTab.value === 1 || currentTab.value === 3) {
+    // Set chart type to line for anxiety chart
+    if (currentTab.value === 3) {
+      chartType = 'line';
+    }
+    
+    // Check if we have the chart data
+    if (data.labels && data.datasets && data.datasets.length > 0) {
+      // For sleep chart, rename the label to "Sleep Quality"
+      if (currentTab.value === 1 && data.datasets[0]) {
+        data.datasets[0].label = "Sleep Quality";
+      }
+      
+      // Find the index of "Less than an Hour" if it exists
+      const lessHourIndex = data.labels.findIndex(label => 
+        label.toLowerCase().includes('less') && label.toLowerCase().includes('hour'));
+      
+      if (lessHourIndex !== -1) {
+        // Replace "Less than an Hour" with "<1h"
+        data.labels[lessHourIndex] = '<1h';
+        
+        // Move "<1h" to the beginning
+        const lessHourLabel = data.labels.splice(lessHourIndex, 1)[0];
+        data.labels.unshift(lessHourLabel);
+        
+        // Move corresponding data point
+        data.datasets.forEach(dataset => {
+          if (dataset.data && dataset.data.length > lessHourIndex) {
+            const lessHourValue = dataset.data.splice(lessHourIndex, 1)[0];
+            dataset.data.unshift(lessHourValue);
+          }
+        });
+      }
+      
+      // Re-order the other labels for consistent screen time progression
+      const timeOrderMap = {
+        '<1h': 0,
+        '1-2h': 1,
+        '2-3h': 2, 
+        '3-4h': 3,
+        '4-5h': 4,
+        '>5h': 5
+      };
+      
+      // Sort labels and data together
+      const combined = data.labels.map((label, i) => {
+        return {
+          label,
+          data: data.datasets.map(ds => ds.data[i])
+        };
+      });
+      
+      // Skip the first item (which is now "<1h")
+      const firstItem = combined.shift();
+      
+      // Sort remaining items
+      combined.sort((a, b) => {
+        // Try to extract time patterns
+        const getOrder = (label) => {
+          for (const [pattern, order] of Object.entries(timeOrderMap)) {
+            if (label.includes(pattern)) return order;
+          }
+          return 999; // Unknown pattern
+        };
+        
+        return getOrder(a.label) - getOrder(b.label);
+      });
+      
+      // Put "<1h" back at the beginning
+      combined.unshift(firstItem);
+      
+      // Reconstruct the labels and data arrays
+      data.labels = combined.map(item => item.label);
+      data.datasets.forEach((ds, dsIndex) => {
+        ds.data = combined.map(item => item.data[dsIndex]);
+      });
+      
+      // For anxiety chart, add gradient and invert values
+      if (currentTab.value === 3) {
+        // Invert the data values by calculating the max value and subtracting
+        if (data.datasets[0] && data.datasets[0].data) {
+          const maxValue = Math.max(...data.datasets[0].data.filter(val => !isNaN(val)));
+          const minValue = Math.min(...data.datasets[0].data.filter(val => !isNaN(val)));
+          
+          // Invert the values (maxValue + minValue - value) to keep the same range but inverted
+          data.datasets[0].data = data.datasets[0].data.map(value => 
+            maxValue + minValue - value
+          );
+          
+          // Create gradient for the line (red at top to green at bottom)
+          if (ctx) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, '#e74c3c');    // Red for high anxiety (top)
+            gradient.addColorStop(0.5, '#f39c12');  // Orange for medium
+            gradient.addColorStop(1, '#2ecc71');    // Green for low anxiety (bottom)
+            
+            // Apply gradient to the line
+            data.datasets[0].borderColor = gradient;
+            data.datasets[0].backgroundColor = gradient;
+          }
+        }
+      }
+    }
+  }
+  
+  // For the emotions chart (tab 0), ensure we're displaying percentages correctly
+  if (currentTab.value === 0) {
+    // Rename labels for clarity
+    if (data.datasets && data.datasets.length > 0) {
+      data.datasets.forEach(dataset => {
+        if (dataset.label === "Positive") {
+          dataset.label = "Positive Emotions %";
+        } else if (dataset.label === "Negative") {
+          dataset.label = "Negative Emotions %";
+        } else if (dataset.label === "Neutral") {
+          dataset.label = "Neutral Emotions %";
+        }
+      });
+    }
   }
 
   try {
@@ -1665,6 +1883,14 @@ const renderChart = (data) => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 20,
+            bottom: 20,
+            left: 20,
+            right: 20
+          }
+        },
         animation: {
           duration: 1500,
           easing: 'easeOutQuart',
@@ -1693,6 +1919,23 @@ const renderChart = (data) => {
             bodyColor: '#fff',
             animation: {
               duration: 400
+            },
+            callbacks: {
+              // Customize tooltip for different charts
+              label: (context) => {
+                if (currentTab.value === 3) {
+                  const value = context.parsed.y;
+                  const label = context.dataset.label || '';
+                  return `${label}: ${value} (${value > 3 ? 'Low' : value > 2 ? 'Moderate' : 'High'} anxiety)`;
+                }
+                else if (currentTab.value === 0) {
+                  // For emotions chart, show percentage
+                  const value = context.parsed.y;
+                  const label = context.dataset.label || '';
+                  return `${label.replace(' %', '')}: ${value.toFixed(1)}%`;
+                }
+                return context.dataset.label + ': ' + context.parsed.y;
+              }
             }
           }
         },
@@ -1700,12 +1943,30 @@ const renderChart = (data) => {
           y: {
             beginAtZero: false,
             grace: '5%',
+            // Set specific y-axis settings for emotions chart
+            ...(currentTab.value === 0 && {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Percentage (%)',
+                color: '#666'
+              },
+              ticks: {
+                color: '#666',
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }),
             ticks: { 
               color: '#666',
               count: 6,
               precision: 1
             },
-            grid: { color: 'rgba(200, 200, 200, 0.2)' }
+            grid: { color: 'rgba(200, 200, 200, 0.2)' },
+            // Hide y-axis for anxiety and sleep charts
+            display: currentTab.value !== 3 && currentTab.value !== 1
           },
           x: {
             ticks: { color: '#666' },
@@ -1730,10 +1991,8 @@ const switchTab = (index) => {
 // Update slider position when window resizes
 const updateSliderPosition = () => {
   tabElements.value = tabElements.value.slice();
-};
+  }
 
-// Other existing state variables
-// ... existing code ...
 </script>
 
 <style scoped>
@@ -1880,11 +2139,22 @@ const updateSliderPosition = () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .chart-area canvas {
   width: 100% !important;
   height: 100% !important;
+  margin: 0 auto;
+}
+
+/* Add custom styling for anxiety and sleep charts */
+.chart-area.anxiety-chart,
+.chart-area.sleep-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .insight-area {
@@ -3506,16 +3776,16 @@ section:not(:last-child)::after {
   background-color: #fff;
   border-radius: 30px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 0 0 2px rgba(255,255,255,0.7);
-  height: 40px;
+  height: 50px; /* Increased from 40px */
   display: flex;
   align-items: center;
-  padding: 0 3px 0 10px; /* Reduced padding */
+  padding: 0 3px 0 15px; /* Increased left padding */
 }
 
 .search-input {
   flex-grow: 1;
   height: 100%;
-  font-size: 0.9rem;
+  font-size: 1rem; /* Increased from 0.9rem */
   border: none;
   outline: none;
   background-color: transparent;
@@ -3534,9 +3804,9 @@ section:not(:last-child)::after {
 }
 
 .search-btn {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
+  width: 36px; /* Increased from 30px */
+  height: 36px; /* Increased from 30px */
+  min-width: 36px; /* Increased from 30px */
   background-color: #E91E63;
   color: white;
   border: none;
@@ -3548,6 +3818,7 @@ section:not(:last-child)::after {
   justify-content: center;
   flex-shrink: 0;
   margin-left: auto;
+  margin-right: 7px; /* Added margin for better positioning */
 }
 
 /* Mobile adjustments */
@@ -3555,18 +3826,25 @@ section:not(:last-child)::after {
   .search-bar {
     width: calc(100% - 20px);
     top: 10px;
-    height: 36px;
-    padding: 0 2px 0 8px; /* Even smaller padding for mobile */
+    height: 54px; /* Increased from 46px to 54px for better mobile visibility */
+    padding: 0 2px 0 15px; /* Increased left padding */
   }
   
   .search-input {
-    font-size: 0.85rem;
+    font-size: 1rem; /* Increased from 0.9rem to 1rem */
   }
   
   .search-btn {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
+    width: 38px; /* Increased from 32px to 38px */
+    height: 38px; /* Increased from 32px to 38px */
+    min-width: 38px; /* Increased from 32px to 38px */
+    margin-right: 8px; /* Increased margin for better positioning */
+  }
+  
+  /* Adjust search icon size */
+  .search-btn svg {
+    width: 16px; /* Increased from default */
+    height: 16px; /* Increased from default */
   }
 }
 
@@ -3992,12 +4270,13 @@ section:not(:last-child)::after {
   font-size: 1rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(231, 90, 151, 0.25);
 }
 
 .resource-link-btn:hover {
   background: #d4407f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(231, 90, 151, 0.4);
+  box-shadow: 0 6px 14px rgba(231, 90, 151, 0.35);
 }
 
 @media (max-width: 768px) {
@@ -4027,7 +4306,7 @@ section:not(:last-child)::after {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #222222;
+  color: #222222; /* Default color */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -4037,18 +4316,21 @@ section:not(:last-child)::after {
   margin-right: 0.5rem;
 }
 
-/* Remove dark tag styles */
+/* Dark tag styles - white text for better contrast */
 .tag.may, 
 .tag.june, 
 .tag.workshop, 
 .tag.mental-health, 
 .tag.physical-wellness-practice, 
 .tag.workplace-wellbeing, 
-.tag.workplace-wellbeing-workshop {
-  color: #222222;
+.tag.workplace-wellbeing-workshop,
+.tag.sold-out,
+.tag.paid,
+.tag.festival {
+  color: #ffffff;
 }
 
-/* Remove light tag styles */
+/* Light tag styles - dark text for better contrast */
 .tag.april, 
 .tag.free-event, 
 .tag.october, 
@@ -4095,8 +4377,9 @@ section:not(:last-child)::after {
   background-color: #4CAF50;
 }
 
-.tag.paid {
+.tag.paid, .tag[class*="$"], .tag.price-tag {
   background-color: #F44336;
+  color: #ffffff;
 }
 
 .tag.festival {

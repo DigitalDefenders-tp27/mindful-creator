@@ -145,11 +145,11 @@ def process_screen_time_emotions(db_session) -> Dict[str, Any]:
             emotion = str(row["dominant_emotion"]).strip().lower()
             time_groups[time_group]['total_count'] += 1
             
-            if emotion in ('happiness', 'joy', 'contentment'):
+            if emotion in ('happiness'):
                 time_groups[time_group]['positive_count'] += 1
-            elif emotion in ('anger', 'sadness', 'fear', 'disgust'):
+            elif emotion in ('anger', 'sadness', 'anxiety', 'boredom'):
                 time_groups[time_group]['negative_count'] += 1
-            elif emotion in ('neutral', 'surprise'):
+            elif emotion in ('neutral'):
                 time_groups[time_group]['neutral_count'] += 1
             else:
                 # Handle unknown emotions by logging and categorizing as neutral
