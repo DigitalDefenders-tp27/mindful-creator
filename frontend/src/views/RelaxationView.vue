@@ -433,8 +433,8 @@ const submitFeedback = async () => {
     
     console.log('Data to be submitted:', payload)
     
-    // Use apiFetch to send rating request
     try {
+      // Try submitting through API
       const result = await apiFetch('/api/ratings', {
         method: 'POST',
         body: JSON.stringify(payload)
@@ -447,66 +447,16 @@ const submitFeedback = async () => {
         totalRatings.value = result.stats.total_ratings || result.stats.count || 0
         averageRating.value = result.stats.average_rating || 0
         console.log(`Updated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-      } else {
-        // If no valid statistics received, manually calculate new statistics
-        const newTotal = totalRatings.value + 1
-        const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-        totalRatings.value = newTotal
-        averageRating.value = newAverage
-        console.log(`Manually calculated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
       }
-    } catch (fetchError) {
-      console.error('API call failed, trying direct fetch:', fetchError)
+    } catch (error) {
+      console.error('API submission failed:', error)
       
-      // As a fallback, try direct fetch with explicit HTTPS URL
-      try {
-        const apiUrl = 'https://api.tiezhu.org/api/ratings'
-        console.log('Attempting direct fetch to:', apiUrl)
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload),
-          // Handle redirects automatically
-          redirect: 'follow'
-        })
-    
-        if (response.ok) {
-          const result = await response.json()
-          console.log('Direct fetch successful:', result)
-    
-          // Update statistics
-          if (result && result.stats) {
-            totalRatings.value = result.stats.total_ratings || result.stats.count || 0
-            averageRating.value = result.stats.average_rating || 0
-            console.log(`Updated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-          } else {
-            // If no valid statistics received, manually calculate new statistics
-            const newTotal = totalRatings.value + 1
-            const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-            totalRatings.value = newTotal
-            averageRating.value = newAverage
-            console.log(`Manually calculated statistics: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-          }
-        } else {
-          console.error(`Direct fetch failed: HTTP status code ${response.status}`)
-          const newTotal = totalRatings.value + 1
-          const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-          totalRatings.value = newTotal
-          averageRating.value = newAverage
-          console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-        }
-      } catch (directFetchError) {
-        console.error('Direct fetch also failed:', directFetchError)
-        const newTotal = totalRatings.value + 1
-        const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
-        totalRatings.value = newTotal
-        averageRating.value = newAverage
-        console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
-      }
+      // If API fails, manually update the UI stats for better user experience
+      const newTotal = totalRatings.value + 1
+      const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
+      totalRatings.value = newTotal
+      averageRating.value = newAverage
+      console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
     }
     
     // Show success message
@@ -526,17 +476,16 @@ const submitFeedback = async () => {
       }, 100)
     }, 500)
   } catch (error) {
-    console.error('Error submitting rating:', error)
+    console.error('Error in submitFeedback:', error)
     
-    // Even in case of error, update UI to provide good user experience
-    // Manually update statistics
+    // Even in case of error, update UI for good user experience
     const newTotal = totalRatings.value + 1
     const newAverage = ((averageRating.value * totalRatings.value) + rating.value) / newTotal
     totalRatings.value = newTotal
     averageRating.value = newAverage
     console.log(`Manually calculated statistics after error: Total ratings=${totalRatings.value}, Average rating=${averageRating.value}`)
     
-    // Show success message
+    // Show success message anyway
     const feedbackElement = document.querySelector('.feedback')
     if (feedbackElement) {
       feedbackElement.style.display = 'none'

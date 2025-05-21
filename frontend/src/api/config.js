@@ -13,6 +13,9 @@ export function getApiUrl(endpoint) {
     return endpoint;
   }
   
+  // Ensure endpoint doesn't have trailing slash
+  endpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+  
   // Development environment with Vite proxy
   if (import.meta.env.DEV) {
     // If endpoint already starts with /api/, return as is
@@ -26,16 +29,19 @@ export function getApiUrl(endpoint) {
   }
   
   // Production environment
+  // Remove trailing slash from API_URL if it exists
+  const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  
   // If endpoint already has /api prefix
   if (endpoint.startsWith('/api/')) {
     // Remove the leading slash to avoid double slashes
     const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-    return `${API_URL}/${path}`;
+    return `${baseUrl}/${path}`;
   }
   
   // If endpoint doesn't have /api prefix, add it
   const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  return `${API_URL}/api/${path}`;
+  return `${baseUrl}/api/${path}`;
 }
 
 // Helper for fetch with proper error handling
@@ -53,19 +59,26 @@ export async function apiFetch(endpoint, options = {}) {
     },
     // Allow automatic redirects
     redirect: 'follow',
+    // Don't send credentials by default to avoid CORS preflight issues
+    credentials: options.credentials || 'omit',
   };
+  
+  // In development, don't use CORS mode (will be handled by the Vite proxy)
+  if (!import.meta.env.DEV) {
+    fetchOptions.mode = 'cors';
+  }
   
   try {
     const response = await fetch(url, fetchOptions);
     
-    // Check if we received a redirect
-    if (response.status === 307 || response.status === 308) {
+    // Handle HTTP redirects if needed
+    if ([301, 302, 307, 308].includes(response.status)) {
       const redirectUrl = response.headers.get('Location');
       console.log(`Received redirect to: ${redirectUrl}`);
       
-      // Ensure redirect URL uses HTTPS
+      // Ensure redirect URL uses HTTPS (except for localhost)
       const secureRedirectUrl = redirectUrl?.startsWith('http://')
-        ? redirectUrl.replace('http://', 'https://')
+        ? (redirectUrl.includes('localhost') ? redirectUrl : redirectUrl.replace('http://', 'https://'))
         : redirectUrl;
         
       if (secureRedirectUrl) {
@@ -82,10 +95,28 @@ export async function apiFetch(endpoint, options = {}) {
     }
     
     if (!response.ok) {
+      // If we get a 500 error, include more details in the error message
+      if (response.status === 500) {
+        let errorDetails;
+        try {
+          // Try to parse the error response if possible
+          errorDetails = await response.text();
+          console.error('Server 500 error details:', errorDetails);
+        } catch (textError) {
+          errorDetails = 'No error details available';
+        }
+        throw new Error(`API request failed with status 500 - Server Error: ${errorDetails}`);
+      }
+      
       throw new Error(`API request failed with status ${response.status}`);
     }
     
-    return await response.json();
+    try {
+      return await response.json();
+    } catch (jsonError) {
+      console.warn('Response was not JSON:', jsonError);
+      return { success: true, message: 'Operation completed (no JSON response)' };
+    }
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
     throw error;
