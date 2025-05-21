@@ -1728,8 +1728,7 @@ input[type="text"] {
     width: 840px;
     grid-template-columns: repeat(6, 140px);
     opacity: 0.9;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1.5rem);
   }
 }
 
@@ -1738,8 +1737,7 @@ input[type="text"] {
     width: 720px;
     grid-template-columns: repeat(6, 120px);
     opacity: 0.8;
-    transform: translateX(0);
-    justify-content: end;
+    transform: translateX(-1rem);
   }
 }
 
@@ -1757,9 +1755,11 @@ input[type="text"] {
     max-width: 100%;
   }
   .decorative-elements {
-    width: 500px;
-    grid-template-columns: repeat(5, 100px);
-    opacity: 0.6;
+    width: 600px;
+    grid-template-columns: repeat(6, 100px);
+    opacity: 0.7;
+    transform: translateX(-0.5rem);
+    row-gap: 0.75rem;
   }
   .title-group h1 {
     font-size: 4.5rem;
@@ -1789,6 +1789,37 @@ input[type="text"] {
 }
 
 @media (max-width: 1024px) {
+  .hero-section {
+    min-height: 40vh;
+    padding: 6rem 0 1rem;
+  }
+  
+  .hero-content {
+    min-height: 40vh;
+  }
+  
+  .slogan {
+    margin-left: 1.5rem;
+  }
+  
+  .decorative-elements {
+    transform: translateX(0) scale(0.9);
+    opacity: 0.5;
+    row-gap: 0.5rem;
+  }
+  
+  .title-group h1 {
+    @apply text-5xl;
+  }
+  
+  .title-group h2 {
+    @apply text-4xl;
+  }
+  
+  .subtitle {
+    @apply text-xl;
+  }
+  
   .banner-title {
     font-size: 1.8rem;
   }
@@ -1810,6 +1841,40 @@ input[type="text"] {
 }
 
 @media (max-width: 768px) {
+  .hero-section {
+    min-height: 22vh;
+    padding: 7rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 22vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+  
+  .slogan {
+    margin-left: 1rem;
+    max-width: 90%;
+  }
+  
+  .decorative-elements {
+    opacity: 0.1;
+    transform: translateX(0) scale(0.8);
+  }
+
+  .title-group h1 {
+    @apply text-4xl;
+  }
+  
+  .title-group h2 {
+    @apply text-3xl;
+  }
+  
+  .subtitle {
+    @apply text-lg;
+  }
+  
   .copyright-tips-banner {
     padding: 1.5rem 0;
   }
@@ -1840,7 +1905,40 @@ input[type="text"] {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+  .hero-section {
+    min-height: 18vh;
+    padding: 7.5rem 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+    min-height: 18vh;
+    padding-top: 0.25rem;
+  }
+
+  .slogan {
+    padding-top: 0;
+  }
+
+  .decorative-elements {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+
+  .title-group h1 {
+    @apply text-3xl;
+  }
+  
+  .title-group h2 {
+    @apply text-2xl;
+  }
+  
+  .subtitle {
+    @apply text-base;
+  }
+  
   .copyright-tips-banner {
     padding: 1rem 0;
   }
@@ -1879,6 +1977,102 @@ input[type="text"] {
   }
 }
 
+@media (max-width: 480px) {
+  .decorative-elements {
+    opacity: 0;
+    display: none;
+  }
+  
+  .hero-section {
+    min-height: 16vh;
+    padding: 8rem 0 0.5rem;
+  }
+  
+  .hero-content {
+    min-height: 16vh;
+  }
+
+  .title-group h1 {
+    font-size: 2.5rem;
+    white-space: normal;
+  }
+  
+  .title-group h2 {
+    font-size: 1.5rem;
+    white-space: normal;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    white-space: normal;
+  }
+  
+  .license-cards-section {
+    padding: 0.75rem;
+  }
+  .section-title {
+    font-size: 1.8rem;
+  }
+  .section-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .license-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .license-card {
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0 1.2rem;
+    transition: box-shadow 0.2s;
+  }
+}
+
+/* CSS additions to add after the .top-row CSS block */
+.second-row {
+  display: grid;
+  grid-template-columns: 160px;
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  grid-column: 3 / 4;
+  grid-row: 2;
+  justify-self: end;
+}
+
+/* Add rotation animation */
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotating {
+  animation: slowRotate 30s linear infinite;
+}
+
+/* Element hover animation */
+.top-row .element:hover, 
+.second-row .element:hover {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+/* Re-add the preview-canvas style that was accidentally removed */
 .preview-canvas {
   width: 100%;
   height: 100%;
@@ -2114,230 +2308,12 @@ button:disabled {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Styles for the new Interactive Content Carousel */
-.interactive-content-carousel {
-  max-width: 1200px;
-  margin: 3rem auto;
-  position: relative;
-  background-color: #fff0f5;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-.carousel-header-panel {
-  padding: 0 0 1.5rem 0;
-  text-align: center;
-  margin-left: 42px;
-  margin-right: 42px;
-}
-
-.carousel-main-title {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-}
-
-.carousel-container {
-  overflow: hidden;
-  border-radius: 0;
-  margin: 0;
-  margin-left: 42px;
-  margin-right: 42px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.carousel-wrapper {
-  display: flex;
-  transition: transform 0.5s ease-in-out;
-}
-
-.carousel-slide {
-  flex: 0 0 100%;
-  box-sizing: border-box;
-}
-
-.carousel-slide .content-section {
-  margin-bottom: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.carousel-slide .content-section h2 {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-}
-
-.carousel-slide .content-section h2:after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(to right, #FF6B6B, #4ECDC4);
-  border-radius: 3px;
-}
-
-.carousel-slide .content-section :deep(p) {
-  font-size: 1.1rem !important;
-  line-height: 1.8;
-  margin-bottom: 1.2rem;
-}
-
-.carousel-slide .content-section :deep(li) {
-  font-size: 1.1rem !important;
-  line-height: 1.8;
-  margin-bottom: 0.6rem;
-}
-
-.carousel-slide .content-section :deep(ul),
-.carousel-slide .content-section :deep(ol) {
-  padding-left: 2rem;
-  margin-bottom: 1rem;
-}
-
-/* Styling for links within the carousel's resources list */
-.carousel-slide .content-section :deep(ul.resources-list li a) {
-  color: #007bff; /* Standard blue for links */
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-.carousel-slide .content-section :deep(ul.resources-list li a:hover) {
-  color: #0056b3; /* Darker blue on hover */
-}
-
-.carousel-slide .content-section :deep(strong) {
-  font-weight: 600;
-}
-
-.carousel-navigation {
-}
-
-.carousel-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #ff6b98;
-  color: white;
-  border: none;
-  padding: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.8rem;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  z-index: 10;
-}
-
-.carousel-nav-button.prev {
-  left: 20px;
-}
-
-.carousel-nav-button.next {
-  right: 20px;
-}
-
-.carousel-nav-button:hover {
-  background-color: #e0527e;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.carousel-nav-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  opacity: 0.7;
-  box-shadow: none;
-}
-
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  margin-top: 1.5rem;
-  margin-left: 42px;
-  margin-right: 42px;
-}
-
-.carousel-dots .dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #ddd;
-  margin: 0 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.carousel-dots .dot:hover {
-  background-color: #ccc;
-  transform: scale(1.1);
-}
-
-.carousel-dots .dot.active {
-  background-color: #ff6b98;
-  transform: scale(1.25);
-}
-
-/* Style for the reset button in preview area */
-.reset-image-preview-btn {
-  margin-top: 0.25rem;
-  margin-bottom: 1rem;
-  /* Other styles are inherited from .action-button.secondary-button */
-}
-
-/* Add modal styles and adjust mobile card grid */
+/* License card mobile styles */
 @media (max-width: 480px) {
-  .license-cards-section {
-    padding: 0.75rem;
-  }
-  .section-title {
-    font-size: 1.8rem;
-  }
-  .section-description {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  .license-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .license-card {
-    height: 60px;
-    min-height: 60px;
-    max-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    cursor: pointer;
-    overflow: hidden;
-    padding: 0 1.2rem;
-    transition: box-shadow 0.2s;
-  }
   .license-card:active {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
+  
   .card-front {
     display: flex;
     align-items: center;
@@ -2348,22 +2324,27 @@ button:disabled {
     position: static;
     z-index: 1;
   }
+  
   .license-icon {
     font-size: 1.5rem;
     margin-right: 1rem;
   }
+  
   .license-title {
     font-size: 1.1rem;
     font-weight: bold;
     color: #222;
     margin-bottom: 0;
   }
+  
   .license-subtitle {
     display: none;
   }
+  
   .card-back, .license-details {
     display: none !important;
   }
+  
   .license-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -2374,6 +2355,7 @@ button:disabled {
     justify-content: center;
     animation: fadeIn 0.2s;
   }
+  
   .license-modal-card {
     background: #fff;
     border-radius: 16px;
@@ -2385,321 +2367,56 @@ button:disabled {
     position: relative;
     animation: popIn 0.2s;
   }
+  
   .modal-icon {
     font-size: 2.2rem;
     margin-bottom: 0.5rem;
   }
+  
   .modal-title {
     font-size: 1.3rem;
     font-weight: bold;
     margin-bottom: 0.2rem;
   }
+  
   .modal-subtitle {
     font-size: 1.05rem;
     color: #666;
     margin-bottom: 1.1rem;
   }
+  
   .modal-details {
     list-style: none;
     padding: 0;
     margin-bottom: 1.2rem;
     text-align: left;
   }
+  
   .modal-details li {
     margin-bottom: 0.7rem;
     font-size: 1rem;
     position: relative;
     padding-left: 1.5rem;
   }
+  
   .modal-tap-to-close {
     font-size: 0.95rem;
     color: #888;
     margin-top: 0.5rem;
   }
+  
   @keyframes fadeIn {
     from { opacity: 0; } to { opacity: 1; }
   }
+  
   @keyframes popIn {
     from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; }
   }
 }
 
-/* Styles for the Copyright Tips Banner */
-.copyright-tips-banner {
-  max-width: 1200px;
-  margin: 3rem auto;
-  position: relative;
-  background: linear-gradient(135deg, #ffc0cb, #ffb6c1); /* Lighter pink background */
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  padding: 2rem 0;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.banner-title {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #fff;
-  text-align: center;
-  margin: 0 0 1.5rem 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.banner-container {
-  overflow: hidden;
-  margin: 0;
-}
-
-.banner-wrapper {
-  display: flex;
-  transition: transform 0.5s ease-in-out;
-}
-
-.banner-slide {
-  flex: 0 0 100%;
-  box-sizing: border-box;
-}
-
-.banner-content {
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 2rem;
-  border-radius: 12px; /* Rounded rectangle corners */
-  max-width: 900px;
-  min-height: 360px; /* Fixed height for all cards */
-  height: 360px; /* Ensure all cards are exactly the same height */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto; /* Add scrolling if content is too long */
-}
-
-.banner-content h2 {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-}
-
-.banner-content h2:after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(to right, #FF6B6B, #4ECDC4);
-  border-radius: 3px;
-}
-
-.banner-content :deep(p) {
-  font-size: 1.1rem !important;
-  line-height: 1.8;
-  margin-bottom: 1.2rem;
-}
-
-.banner-content :deep(li) {
-  font-size: 1.1rem !important;
-  line-height: 1.8;
-  margin-bottom: 0.6rem;
-}
-
-.banner-content :deep(ul),
-.banner-content :deep(ol) {
-  padding-left: 2rem;
+/* Reset image preview button */
+.reset-image-preview-btn {
+  margin-top: 0.25rem;
   margin-bottom: 1rem;
-}
-
-.banner-content :deep(ul.resources-list li a) {
-  color: #007bff;
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-.banner-content :deep(ul.resources-list li a:hover) {
-  color: #0056b3;
-}
-
-.banner-content :deep(strong) {
-  font-weight: 600;
-}
-
-.banner-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1.5rem;
-}
-
-.banner-nav-button {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #ff8a9a;
-  border: none;
-  padding: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.5rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  margin: 0 0.75rem;
-}
-
-.banner-nav-button:hover {
-  background-color: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.banner-dots {
-  display: flex;
-  justify-content: center;
-}
-
-.banner-dots .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
-  margin: 0 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.banner-dots .dot:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-  transform: scale(1.1);
-}
-
-.banner-dots .dot.active {
-  background-color: white;
-  transform: scale(1.25);
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
-}
-
-/* Responsive adjustments for the banner */
-@media (max-width: 1024px) {
-  .banner-title {
-    font-size: 1.8rem;
-  }
-  
-  .banner-content {
-    min-height: 400px;
-    height: 400px;
-    padding: 1.75rem;
-  }
-  
-  .banner-content h2 {
-    font-size: 1.5rem;
-  }
-  
-  .banner-content :deep(p),
-  .banner-content :deep(li) {
-    font-size: 1rem !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .copyright-tips-banner {
-    padding: 1.5rem 0;
-  }
-  
-  .banner-title {
-    font-size: 1.6rem;
-  }
-  
-  .banner-content {
-    padding: 1.5rem;
-    min-height: 450px;
-    height: 450px;
-  }
-  
-  .banner-content h2 {
-    font-size: 1.4rem;
-  }
-  
-  .banner-content :deep(p),
-  .banner-content :deep(li) {
-    font-size: 0.95rem !important;
-  }
-  
-  .banner-nav-button {
-    width: 35px;
-    height: 35px;
-    font-size: 1.3rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .copyright-tips-banner {
-    padding: 1rem 0;
-  }
-  
-  .banner-title {
-    font-size: 1.4rem;
-    margin-bottom: 1rem;
-  }
-  
-  .banner-content {
-    padding: 1rem;
-    min-height: 420px;
-    height: 420px;
-  }
-  
-  .banner-content h2 {
-    font-size: 1.3rem;
-  }
-  
-  .banner-content :deep(p),
-  .banner-content :deep(li) {
-    font-size: 0.9rem !important;
-  }
-  
-  .banner-nav-button {
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
-    margin: 0 0.5rem;
-  }
-  
-  .banner-dots .dot {
-    width: 8px;
-    height: 8px;
-    margin: 0 4px;
-  }
-}
-
-/* CSS additions to add after the .top-row CSS block */
-.second-row {
-  display: grid;
-  grid-template-columns: 160px;
-  gap: 0.5rem;
-  align-items: start;
-  margin: 0;
-  padding: 0;
-  grid-column: 3 / 4;
-  grid-row: 2;
-  justify-self: end;
-}
-
-/* Add rotation animation */
-@keyframes slowRotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.rotating {
-  animation: slowRotate 30s linear infinite;
 }
 </style> 
