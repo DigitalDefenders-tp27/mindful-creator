@@ -1,0 +1,86 @@
+flowchart TB
+
+%% Title
+  Title["Mindful Creator System Module Hierarchy"]
+
+%% Frontend Layer
+  Frontend["Frontend Layer (Vue.js)"]:::frontend
+  FE_Core["1.1 Core Components<br/>- NavBar<br/>- DropDownMenu<br/>- Modal<br/>- FlipCard<br/>- Common"]
+  FE_Features["1.2 Feature Modules<br/>- Creator Wellbeing<br/>- Critical Response<br/>- Relaxation Zone<br/>- Copyright Guide<br/>- Privacy Controls (YouTube, TikTok, Instagram)<br/>- Home & Journey<br/>- Memory Match Game"]
+  FE_Utility["1.3 Utility Modules<br/>- Authentication<br/>- State Management (Pinia)<br/>- API Integration"]
+  Title --> Frontend --> FE_Core
+  Frontend --> FE_Features
+  Frontend --> FE_Utility
+
+%% Backend Layer
+  Backend["Backend Layer (FastAPI)"]:::backend
+  BE_API["2.1 API Services<br/>- YouTube API<br/>- Games API<br/>- External Services"]
+  BE_Core["2.2 Core Services<br/>- Authentication<br/>- User Management<br/>- Data Processing"]
+  BE_Feature["2.3 Feature Services<br/>- Comment Analysis<br/>- Wellbeing Tracking<br/>- Relaxation Activity<br/>- Copyright"]
+  BE_Utility["2.4 Utility Services<br/>- Logging<br/>- Caching<br/>- Error Handling"]
+  FE_Utility --> Backend
+  Backend --> BE_API
+  Backend --> BE_Core
+  Backend --> BE_Feature
+  Backend --> BE_Utility
+
+%% Data Layer
+  Data["Data Layer"]:::data
+  DA_Models["3.1 Data Models<br/>- User<br/>- Content<br/>- Activity"]
+  DA_Storage["3.2 Data Storage<br/>- SQLAlchemy<br/>- File Storage"]
+  DA_Processing["3.3 Data Processing<br/>- Analytics<br/>- Reporting"]
+  BE_Utility --> Data
+  Data --> DA_Models
+  Data --> DA_Storage
+  Data --> DA_Processing
+
+%% Infrastructure Layer
+  Infrastructure["Infrastructure Layer"]:::infra
+  INF_Sec["4.1 Security<br/>- Authentication<br/>- Authorization<br/>- Data Protection"]
+  INF_Perf["4.2 Performance<br/>- Caching<br/>- Load Balancing<br/>- CDN Integration"]
+  INF_Mon["4.3 Monitoring<br/>- Health Checks<br/>- Performance Monitoring<br/>- Usage Analytics"]
+  DA_Processing --> Infrastructure
+  Infrastructure --> INF_Sec
+  Infrastructure --> INF_Perf
+  Infrastructure --> INF_Mon
+
+%% Integration Layer
+  Integration["Integration Layer"]:::integration
+  INT_API["5.1 External APIs<br/>- YouTube API<br/>- TikTok API<br/>- Analytics APIs"]
+  INT_Third["5.2 Third-party Services<br/>- Authentication Providers<br/>- Cloud Services<br/>- CDN Services"]
+  INF_Mon --> Integration
+  Integration --> INT_API
+  Integration --> INT_Third
+
+%% Alignment
+  subgraph FrontendRow [ ]
+    direction LR
+    FE_Core --> FE_Features --> FE_Utility
+  end
+
+  subgraph BackendRow [ ]
+    direction LR
+    BE_API --> BE_Core --> BE_Feature --> BE_Utility
+  end
+
+  subgraph DataRow [ ]
+    direction LR
+    DA_Models --> DA_Storage --> DA_Processing
+  end
+
+  subgraph InfraRow [ ]
+    direction LR
+    INF_Sec --> INF_Perf --> INF_Mon
+  end
+
+  subgraph IntegrationRow [ ]
+    direction LR
+    INT_API --> INT_Third
+  end
+
+%% Style Definitions
+  classDef frontend fill:#4fd1c5,stroke:#333,stroke-width:2px;
+  classDef backend fill:#48bb78,stroke:#333,stroke-width:2px;
+  classDef data fill:#ed8936,stroke:#333,stroke-width:2px;
+  classDef infra fill:#9f7aea,stroke:#333,stroke-width:2px;
+  classDef integration fill:#f56565,stroke:#333,stroke-width:2px;
