@@ -1,0 +1,323 @@
+6.3. Test
+
+6.3.1. Test Strategy
+The test strategy for the Mindful Creator Application focuses on ensuring the application delivers a reliable, secure, and user-friendly experience. The testing approach will prioritise validating the core functionality of ethical content creation tools, audience engagement features, and wellbeing components while ensuring cross-browser compatibility and security requirements are met.
+
+Key strategic elements include:
+- Continuous testing throughout the development cycle using iterative testing approaches
+- Emphasis on user experience validation for relaxation activities and mental wellbeing features
+- Thorough API endpoint testing to ensure frontend-backend integration
+- Security testing focused on data privacy for personal journal entries
+- Performance testing for resource-intensive features such as YouTube comment analysis
+- Accessibility compliance testing for all user interfaces
+- Iterative improvement across multiple test cycles (as demonstrated in 3 testing iterations)
+
+6.3.2. Test Plan
+
+6.3.2.1. Features to be Tested
+1. User Interface Components
+   - Navigation system and routing between views
+   - Responsive design across desktop and mobile devices
+   - Component rendering for activity cards and modals
+   - Visual elements such as Bento Grid layouts
+   - Password protection functionality
+
+2. Relaxation Zone Features
+   - All relaxation activities (Breathing, Meditation, Grounding, etc.)
+   - Rating system functionality and data persistence
+   - Modal dialogs and activity content display
+   - Audio and video playback for guided exercises
+   - Star rating and feedback mechanism
+
+3. Critical Response System
+   - YouTube URL validation and processing
+   - Comment analysis capabilities and response generation
+   - Sentiment and toxicity detection accuracy
+   - Data visualisation components
+   - Emotional state selection and appropriate redirection
+
+4. Memory Match Game
+   - Card matching functionality with meme images
+   - Timer functionality for different game levels
+   - Score tracking and victory conditions
+   - Meme sentiment explainer functionality
+
+5. Creator Wellbeing Features
+   - Dashboard visualisations and interactive elements
+   - Medical resource locator with Google Maps integration
+   - Event listings with filtering options
+   - Online resource links and accessibility
+
+6. Privacy and Copyright Features
+   - Platform-specific privacy setting guides
+   - Toggle functionality between browser and mobile instructions
+   - Copyright license information cards
+   - Copyright notice generator with watermarking capabilities
+
+7. Backend API Endpoints
+   - API availability and response time
+   - Request/response handling for all endpoints
+   - Error handling and appropriate status codes
+   - Data validation for user inputs
+
+8. Data Storage and Retrieval
+   - Rating data persistence and retrieval
+   - Journal entry handling (ensuring privacy)
+   - Affirmation and breath exercise data delivery
+
+6.3.2.2. Testing Methods
+
+1. Functional Testing
+   - Unit testing of individual components and functions
+   - Integration testing of frontend-backend interactions
+   - API endpoint testing using automated requests
+   - User workflow testing for critical user paths
+   - Feature completion verification against user stories
+
+2. Usability Testing
+   - User interface navigation assessment
+   - Clarity of instructions for relaxation activities
+   - Responsiveness of interactive elements
+   - Feedback mechanism effectiveness
+   - Multi-device usability evaluation
+
+3. Security Testing
+   - API endpoint security validation
+   - Input validation and sanitation testing
+   - Authentication mechanism review (password protection)
+   - Data privacy controls verification
+
+4. Compatibility Testing
+   - Cross-browser testing (Chrome, Firefox, Safari, Edge)
+   - Device compatibility testing (desktop, tablet, mobile)
+   - Operating system compatibility (Windows, macOS, iOS, Android)
+   - Screen size and resolution variations
+
+5. Performance Testing
+   - Load time measurement for critical pages (target < 8 seconds)
+   - API response time for YouTube comment analysis (target < 40 seconds for 100 comments)
+   - Resource usage during NLP model operations
+   - Connection handling for WebSocket communications
+
+6. Accessibility Testing
+   - Keyboard navigation support
+   - Screen reader compatibility
+   - Colour contrast compliance
+   - Focus indication for interactive elements
+
+6.3.2.3. Timeframes
+
+Based on actual testing iterations, the testing activities were conducted according to the following schedule:
+
+1. Initial Testing Phase (Iteration 1: completed 10/04/2025)
+   - Basic functionality testing of core features
+   - Verification of navigation and page loading
+   - Initial assessment of relaxation activities
+   - Critical response feature validation
+
+2. Enhanced Testing Phase (Iteration 2: completed 02/05/2025)
+   - Expanded testing of all major features
+   - Comprehensive validation of Creator Wellbeing features
+   - In-depth testing of privacy settings guides
+   - Validation of event listing functionality
+
+3. Final Testing Phase (Iteration 3: completed 19/05/2025)
+   - Complete testing of all features including Memory Match Game
+   - Meme sentiment explainer functionality validation
+   - Copyright notice generator testing
+   - Mobile responsiveness verification
+   - Performance benchmarking under realistic conditions
+
+4. Ongoing Maintenance Testing (Continuous)
+   - Regression testing following updates
+   - Performance monitoring
+   - User-reported issue investigation
+
+6.3.2.4. Roles and Responsibilities
+
+1. Test Manager
+   - Overall coordination of the testing effort
+   - Resource allocation and scheduling
+   - Communication with project stakeholders
+   - Test progress reporting and status updates
+
+2. Frontend Testers
+   - Vue component testing
+   - UI/UX validation
+   - Client-side functionality testing
+   - Browser compatibility testing
+   - Mobile responsiveness verification
+
+3. Backend Testers
+   - API endpoint testing
+   - Database interaction validation
+   - Performance testing of server components
+   - Security testing of backend systems
+   - YouTube API integration testing
+
+4. QA Automation Engineers
+   - Setting up automated test frameworks
+   - Creating and maintaining test scripts
+   - Implementing CI/CD pipeline integration
+   - Generating automated test reports
+
+5. User Experience Testers
+   - Conducting usability sessions
+   - Gathering user feedback
+   - Accessibility compliance verification
+   - Documenting UX issues and recommendations
+
+6. Subject Matter Experts
+   - Validating content accuracy for ethical guidelines
+   - Reviewing psychological aspects of relaxation activities
+   - Ensuring appropriate responses in Critical Response system
+   - Verifying meme sentiment analysis accuracy
+
+6.3.2.5. Test Case Specifications
+
+1. Relaxation Zone Testing
+
+   TC-RZ-001: Breathing Exercise Playback
+   - Description: Verify that breathing exercise video plays correctly
+   - Importance: High
+   - Steps:
+     1. Navigate to Relaxation Zone
+     2. Click on "Breathing Exercise" activity
+     3. Observe video playback
+   - Expected Results: Video plays smoothly with clear instructions
+   - Actual Results (Iteration 3): Pass - Video plays normally with loading time under 10 seconds
+
+   TC-RZ-002: Activity Rating Submission
+   - Description: Verify ratings can be submitted and statistics updated
+   - Importance: Medium
+   - Steps:
+     1. Complete any relaxation activity
+     2. Select a star rating (1-5)
+     3. Click Submit Feedback
+   - Expected Results: Rating is saved, thank you message displays, statistics update
+   - Actual Results (Iteration 3): Pass - Rating submits successfully, but feedback after submission has issues
+
+2. Critical Response Testing
+
+   TC-CR-001: YouTube URL Processing
+   - Description: Verify system correctly extracts video ID from various URL formats
+   - Importance: Critical
+   - Steps:
+     1. Navigate to Critical Response page
+     2. Enter YouTube URL in different formats
+     3. Submit for analysis
+   - Expected Results: All valid YouTube URL formats are processed correctly
+   - Actual Results (Iteration 3): Pass - System handles both valid and invalid URL formats appropriately
+
+   TC-CR-002: Comment Analysis Generation
+   - Description: Verify sentiment and toxicity analysis works correctly
+   - Importance: High
+   - Steps:
+     1. Submit a YouTube video with known comments
+     2. Wait for analysis to complete
+     3. Review sentiment breakdown
+   - Expected Results: Analysis completes within acceptable time, shows sentiment distribution
+   - Actual Results (Iteration 3): Pass - Analysis completes in under 40 seconds for 100 comments
+
+3. Memory Match Game Testing
+
+   TC-MG-001: Game Initialisation
+   - Description: Verify game loads correctly with random meme cards
+   - Importance: Medium
+   - Steps:
+     1. Navigate to Games section
+     2. Start Memory Match game
+   - Expected Results: Game board displays with face-down cards in random order
+   - Actual Results (Iteration 3): Pass - Easy level begins with 10 cards and 60-second timer
+
+   TC-MG-002: Card Matching Logic
+   - Description: Verify matching cards remain face-up
+   - Importance: Medium
+   - Steps:
+     1. Start Memory Match game
+     2. Click two matching cards
+     3. Attempt to click matched cards again
+   - Expected Results: Matching cards remain visible and cannot be selected again
+   - Actual Results (Iteration 3): Pass - Matched pairs remain face up and score updates
+
+4. Copyright Features Testing
+
+   TC-CP-001: License Card Information Display
+   - Description: Verify copyright license cards display information correctly
+   - Importance: Medium
+   - Steps:
+     1. Navigate to Copyright page
+     2. Hover over license cards to flip them
+     3. Verify information on back of cards
+   - Expected Results: Cards flip smoothly and display correct license information
+   - Actual Results (Iteration 3): Pass - Cards flip smoothly but have layout issues on mobile devices
+
+   TC-CP-002: Copyright Notice Generator
+   - Description: Verify copyright notice generation with watermarking
+   - Importance: High
+   - Steps:
+     1. Navigate to Copyright Notice Generator
+     2. Upload an image
+     3. Select watermark options
+     4. Download watermarked image
+   - Expected Results: Watermark applied correctly and image downloads
+   - Actual Results (Iteration 3): Partially Pass - Watermarks apply correctly but error occurs when downloading with transparent background
+
+6.3.2.6. Test Checklists
+
+1. Frontend Components Checklist
+   - [✓] All page routes render without errors
+   - [✗] Responsive design works on all target screen sizes (Issues with Creator Wellbeing and Copyright pages on mobile)
+   - [✓] Component props are validated correctly
+   - [✓] Error states are displayed appropriately
+   - [✓] Loading states provide user feedback
+   - [✓] All buttons and interactive elements are functional
+   - [✓] Form validation works as expected
+   - [✓] Accessibility requirements are met (colour contrast, alt text)
+
+2. Relaxation Activities Checklist
+   - [✓] All 7 relaxation activities can be accessed
+   - [✓] Activity modals open and close correctly
+   - [✓] Audio/video content loads and plays properly
+   - [✓] Progress indicators function correctly
+   - [✓] Rating system records user feedback
+   - [✗] Journal entries are processed correctly (Issue with feedback display)
+   - [✓] Encouraging messages display appropriately
+   - [✓] Activity statistics are accurate
+
+3. Critical Response System Checklist
+   - [✓] 5 emotional states display correctly
+   - [✓] Animation and interaction functions properly
+   - [✓] Appropriate redirection based on emotional state
+   - [✓] YouTube URL validation functions correctly
+   - [✓] Loading indication shows during analysis
+   - [✓] Comment analysis completes in acceptable timeframe
+   - [✓] Sentiment breakdown displays correctly
+   - [✓] Example responses generate appropriately
+
+4. Memory Match Game Checklist
+   - [✓] Easy level functions correctly (10 cards, 60-second timer)
+   - [✓] Cards flip and reveal meme images
+   - [✓] Score updates correctly for matched pairs
+   - [✓] Victory condition triggers appropriately
+   - [✓] Game over condition triggers when time expires
+   - [✓] Level progression works correctly
+   - [✗] Advanced level victory achievable (Issue reported)
+   - [✓] Meme sentiment explainer displays accurate information
+
+5. Performance and Security Checklist
+   - [✓] Page load time < 8 seconds on target devices
+   - [✓] API response time < 40 seconds for YouTube comment analysis
+   - [✓] Memory usage remains within acceptable limits
+   - [✓] No data leakage in API responses
+   - [✓] Input sanitisation prevents injection attacks
+   - [✓] Error messages don't reveal implementation details
+   - [✓] Password protection functions correctly
+   - [✓] Secure data transmission using HTTPS
+
+6. Known Issues and Recommendations
+   - Responsive design fails on certain mobile screens for Creator Wellbeing and Copyright pages
+   - Advanced level of Memory Match Game has unachievable victory condition
+   - Feedback mechanism after submitting ratings has display issues
+   - Copyright notice generator errors when downloading with transparent background
+   - Google Maps location detection not functioning correctly 

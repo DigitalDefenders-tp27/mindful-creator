@@ -1,0 +1,161 @@
+Mindful Creator System Module Hierarchy
+=====================================
+
+1. Frontend Layer (Vue.js)
+   ├── 1.1 Core Components
+   │   ├── 1.1.1 Navigation
+   │   │   ├── NavBar
+   │   │   ├── DropDownMenu
+   │   │   └── Footer
+   │   ├── 1.1.2 Layout
+   │   │   ├── MainLayout
+   │   │   ├── PageContainer
+   │   │   └── ScrollIsland
+   │   └── 1.1.3 Common
+   │       ├── Modal
+   │       ├── FlipCard
+   │       ├── QuizCard
+   │       ├── WelcomeItem
+   │       ├── InteractiveHoverButton
+   │       ├── RippleButton
+   │       ├── HalfDonutChart
+   │       ├── CommentInput
+   │       ├── QuickViewButton
+   │       ├── PlatformHeader
+   │       ├── SettingsSteps
+   │       ├── StepImage
+   │       └── TipItem
+   │
+   ├── 1.2 Feature Modules
+   │   ├── 1.2.1 Creator Wellbeing
+   │   │   ├── Dashboard
+   │   │   ├── Visualisation
+   │   │   ├── Resource Finder
+   │   │   └── Activities Hub
+   │   │
+   │   ├── 1.2.2 Critical Response
+   │   │   ├── Comment Analysis
+   │   │   ├── Response Generator
+   │   │   ├── Sentiment Analysis
+   │   │   ├── Emotion Check-in
+   │   │   └── YouTube Analysis
+   │   │
+   │   ├── 1.2.3 Relaxation Zone
+   │   │   ├── Breathing Exercises
+   │   │   ├── Guided Meditation
+   │   │   ├── Nature Sounds
+   │   │   ├── Stretching Routine
+   │   │   ├── Color Breathing
+   │   │   ├── Affirmation Reflection
+   │   │   └── Journal Prompt
+   │   │
+   │   ├── 1.2.4 Copyright Guide
+   │   │   ├── Template Generator
+   │   │   ├── Legal Guidelines
+   │   │   └── Case Studies
+   │   │
+   │   ├── 1.2.5 Privacy Controls
+   │   │   Platform-Specific Guides
+   │   │   ├── YouTube Privacy
+   │   │   │   ├── Account Settings
+   │   │   │   ├── Per-Video Settings
+   │   │   │   ├── Playlist Privacy
+   │   │   │   └── Comment Management
+   │   │   ├── TikTok Privacy
+   │   │   │   ├── Account Settings
+   │   │   │   └── Per-Video Settings
+   │   │   └── Instagram Privacy
+   │   │       ├── Account Settings
+   │   │       └── Per-Video Privacy Settings
+   │   │   
+   │   ├── 1.2.6 Home & Journey
+   │   │   ├── Journey Cards
+   │   │   ├── Feature Showcase
+   │   │   └── Navigation Hub
+   │   │
+   │   └── 1.2.7 Memory Match Game
+   │       ├── Game Interface
+   │       ├── Level Progression
+   │       └── Meme Management
+   │
+   └── 1.3 Utility Modules
+       ├── 1.3.1 Authentication
+       ├── 1.3.2 State Management (Pinia)
+       │   ├── Analysis Store
+       │   └── User Store
+       └── 1.3.3 API Integration
+
+2. Backend Layer (FastAPI)
+   ├── 2.1 API Services
+   │   ├── 2.1.1 YouTube API
+   │   │   ├── Comment Analysis
+   │   │   ├── Video Processing
+   │   │   └── Sentiment Analysis
+   │   ├── 2.1.2 Games API
+   │   │   ├── Memory Match
+   │   │   └── Meme Management
+   │   └── 2.1.3 External Services
+   │
+   ├── 2.2 Core Services
+   │   ├── 2.2.1 Authentication Service
+   │   ├── 2.2.2 User Management
+   │   └── 2.2.3 Data Processing
+   │
+   ├── 2.3 Feature Services
+   │   ├── 2.3.1 Comment Analysis Service
+   │   ├── 2.3.2 Wellbeing Tracking Service
+   │   ├── 2.3.3 Relaxation Activity Service
+   │   └── 2.3.4 Copyright Service
+   │
+   └── 2.4 Utility Services
+       ├── 2.4.1 Logging Service
+       ├── 2.4.2 Caching Service
+       └── 2.4.3 Error Handling
+
+3. Data Layer
+   ├── 3.1 Data Models
+   │   ├── 3.1.1 User Models
+   │   ├── 3.1.2 Content Models
+   │   └── 3.1.3 Activity Models
+   │
+   ├── 3.2 Data Storage
+   │   ├── 3.2.1 Database (SQLAlchemy)
+   │   └── 3.2.2 File Storage
+   │
+   └── 3.3 Data Processing
+       ├── 3.3.1 Analytics
+       └── 3.3.2 Reporting
+
+4. Infrastructure Layer
+   ├── 4.1 Security
+   │   ├── 4.1.1 Authentication
+   │   ├── 4.1.2 Authorization
+   │   └── 4.1.3 Data Protection
+   │
+   ├── 4.2 Performance
+   │   ├── 4.2.1 Caching
+   │   ├── 4.2.2 Load Balancing
+   │   └── 4.2.3 CDN Integration
+   │
+   └── 4.3 Monitoring
+       ├── 4.3.1 Health Checks
+       ├── 4.3.2 Performance Monitoring
+       └── 4.3.3 Usage Analytics
+
+5. Integration Layer
+   ├── 5.1 External APIs
+   │   ├── 5.1.1 YouTube API
+   │   ├── 5.1.2 TikTok API
+   │   └── 5.1.3 Analytics APIs
+   │
+   └── 5.2 Third-party Services
+       ├── 5.2.1 Authentication Providers
+       ├── 5.2.2 Cloud Services
+       └── 5.2.3 CDN Services
+
+Legend:
+- Each level represents a different layer of abstraction
+- Sub-modules are indented and connected with tree-like structure
+- Main components are numbered for easy reference
+- Related functionalities are grouped together
+- Technology stack is indicated in parentheses where relevant 

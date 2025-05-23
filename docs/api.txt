@@ -1,0 +1,152 @@
+8.4. Risk Mitigation Strategies
+
+1. Data Protection and Security
+   - Implement robust input validation to prevent injection attacks
+   - Enforce HTTPS across all API endpoints for secure data transmission
+   - Follow OAuth 2.0 best practices for authentication when applicable
+   - Implement proper CORS configuration to prevent unauthorized cross-origin requests
+   - Regularly audit API access logs for suspicious activity
+
+2. Performance and Reliability
+   - Implement rate limiting to prevent abuse and ensure fair usage
+   - Use caching strategies for frequently requested data to reduce server load
+   - Implement graceful fallback mechanisms when external services fail
+   - Monitor API performance metrics and set up alerts for anomalies
+   - Implement circuit breakers to prevent cascading failures
+
+3. Service Availability
+   - Deploy services across multiple availability zones where possible
+   - Implement health checks and automated recovery procedures
+   - Use containerization for consistent deployment environments
+   - Maintain comprehensive API documentation to ensure proper usage
+   - Implement versioning to allow for backward compatibility
+
+4. External Dependencies
+   - Implement fallback mechanisms for YouTube API failures
+   - Cache responses from NLP model to reduce dependency on model availability
+   - Monitor third-party API usage and set up alerts for rate limit approaches
+   - Maintain local copies of critical external datasets when possible
+   - Document alternative workflows when external services are unavailable
+
+9. APIs
+
+9.1. List of APIs Used/Provided
+
+External APIs Used:
+- YouTube Data API: Used to fetch comments from YouTube videos for analysis
+- Google Maps API: Used in the Creator Wellbeing feature for locating medical resources
+
+Internal APIs Provided:
+- YouTube Comment Analysis API: Analyzes sentiment and toxicity in YouTube comments
+- Relaxation Activities API: Manages relaxation activities and user ratings
+- Games API: Handles memory match game functionality
+- Copyright API: Provides copyright information and notice generation
+- Visualisation API: Delivers data for dashboard visualisations
+- Notes API: Manages user notes and journal entries
+- Health API: Provides system health and diagnostic information
+
+9.2. Authentication/Authorization
+
+The Mindful Creator API implements several authentication mechanisms:
+
+1. Password Protection
+   - Simple password protection is implemented for accessing the website
+   - This acts as a basic gating mechanism rather than robust authentication
+
+2. CORS Protection
+   - Strict CORS policy allowing only specific origins:
+     - http://localhost:3000 and http://localhost:5173 (local development)
+     - https://mindful-creator.vercel.app (production)
+     - https://tiezhu.org and https://www.tiezhu.org (custom domains)
+     - https://www.inflowence.org and https://inflowence.org
+     - https://mindful-creator-production.up.railway.app
+     - https://api.tiezhu.org
+   - Vercel domain regex pattern for preview environments
+
+3. JWT Implementation (Where Applicable)
+   - JWT authentication for protected API endpoints
+   - Token validation and expiration handling
+
+4. API Key Management
+   - External API keys (like YouTube API, Google Maps) stored securely and not exposed to clients
+   - Kaggle API key for dataset access stored securely
+
+9.3. Rate Limits
+
+1. External API Rate Limits
+   - YouTube API: Managed according to Google's quotas (typically 10,000 units per day)
+   - Google Maps API: Subject to Google's usage limits based on account tier
+
+2. Internal API Rate Limits
+   - YouTube Analysis API: Limited to 100 comments per request to manage resource usage
+   - Rate limiting middleware implemented to prevent abuse:
+     - General endpoints: 100 requests per minute per IP
+     - Intensive operations (like comment analysis): 10 requests per minute per IP
+   - Backend services configured with request timeouts to prevent hanging connections
+
+3. Rate Limit Implementation
+   - HTTP headers indicate rate limit status (X-RateLimit-Limit, X-RateLimit-Remaining)
+   - 429 Too Many Requests responses when limits exceeded
+   - Exponential backoff recommended for client implementations
+
+9.4. Key Endpoints and Usage
+
+1. YouTube Analysis Endpoints
+   - POST /api/youtube/analyse_full
+     - Purpose: Comprehensive analysis of YouTube comments
+     - Parameters: url (YouTube video URL), limit (max comments to analyze, default 100)
+     - Returns: Sentiment analysis, toxicity detection, response strategies
+     - Example usage: Used in Critical Response feature to analyze creator feedback
+
+   - POST /api/youtube/analyse
+     - Purpose: Simplified comment analysis
+     - Parameters: Same as analyse_full
+     - Returns: Basic analysis results with queued status
+
+2. Relaxation Activity Endpoints
+   - GET /api/ratings/{activity_key}
+     - Purpose: Retrieve rating statistics for a specific activity
+     - Returns: Average rating and total number of ratings
+     - Used by: Relaxation Zone to display community ratings
+
+   - POST /api/ratings
+     - Purpose: Submit user rating for an activity
+     - Parameters: activity_key (string), rating (number 1-5)
+     - Returns: Updated statistics for the rated activity
+
+   - GET /api/breaths
+     - Purpose: Retrieve breathing exercise information
+     - Returns: List of breathing techniques with instructions
+     - Used by: Breathing exercise activity
+
+   - GET /api/affirmations
+     - Purpose: Retrieve positive affirmations
+     - Returns: Random selection of affirmation statements
+     - Used by: Affirmation reflection activity
+
+3. Memory Match Game Endpoints
+   - POST /api/games/memory_match/init
+     - Purpose: Initialize a new memory match game
+     - Parameters: difficulty_level (string), num_pairs (integer)
+     - Returns: Initialized game state with card data
+
+   - POST /api/games/memory_match/move
+     - Purpose: Process a card selection move
+     - Parameters: game_id (string), card_index (integer)
+     - Returns: Updated game state with match results
+
+4. Diagnostic and Health Endpoints
+   - GET /api/health
+     - Purpose: Check system health status
+     - Returns: Overall system status and component health checks
+
+   - GET /api/diagnostics/nlp
+     - Purpose: Detailed status of NLP model availability
+     - Returns: Model loading status, configurations, and environment details
+
+5. Visualisation Data Endpoints
+   - GET /api/visualisation/dashboard/{chart_type}
+     - Purpose: Retrieve data for dashboard visualisations
+     - Parameters: chart_type (string identifying the visualization)
+     - Returns: Formatted data for specified chart type
+     - Used by: Creator Wellbeing dashboard 

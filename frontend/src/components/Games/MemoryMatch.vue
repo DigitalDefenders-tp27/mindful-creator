@@ -118,7 +118,7 @@
         </div>
         <div class="warning-content">
           <p>The next level isn't just hard... it's a MEME-ORY GAUNTLET!</p>
-          <p>Only the bravest (or most foolish) proceed.</p>
+          <p>Only the bravest proceed.</p>
           <p>Your brain cells might stage a protest.</p>
         </div>
         <div class="warning-actions">
