@@ -242,7 +242,7 @@
                 :disabled="isCreatingSvg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                {{ isCreatingSvg ? 'Processing...' : 'Download Transparent Watermark' }}
+                {{ isCreatingSvg ? 'Processing...' : 'Download Watermark with Transparent Background' }}
               </button>
             </div>
           </div>
@@ -401,6 +401,8 @@ const fontOptions = [
   { label: 'Verdana', value: 'Verdana, sans-serif' },
   { label: 'Impact', value: 'Impact, sans-serif' },
   { label: 'Times', value: '"Times New Roman", serif' },
+  { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+  { label: 'Helvetica Neue', value: '"Helvetica Neue", Helvetica, Arial, sans-serif' },
 ];
 
 // Watermark positions - 9 positions in a 3x3 grid
