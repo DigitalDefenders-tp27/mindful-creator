@@ -6,7 +6,6 @@ import RelaxationView from '../views/RelaxationView.vue'
 import CreatorWellbeingView from '../views/CreatorWellbeingView.vue'
 import PrivacyView from '../views/PrivacyView.vue'
 import CopyrightView from '../views/CopyrightView.vue'
-import TestWebSocketView from '../views/TestWebSocketView.vue'
 import GameView from '../views/GameView.vue'
 import VisualisationView from '../views/Visualisation.vue'
 
@@ -57,11 +56,6 @@ const router = createRouter({
       path: '/copyright',
       name: 'copyright',
       component: CopyrightView
-    },
-    {
-      path: '/websocket-test',
-      name: 'websocket-test',
-      component: TestWebSocketView
     }
   ],
   scrollBehavior() {
