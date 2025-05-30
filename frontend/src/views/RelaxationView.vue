@@ -1,133 +1,126 @@
 <template>
-  <div v-if="showPasswordInput" class="password-protect">
-    <h2>Enter Password</h2>
-    <input v-model="password" type="password" placeholder="Password" @keyup.enter="checkPassword" />
-    <button @click="checkPassword">Submit</button>
-  </div>
-  <div v-else>
-    <div class="relaxation-container">
-      <section class="hero-section">
-        <div class="hero-content">
-          <div class="slogan">
-            <div class="title-group">
-              <h1>Relaxation Zone</h1>
-              <h2>Mindfulness Moments for Creators</h2>
-            </div>
-            <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
+  <div class="relaxation-container">
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="slogan">
+          <div class="title-group">
+            <h1>Relaxation Zone</h1>
+            <h2>Mindfulness Moments for Creators</h2>
           </div>
-          <div class="decorative-elements">
-            <!-- Top Row Right -->
-            <div class="top-row">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
-              </div>
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable rotating">
-              </div>
-            </div>
-            
-            <!-- Second Row -->
-            <div class="second-row">
-              <div class="element-wrapper">
-                <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable rotating">
-              </div>
-            </div>
-          </div>
+          <p class="subtitle">Take a break with guided practices designed for digital wellbeing</p>
         </div>
-      </section>
-
-      <!-- Activities -->
-      <div class="activities-container">
-        <h2 class="activities-title">Featured Relaxation Activities</h2>
-        <p class="activities-subtitle">Choose any activity to give yourself a moment of calm</p>
-        <BentoGrid class="activities-bento">
-          <BentoGridCard
-            v-for="(activity, index) in activitiesWithLayout"
-            :key="index"
-            :name="activity.title"
-            :description="activity.description"
-            :class="activity.class"
-            @click="startActivity(activity.type)"
-          >
-            <template v-if="activity.image" #background>
-              <div
-                class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
-                :style="`background-image: url('/bentoImages/${activity.image}')`"
-              ></div>
-            </template>
-          </BentoGridCard>
-        </BentoGrid>
-      </div>
-
-      <!-- Activity Modal -->
-      <div v-if="showActivityModal" class="modal">
-        <div class="modal-content activity-modal">
-          <span class="close" @click="closeModal">&times;</span>
-          
-          <!-- Activity Content -->
-          <div class="activity-content">
-            <div class="activity-inner-content">
-              <component 
-                :is="currentActivityComponent" 
-                v-if="currentActivityComponent"
-                @journal-submitted="onJournalSubmitted"
-              />
+        <div class="decorative-elements">
+          <!-- Top Row Right -->
+          <div class="top-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Narrow_Pink.svg" alt="Wave" class="element hoverable rotating">
             </div>
-          </div>
-          <div class="activity-divider"></div>
-          <!-- Journal Feedback -->
-          <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
-            <div class="encouragement">
-              <h3>{{ currentEncouragement }}</h3>
-              <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. </p>
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Flower_Pink_round.svg" alt="Flower" class="element hoverable rotating">
             </div>
           </div>
           
-          <!-- Rating Section -->
-          <div class="feedback">
-            <h2>How effective was this relaxation activity?</h2>
-            <div class="rating-stats">
-              <p class="total-ratings">{{ totalRatings }} people have rated this activity</p>
-              <p class="average-rating" v-if="averageRating > 0">
-                Average Rating: <span>{{ averageRating.toFixed(1) }}</span> / 5
-              </p>
-            </div>
-            <div class="stars">
-              <span v-for="n in 5" :key="n" @click="rating = n" class="star-wrapper">
-                <img :src="n <= rating ? starFilledIcon : starEmptyIcon" 
-                     alt="star" 
-                     class="star"
-                     @mouseover="hoverRating = n"
-                     @mouseleave="hoverRating = 0" />
-              </span>
-            </div>
-            <button @click="submitFeedback" 
-                    :disabled="rating === 0" 
-                    class="submit-button"
-                    :class="{ 'button-disabled': rating === 0 }">
-              Submit Feedback
-            </button>
-          </div>
-
-          <!-- Thank You Message -->
-          <div v-if="submitted" class="thank-you-container">
-            <div class="thank-you-message">
-              <h3>Thank you for your feedback!</h3>
-              <p>Your rating has been submitted successfully.</p>
+          <!-- Second Row -->
+          <div class="second-row">
+            <div class="element-wrapper">
+              <img src="/src/assets/icons/elements/Wave_Wide_Red.svg" alt="Wave" class="element hoverable rotating">
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Continue Buttons -->
-      <div class="continue-section">
-        <router-link to="/critical-response">
-          <button class="continue-btn">Jump to Critical Response</button>
-        </router-link>
-        <router-link to="/creator-wellbeing">
-          <button class="continue-btn wellbeing-btn">Jump to Creator Wellbeing</button>
-        </router-link>
+    <!-- Activities -->
+    <div class="activities-container">
+      <h2 class="activities-title">Featured Relaxation Activities</h2>
+      <p class="activities-subtitle">Choose any activity to give yourself a moment of calm</p>
+      <BentoGrid class="activities-bento">
+        <BentoGridCard
+          v-for="(activity, index) in activitiesWithLayout"
+          :key="index"
+          :name="activity.title"
+          :description="activity.description"
+          :class="activity.class"
+          @click="startActivity(activity.type)"
+        >
+          <template v-if="activity.image" #background>
+            <div
+              class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
+              :style="`background-image: url('/bentoImages/${activity.image}')`"
+            ></div>
+          </template>
+        </BentoGridCard>
+      </BentoGrid>
+    </div>
+
+    <!-- Activity Modal -->
+    <div v-if="showActivityModal" class="modal">
+      <div class="modal-content activity-modal">
+        <span class="close" @click="closeModal">&times;</span>
+        
+        <!-- Activity Content -->
+        <div class="activity-content">
+          <div class="activity-inner-content">
+            <component 
+              :is="currentActivityComponent" 
+              v-if="currentActivityComponent"
+              @journal-submitted="onJournalSubmitted"
+            />
+          </div>
+        </div>
+        <div class="activity-divider"></div>
+        <!-- Journal Feedback -->
+        <div v-if="currentActivity === 'journal' && journalSubmitted" class="journal-feedback">
+          <div class="encouragement">
+            <h3>{{ currentEncouragement }}</h3>
+            <p class="privacy-notice">Your journal entry is not stored - by writing it down and letting it go, you've already taken a step forward. </p>
+          </div>
+        </div>
+        
+        <!-- Rating Section -->
+        <div class="feedback">
+          <h2>How effective was this relaxation activity?</h2>
+          <div class="rating-stats">
+            <p class="total-ratings">{{ totalRatings }} people have rated this activity</p>
+            <p class="average-rating" v-if="averageRating > 0">
+              Average Rating: <span>{{ averageRating.toFixed(1) }}</span> / 5
+            </p>
+          </div>
+          <div class="stars">
+            <span v-for="n in 5" :key="n" @click="rating = n" class="star-wrapper">
+              <img :src="n <= rating ? starFilledIcon : starEmptyIcon" 
+                   alt="star" 
+                   class="star"
+                   @mouseover="hoverRating = n"
+                   @mouseleave="hoverRating = 0" />
+            </span>
+          </div>
+          <button @click="submitFeedback" 
+                  :disabled="rating === 0" 
+                  class="submit-button"
+                  :class="{ 'button-disabled': rating === 0 }">
+            Submit Feedback
+          </button>
+        </div>
+
+        <!-- Thank You Message -->
+        <div v-if="submitted" class="thank-you-container">
+          <div class="thank-you-message">
+            <h3>Thank you for your feedback!</h3>
+            <p>Your rating has been submitted successfully.</p>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Continue Buttons -->
+    <div class="continue-section">
+      <router-link to="/critical-response">
+        <button class="continue-btn">Jump to Critical Response</button>
+      </router-link>
+      <router-link to="/creator-wellbeing">
+        <button class="continue-btn wellbeing-btn">Jump to Creator Wellbeing</button>
+      </router-link>
     </div>
   </div>
 </template>
@@ -556,24 +549,10 @@ const submitFeedback = async () => {
 }
 
 const router = useRouter()
-const password = ref('')
-const correctPassword = 'your_password_here' // TODO: Replace with your real password
-const showPasswordInput = ref(false)
 
 onMounted(() => {
-  if (sessionStorage.getItem('authenticated') !== 'true') {
-    router.push({ name: 'password' })
-  }
+  // Authentication check removed - direct access now allowed
 })
-
-function checkPassword() {
-  if (password.value === correctPassword) {
-    localStorage.setItem('authenticated', 'true')
-    router.push('/')
-  } else {
-    alert('Incorrect password!')
-  }
-}
 </script>
 
 <style scoped>
@@ -1375,26 +1354,6 @@ section:not(:last-child)::after {
   margin-top: 1.5rem;
   font-style: italic;
   line-height: 1.5;
-}
-.password-protect {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4rem;
-}
-.password-protect input {
-  margin: 1rem 0;
-  padding: 0.5rem 1rem;
-  font-size: 1.1rem;
-}
-.password-protect button {
-  padding: 0.5rem 1.5rem;
-  font-size: 1.1rem;
-  background: #e573a6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
 }
 .rating-stats {
   margin: 1rem 0;
