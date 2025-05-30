@@ -30,3 +30,11 @@ Content creators are influential in shaping online discourse. When creators mode
 - Learn continuously: Stay informed about digital ethics, audience feedback, and emerging social issues.
 
 By understanding and acknowledging your impact, you contribute significantly to a healthier digital space, empowering others to engage thoughtfully and responsibly. 
+
+## References
+
+Danks, D. (2021). Digital Ethics as Translational Ethics. Advances in Human and Social Aspects of Technology, 13(2), 1–15. https://doi.org/10.4018/978-1-7998-8467-5.ch001
+
+Muhammad Anshar, & Andi Faridah Arsal. (2023). The Ethics of Digital Communication and Message Sharing on Social Media. Jurnal Komunikasi Islam, 13(2), 249–268. https://doi.org/10.15642/jki.2023.13.2.249-268
+
+Pramesti, O. L. (2023). Penerapan Etika Digital di Kalangan Content Creator TikTok. Mediator: Jurnal Komunikasi, 15(2), 236–248. https://doi.org/10.29313/mediator.v15i2.10460

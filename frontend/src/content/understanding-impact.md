@@ -17,3 +17,9 @@ Every creator holds ethical responsibility for the impact of their work. Before 
 ## Engaging Responsibly
 
 Engagement doesn't stop after posting. Active moderation, responding thoughtfully to feedback, and correcting misinformation are critical. Engaging with your audience constructively demonstrates digital citizenship, fostering a respectful community around your content. 
+
+## References
+
+Da, X. (2024). A Study of Audience Moral and Ethical Attitudes Toward AIGC-Generated News Content. Journal of Education, Humanities and Social Sciences, 45, 332–340. https://doi.org/10.54097/jst7w151
+
+Patalauskaitė, E. (2024). Ethical Aspects of Content Creation. Filosofija. Sociologija, 35(3). https://doi.org/10.6001/fil-soc.2024.35.3.14
